@@ -46,6 +46,7 @@ void ElemDiscHH_Base<TDomain>::set_diffusion(const char* fctName)
 }
 #endif
 
+
 //////// Velocity
 
 template<typename TDomain>

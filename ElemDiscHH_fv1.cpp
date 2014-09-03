@@ -8,6 +8,7 @@
  * from andreasvogel
  */
 
+#define _USE_MATH_DEFINES
 #include "ElemDiscHH_fv1.h"
 
 #include "lib_disc/spatial_disc/disc_util/geom_provider.h"
@@ -223,7 +224,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 			//std::cout << "before zeugs dass ich mache!" << std::endl;
 			//std::cout << "co: " << co << std::endl;
 			//std::cout << "VM: " << sol(_VM_, co) << "h: " << sol(_h_, co) << "m: " << sol(_m_, co)<< "n: " << sol(_n_, co) << std::endl;
-
+		// umwandlung der positionen muss für 3d noch geändert werden
 
 			J(_VM_, co, _VM_, co) += scv.volume() * ( 0.36*pow(sol(_n_,co),4)
 								+ 1.20*pow(sol(_m_,co),3)*sol(_h_,co) + 0.003);
@@ -295,39 +296,36 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 
 
+	// erstmal hils var fuer kapa und diam
+	double kapa = 1;
+	double diam = 10;
 
-	/*
+
 	// fluesse hier rein
 	std::cout << "add_jac_A_elem" << std::endl;
-// get finite volume geometry
-	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
-//	Diff. Tensor times Gradient
-	MathVector<dim> Dgrad;
 
-//	get conv shapes
-	const IConvectionShapes<dim>& convShape = get_updated_conv_shapes(geo);
 
 //	Diffusion and Velocity Term
-	if(m_imDiffusion.data_given() || m_imVelocity.data_given())
+	//if(m_imDiffusion.data_given() || m_imVelocity.data_given())
 	{
 	// 	loop Sub Control Volume Faces (SCVF)
 		for(size_t ip = 0; ip < geo.num_scvf(); ++ip)
 		{
 		// 	get current SCVF
 			const typename TFVGeom::SCVF& scvf = geo.scvf(ip);
-
+		// here we need diam and kapa questioning
 		////////////////////////////////////////////////////
 		// Diffusive Term
 		////////////////////////////////////////////////////
-			if(m_imDiffusion.data_given())
-			{
+
 				std::cout << "In Diffusion add jac" << std::endl;
 			// 	loop shape functions
 				for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
 				{
 					std::cout << "In Diffusion add jac  for schleife" << std::endl;
-				// 	Compute Diffusion Tensor times Gradient
+				// 	Compute cabel Equatation-Diffusion Tensor times Gradient
+					double cabel = kapa*2*diam*M_PI;
 					MatVecMult(Dgrad, m_imDiffusion[ip], scvf.global_grad(sh));
 
 				//	Compute flux at IP
@@ -337,12 +335,11 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 					UG_ASSERT((scvf.from() < J.num_row_dof(_VM_)) && (scvf.to() < J.num_col_dof(_VM_)),
 							  "Bad local dof-index on element with object-id " << elem->base_object_id()
 							  << " with center: " << CalculateCenter(elem, vCornerCoords));
-
+					std::cout << "cabel: " << cabel << std::endl;
 					std::cout << "D_diff_flux: " << D_diff_flux << std::endl;
-					J(_VM_, scvf.from(), _VM_, sh) -= 0; //D_diff_flux;
-					J(_VM_, scvf.to()  , _VM_, sh) += 0; //D_diff_flux;
+					J(_VM_, scvf.from(), _VM_, sh) -= D_diff_flux*cabel;
+					J(_VM_, scvf.to()  , _VM_, sh) += D_diff_flux*cabel;
 
-				}
 			}
 
 		////////////////////////////////////////////////////
@@ -364,9 +361,9 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 			}*/
 
 			// no explicit dependency on flux import
-	//	}
+		}
 	//	std::cout << "add Jac A l√§uft" << std::endl;
-	//}
+	}
 
 //	UG_LOG("Local Matrix is: \n"<<J<<"\n");
 
@@ -461,7 +458,9 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 	std::cout << "add_def_A_elem" << std::endl;
 
 
-
+// zum durchgehen der elemente
+	std::vector<DoFIndex> multInd;
+	//std::vector<position_type> vPos;
 
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
@@ -489,6 +488,31 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 				number dt = vLocSol.time(0) - vLocSol.time(1);
 				number time = vLocSol.time(0);
 
+				// umwandlung der positionen muss für 3d noch geändert werden
+				std::ostringstream stream_x;
+				stream_x << vCornerCoords[0];
+				std::string String_x = stream_x.str();
+				std::cout << "tests" << std::endl;
+				std::cout << String_x << std::endl;
+				size_t end = String_x.find(")",0);
+				size_t beg = 1;
+				std::string String_xx = String_x.substr(beg, end-1);
+				std::cout << String_xx << std::endl;
+				// hier kommt fehler
+				std::stringstream String_xxx;
+				number x;
+				String_xxx << String_xx;
+				String_xxx >> x;
+				std::cout << String_xxx << std::endl;
+				std::cout << x << std::endl;
+
+				//const LFEID& test = u.local_finite_element_id(0);
+				//const LocalVector& teser = u.lo
+				//InnerDoFPosition<TDomain>(vPos, elem, *m_spDomain, LFEID);
+				// hier punkt und sooo...
+				std::cout << "teser: " << vCornerCoords[0] << " umgewandelt: " << x << std::endl;
+				//std::cout << "vPos: " << vPos << std::endl;
+
 				//std::cout << "x-Wert: " << x << std::endl;
 
 				//std::cout << "solution ist doof: " << sol(_VM_,co) << "bei Zeitschritt: " << dt << "mit zweiter Loesung: "<< solnew(_VM_,co)<<std::endl;
@@ -507,9 +531,9 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 				double BetaHh = 1/(exp(3-0.1*sol(_VM_,co))+1);
 				// hier hab ich zuletzte dran gearbeitet...
 
-				double flux_m = ((AlphaHm * (1-sol(_m_,co)) - BetaHm * sol(_m_,co)))*dt;
-				double flux_h = ((AlphaHh * (1-sol(_h_,co)) - BetaHh * sol(_h_,co)))*dt;
-				double flux_n = ((AlphaHn * (1-sol(_n_,co)) - BetaHn * sol(_n_,co)))*dt;
+				double flux_m = ((AlphaHm * (1-sol(_m_,co)) - BetaHm * sol(_m_,co)));
+				double flux_h = ((AlphaHh * (1-sol(_h_,co)) - BetaHh * sol(_h_,co)));
+				double flux_n = ((AlphaHn * (1-sol(_n_,co)) - BetaHn * sol(_n_,co)));
 
 				//std::cout << "m: " << m_m << "h: " << m_h << "n: " << m_n << std::endl;
 				//std::cout << sol(_VM_,co) << std::endl;
@@ -531,14 +555,19 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 				const number sodium_part_of_flux =  1.20*pow(sol(_m_,co),3)*sol(_h_,co) * (sol(_VM_, co) - 50);
 				const number leakage_part_of_flux = 0.003*(sol(_VM_,co) + 54.4);
 				number inject = 0;
-				(*m_Injection)(inject, 1, time);
+				// laesst sich spaeter mit for schleife bezug auf dim loesen
+				std::cout << "Eig-XWert: " << vCornerCoords[0] << std::endl;
+				std::cout << "Eig-yWert: " << vCornerCoords[1] << std::endl;
+				std::cout << "Eig-zWert: " << vCornerCoords[2] << std::endl;
+				std::cout << "X-Wert: " << x << std::endl;
+				(*m_Injection)(inject, 2, time, x);
 
 
 				const number flux =   (//capacitive_part_of_flux +
 									 potassium_part_of_flux
 									+ sodium_part_of_flux
-									+ leakage_part_of_flux)*dt;
-									//- inject);
+									+ leakage_part_of_flux//);
+									- inject);
 				std::cout<< "Injection: " << inject << std::endl;
 				// fehler in defekt normal -inject/radius
 				d(_VM_, co) += scv.volume()*((flux)*((sol(_VM_,co)-(sol(_VM_, co)-(flux))))-inject); // * scv.volume; //scv.volume() * flux * 0.001;
@@ -557,15 +586,17 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 				std::cout << "defekt h: " << d(_h_, co) << "bei Loesung h: " << sol(_h_,co)<< std::endl;
 				std::cout << "defekt m: " << d(_m_, co) << "bei Loesung m: " << sol(_m_,co)<< std::endl;
 				std::cout << "defekt n: " << d(_n_, co) << "bei Loesung n: " << sol(_n_,co)<< std::endl;
-
+			}
 			// set source data
 			//scvf//m_imSource
-
+			for(size_t ip = 0; ip < geo.num_scvf(); ++ip)
+				{
+				// 	get current SCVF
+				const typename TFVGeom::SCVF& scvf = geo.scvf(ip);
 		/////////////////////////////////////////////////////
 		// Diffusive Term
 		/////////////////////////////////////////////////////
-			/*if(m_imDiffusion.data_given())
-			{
+
 			//	to compute D \nabla c
 				MathVector<dim> Dgrad_c, grad_c;
 
@@ -580,10 +611,10 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 			// 	Compute flux
 				const number diff_flux = VecDot(Dgrad_c, scvf.normal());
 				std::cout << "diff_flux: " << diff_flux << std::endl;
-			// 	Add to local defect// Ableitung kabelgleichung
-				d(_VM_, scvf.from()) -= 0;
-				d(_VM_, scvf.to()  ) += 0;
-			}*/
+			// 	Add to local defect
+				d(_VM_, scvf.from()) -= diff_flux;
+				d(_VM_, scvf.to()  ) += diff_flux;
+				std::cout << "defekt diff fluss: " << diff_flux << std::endl;
 
 
 
