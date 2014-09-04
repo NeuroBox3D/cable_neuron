@@ -248,6 +248,21 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 			double BetaHm1 = 4 * -0.556*exp(-0.556*sol(_VM_, co) + 3.614);
 			double AlphaHh1 = -0.05*0.07 *exp(0.05*sol(_VM_, co) + 3.25);
 			double BetaHh1 = -1*(1+exp(-0.1*sol(_VM_,co) -3.5))/pow((1+exp(-0.1*sol(_VM_, co) -3.5)),2);
+
+			double AlphaHn2 = (-0.01/(exp(1-0.1*(sol(_VM_,co) + 65))-1)
+					- (0.1 - 0.01*(sol(_VM_,co) + 65))*(-0.1*exp(1-0.1*(sol(_VM_,co) + 65)))/((exp(1-0.1*(sol(_VM_,co) + 65))-1)*(exp(1-0.1*(sol(_VM_,co) + 65))-1))
+					- (-0.01/(exp(1-0.1*(sol(_VM_,co) + 65))-1) - (0.1 - 0.01*(sol(_VM_,co) + 65))*(-0.1*exp(1-0.1*(sol(_VM_,co) + 65)))/((exp(1-0.1*(sol(_VM_,co) + 65))-1)*(exp(1-0.1*(sol(_VM_,co) + 65))-1))));
+			double BetaHn2 = 0.125/80.0*exp(-(sol(_VM_,co) + 65)/80);
+
+			double AlphaHm2 = (-0.1/(exp(2.5 - 0.1*(sol(_VM_,co) + 65)) -1) + exp((sol(_VM_,co) + 65)/10 - 2.5)*(2.5 - 0.1*(sol(_VM_,co) +65))*0.1/((exp(2.5 - 0.1*(sol(_VM_,co) + 65)) -1)*(exp(2.5 - 0.1*(sol(_VM_,co) + 65)) -1)) -
+					(-0.1/(exp(2.5 - 0.1*(sol(_VM_,co) + 65)) -1) + exp((sol(_VM_,co) + 65)/10 - 2.5)*(2.5 - 0.1*(sol(_VM_,co) +65))*0.1/((exp(2.5 - 0.1*(sol(_VM_,co) + 65)) -1)*(exp(2.5 - 0.1*(sol(_VM_,co) + 65)) -1))));
+			double BetaHm2 = -4.0/18*exp(-1*(sol(_VM_,co)+65)/18);
+
+			double AlphaHh2 = -0.07/20*exp(-1*(sol(_VM_,co) + 65)/20);
+
+			double BetaHh2 = (-0.07/20*exp(-1*(sol(_VM_,co) + 65)/20) +
+					 0.1*exp(3 - 0.1*(sol(_VM_,co) + 65))/((exp(3 - 0.1*(sol(_VM_,co) + 65)) + 1)*(exp(3 - 0.1*(sol(_VM_,co) + 65)) + 1)) );
+
 			// here we need f'
 			/*J(_h_, co, _h_, co) += scv.volume() * AlphaHh * (1-sol(_h_,co)) + BetaHh*(sol(_h_,co));
 			J(_m_, co, _m_, co) += scv.volume() * AlphaHm * (1-sol(_m_,co)) + BetaHm*(sol(_m_,co));
@@ -255,9 +270,12 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 			// kapa von 1 Wert nch volume
 			//J(_VM_, co, _VM_, co) += scv.volume() * (1 * 0.36*pow(sol(_n_,co),4) + 1.20*pow(sol(_m_,co),3)*sol(_h_,co) + 0.003);
 
-			/*J(_n_, co, _VM_, co) += scv.volume() *(AlphaHn1*sol(_n_,co) - BetaHn1*(sol(_n_, co)));
-			J(_m_, co, _VM_, co) += scv.volume() *(AlphaHm1*sol(_m_, co) - BetaHm1*(sol(_m_, co)));
-			J(_h_, co, _VM_, co) += scv.volume() *(AlphaHh1*sol(_h_, co) - BetaHh1*(sol(_h_, co)));*/
+			/*J(_n_, co, _VM_, co) += scv.volume() *((AlphaHn1 - BetaHn1)*(sol(_n_, co)));
+			J(_m_, co, _VM_, co) += scv.volume() *((AlphaHm1 - BetaHm1)*(sol(_m_, co)));
+			J(_h_, co, _VM_, co) += scv.volume() *((AlphaHh1 - BetaHh1)*(sol(_h_, co)));*/
+			J(_n_, co, _VM_, co) += scv.volume() *((AlphaHn2 - BetaHn2)*(sol(_n_, co)));
+			J(_m_, co, _VM_, co) += scv.volume() *((AlphaHm2 - BetaHm2)*(sol(_m_, co)));
+			J(_h_, co, _VM_, co) += scv.volume() *((AlphaHh2 - BetaHh2)*(sol(_h_, co)));
 			/*double m_m = sol(_m_,co) - 1/(AlphaHm+BetaHm);
 			double m_h = sol(_h_,co) - 1/(AlphaHh+BetaHh);
 			double m_n = sol(_n_,co) - 1/(AlphaHn+BetaHn);*/
@@ -523,7 +541,18 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 				long double BetaHm  = (4*exp(-0.0556*(sol(_VM_,co)+65)));
 				long double AlphaHh = (0.07*exp(-0.05*(sol(_VM_,co)+65)));
 				long double BetaHh  = (1/(1 + exp(-0.1*(sol(_VM_,co)+35))));*/
-				double AlphaHn = (0.1-0.01*sol(_VM_,co))/(exp(1-0.1*(sol(_VM_,co)))-1);
+
+				double AlphaHn;
+				double AlphaHn_test;
+				AlphaHn_test = 10.0 - (sol(_VM_,co) + 65.0);
+				if (fabs(AlphaHn_test) > 0.00001)
+				{
+					AlphaHn = (0.1-0.01*sol(_VM_,co))/(exp(1-0.1*(sol(_VM_,co)))-1);
+				} else {
+					AlphaHn = 0.1;
+				}
+
+
 				double BetaHn = 0.125*exp(sol(_VM_,co)/80);
 				double AlphaHm = (2.5 - 0.1*sol(_VM_,co))/(exp(2.5-0.1*sol(_VM_,co))-1);
 				double BetaHm = 4*exp(-1*sol(_VM_,co)/18);
