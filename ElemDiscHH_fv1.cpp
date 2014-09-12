@@ -220,17 +220,33 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		const LocalVector& sol = u;
 		std::cout<< "LocalVec in Jac_A working" << std::endl;
 
-		// 	Add to local matrix
-			//std::cout << "before zeugs dass ich mache!" << std::endl;
-			//std::cout << "co: " << co << std::endl;
-			//std::cout << "VM: " << sol(_VM_, co) << "h: " << sol(_h_, co) << "m: " << sol(_m_, co)<< "n: " << sol(_n_, co) << std::endl;
-		// umwandlung der positionen muss fŸr 3d noch geŠndert werden
+		const LocalVectorTimeSeries& vLocSol = *this->local_time_solutions();
+	//	remember local solutions
+		number dt = vLocSol.time(0) - vLocSol.time(1);
+		//number time = vLocSol.time(0);
 
-			J(_VM_, co, _VM_, co) += scv.volume() * ( 0.36*pow(sol(_n_,co),4)
-								+ 1.20*pow(sol(_m_,co),3)*sol(_h_,co) + 0.003);
-
-			double AlphaHn = (0.1-0.01*sol(_VM_,co))/(exp(1-0.1*(sol(_VM_,co)))-1);
+			J(_VM_, co, _VM_, co) += scv.volume() * ( 36*pow(sol(_n_,co),4)
+								+ 120*pow(sol(_m_,co),3)*sol(_h_,co) + 0.3);
+			double AlphaHn;
+			double AlphaHn_test;
+			AlphaHn_test = (exp(1-0.1*(sol(_VM_,co)))-1);
+			if (fabs(AlphaHn_test) > 0.00001)
+			{
+				AlphaHn = (0.1-0.01*sol(_VM_,co))/(exp(1-0.1*(sol(_VM_,co)))-1);
+			} else {
+				AlphaHn = 0.1;
+			}
+;
 			double BetaHn = 0.125*exp(sol(_VM_,co)/80);
+			/*double AlphaHm;
+			double AlphaHm_test;
+			AlphaHm_test = 25.0 - (sol(_VM_,co) + 65.0);
+			if (fabs(AlphaHm_test)>0.00001)
+			{
+				AlphaHm = (2.5 - 0.1*sol(_VM_,co))/(exp(2.5-0.1*sol(_VM_,co))-1);
+			} else {
+				AlphaHm = 1.0;
+			}*/
 			double AlphaHm = (2.5 - 0.1*sol(_VM_,co))/(exp(2.5-0.1*sol(_VM_,co))-1);
 			double BetaHm = 4*exp(-1*sol(_VM_,co)/18);
 			double AlphaHh = 0.07*exp(-1*sol(_VM_,co)/20);
@@ -242,12 +258,12 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 			long double AlphaHh = (0.07*exp(-0.05*(sol(_VM_,co)+65)));
 			long double BetaHh  = (1/(1 + exp(-0.1*(sol(_VM_,co)+35))));*/
 			//Ableitungen nach VM
-			double AlphaHn1 = (0.01*(1-exp(-0.1*sol(_VM_,co) -5.5)) - (0.01*sol(_VM_,co) +0.55)*(0.1*exp(0.1*sol(_VM_,co)-5.5)))/(pow((1-exp(-0.1*sol(_VM_,co)-5.5)),2));
+			/*double AlphaHn1 = (0.01*(1-exp(-0.1*sol(_VM_,co) -5.5)) - (0.01*sol(_VM_,co) +0.55)*(0.1*exp(0.1*sol(_VM_,co)-5.5)))/(pow((1-exp(-0.1*sol(_VM_,co)-5.5)),2));
 			double BetaHn1 = 0.125 * -0.0125 * (exp(0.0125*sol(_VM_,co) - 0.8125));
 			double AlphaHm1 = ((0.1*(1-exp(-0.1*sol(_VM_, co) + 4))) - ((0.1*sol(_VM_, co) + 4)*(0.1*exp(-0.1*sol(_VM_, co) + 4 ))))/pow((1-exp(-0.1*sol(_VM_, co) + 4)),2);
 			double BetaHm1 = 4 * -0.556*exp(-0.556*sol(_VM_, co) + 3.614);
 			double AlphaHh1 = -0.05*0.07 *exp(0.05*sol(_VM_, co) + 3.25);
-			double BetaHh1 = -1*(1+exp(-0.1*sol(_VM_,co) -3.5))/pow((1+exp(-0.1*sol(_VM_, co) -3.5)),2);
+			double BetaHh1 = -1*(1+exp(-0.1*sol(_VM_,co) -3.5))/pow((1+exp(-0.1*sol(_VM_, co) -3.5)),2);*/
 
 			double AlphaHn2 = (-0.01/(exp(1-0.1*(sol(_VM_,co) + 65))-1)
 					- (0.1 - 0.01*(sol(_VM_,co) + 65))*(-0.1*exp(1-0.1*(sol(_VM_,co) + 65)))/((exp(1-0.1*(sol(_VM_,co) + 65))-1)*(exp(1-0.1*(sol(_VM_,co) + 65))-1))
@@ -262,6 +278,14 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 			double BetaHh2 = (-0.07/20*exp(-1*(sol(_VM_,co) + 65)/20) +
 					 0.1*exp(3 - 0.1*(sol(_VM_,co) + 65))/((exp(3 - 0.1*(sol(_VM_,co) + 65)) + 1)*(exp(3 - 0.1*(sol(_VM_,co) + 65)) + 1)) );
+
+
+			/*double AlphaHn3 = (0.01*(1-exp(-0.1*sol(_VM_,co) -5.5)) - (0.01*sol(_VM_,co) +0.55)*(0.1*exp(0.1*sol(_VM_,co)-5.5)))/(pow((1-exp(-0.1*sol(_VM_,co)-5.5)),2));
+			double BetaHn3 = 0.125 * -0.0125 * (exp(0.0125*sol(_VM_,co) - 0.8125));
+			double AlphaHm3 = ((0.1*(1-exp(-0.1*sol(_VM_, co) + 4))) - ((0.1*sol(_VM_, co) + 4)*(0.1*exp(-0.1*sol(_VM_, co) + 4 ))))/pow((1-exp(-0.1*sol(_VM_, co) + 4)),2);
+			double BetaHm3 = 4 * -0.556*exp(-0.556*sol(_VM_, co) + 3.614);
+			double AlphaHh3 = -0.05*0.07 *exp(0.05*sol(_VM_, co) + 3.25);
+			double BetaHh3 = -1*(1+exp(-0.1*sol(_VM_,co) -3.5))/pow((1+exp(-0.1*sol(_VM_, co) -3.5)),2);*/
 
 			// here we need f'
 			/*J(_h_, co, _h_, co) += scv.volume() * AlphaHh * (1-sol(_h_,co)) + BetaHh*(sol(_h_,co));
@@ -279,11 +303,11 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 			/*double m_m = sol(_m_,co) - 1/(AlphaHm+BetaHm);
 			double m_h = sol(_h_,co) - 1/(AlphaHh+BetaHh);
 			double m_n = sol(_n_,co) - 1/(AlphaHn+BetaHn);*/
-			J(_VM_, co, _n_, co) += scv.volume() * 0.36*4*pow(sol(_n_,co),3)*(sol(_VM_,co) + 77 );
+			J(_VM_, co, _n_, co) += scv.volume() * 36*4*pow(sol(_n_,co),3)*(sol(_VM_,co) + 77 );
 
-			J(_VM_, co, _m_, co) += scv.volume() * 1.20*3*pow(sol(_m_,co),2)*sol(_h_,co)*(sol(_VM_, co) - 50);
+			J(_VM_, co, _m_, co) += scv.volume() * 120*3*pow(sol(_m_,co),2)*sol(_h_,co)*(sol(_VM_, co) - 50);
 
-			J(_VM_, co, _h_, co) += scv.volume() * ( 1.20*pow(sol(_m_,co),3)*(sol(_VM_, co)- 50));
+			J(_VM_, co, _h_, co) += scv.volume() * ( 120*pow(sol(_m_,co),3)*(sol(_VM_, co)- 50));
 
 			// here we need f' ableitungen nach einzelnen kompos
 			/*J(_h_, co, _h_, co) += scv.volume() * m_h;
@@ -305,7 +329,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 			J(_h_, co, _h_, co) += scv.volume() * ( 1.20*pow(sol(_m_,co),3)*(sol(_VM_, co)- 50));*/
 
-			std::cout << "volume: " << scv.volume() << std::endl;
+			//std::cout << "volume: " << scv.volume() << std::endl;
 	}
 
 
@@ -355,8 +379,8 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 							  << " with center: " << CalculateCenter(elem, vCornerCoords));
 					std::cout << "cabel: " << cabel << std::endl;
 					std::cout << "D_diff_flux: " << D_diff_flux << std::endl;
-					J(_VM_, scvf.from(), _VM_, sh) -= D_diff_flux*cabel;
-					J(_VM_, scvf.to()  , _VM_, sh) += D_diff_flux*cabel;
+					J(_VM_, scvf.from(), _VM_, sh) -= D_diff_flux;//*cabel;
+					J(_VM_, scvf.to()  , _VM_, sh) += D_diff_flux;//*cabel;
 
 			}
 
@@ -427,7 +451,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		std::cout<< "Volumen: " << scv.volume() << std::endl;*/
 	//}*/
 	//std::cout << "second addj is not working" << std::endl;
-	std::cout << "Jacobi: " << J << std::endl;
+	//std::cout << "Jacobi: " << J << std::endl;
 //	reaction term does not explicitly depend on the associated unknown function
 }
 
@@ -510,19 +534,19 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 				std::ostringstream stream_x;
 				stream_x << vCornerCoords[0];
 				std::string String_x = stream_x.str();
-				std::cout << "tests" << std::endl;
-				std::cout << String_x << std::endl;
+				/*std::cout << "tests" << std::endl;
+				std::cout << String_x << std::endl;*/
 				size_t end = String_x.find(")",0);
 				size_t beg = 1;
 				std::string String_xx = String_x.substr(beg, end-1);
-				std::cout << String_xx << std::endl;
+				//std::cout << String_xx << std::endl;
 				// hier kommt fehler
 				std::stringstream String_xxx;
 				number x;
 				String_xxx << String_xx;
 				String_xxx >> x;
-				std::cout << String_xxx << std::endl;
-				std::cout << x << std::endl;
+				//std::cout << String_xxx << std::endl;
+				//std::cout << x << std::endl;
 
 				//const LFEID& test = u.local_finite_element_id(0);
 				//const LocalVector& teser = u.lo
@@ -544,7 +568,7 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 
 				double AlphaHn;
 				double AlphaHn_test;
-				AlphaHn_test = 10.0 - (sol(_VM_,co) + 65.0);
+				AlphaHn_test = (exp(1-0.1*(sol(_VM_,co)))-1);
 				if (fabs(AlphaHn_test) > 0.00001)
 				{
 					AlphaHn = (0.1-0.01*sol(_VM_,co))/(exp(1-0.1*(sol(_VM_,co)))-1);
@@ -554,21 +578,27 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 
 
 				double BetaHn = 0.125*exp(sol(_VM_,co)/80);
+				/*double AlphaHm;
+				double AlphaHm_test;
+				AlphaHm_test = 25.0 - (sol(_VM_,co) + 65.0);
+				if (fabs(AlphaHm_test)<0.00001)
+				{
+					AlphaHm = (2.5 - 0.1*sol(_VM_,co))/(exp(2.5-0.1*sol(_VM_,co))-1);
+				} else {
+					AlphaHm = 0.001;
+				}*/
 				double AlphaHm = (2.5 - 0.1*sol(_VM_,co))/(exp(2.5-0.1*sol(_VM_,co))-1);
 				double BetaHm = 4*exp(-1*sol(_VM_,co)/18);
 				double AlphaHh = 0.07*exp(-1*sol(_VM_,co)/20);
 				double BetaHh = 1/(exp(3-0.1*sol(_VM_,co))+1);
-				// hier hab ich zuletzte dran gearbeitet...
 
-				double flux_m = ((AlphaHm * (1-sol(_m_,co)) - BetaHm * sol(_m_,co)));
-				double flux_h = ((AlphaHh * (1-sol(_h_,co)) - BetaHh * sol(_h_,co)));
-				double flux_n = ((AlphaHn * (1-sol(_n_,co)) - BetaHn * sol(_n_,co)));
+				double flux_m = ((AlphaHm * (1-sol(_m_,co))) - BetaHm * sol(_m_,co));
+				double flux_h = ((AlphaHh * (1-sol(_h_,co))) - BetaHh * sol(_h_,co));
+				double flux_n = ((AlphaHn * (1-sol(_n_,co))) - BetaHn * sol(_n_,co));
 
 				//std::cout << "m: " << m_m << "h: " << m_h << "n: " << m_n << std::endl;
 				//std::cout << sol(_VM_,co) << std::endl;
-				std::cout << "A/B-Hn: " << AlphaHn <<" " << BetaHn<< std::endl;
-				std::cout << "A/B-Hm: " << AlphaHm <<" " << BetaHm<< std::endl;
-				std::cout << "A/B-Hh: " << AlphaHh <<" " << BetaHh<< std::endl;
+
 				//d(_h_, co) += scv.volume() * AlphaHh * (1-sol(_h_,co)) - BetaHh*(sol(_h_,co));
 
 
@@ -579,43 +609,53 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 				// capazitÃ¤t erstmal nicht benutzen in diesem fall nur im ersten wert
 				//const number capacitive_part_of_flux = m_capacity * ( sol(_VM_, co) - oldSol(_VM_, co) ) / 0.01 ;
 
-				//const number capacitive_part_of_flux = 1 * ( solnew(_VM_, co) - sol(_VM_, co) ) / dt ;
-				const number potassium_part_of_flux = 0.36*pow(sol(_n_,co),4)*(sol(_VM_,co) + 77);
-				const number sodium_part_of_flux =  1.20*pow(sol(_m_,co),3)*sol(_h_,co) * (sol(_VM_, co) - 50);
-				const number leakage_part_of_flux = 0.003*(sol(_VM_,co) + 54.4);
+				//const number capacitive_part_of_flux = 1 * ( sol(_VM_, co) - solnew(_VM_, co) ) / dt ;
+				const number potassium_part_of_flux = 36*pow(sol(_n_,co),4)*(sol(_VM_,co) + 77);
+				const number sodium_part_of_flux =  120*pow(sol(_m_,co),3)*sol(_h_,co) * (sol(_VM_, co) - 50);
+				const number leakage_part_of_flux = 0.3*(sol(_VM_,co) + 54.4);
 				number inject = 0;
 				// laesst sich spaeter mit for schleife bezug auf dim loesen
-				std::cout << "Eig-XWert: " << vCornerCoords[0] << std::endl;
+				/*std::cout << "Eig-XWert: " << vCornerCoords[0] << std::endl;
 				std::cout << "Eig-yWert: " << vCornerCoords[1] << std::endl;
-				std::cout << "Eig-zWert: " << vCornerCoords[2] << std::endl;
+				std::cout << "Eig-zWert: " << vCornerCoords[2] << std::endl;*/
 				std::cout << "X-Wert: " << x << std::endl;
+				// this works only in 1D
 				(*m_Injection)(inject, 2, time, x);
 
 
 				const number flux =   (//capacitive_part_of_flux +
 									 potassium_part_of_flux
 									+ sodium_part_of_flux
-									+ leakage_part_of_flux//);
-									- inject);
-				std::cout<< "Injection: " << inject << std::endl;
+									+ leakage_part_of_flux);
+									//- inject);
+				//std::cout<< "Injection: " << inject << std::endl;
 				// fehler in defekt normal -inject/radius
-				d(_VM_, co) += scv.volume()*((flux)*((sol(_VM_,co)-(sol(_VM_, co)-(flux))))-inject); // * scv.volume; //scv.volume() * flux * 0.001;
+				d(_VM_, co) += scv.volume()*(flux-(inject)); // * scv.volume; //scv.volume() * flux * 0.001;
 				//value1 = flux;
 				//std::cout << "defekt: " << d(_VM_, co) << std::endl;
 				d(_h_, co) += scv.volume()*flux_h;//*((sol(_h_,co)-sol(_h_,co)-flux_h));//-valueh);
 				d(_m_, co) += scv.volume()*flux_m;//flux_m;//*((sol(_m_,co)-sol(_m_,co)-flux_m));//-valuem);//0;
 				d(_n_, co) += scv.volume()*flux_n;//*((sol(_n_,co)-sol(_n_,co)-flux_n));//-valuen);
 				//
+
 				//std::cout << "volumen*flux: " << (scv.volume() *flux) << std::endl;
-				number valueh = flux_h;
+				/*number valueh = flux_h;
 				number valuem = flux_m;
-				number valuen = flux_n;
-				std::cout << "flux: " << flux << std::endl;
-				std::cout << "defekt VM: " << d(_VM_, co) << "bei Loesung: " << sol(_VM_,co) << std::endl;
-				std::cout << "defekt h: " << d(_h_, co) << "bei Loesung h: " << sol(_h_,co)<< std::endl;
-				std::cout << "defekt m: " << d(_m_, co) << "bei Loesung m: " << sol(_m_,co)<< std::endl;
-				std::cout << "defekt n: " << d(_n_, co) << "bei Loesung n: " << sol(_n_,co)<< std::endl;
+				number valuen = flux_n;*/
+				//if (x == 0.5) {
+					std::cout << "flux: " << flux << std::endl;
+					std::cout << "defekt VM: " << d(_VM_, co) << "bei Loesung: " << sol(_VM_,co) << std::endl;
+					std::cout << "defekt h: " << d(_h_, co) << "bei Loesung h: " << sol(_h_,co)<< std::endl;
+					std::cout << "defekt m: " << d(_m_, co) << "bei Loesung m: " << sol(_m_,co)<< std::endl;
+					std::cout << "defekt n: " << d(_n_, co) << "bei Loesung n: " << sol(_n_,co)<< std::endl;
+					std::cout << "A/B-Hn: " << AlphaHn <<" " << BetaHn<< std::endl;
+					std::cout << "A/B-Hm: " << AlphaHm <<" " << BetaHm<< std::endl;
+					std::cout << "A/B-Hh: " << AlphaHh <<" " << BetaHh<< std::endl;
+				//}
 			}
+		// erstmal hils var fuer kapa und diam
+		double kapa = 1;
+		double diam = 10;
 			// set source data
 			//scvf//m_imSource
 			for(size_t ip = 0; ip < geo.num_scvf(); ++ip)
@@ -638,16 +678,22 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 				MatVecMult(Dgrad_c, m_imDiffusion[ip], grad_c);
 
 			// 	Compute flux
+				double cabel = kapa*2*diam*M_PI;
 				const number diff_flux = VecDot(Dgrad_c, scvf.normal());
 				std::cout << "diff_flux: " << diff_flux << std::endl;
 			// 	Add to local defect
-				d(_VM_, scvf.from()) -= diff_flux;
-				d(_VM_, scvf.to()  ) += diff_flux;
+				d(_VM_, scvf.from()) -= diff_flux;//*cabel;
+				d(_VM_, scvf.to()  ) += diff_flux;//*cabel;
 				std::cout << "defekt diff fluss: " << diff_flux << std::endl;
 
 
 
 	}
+
+
+
+
+
 
 }
 
@@ -732,59 +778,36 @@ template<typename TElem, typename TFVGeom>
 void ElemDiscHH_FV1<TDomain>::
 add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
-	std::cout << "add_rhs_elem" << std::endl;
 
 	// get finite volume geometry
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
-	/*
+
 	// loop Sub Control Volumes (SCV)
-	// Quellterme fuer spannung
-	// source daten werden nicht gegeben sondern hier berechnet!
-	//if ( m_imSource.data_given() ) {*/
+	if ( m_imSource.data_given() ) {
+		std::cout << "source given true" << std::endl;
 		for ( size_t ip = 0; ip < geo.num_scv(); ++ip ) {
 			// get current SCV
 			const typename TFVGeom::SCV& scv = geo.scv( ip );
 
 			// get associated node
 			const int co = scv.node_id();
-			// help vars
-			const LocalVectorTimeSeries& vLocSol = *this->local_time_solutions();
-			const LocalVector& sol = vLocSol.solution(0);
 
-			/*double AlphaHn = ((0.01*(sol(_VM_,co) + 55))/(1-exp(-0.1*(sol(_VM_,co)+55))));
-			double BetaHn  = ((0.125*exp(-0.0125*(sol(_VM_, co)+65))));
-			double AlphaHm = ((0.1*(sol(_VM_,co)+40))/(1-exp(-0.1*(sol(_VM_,co)+40))));
-			double BetaHm  = (4*exp(-0.0556*(sol(_VM_,co)+65)));
-			double AlphaHh = (0.07*exp(-0.05*(sol(_VM_,co)+65)));
-			double BetaHh  = (1/(1 + exp(-0.1*(sol(_VM_,co)+35))));
-			// Add to local rhs here you could give some source data for VM
-			d(_h_, co) += scv.volume() * AlphaHh * (1-sol(_h_,co)) - BetaHh*(sol(_h_,co));
-			d(_m_, co) += scv.volume() * AlphaHm * (1-sol(_m_,co)) - BetaHm*(sol(_m_,co));
-			d(_n_, co) += scv.volume() * AlphaHn * (1-sol(_n_,co)) - BetaHn*(sol(_n_,co));
-			std::cout<< "first source data given" << std::endl;
-			std::cout << "h: "<< d(_h_, co) << std::endl;
-			//d(_VM_, co) +=  * scv.volume();
-		//}
+			// Add to local rhs
+			d(_VM_, co) += m_imSource[ip] * scv.volume();
+		}
 	}
 
 	// loop Sub Control Volumes (SCVF)
-	//if ( m_imVectorSource.data_given() ) {
-		double test = -0.1;
-		ug::MathVector<dim> v;
-		// 1er vector bauen
-		v = test;*/
+	if ( m_imVectorSource.data_given() ) {
+		for ( size_t ip = 0; ip < geo.num_scvf(); ++ip ) {
+			// get current SCVF
+			const typename TFVGeom::SCVF& scvf = geo.scvf( ip );
+			std::cout << "vektor source given true" << std::endl;
 
-
-			if ( m_imVectorSource.data_given() ) {
-				for ( size_t ip = 0; ip < geo.num_scvf(); ++ip ) {
-					// get current SCVF
-					const typename TFVGeom::SCVF& scvf = geo.scvf( ip );
-
-					// Add to local rhs
-					d(_VM_, scvf.from()) -= VecDot(m_imVectorSource[ip], scvf.normal() );
-					d(_VM_, scvf.to()  ) += VecDot(m_imVectorSource[ip], scvf.normal() );
-				}
-			}
+			// Add to local rhs
+			d(_VM_, scvf.from()) += VecDot(m_imVectorSource[ip], scvf.normal() );
+			d(_VM_, scvf.to()  ) -= VecDot(m_imVectorSource[ip], scvf.normal() );
+		}
 	}
 }
 
@@ -1714,7 +1737,7 @@ get_updated_conv_shapes(const FVGeometryBase& geo)
 		{
 			UG_LOG("ERROR in 'ElemDiscHHFV1::add_jac_A_elem': "
 					"Cannot compute convection shapes.\n");
-		}
+		} else {std::cout << "update done" << std::endl;}
 	}
 
 //	return a const (!!) reference to the upwind
