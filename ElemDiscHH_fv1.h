@@ -17,36 +17,10 @@
 
 namespace ug{
 
-// \ingroup lib_disc_elem_disc
-/// \addtogroup convection_diffusion
-/// \{
 
-/// Discretization for the Convection-Diffusion Equation
-/**
- * This class implements the IElemDisc interface to provide element local
- * assemblings for the convection diffusion equation.
- * The Equation has the form
- * \f[
- * 	\partial_t (m1*c + m2) - \nabla \left( D \nabla c - \vec{v} c \right - \vec{F}) +
- * 		r1 \cdot c + r2 = f + f2
- * \f]
- * with
- * <ul>
- * <li>	\f$ c \f$ is the unknown solution
- * <li>	\f$ m1 \equiv m(\vec{x},t) \f$ is the Mass Scaling Term
- * <li>	\f$ m2 \equiv m(\vec{x},t) \f$ is the Mass Term
- * <li>	\f$ D \equiv D(\vec{x},t) \f$ is the Diffusion Tensor
- * <li>	\f$ v \equiv \vec{v}(\vec{x},t) \f$ is the Velocity Field
- * <li>	\f$ F \equiv \vec{F}(\vec{x},t) \f$ is the Flux
- * <li>	\f$ r1 \equiv r(\vec{x},t) \f$ is the Reaction Rate
- * <li>	\f$ r2 \equiv r(\vec{x},t) \f$ is a Reaction Term
- * <li>	\f$ f \equiv f(\vec{x},t) \f$ is a Source Term
- * <li> \f$ f2 \equiv f_2(\vec{x},t) \f$ is a Vector Source Term
- * </ul>
- *
- * \tparam	TDomain		Domain
- * \tparam	TAlgebra	Algebra
- */
+#define DIAM_CONST 1e-4
+
+
 template<	typename TDomain>
 class ElemDiscHH_FV1 : public ElemDiscHH_Base<TDomain>
 {
