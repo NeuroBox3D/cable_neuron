@@ -204,7 +204,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
 	//	Diff. Tensor times Gradient
-		MathVector<dim> Dgrad;
+		MathVector<dim> Dgrad, grad_c, Dgrad_c;
 
 	//	get conv shapes
 		const IConvectionShapes<dim>& convShape = get_updated_conv_shapes(geo);
@@ -343,8 +343,9 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 
 	// erstmal hils var fuer kapa und diam
-	double spec_capacity = 1.0;
-	double pre_resistence = 0;
+	double spec_resistance = 1.0;
+	double pre_resistance = 0;
+
 
 
 	// fluesse hier rein
@@ -352,9 +353,6 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 
 
-//	Diffusion and Velocity Term
-	//if(m_imDiffusion.data_given() || m_imVelocity.data_given())
-	{
 	// 	loop Sub Control Volume Faces (SCVF)
 		for(size_t ip = 0; ip < geo.num_scvf(); ++ip)
 		{
@@ -364,12 +362,12 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		////////////////////////////////////////////////////
 		// Diffusive Term
 		////////////////////////////////////////////////////
-
+			const typename TFVGeom::SCV& scv = geo.scv(ip);
 			std::cout << "In Diffusion add jac" << std::endl;
 				// 	loop shape functions
 				for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
 				{
-
+					// bei ableitung muesste ja aus u VM 1 werden
 					pre_resistance += scv.volume() / (0.25*PI*DIAM_CONST*DIAM_CONST);
 					VecScaleAppend(grad_c, u(_VM_,sh), scvf.global_grad(sh));
 
@@ -384,7 +382,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 					UG_ASSERT((scvf.from() < J.num_row_dof(_VM_)) && (scvf.to() < J.num_col_dof(_VM_)),
 							  "Bad local dof-index on element with object-id " << elem->base_object_id()
 							  << " with center: " << CalculateCenter(elem, vCornerCoords));
-					std::cout << "cabel: " << cabel << std::endl;
+
 					std::cout << "D_diff_flux: " << D_diff_flux << std::endl;
 					J(_VM_, scvf.from(), _VM_, sh) -= D_diff_flux;
 					J(_VM_, scvf.to()  , _VM_, sh) += D_diff_flux;
