@@ -210,12 +210,16 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		const IConvectionShapes<dim>& convShape = get_updated_conv_shapes(geo);
 
 
+
+		double element_length = 0.0;
+
 	for(size_t ip = 0; ip < geo.num_scv(); ++ip)
 	{
-	// 	get current SCVF
+	// 	get current SCV
 		const typename TFVGeom::SCV& scv = geo.scv(ip);
 
 		const int co = scv.node_id();
+		element_length += scv.volume();
 		// 	getting local values
 		const LocalVector& sol = u;
 		std::cout<< "LocalVec in Jac_A working" << std::endl;
@@ -339,8 +343,8 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 
 	// erstmal hils var fuer kapa und diam
-	double kapa = 1;
-	double diam = 10;
+	double spec_capacity = 1.0;
+	double pre_resistence = 0;
 
 
 	// fluesse hier rein
@@ -361,17 +365,20 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		// Diffusive Term
 		////////////////////////////////////////////////////
 
-				std::cout << "In Diffusion add jac" << std::endl;
-			// 	loop shape functions
+			std::cout << "In Diffusion add jac" << std::endl;
+				// 	loop shape functions
 				for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
 				{
-					std::cout << "In Diffusion add jac  for schleife" << std::endl;
-				// 	Compute cabel Equatation-Diffusion Tensor times Gradient
-					double cabel = kapa*2*diam*M_PI;
-					MatVecMult(Dgrad, m_imDiffusion[ip], scvf.global_grad(sh));
 
-				//	Compute flux at IP
-					const number D_diff_flux = VecDot(Dgrad, scvf.normal());
+					pre_resistance += scv.volume() / (0.25*PI*DIAM_CONST*DIAM_CONST);
+					VecScaleAppend(grad_c, u(_VM_,sh), scvf.global_grad(sh));
+
+					//	scale by length of element
+					MatVecMult(Dgrad_c, element_length, grad_c);
+					const number D_diff_flux = VecDot(Dgrad_c, scvf.normal());
+
+					// 	scale by 1/resistance
+					D_diff_flux /= spec_resistance*pre_resistance;
 
 				// 	Add flux term to local matrix // HIER MATRIXINDIZES!!!
 					UG_ASSERT((scvf.from() < J.num_row_dof(_VM_)) && (scvf.to() < J.num_col_dof(_VM_)),
@@ -379,80 +386,11 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 							  << " with center: " << CalculateCenter(elem, vCornerCoords));
 					std::cout << "cabel: " << cabel << std::endl;
 					std::cout << "D_diff_flux: " << D_diff_flux << std::endl;
-					J(_VM_, scvf.from(), _VM_, sh) -= D_diff_flux;//*cabel;
-					J(_VM_, scvf.to()  , _VM_, sh) += D_diff_flux;//*cabel;
-
+					J(_VM_, scvf.from(), _VM_, sh) -= D_diff_flux;
+					J(_VM_, scvf.to()  , _VM_, sh) += D_diff_flux;
 			}
-
-		////////////////////////////////////////////////////
-		// Convective Term (not used)
-		////////////////////////////////////////////////////
-			/*if(m_imVelocity.data_given())
-			{
-				std::cout << "In Velocity add jac" << std::endl;
-			//	Add Flux contribution
-				for(size_t sh = 0; sh < convShape.num_sh(); ++sh)
-				{
-					const number D_conv_flux = convShape(ip, sh);
-
-				//	Add flux term to local matrix
-					// zu testzweicken null gesetzt
-					J(_VM_, scvf.from(), _VM_, sh) += D_conv_flux;
-					J(_VM_, scvf.to(),   _VM_, sh) -= D_conv_flux;
-				}
-			}*/
-
-			// no explicit dependency on flux import
 		}
-	//	std::cout << "add Jac A l��uft" << std::endl;
-	}
 
-//	UG_LOG("Local Matrix is: \n"<<J<<"\n");
-
-////////////////////////////////////////////////////
-// Reaction Term (using lumping)
-////////////////////////////////////////////////////
-	// not in for loop
-	/*const LocalVectorTimeSeries& vLocSol = *this->local_time_solutions();
-	std::cout<< "LocalVTS working! " << std::endl;
-	std::cout<< vLocSol.size() << std::endl;
-	std::cout<< "Loesungen in U: "<< u << std::endl;
-	// Fehler
-
-	const LocalVector& sol = vLocSol.solution(0);
-	std::cout<< "LocalVec working! " << std::endl;
-
-// 	loop Sub Control Volume (SCV)
-	for(size_t ip = 0; ip < geo.num_scv(); ++ip)
-	{
-	// 	get current SCV
-		const typename TFVGeom::SCV& scv = geo.scv(ip);
-		std::cout<< "scv Working! " << std::endl;
-	// 	get associated node
-		const int co = scv.node_id();
-		std::cout<< "co Working! " << std::endl;
-
-
-
-
-
-	// 	Add to local matrix
-		std::cout << "before zeugs dass ich mache!" << std::endl;
-		double AlphaHn = ((0.01*(sol(_VM_,co) + 55))/(1-exp(-0.1*(sol(_VM_,co)+55))));
-		double BetaHn  = ((0.125*exp(-0.0125*(sol(_VM_, co)+65))));
-		double AlphaHm = ((0.1*(sol(_VM_,co)+40))/(1-exp(-0.1*(sol(_VM_,co)+40))));
-		double BetaHm  = (4*exp(-0.0556*(sol(_VM_,co)+65)));
-		double AlphaHh = (0.07*exp(-0.05*(sol(_VM_,co)+65)));
-		double BetaHh  = (1/(1 + exp(-0.1*(sol(_VM_,co)+35))));
-		J(_h_, co, _h_, co) += scv.volume() * AlphaHh * (1-sol(_h_,co)) - BetaHh*(sol(_h_,co));
-		J(_m_, co, _m_, co) += scv.volume() * AlphaHm * (1-sol(_m_,co)) - BetaHm*(sol(_m_,co));
-		J(_n_, co, _n_, co) += scv.volume() * AlphaHn * (1-sol(_n_,co)) - BetaHn*(sol(_n_,co));
-		J(_VM_, co, _VM_, co) += scv.volume() * 2;
-		std::cout<< "Volumen: " << scv.volume() << std::endl;*/
-	//}*/
-	//std::cout << "second addj is not working" << std::endl;
-	//std::cout << "Jacobi: " << J << std::endl;
-//	reaction term does not explicitly depend on the associated unknown function
 }
 
 
@@ -509,10 +447,6 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 
 //	get conv shapes
 	const IConvectionShapes<dim>& convShape = get_updated_conv_shapes(geo);
-	number value1 = 0;
-	number valueh = 0;
-	number valuem = 0;
-	number valuen = 0;
 
 	double element_length = 0.0;
 	double pre_resistance = 0.0;
@@ -588,15 +522,6 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 
 
 		double BetaHn = 0.125*exp(sol(_VM_,co)/80);
-		/*double AlphaHm;
-		double AlphaHm_test;
-		AlphaHm_test = 25.0 - (sol(_VM_,co) + 65.0);
-		if (fabs(AlphaHm_test)<0.00001)
-		{
-			AlphaHm = (2.5 - 0.1*sol(_VM_,co))/(exp(2.5-0.1*sol(_VM_,co))-1);
-		} else {
-			AlphaHm = 0.001;
-		}*/
 		double AlphaHm = (2.5 - 0.1*sol(_VM_,co))/(exp(2.5-0.1*sol(_VM_,co))-1);
 		double BetaHm = 4*exp(-1*sol(_VM_,co)/18);
 		double AlphaHh = 0.07*exp(-1*sol(_VM_,co)/20);
@@ -619,7 +544,6 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		// capazit��t erstmal nicht benutzen in diesem fall nur im ersten wert
 		//const number capacitive_part_of_flux = m_capacity * ( sol(_VM_, co) - oldSol(_VM_, co) ) / 0.01 ;
 
-		//const number capacitive_part_of_flux = 1 * ( sol(_VM_, co) - solnew(_VM_, co) ) / dt ;
 		const number potassium_part_of_flux = 36*pow(sol(_n_,co),4)*(sol(_VM_,co) + 77);
 		const number sodium_part_of_flux =  120*pow(sol(_m_,co),3)*sol(_h_,co) * (sol(_VM_, co) - 50);
 		const number leakage_part_of_flux = 0.3*(sol(_VM_,co) + 54.4);
@@ -633,11 +557,10 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		(*m_Injection)(inject, 2, time, x);
 
 
-		const number flux =   (//capacitive_part_of_flux +
-							 potassium_part_of_flux
+		const number flux =   (potassium_part_of_flux
 							+ sodium_part_of_flux
 							+ leakage_part_of_flux);
-							//- inject);
+
 		//std::cout<< "Injection: " << inject << std::endl;
 		// fehler in defekt normal -inject/radius
 		d(_VM_, co) -= scv.volume()*PI*DIAM_CONST*(flux-(inject)); // * scv.volume; //scv.volume() * flux * 0.001;
@@ -694,8 +617,8 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 
 		std::cout << "diff_flux: " << diff_flux << std::endl;
 	// 	Add to local defect
-		d(_VM_, scvf.from()) -= diff_flux;//*cabel;
-		d(_VM_, scvf.to()  ) += diff_flux;//*cabel;
+		d(_VM_, scvf.from()) -= diff_flux;
+		d(_VM_, scvf.to()  ) += diff_flux;
 		std::cout << "defekt diff fluss: " << diff_flux << std::endl;
 	}
 
@@ -711,58 +634,7 @@ template<typename TElem, typename TFVGeom>
 void ElemDiscHH_FV1<TDomain>::
 add_def_A_expl_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
-// 	get finite volume geometry
-	/*static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
-//	reaction rate
-	if(m_imReactionRateExpl.data_given())
-	{
-	// 	loop Sub Control Volumes (SCV)
-		for(size_t ip = 0; ip < geo.num_scv(); ++ip)
-		{
-		// 	get current SCV
-			const typename TFVGeom::SCV& scv = geo.scv(ip);
-
-		// 	get associated node
-			const int co = scv.node_id();
-
-		// 	Add to local defect
-			d(_VM_, co) += u(_VM_, co) * m_imReactionRateExpl[ip] * scv.volume();
-		}
-	}
-
-//	reaction
-	if(m_imReactionExpl.data_given())
-	{
-	// 	loop Sub Control Volumes (SCV)
-		for(size_t ip = 0; ip < geo.num_scv(); ++ip)
-		{
-		// 	get current SCV
-			const typename TFVGeom::SCV& scv = geo.scv(ip);
-
-		// 	get associated node
-			const int co = scv.node_id();
-
-		// 	Add to local defect
-			d(_VM_, co) += m_imReactionExpl[ip] * scv.volume();
-		}
-	}
-
-	if(m_imSourceExpl.data_given())
-	{
-		// 	loop Sub Control Volumes (SCV)
-		for(size_t ip = 0; ip < geo.num_scv(); ++ip)
-		{
-			// 	get current SCV
-			const typename TFVGeom::SCV& scv = geo.scv(ip);
-
-			// 	get associated node
-			const int co = scv.node_id();
-
-			// 	Add to local rhs
-			d(_VM_, co) -= m_imSourceExpl[ip] * scv.volume();
-		}
-	}*/
 }
 
 template<typename TDomain>
@@ -793,9 +665,6 @@ add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		d(_VM_, co) += PI*DIAM_CONST*scv.volume()*u(_VM_, co)*spec_capacity;
 
 	}
-	//if(!m_imMassScale.data_given() && !m_imMass.data_given()) return;
-
-// 	loop Sub Control Volumes (SCV)
 
 
 }
