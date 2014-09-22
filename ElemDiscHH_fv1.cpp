@@ -231,7 +231,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 			J(_VM_, co, _VM_, co) += scv.volume() * ( 36*pow(sol(_n_,co),4)
 								+ 120*pow(sol(_m_,co),3)*sol(_h_,co) + 0.3);
-			double AlphaHn;
+			/*double AlphaHn;
 			double AlphaHn_test;
 			AlphaHn_test = (exp(1-0.1*(sol(_VM_,co)))-1);
 			if (fabs(AlphaHn_test) > 0.00001)
@@ -242,19 +242,29 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 			}
 ;
 			double BetaHn = 0.125*exp(sol(_VM_,co)/80);
-			/*double AlphaHm;
-			double AlphaHm_test;
-			AlphaHm_test = 25.0 - (sol(_VM_,co) + 65.0);
-			if (fabs(AlphaHm_test)>0.00001)
-			{
-				AlphaHm = (2.5 - 0.1*sol(_VM_,co))/(exp(2.5-0.1*sol(_VM_,co))-1);
-			} else {
-				AlphaHm = 1.0;
-			}*/
 			double AlphaHm = (2.5 - 0.1*sol(_VM_,co))/(exp(2.5-0.1*sol(_VM_,co))-1);
 			double BetaHm = 4*exp(-1*sol(_VM_,co)/18);
 			double AlphaHh = 0.07*exp(-1*sol(_VM_,co)/20);
-			double BetaHh = 1/(exp(3-0.1*sol(_VM_,co))+1);
+			double BetaHh = 1/(exp(3-0.1*sol(_VM_,co))+1);*/
+
+
+			double AlphaHn;
+			double AlphaHn_test;
+			AlphaHn_test = (exp(1-0.1*(sol(_VM_,co)+65))-1);
+			if (fabs(AlphaHn_test) > 0.00001)
+			{
+				AlphaHn = (0.1-0.01*(sol(_VM_,co)+65))/(exp(1-0.1*(sol(_VM_,co)+65))-1);
+			} else {
+				AlphaHn = 0.1;
+			}
+			double BetaHn = 0.125*exp((sol(_VM_,co)+65)/80);
+			double AlphaHm = (2.5 - 0.1*(sol(_VM_,co)+65))/(exp(2.5-0.1*(sol(_VM_,co)+65))-1);
+			double BetaHm = 4*exp(-1*(sol(_VM_,co)+65)/18);
+			double AlphaHh = 0.07*exp(-1*(sol(_VM_,co)+65)/20);
+			double BetaHh = 1/(exp(3-0.1*(sol(_VM_,co)+65))+1);
+
+
+
 			/*long double AlphaHn = ((0.01*(sol(_VM_,co) + 55))/(1-exp(-0.1*(sol(_VM_,co)+55))));
 			long double BetaHn  = ((0.125*exp(-0.0125*(sol(_VM_, co)+65))));
 			long double AlphaHm = ((0.1*(sol(_VM_,co)+40))/(1-exp(-0.1*(sol(_VM_,co)+40))));
@@ -269,6 +279,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 			double AlphaHh1 = -0.05*0.07 *exp(0.05*sol(_VM_, co) + 3.25);
 			double BetaHh1 = -1*(1+exp(-0.1*sol(_VM_,co) -3.5))/pow((1+exp(-0.1*sol(_VM_, co) -3.5)),2);*/
 
+			// mit + 65
 			double AlphaHn2 = (-0.01/(exp(1-0.1*(sol(_VM_,co) + 65))-1)
 					- (0.1 - 0.01*(sol(_VM_,co) + 65))*(-0.1*exp(1-0.1*(sol(_VM_,co) + 65)))/((exp(1-0.1*(sol(_VM_,co) + 65))-1)*(exp(1-0.1*(sol(_VM_,co) + 65))-1))
 					- (-0.01/(exp(1-0.1*(sol(_VM_,co) + 65))-1) - (0.1 - 0.01*(sol(_VM_,co) + 65))*(-0.1*exp(1-0.1*(sol(_VM_,co) + 65)))/((exp(1-0.1*(sol(_VM_,co) + 65))-1)*(exp(1-0.1*(sol(_VM_,co) + 65))-1))));
@@ -284,6 +295,21 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 					 0.1*exp(3 - 0.1*(sol(_VM_,co) + 65))/((exp(3 - 0.1*(sol(_VM_,co) + 65)) + 1)*(exp(3 - 0.1*(sol(_VM_,co) + 65)) + 1)) );
 
 
+
+			//  ohne + 65
+			/*double AlphaHn2 = (-0.01/(exp(1-0.1*(sol(_VM_,co)))-1)
+					- (0.1 - 0.01*(sol(_VM_,co)))*(-0.1*exp(1-0.1*(sol(_VM_,co))))/((exp(1-0.1*(sol(_VM_,co)))-1)*(exp(1-0.1*(sol(_VM_,co)))-1))
+					- (-0.01/(exp(1-0.1*(sol(_VM_,co)))-1) - (0.1 - 0.01*(sol(_VM_,co)))*(-0.1*exp(1-0.1*(sol(_VM_,co))))/((exp(1-0.1*(sol(_VM_,co)))-1)*(exp(1-0.1*(sol(_VM_,co)))-1))));
+			double BetaHn2 = 0.125/80.0*exp(-(sol(_VM_,co))/80);
+
+			double AlphaHm2 = (-0.1/(exp(2.5 - 0.1*(sol(_VM_,co))) -1) + exp((sol(_VM_,co))/10 - 2.5)*(2.5 - 0.1*(sol(_VM_,co)))*0.1/((exp(2.5 - 0.1*(sol(_VM_,co))) -1)*(exp(2.5 - 0.1*(sol(_VM_,co))) -1)) -
+					(-0.1/(exp(2.5 - 0.1*(sol(_VM_,co))) -1) + exp((sol(_VM_,co))/10 - 2.5)*(2.5 - 0.1*(sol(_VM_,co)))*0.1/((exp(2.5 - 0.1*(sol(_VM_,co))) -1)*(exp(2.5 - 0.1*(sol(_VM_,co))) -1))));
+			double BetaHm2 = -4.0/18*exp(-1*(sol(_VM_,co))/18);
+
+			double AlphaHh2 = -0.07/20*exp(-1*(sol(_VM_,co))/20);
+
+			double BetaHh2 = (-0.07/20*exp(-1*(sol(_VM_,co))/20) +
+					 0.1*exp(3 - 0.1*(sol(_VM_,co)))/((exp(3 - 0.1*(sol(_VM_,co))) + 1)*(exp(3 - 0.1*(sol(_VM_,co))) + 1)) );*/
 			/*double AlphaHn3 = (0.01*(1-exp(-0.1*sol(_VM_,co) -5.5)) - (0.01*sol(_VM_,co) +0.55)*(0.1*exp(0.1*sol(_VM_,co)-5.5)))/(pow((1-exp(-0.1*sol(_VM_,co)-5.5)),2));
 			double BetaHn3 = 0.125 * -0.0125 * (exp(0.0125*sol(_VM_,co) - 0.8125));
 			double AlphaHm3 = ((0.1*(1-exp(-0.1*sol(_VM_, co) + 4))) - ((0.1*sol(_VM_, co) + 4)*(0.1*exp(-0.1*sol(_VM_, co) + 4 ))))/pow((1-exp(-0.1*sol(_VM_, co) + 4)),2);
@@ -292,9 +318,9 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 			double BetaHh3 = -1*(1+exp(-0.1*sol(_VM_,co) -3.5))/pow((1+exp(-0.1*sol(_VM_, co) -3.5)),2);*/
 
 			// here we need f'
-			/*J(_h_, co, _h_, co) += scv.volume() * AlphaHh * (1-sol(_h_,co)) + BetaHh*(sol(_h_,co));
-			J(_m_, co, _m_, co) += scv.volume() * AlphaHm * (1-sol(_m_,co)) + BetaHm*(sol(_m_,co));
-			J(_n_, co, _n_, co) += scv.volume() * AlphaHn * (1-sol(_n_,co)) + BetaHn*(sol(_n_,co));*/
+			J(_h_, co, _h_, co) += scv.volume() * (AlphaHh * (1-sol(_h_,co)) + BetaHh*(sol(_h_,co)));
+			J(_m_, co, _m_, co) += scv.volume() * (AlphaHm * (1-sol(_m_,co)) + BetaHm*(sol(_m_,co)));
+			J(_n_, co, _n_, co) += scv.volume() * (AlphaHn * (1-sol(_n_,co)) + BetaHn*(sol(_n_,co)));
 			// kapa von 1 Wert nch volume
 			//J(_VM_, co, _VM_, co) += scv.volume() * (1 * 0.36*pow(sol(_n_,co),4) + 1.20*pow(sol(_m_,co),3)*sol(_h_,co) + 0.003);
 
@@ -318,9 +344,9 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 			J(_m_, co, _m_, co) += scv.volume() * m_m;
 			J(_n_, co, _n_, co) += scv.volume() * m_n;*/
 			// Ableigung nach h,m,n ohne Ableitung wird matrix singulï¿½r
-			J(_h_, co, _h_, co) += scv.volume() * ((-AlphaHh - BetaHh));
+			/*J(_h_, co, _h_, co) += scv.volume() * ((-AlphaHh - BetaHh));
 			J(_m_, co, _m_, co) += scv.volume() * ((-AlphaHm - BetaHm));
-			J(_n_, co, _n_, co) += scv.volume() * ((-AlphaHn - BetaHn));
+			J(_n_, co, _n_, co) += scv.volume() * ((-AlphaHn - BetaHn));*/
 
 			// Ableitungen nach VM von h,m,n
 			/*J(_h_, co, _VM_, co) += scv.volume() * ;
@@ -372,8 +398,8 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 					VecScaleAppend(grad_c, u(_VM_,sh), scvf.global_grad(sh));
 
 					//	scale by length of element
-					MatVecMult(Dgrad_c, element_length, grad_c);
-					const number D_diff_flux = VecDot(Dgrad_c, scvf.normal());
+					VecScaleAppend(Dgrad_c, element_length, grad_c);
+					double D_diff_flux = VecDot(Dgrad_c, scvf.normal());
 
 					// 	scale by 1/resistance
 					D_diff_flux /= spec_resistance*pre_resistance;
@@ -383,7 +409,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 							  "Bad local dof-index on element with object-id " << elem->base_object_id()
 							  << " with center: " << CalculateCenter(elem, vCornerCoords));
 
-					std::cout << "D_diff_flux: " << D_diff_flux << std::endl;
+					//std::cout << "D_diff_flux: " << D_diff_flux << std::endl;
 					J(_VM_, scvf.from(), _VM_, sh) -= D_diff_flux;
 					J(_VM_, scvf.to()  , _VM_, sh) += D_diff_flux;
 			}
@@ -508,7 +534,7 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		long double AlphaHh = (0.07*exp(-0.05*(sol(_VM_,co)+65)));
 		long double BetaHh  = (1/(1 + exp(-0.1*(sol(_VM_,co)+35))));*/
 
-		double AlphaHn;
+		/*double AlphaHn;
 		double AlphaHn_test;
 		AlphaHn_test = (exp(1-0.1*(sol(_VM_,co)))-1);
 		if (fabs(AlphaHn_test) > 0.00001)
@@ -517,17 +543,33 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		} else {
 			AlphaHn = 0.1;
 		}
-
-
+;
 		double BetaHn = 0.125*exp(sol(_VM_,co)/80);
 		double AlphaHm = (2.5 - 0.1*sol(_VM_,co))/(exp(2.5-0.1*sol(_VM_,co))-1);
 		double BetaHm = 4*exp(-1*sol(_VM_,co)/18);
 		double AlphaHh = 0.07*exp(-1*sol(_VM_,co)/20);
-		double BetaHh = 1/(exp(3-0.1*sol(_VM_,co))+1);
+		double BetaHh = 1/(exp(3-0.1*sol(_VM_,co))+1);*/
 
-		double flux_m = ((AlphaHm * (1-sol(_m_,co))) - BetaHm * sol(_m_,co));
-		double flux_h = ((AlphaHh * (1-sol(_h_,co))) - BetaHh * sol(_h_,co));
-		double flux_n = ((AlphaHn * (1-sol(_n_,co))) - BetaHn * sol(_n_,co));
+
+		double AlphaHn;
+		double AlphaHn_test;
+		AlphaHn_test = (exp(1-0.1*(sol(_VM_,co)+65))-1);
+		if (fabs(AlphaHn_test) > 0.00001)
+		{
+			AlphaHn = (0.1-0.01*(sol(_VM_,co)+65))/(exp(1-0.1*(sol(_VM_,co)+65))-1);
+		} else {
+			AlphaHn = 0.1;
+		}
+		double BetaHn = 0.125*exp((sol(_VM_,co)+65)/80);
+		double AlphaHm = (2.5 - 0.1*(sol(_VM_,co)+65))/(exp(2.5-0.1*(sol(_VM_,co)+65))-1);
+		double BetaHm = 4*exp(-1*(sol(_VM_,co)+65)/18);
+		double AlphaHh = 0.07*exp(-1*(sol(_VM_,co)+65)/20);
+		double BetaHh = 1/(exp(3-0.1*(sol(_VM_,co)+65))+1);
+
+
+		double flux_m = -((AlphaHm * (1-sol(_m_,co))) - BetaHm * sol(_m_,co));
+		double flux_h = -((AlphaHh * (1-sol(_h_,co))) - BetaHh * sol(_h_,co));
+		double flux_n = -((AlphaHn * (1-sol(_n_,co))) - BetaHn * sol(_n_,co));
 
 		//std::cout << "m: " << m_m << "h: " << m_h << "n: " << m_n << std::endl;
 		//std::cout << sol(_VM_,co) << std::endl;
@@ -561,12 +603,13 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 
 		//std::cout<< "Injection: " << inject << std::endl;
 		// fehler in defekt normal -inject/radius
-		d(_VM_, co) -= scv.volume()*PI*DIAM_CONST*(flux-(inject)); // * scv.volume; //scv.volume() * flux * 0.001;
+		d(_VM_, co) += scv.volume()*PI*DIAM_CONST*(flux-(inject)); // * scv.volume; //scv.volume() * flux * 0.001;
 		//value1 = flux;
 		//std::cout << "defekt: " << d(_VM_, co) << std::endl;
-		d(_h_, co) -= flux_h;//*((sol(_h_,co)-sol(_h_,co)-flux_h));//-valueh);
-		d(_m_, co) -= flux_m;//flux_m;//*((sol(_m_,co)-sol(_m_,co)-flux_m));//-valuem);//0;
-		d(_n_, co) -= flux_n;//*((sol(_n_,co)-sol(_n_,co)-flux_n));//-valuen);
+		// bei - deffekt lŠufts in die falsche richtung
+		d(_h_, co) += flux_h;//*((sol(_h_,co)-sol(_h_,co)-flux_h));//-valueh);
+		d(_m_, co) += flux_m;//flux_m;//*((sol(_m_,co)-sol(_m_,co)-flux_m));//-valuem);//0;
+		d(_n_, co) += flux_n;//*((sol(_n_,co)-sol(_n_,co)-flux_n));//-valuen);
 		//
 
 		//std::cout << "volumen*flux: " << (scv.volume() *flux) << std::endl;
@@ -607,8 +650,8 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 			VecScaleAppend(grad_c, u(_VM_,sh), scvf.global_grad(sh));
 
 	//	scale by length of element
-		MatVecMult(Dgrad_c, element_length, grad_c);
-		const number diff_flux = VecDot(Dgrad_c, scvf.normal());
+		VecScaleAppend(Dgrad_c, element_length, grad_c);
+		double diff_flux = VecDot(Dgrad_c, scvf.normal());
 
 	// 	scale by 1/resistance
 		diff_flux /= spec_resistance*pre_resistance;
@@ -864,8 +907,8 @@ prep_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> 
 		sideIPs = std::vector<MathVector<dim> >(numSideIPs);
 		elemIPs = std::vector<MathVector<dim> >(numElemIPs);
 
-		err_est_data->all_side_global_ips(&sideIPs[0], elem, vCornerCoords);
-		err_est_data->elem_global_ips(&elemIPs[0], elem, vCornerCoords);
+		//err_est_data->all_side_global_ips(&sideIPs[0], elem, vCornerCoords);
+		//err_est_data->elem_global_ips(&elemIPs[0], elem, vCornerCoords);
 	}
 	UG_CATCH_THROW("Global integration points for error estimator cannot be set.");
 
