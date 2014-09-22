@@ -86,17 +86,8 @@ prep_elem_loop(const ReferenceObjectID roid, const int si)
 		const MathVector<refDim>* vSCVip = geo.scv_local_ips();
 		const size_t numSCVip = geo.num_scv_ips();
 		m_imDiffusion.template 		set_local_ips<refDim>(vSCVFip,numSCVFip, false);
-		m_imVelocity.template 		set_local_ips<refDim>(vSCVFip,numSCVFip, false);
-		m_imFlux.template 			set_local_ips<refDim>(vSCVFip,numSCVFip, false);
-		m_imSource.template 		set_local_ips<refDim>(vSCVip,numSCVip, false);
-		m_imVectorSource.template 	set_local_ips<refDim>(vSCVFip,numSCVFip, false);
-		m_imReactionRate.template 	set_local_ips<refDim>(vSCVip,numSCVip, false);
-		m_imReaction.template 		set_local_ips<refDim>(vSCVip,numSCVip, false);
-		m_imReactionRateExpl.template set_local_ips<refDim>(vSCVip,numSCVip, false);
-		m_imReactionExpl.template 	set_local_ips<refDim>(vSCVip,numSCVip, false);
-		m_imSourceExpl.template 	set_local_ips<refDim>(vSCVip,numSCVip, false);
 		m_imMassScale.template 		set_local_ips<refDim>(vSCVip,numSCVip, false);
-		m_imMass.template 			set_local_ips<refDim>(vSCVip,numSCVip, false);
+		m_imSource.template 		set_local_ips<refDim>(vSCVip,numSCVip, false);
 
 		//	init upwind for element type
 		if(!m_spConvShape->template set_geometry_type<TFVGeom>(geo))
@@ -134,17 +125,8 @@ prep_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerC
 		const MathVector<refDim>* vSCVip = geo.scv_local_ips();
 		const size_t numSCVip = geo.num_scv_ips();
 		m_imDiffusion.template 		set_local_ips<refDim>(vSCVFip,numSCVFip);
-		m_imVelocity.template 		set_local_ips<refDim>(vSCVFip,numSCVFip);
-		m_imFlux.template 			set_local_ips<refDim>(vSCVFip,numSCVFip);
-		m_imSource.template 		set_local_ips<refDim>(vSCVip,numSCVip);
-		m_imVectorSource.template 	set_local_ips<refDim>(vSCVFip,numSCVFip);
-		m_imReactionRate.template 	set_local_ips<refDim>(vSCVip,numSCVip);
-		m_imReaction.template 		set_local_ips<refDim>(vSCVip,numSCVip);
-		m_imReactionRateExpl.template 	set_local_ips<refDim>(vSCVip,numSCVip);
-		m_imReactionExpl.template 	set_local_ips<refDim>(vSCVip,numSCVip);
-		m_imSourceExpl.template		set_local_ips<refDim>(vSCVip,numSCVip);
 		m_imMassScale.template 		set_local_ips<refDim>(vSCVip,numSCVip);
-		m_imMass.template 			set_local_ips<refDim>(vSCVip,numSCVip);
+		m_imSource.template 		set_local_ips<refDim>(vSCVip,numSCVip);
 
 		if(m_spConvShape.valid())
 			if(!m_spConvShape->template set_geometry_type<TFVGeom>(geo))
@@ -158,17 +140,8 @@ prep_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerC
 	const MathVector<dim>* vSCVip = geo.scv_global_ips();
 	const size_t numSCVip = geo.num_scv_ips();
 	m_imDiffusion.			set_global_ips(vSCVFip, numSCVFip);
-	m_imVelocity.			set_global_ips(vSCVFip, numSCVFip);
-	m_imFlux.				set_global_ips(vSCVFip, numSCVFip);
-	m_imSource.				set_global_ips(vSCVip, numSCVip);
-	m_imVectorSource.		set_global_ips(vSCVFip, numSCVFip);
-	m_imReactionRate.		set_global_ips(vSCVip, numSCVip);
-	m_imReactionRateExpl.	set_global_ips(vSCVip, numSCVip);
-	m_imReactionExpl.		set_global_ips(vSCVip, numSCVip);
-	m_imSourceExpl.			set_global_ips(vSCVip, numSCVip);
-	m_imReaction.			set_global_ips(vSCVip, numSCVip);
 	m_imMassScale.			set_global_ips(vSCVip, numSCVip);
-	m_imMass.				set_global_ips(vSCVip, numSCVip);
+	m_imSource.				set_global_ips(vSCVip, numSCVip);
 }
 
 template <class TVector>
@@ -205,11 +178,6 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 	//	Diff. Tensor times Gradient
 		MathVector<dim> Dgrad, grad_c, Dgrad_c;
-
-	//	get conv shapes
-		const IConvectionShapes<dim>& convShape = get_updated_conv_shapes(geo);
-
-
 
 		double element_length = 0.0;
 
@@ -363,11 +331,6 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 	}
 
 
-
-
-
-
-
 	// erstmal hils var fuer kapa und diam
 	double spec_resistance = 1.0;
 	double pre_resistance = 0;
@@ -468,9 +431,6 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 	//std::vector<position_type> vPos;
 
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
-
-//	get conv shapes
-	const IConvectionShapes<dim>& convShape = get_updated_conv_shapes(geo);
 
 	double element_length = 0.0;
 	double pre_resistance = 0.0;
@@ -665,18 +625,8 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 
 
 
-
-
-
 }
 
-template<typename TDomain>
-template<typename TElem, typename TFVGeom>
-void ElemDiscHH_FV1<TDomain>::
-add_def_A_expl_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
-{
-
-}
 
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
@@ -721,760 +671,29 @@ add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoor
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
 	// loop Sub Control Volumes (SCV)
-	if ( m_imSource.data_given() ) {
-		std::cout << "source given true" << std::endl;
-		for ( size_t ip = 0; ip < geo.num_scv(); ++ip ) {
-			// get current SCV
-			const typename TFVGeom::SCV& scv = geo.scv( ip );
-
-			// get associated node
-			const int co = scv.node_id();
-
-			// Add to local rhs
-			d(_VM_, co) += m_imSource[ip] * scv.volume();
-		}
-	}
-
-	// loop Sub Control Volumes (SCVF)
-	if ( m_imVectorSource.data_given() ) {
-		for ( size_t ip = 0; ip < geo.num_scvf(); ++ip ) {
-			// get current SCVF
-			const typename TFVGeom::SCVF& scvf = geo.scvf( ip );
-			std::cout << "vektor source given true" << std::endl;
-
-			// Add to local rhs
-			d(_VM_, scvf.from()) += VecDot(m_imVectorSource[ip], scvf.normal() );
-			d(_VM_, scvf.to()  ) -= VecDot(m_imVectorSource[ip], scvf.normal() );
-		}
-	}
-}
-
-
-////////////////////////////////////
-///   error estimation (begin)   ///
-
-//	prepares the loop over all elements of one type for the computation of the error estimator
-template<typename TDomain>
-template<typename TElem, typename TFVGeom>
-void ElemDiscHH_FV1<TDomain>::
-prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
-{
-	std::cout << "prep_err_est_elem_loop" << std::endl;
-	//	get the error estimator data object and check that it is of the right type
-	//	we check this at this point in order to be able to dispense with this check later on
-	//	(i.e. in prep_err_est_elem and compute_err_est_A_elem())
-	if (this->m_spErrEstData.get() == NULL)
+	for (size_t ip = 0; ip < geo.num_scv(); ++ip)
 	{
-		UG_THROW("No ErrEstData object has been given to this ElemDisc!");
-	}
+		// get current SCV
+		const typename TFVGeom::SCV& scv = geo.scv( ip );
 
-	err_est_type* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
-
-	if (!err_est_data)
-	{
-		UG_THROW("Dynamic cast to SideAndElemErrEstData failed."
-				<< std::endl << "Make sure you handed the correct type of ErrEstData to this discretization.");
-	}
-
-
-//	check that upwind has been set
-	if (m_spConvShape.invalid())
-		UG_THROW("ConvectionDiffusionFV1::prep_err_est_elem_loop: "
-				 "Upwind has not been set.");
-
-//	set local positions
-	if (!TFVGeom::usesHangingNodes)
-	{
-		static const int refDim = TElem::dim;
-
-		// get local IPs
-		size_t numSideIPs, numElemIPs;
-		const MathVector<refDim>* sideIPs;
-		const MathVector<refDim>* elemIPs;
-		try
-		{
-			numSideIPs = err_est_data->num_all_side_ips(roid);
-			numElemIPs = err_est_data->num_elem_ips(roid);
-			sideIPs = err_est_data->template side_local_ips<refDim>(roid);
-			elemIPs = err_est_data->template elem_local_ips<refDim>(roid);
-
-			if (!sideIPs || !elemIPs) return;	// are NULL if TElem is not of the same dim as TDomain
-		}
-		UG_CATCH_THROW("Integration points for error estimator cannot be set.");
-
-		// set local IPs in imports
-		m_imDiffusion.template 		set_local_ips<refDim>(sideIPs, numSideIPs, false);
-		m_imVelocity.template 		set_local_ips<refDim>(sideIPs, numSideIPs, false);
-		m_imFlux.template 			set_local_ips<refDim>(sideIPs, numSideIPs, false);
-		m_imSource.template 		set_local_ips<refDim>(elemIPs, numElemIPs, false);
-		m_imVectorSource.template 	set_local_ips<refDim>(sideIPs, numSideIPs, false);
-		m_imReactionRate.template 	set_local_ips<refDim>(elemIPs, numElemIPs, false);
-		m_imReaction.template 		set_local_ips<refDim>(elemIPs, numElemIPs, false);
-		m_imMassScale.template 		set_local_ips<refDim>(elemIPs, numElemIPs, false);
-		m_imMass.template 			set_local_ips<refDim>(elemIPs, numElemIPs, false);
-
-		//	init upwind for element type
-		TFVGeom& geo = GeomProvider<TFVGeom>::get();
-		if (!m_spConvShape->template set_geometry_type<TFVGeom>(geo))
-			UG_THROW("ConvectionDiffusionFV1::prep_err_est_elem_loop: "
-					 "Cannot init upwind for element type.");
-
-		// store values of shape functions in local IPs
-		LagrangeP1<typename reference_element_traits<TElem>::reference_element_type> trialSpace
-					= Provider<LagrangeP1<typename reference_element_traits<TElem>::reference_element_type> >::get();
-
-		m_shapeValues.resize(numElemIPs, numSideIPs, trialSpace.num_sh());
-		for (size_t ip = 0; ip < numElemIPs; ip++)
-			trialSpace.shapes(m_shapeValues.shapesAtElemIP(ip), elemIPs[ip]);
-		for (size_t ip = 0; ip < numSideIPs; ip++)
-			trialSpace.shapes(m_shapeValues.shapesAtSideIP(ip), sideIPs[ip]);
-	}
-}
-
-template<typename TDomain>
-template<typename TElem, typename TFVGeom>
-void ElemDiscHH_FV1<TDomain>::
-prep_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
-{
-	err_est_type* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
-	std::cout << "prep_err_est_elem" << std::endl;
-// 	update geometry for this element
-	static TFVGeom& geo = GeomProvider<TFVGeom>::get();
-	try
-	{
-		geo.update(elem, vCornerCoords, &(this->subset_handler()));
-	}
-	UG_CATCH_THROW("ConvectionDiffusionFV1::prep_err_est_elem: Cannot update Finite Volume Geometry.");
-
-//	roid
-	ReferenceObjectID roid = elem->reference_object_id();
-
-//	set local positions
-	if (TFVGeom::usesHangingNodes)
-	{
-		static const int refDim = TElem::dim;
-
-		size_t numSideIPs, numElemIPs;
-		const MathVector<refDim>* sideIPs;
-		const MathVector<refDim>* elemIPs;
-		try
-		{
-			numSideIPs = err_est_data->num_all_side_ips(roid);
-			numElemIPs = err_est_data->num_elem_ips(roid);
-			sideIPs = err_est_data->template side_local_ips<refDim>(roid);
-			elemIPs = err_est_data->template elem_local_ips<refDim>(roid);
-
-			if (!sideIPs || !elemIPs) return;	// are NULL if TElem is not of the same dim as TDomain
-		}
-		UG_CATCH_THROW("Integration points for error estimator cannot be set.");
-
-		m_imDiffusion.template 		set_local_ips<refDim>(sideIPs, numSideIPs);
-		m_imVelocity.template 		set_local_ips<refDim>(sideIPs, numSideIPs);
-		m_imFlux.template 			set_local_ips<refDim>(sideIPs, numSideIPs);
-		m_imSource.template 		set_local_ips<refDim>(elemIPs, numElemIPs);
-		m_imVectorSource.template 	set_local_ips<refDim>(sideIPs, numSideIPs);
-		m_imReactionRate.template 	set_local_ips<refDim>(elemIPs, numElemIPs);
-		m_imReaction.template 		set_local_ips<refDim>(elemIPs, numElemIPs);
-		m_imMassScale.template 		set_local_ips<refDim>(elemIPs, numElemIPs);
-		m_imMass.template 			set_local_ips<refDim>(elemIPs, numElemIPs);
-
-		//	init upwind for element type
-		TFVGeom& geo = GeomProvider<TFVGeom>::get();
-		if (!m_spConvShape->template set_geometry_type<TFVGeom>(geo))
-			UG_THROW("ConvectionDiffusionFV1::prep_err_est_elem_loop: "
-					 "Cannot init upwind for element type.");
-
-		// store values of shape functions in local IPs
-		LagrangeP1<typename reference_element_traits<TElem>::reference_element_type> trialSpace
-					= Provider<LagrangeP1<typename reference_element_traits<TElem>::reference_element_type> >::get();
-
-		m_shapeValues.resize(numElemIPs, numSideIPs, trialSpace.num_sh());
-		for (size_t ip = 0; ip < numElemIPs; ip++)
-			trialSpace.shapes(m_shapeValues.shapesAtElemIP(ip), elemIPs[ip]);
-		for (size_t ip = 0; ip < numSideIPs; ip++)
-			trialSpace.shapes(m_shapeValues.shapesAtSideIP(ip), sideIPs[ip]);
-	}
-
-//	set global positions
-	size_t numSideIPs, numElemIPs;
-	std::vector<MathVector<dim> > sideIPs;
-	std::vector<MathVector<dim> > elemIPs;
-
-	try
-	{
-		numSideIPs = err_est_data->num_all_side_ips(roid);
-		numElemIPs = err_est_data->num_elem_ips(roid);
-		sideIPs = std::vector<MathVector<dim> >(numSideIPs);
-		elemIPs = std::vector<MathVector<dim> >(numElemIPs);
-
-		//err_est_data->all_side_global_ips(&sideIPs[0], elem, vCornerCoords);
-		//err_est_data->elem_global_ips(&elemIPs[0], elem, vCornerCoords);
-	}
-	UG_CATCH_THROW("Global integration points for error estimator cannot be set.");
-
-	m_imDiffusion.			set_global_ips(&sideIPs[0], numSideIPs);
-	m_imVelocity.			set_global_ips(&sideIPs[0], numSideIPs);
-	m_imFlux.				set_global_ips(&sideIPs[0], numSideIPs);
-	m_imSource.				set_global_ips(&elemIPs[0], numElemIPs);
-	m_imVectorSource.		set_global_ips(&sideIPs[0], numSideIPs);
-	m_imReactionRate.		set_global_ips(&elemIPs[0], numElemIPs);
-	m_imReaction.			set_global_ips(&elemIPs[0], numElemIPs);
-	m_imMassScale.			set_global_ips(&elemIPs[0], numElemIPs);
-	m_imMass.				set_global_ips(&elemIPs[0], numElemIPs);
-}
-
-//	computes the error estimator contribution (stiffness part) for one element
-template<typename TDomain>
-template<typename TElem, typename TFVGeom>
-void ElemDiscHH_FV1<TDomain>::
-compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale)
-{
-	std::cout << "compute_err_est_A_elem" << std::endl;
-	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
-
-	err_est_type* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
-
-	if (err_est_data->surface_view().get() == NULL) {UG_THROW("Error estimator has NULL surface view.");}
-	MultiGrid* pErrEstGrid = (MultiGrid*) (err_est_data->surface_view()->subset_handler()->multi_grid());
-
-//	request geometry
-	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
-
-////////////////
-// SIDE TERMS //
-////////////////
-
-//	get the sides of the element
-	//	We have to cast elem to a pointer of type SideAndElemErrEstData::elem_type
-	//	for the SideAndElemErrEstData::operator() to work properly.
-	//	This cannot generally be achieved by casting to TElem*, since this method is also registered for
-	//	lower-dimensional types TElem, and must therefore be compilable, even if it is never EVER to be executed.
-	//	The way we achieve this here, is by calling associated_elements_sorted() which has an implementation for
-	//	all possible types. Whatever comes out of it is of course complete nonsense if (and only if)
-	//	SideAndElemErrEstData::elem_type != TElem. To be on the safe side, we throw an error if the number of
-	//	entries in the list is not as it should be.
-
-	typename MultiGrid::traits<typename SideAndElemErrEstData<TDomain>::side_type>::secure_container side_list;
-	pErrEstGrid->associated_elements_sorted(side_list, (TElem*) elem);
-	if (side_list.size() != (size_t) ref_elem_type::numSides)
-		UG_THROW ("Mismatch of numbers of sides in 'ConvectionDiffusionFV1::compute_err_est_elem'");
-
-// 	some help variables
-	MathVector<dim> fluxDensity, gradC, normal;
-
-// calculate grad u (take grad from first scvf ip (grad u is constant on the entire element))
-	if (geo.num_scvf() < 1) {UG_THROW("Element has no SCVFs!");}
-	const typename TFVGeom::SCVF& scvf = geo.scvf(0);
-
-	VecSet(gradC, 0.0);
-	for (size_t j=0; j<m_shapeValues.num_sh(); j++)
-		VecScaleAppend(gradC, u(_VM_,j), scvf.global_grad(j));
-
-// calculate flux through the sides
-	size_t passedIPs = 0;
-	for (size_t side=0; side < (size_t) ref_elem_type::numSides; side++)
-	{
-		// normal on side
-		SideNormal<ref_elem_type,dim>(normal, side, vCornerCoords);
-		VecNormalize(normal, normal);
-
-		try
-		{
-			for (size_t sip = 0; sip < err_est_data->num_side_ips(side_list[side]); sip++)
-			{
-				size_t ip = passedIPs + sip;
-
-				VecSet(fluxDensity, 0.0);
-
-			////// diffusion //////
-				if (m_imDiffusion.data_given())
-					MatVecScaleMultAppend(fluxDensity, -1.0, m_imDiffusion[ip], gradC);
-
-			////// convection //////
-				if (m_imVelocity.data_given())
-				{
-					number val = 0.0;
-					for (size_t sh = 0; sh < m_shapeValues.num_sh(); sh++)
-						val += u(_VM_,sh) * m_shapeValues.shapeAtSideIP(sh,sip);
-
-					VecScaleAppend(fluxDensity, val, m_imVelocity[ip]);
-				}
-
-			////// general flux //////
-				if (m_imFlux.data_given())
-					VecAppend(fluxDensity, m_imFlux[ip]);
-
-				(*err_est_data)(side_list[side],sip) += scale * VecDot(fluxDensity, normal);
-			}
-
-			passedIPs += err_est_data->num_side_ips(side_list[side]);
-		}
-		UG_CATCH_THROW("Values for the error estimator could not be assembled at every IP." << std::endl
-				<< "Maybe wrong type of ErrEstData object? This implementation needs: SideAndElemErrEstData.");
-	}
-
-//////////////////
-// VOLUME TERMS //
-//////////////////
-
-	typename MultiGrid::traits<typename SideAndElemErrEstData<TDomain>::elem_type>::secure_container elem_list;
-	pErrEstGrid->associated_elements_sorted(elem_list, (TElem*) elem);
-	if (elem_list.size() != 1)
-		UG_THROW ("Mismatch of numbers of sides in 'ConvectionDiffusionFV1::compute_err_est_elem'");
-
-	try
-	{
-		for (size_t ip = 0; ip < err_est_data->num_elem_ips(elem->reference_object_id()); ip++)
-		{
-			number total = 0.0;
-
-		////// diffusion //////	TODO ONLY FOR (PIECEWISE) CONSTANT DIFFUSION TENSOR SO FAR!
-		// div(D*grad(c)) = div(v)*u + v*grad(c)
-		// nothing to do, as u is piecewise linear and div(D*grad(c)) disappears
-
-		////// convection ////// TODO ONLY FOR CONSTANT VELOCITY FIELDS SO FAR!
-		// div(v*c) = div(v)*u + v*grad(c) -- gradC has been calculated above
-			if (m_imVelocity.data_given())
-				total += VecDot(m_imVelocity[ip], gradC);
-
-		////// general flux ////// TODO ONLY FOR DIVERGENCE-FREE FLUX FIELD SO FAR!
-		// nothing to do
-
-		////// reaction //////
-			if (m_imReactionRate.data_given())
-			{
-				number val = 0.0;
-				for (size_t sh = 0; sh < geo.num_sh(); sh++)
-					val += u(_VM_,sh) * m_shapeValues.shapeAtElemIP(sh,ip);
-
-				total += m_imReactionRate[ip] * val;
-			}
-
-			if (m_imReaction.data_given())
-			{
-				total += m_imReaction[ip];
-			}
-
-			(*err_est_data)(elem_list[0],ip) += scale * total;
-		}
-	}
-	UG_CATCH_THROW("Values for the error estimator could not be assembled at every IP." << std::endl
-			<< "Maybe wrong type of ErrEstData object? This implementation needs: SideAndElemErrEstData.");
-}
-
-//	computes the error estimator contribution (mass part) for one element
-template<typename TDomain>
-template<typename TElem, typename TFVGeom>
-void ElemDiscHH_FV1<TDomain>::
-compute_err_est_M_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale)
-{
-// note: mass parts only enter volume term
-	std::cout << "compute_err_est_M_elem" << std::endl;
-	err_est_type* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
-
-	if (err_est_data->surface_view().get() == NULL) {UG_THROW("Error estimator has NULL surface view.");}
-	MultiGrid* pErrEstGrid = (MultiGrid*) (err_est_data->surface_view()->subset_handler()->multi_grid());
-
-	typename MultiGrid::traits<typename SideAndElemErrEstData<TDomain>::elem_type>::secure_container elem_list;
-	pErrEstGrid->associated_elements_sorted(elem_list, (TElem*) elem);
-	if (elem_list.size() != 1)
-		UG_THROW ("Mismatch of numbers of sides in 'ConvectionDiffusionFV1::compute_err_est_elem'");
-
-//	request geometry
-	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
-
-// 	loop integration points
-	try
-	{
-		for (size_t ip = 0; ip < err_est_data->num_elem_ips(elem->reference_object_id()); ip++)
-		{
-			number total = 0.0;
-
-		////// mass scale //////
-			if (m_imMassScale.data_given())
-			{
-				number val = 0.0;
-				for (size_t sh = 0; sh < geo.num_sh(); sh++)
-					val += u(_VM_,sh) * m_shapeValues.shapeAtElemIP(sh,ip);
-
-				total += m_imMassScale[ip] * val;
-			}
-
-		////// mass //////
-			if (m_imMass.data_given())
-			{
-				total += m_imMass[ip];
-			}
-
-			(*err_est_data)(elem_list[0],ip) += scale * total;
-		}
-	}
-	UG_CATCH_THROW("Values for the error estimator could not be assembled at every IP." << std::endl
-			<< "Maybe wrong type of ErrEstData object? This implementation needs: SideAndElemErrEstData.");
-}
-
-//	computes the error estimator contribution (rhs part) for one element
-template<typename TDomain>
-template<typename TElem, typename TFVGeom>
-void ElemDiscHH_FV1<TDomain>::
-compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale)
-{
-	std::cout << "compute_err_est_rhs_elem" << std::endl;
-	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
-
-	err_est_type* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
-
-	if (err_est_data->surface_view().get() == NULL) {UG_THROW("Error estimator has NULL surface view.");}
-	MultiGrid* pErrEstGrid = (MultiGrid*) (err_est_data->surface_view()->subset_handler()->multi_grid());
-
-////////////////
-// SIDE TERMS //
-////////////////
-//	get the sides of the element
-	typename MultiGrid::traits<typename SideAndElemErrEstData<TDomain>::side_type>::secure_container side_list;
-	pErrEstGrid->associated_elements_sorted(side_list, (TElem*) elem);
-	if (side_list.size() != (size_t) ref_elem_type::numSides)
-		UG_THROW ("Mismatch of numbers of sides in 'ConvectionDiffusionFV1::compute_err_est_elem'");
-
-// loop sides
-	size_t passedIPs = 0;
-	for (size_t side = 0; side < (size_t) ref_elem_type::numSides; side++)
-	{
-		// normal on side
-		MathVector<dim> normal;
-		SideNormal<ref_elem_type,dim>(normal, side, vCornerCoords);
-		VecNormalize(normal, normal);
-
-		try
-		{
-			for (size_t sip = 0; sip < err_est_data->num_side_ips(side_list[side]); sip++)
-			{
-				size_t ip = passedIPs + sip;
-
-			////// vector source //////
-				if (m_imVectorSource.data_given())
-					(*err_est_data)(side_list[side],sip) += scale * VecDot(m_imVectorSource[ip], normal);
-			}
-
-			passedIPs += err_est_data->num_side_ips(side_list[side]);
-		}
-		UG_CATCH_THROW("Values for the error estimator could not be assembled at every IP." << std::endl
-				<< "Maybe wrong type of ErrEstData object? This implementation needs: SideAndElemErrEstData.");
-	}
-
-//////////////////
-// VOLUME TERMS //
-//////////////////
-	if (!m_imSource.data_given()) return;
-
-	typename MultiGrid::traits<typename SideAndElemErrEstData<TDomain>::elem_type>::secure_container elem_list;
-	pErrEstGrid->associated_elements_sorted(elem_list, (TElem*) elem);
-	if (elem_list.size() != 1)
-		UG_THROW ("Mismatch of numbers of sides in 'ConvectionDiffusionFV1::compute_err_est_elem'");
-
-////// source //////
-	try
-	{
-		for (size_t ip = 0; ip < err_est_data->num_elem_ips(elem->reference_object_id()); ip++)
-			(*err_est_data)(elem_list[0],ip) += scale * m_imSource[ip];
-	}
-	UG_CATCH_THROW("Values for the error estimator could not be assembled at every IP." << std::endl
-			<< "Maybe wrong type of ErrEstData object? This implementation needs: SideAndElemErrEstData.");
-}
-
-//	postprocesses the loop over all elements of one type in the computation of the error estimator
-template<typename TDomain>
-template<typename TElem, typename TFVGeom>
-void ElemDiscHH_FV1<TDomain>::
-fsh_err_est_elem_loop()
-{
-	std::cout << "fsh_err_est_elem_loop" << std::endl;
-//	finish the element loop in the same way as the actual discretization
-	this->template fsh_elem_loop<TElem, TFVGeom> ();
-};
-
-///   error estimation (end)     ///
-////////////////////////////////////
-
-//	computes the linearized defect w.r.t to the velocity
-template<typename TDomain>
-template <typename TElem, typename TFVGeom>
-void ElemDiscHH_FV1<TDomain>::
-lin_def_velocity(const LocalVector& u,
-                 std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
-                 const size_t nip)
-{
-	std::cout << "lin_def_velocity" << std::endl;
-// 	get finite volume geometry
-	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
-
-//	get conv shapes
-	const IConvectionShapes<dim>& convShape = get_updated_conv_shapes(geo);
-
-//	reset the values for the linearized defect
-	for(size_t ip = 0; ip < nip; ++ip)
-		for(size_t c = 0; c < vvvLinDef[ip].size(); ++c)
-			for(size_t sh = 0; sh < vvvLinDef[ip][c].size(); ++sh)
-				vvvLinDef[ip][c][sh] = 0.0;
-
-//  loop Sub Control Volume Faces (SCVF)
-	for(size_t ip = 0; ip < geo.num_scvf(); ++ip)
-	{
-	// get current SCVF
-		const typename TFVGeom::SCVF& scvf = geo.scvf(ip);
-
-	//	sum up contributions of convection shapes
-		MathVector<dim> linDefect;
-		VecSet(linDefect, 0.0);
-		for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-			VecScaleAppend(linDefect, u(_VM_,sh), convShape.D_vel(ip, sh));
-
-	//	add parts for both sides of scvf
-		vvvLinDef[ip][_VM_][scvf.from()] += linDefect;
-		vvvLinDef[ip][_VM_][scvf.to()] -= linDefect;
-	}
-}
-
-//	computes the linearized defect w.r.t to the velocity
-template<typename TDomain>
-template <typename TElem, typename TFVGeom>
-void ElemDiscHH_FV1<TDomain>::
-lin_def_diffusion(const LocalVector& u,
-                  std::vector<std::vector<MathMatrix<dim,dim> > > vvvLinDef[],
-                  const size_t nip)
-{
-	std::cout << "lin_def_diffusion" << std::endl;
-//  get finite volume geometry
-	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
-
-//	get conv shapes
-	const IConvectionShapes<dim>& convShape = get_updated_conv_shapes(geo);
-
-//	reset the values for the linearized defect
-	for(size_t ip = 0; ip < nip; ++ip)
-		for(size_t c = 0; c < vvvLinDef[ip].size(); ++c)
-			for(size_t sh = 0; sh < vvvLinDef[ip][c].size(); ++sh)
-				vvvLinDef[ip][c][sh] = 0.0;
-
-//  loop Sub Control Volume Faces (SCVF)
-	for(size_t ip = 0; ip < geo.num_scvf(); ++ip)
-	{
-	// get current SCVF
-		const typename TFVGeom::SCVF& scvf = geo.scvf(ip);
-
-	// 	compute gradient at ip
-		MathVector<dim> grad_u;	VecSet(grad_u, 0.0);
-		for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-			VecScaleAppend(grad_u, u(_VM_,sh), scvf.global_grad(sh));
-
-	//	compute the lin defect at this ip
-		MathMatrix<dim,dim> linDefect;
-
-	//	part coming from -\nabla u * \vec{n}
-		for(size_t k=0; k < (size_t)dim; ++k)
-			for(size_t j = 0; j < (size_t)dim; ++j)
-				linDefect(j,k) = (scvf.normal())[j] * grad_u[k];
-
-	//	add contribution from convection shapes
-		if(convShape.non_zero_deriv_diffusion())
-			for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-				MatAdd(linDefect, convShape.D_diffusion(ip, sh), u(_VM_, sh));
-
-	//	add contributions
-		vvvLinDef[ip][_VM_][scvf.from()] -= linDefect;
-		vvvLinDef[ip][_VM_][scvf.to()  ] += linDefect;
-	}
-}
-
-template<typename TDomain>
-template <typename TElem, typename TFVGeom>
-void ElemDiscHH_FV1<TDomain>::
-lin_def_flux(const LocalVector& u,
-             std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
-             const size_t nip)
-{
-	std::cout << "lin_def_flux" << std::endl;
-//  get finite volume geometry
-	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
-
-//	reset the values for the linearized defect
-	for(size_t ip = 0; ip < nip; ++ip)
-		for(size_t c = 0; c < vvvLinDef[ip].size(); ++c)
-			for(size_t sh = 0; sh < vvvLinDef[ip][c].size(); ++sh)
-				vvvLinDef[ip][c][sh] = 0.0;
-
-//  loop Sub Control Volume Faces (SCVF)
-	for(size_t ip = 0; ip < geo.num_scvf(); ++ip)
-	{
-	// get current SCVF
-		const typename TFVGeom::SCVF& scvf = geo.scvf(ip);
-
-	//	add parts for both sides of scvf
-		vvvLinDef[ip][_VM_][scvf.from()] += scvf.normal();
-		vvvLinDef[ip][_VM_][scvf.to()] -= scvf.normal();
-	}
-}
-//	computes the linearized defect w.r.t to the reaction rate
-template<typename TDomain>
-template <typename TElem, typename TFVGeom>
-void ElemDiscHH_FV1<TDomain>::
-lin_def_reaction_rate(const LocalVector& u,
-                      std::vector<std::vector<number> > vvvLinDef[],
-                      const size_t nip)
-{
-	std::cout << "lin_def_reaction_rate" << std::endl;
-//  get finite volume geometry
-	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
-
-// 	loop Sub Control Volumes (SCV)
-	for(size_t ip = 0; ip < geo.num_scv(); ++ip)
-	{
-	// 	get current SCV
-		const typename TFVGeom::SCV& scv = geo.scv(ip);
-
-	// 	get associated node
+		// get associated node
 		const int co = scv.node_id();
 
-	// 	set lin defect
-		vvvLinDef[ip][_VM_][co] = u(_VM_, co) * scv.volume();
+/* TODO: Implementiere den auskommentierten Bereich so, dass er auf unser Problem passt!
+		// Add to local rhs
+		d(_VM_, co) += m_imSource[ip] * scv.volume();
+*/
 	}
+
+
 }
 
-//	computes the linearized defect w.r.t to the reaction
-template<typename TDomain>
-template <typename TElem, typename TFVGeom>
-void ElemDiscHH_FV1<TDomain>::
-lin_def_reaction(const LocalVector& u,
-                 std::vector<std::vector<number> > vvvLinDef[],
-                 const size_t nip)
-{
-	std::cout << "lin_def_reaction" << std::endl;
-//  get finite volume geometry
-	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
-// 	loop Sub Control Volumes (SCV)
-	for(size_t ip = 0; ip < geo.num_scv(); ++ip)
-	{
-	// 	get current SCV
-		const typename TFVGeom::SCV& scv = geo.scv(ip);
 
-	// 	get associated node
-		const int co = scv.node_id();
 
-	// 	set lin defect
-		vvvLinDef[ip][_VM_][co] = scv.volume();
-	}
-}
 
-//	computes the linearized defect w.r.t to the source
-template<typename TDomain>
-template <typename TElem, typename TFVGeom>
-void ElemDiscHH_FV1<TDomain>::
-lin_def_source(const LocalVector& u,
-               std::vector<std::vector<number> > vvvLinDef[],
-               const size_t nip)
-{
-	std::cout << "lin_def_source" << std::endl;
-//  get finite volume geometry
-	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
-// 	loop Sub Control Volumes (SCV)
-	for(size_t ip = 0; ip < geo.num_scv(); ++ip)
-	{
-	// 	get current SCV
-		const typename TFVGeom::SCV& scv = geo.scv(ip);
-
-	// 	get associated node
-		const int co = scv.node_id();
-
-	// 	set lin defect
-		vvvLinDef[ip][_VM_][co] = scv.volume();
-	}
-}
-
-//	computes the linearized defect w.r.t to the vector source
-//	(in analogy to velocity)
-template<typename TDomain>
-template <typename TElem, typename TFVGeom>
-void ElemDiscHH_FV1<TDomain>::
-lin_def_vector_source(const LocalVector& u,
-                      std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
-                      const size_t nip)
-{
-	std::cout << "lin_def_vector_source" << std::endl;
-	// get finite volume geometry
-	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
-
-//	reset the values for the linearized defect
-	for(size_t ip = 0; ip < nip; ++ip)
-		for(size_t c = 0; c < vvvLinDef[ip].size(); ++c)
-			for(size_t sh = 0; sh < vvvLinDef[ip][c].size(); ++sh)
-				vvvLinDef[ip][c][sh] = 0.0;
-
-	// loop Sub Control Volumes Faces (SCVF)
-	for ( size_t ip = 0; ip < geo.num_scvf(); ++ip ) {
-		// get current SCVF
-		const typename TFVGeom::SCVF& scvf = geo.scvf( ip );
-
-		// add parts for both sides of scvf
-		vvvLinDef[ip][_VM_][scvf.from()] -= scvf.normal();
-		vvvLinDef[ip][_VM_][scvf.to()] += scvf.normal();
-	}
-}
-
-//	computes the linearized defect w.r.t to the mass scale
-template<typename TDomain>
-template <typename TElem, typename TFVGeom>
-void ElemDiscHH_FV1<TDomain>::
-lin_def_mass_scale(const LocalVector& u,
-                   std::vector<std::vector<number> > vvvLinDef[],
-                   const size_t nip)
-{
-	std::cout << "lin_def_mass_scale" << std::endl;
-//  get finite volume geometry
-	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
-
-// 	loop Sub Control Volumes (SCV)
-	for(size_t co = 0; co < geo.num_scv(); ++co)
-	{
-	// 	get current SCV
-		const typename TFVGeom::SCV& scv = geo.scv(co);
-
-	// 	Check associated node
-		UG_ASSERT(co == scv.node_id(), "Only one shape per SCV");
-
-	// 	set lin defect
-		vvvLinDef[co][_VM_][co] = u(_VM_, co) * scv.volume();
-	}
-}
-
-//	computes the linearized defect w.r.t to the mass scale
-template<typename TDomain>
-template <typename TElem, typename TFVGeom>
-void ElemDiscHH_FV1<TDomain>::
-lin_def_mass(const LocalVector& u,
-             std::vector<std::vector<number> > vvvLinDef[],
-             const size_t nip)
-{
-	std::cout << "lin_def_mass" << std::endl;
-//  get finite volume geometry
-	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
-
-// 	loop Sub Control Volumes (SCV)
-	for(size_t co = 0; co < geo.num_scv(); ++co)
-	{
-	// 	get current SCV
-		const typename TFVGeom::SCV& scv = geo.scv(co);
-
-	// 	Check associated node
-		UG_ASSERT(co == scv.node_id(), "Only one shape per SCV");
-
-	// 	set lin defect
-		vvvLinDef[co][_VM_][co] = scv.volume();
-	}
-}
-
-//	computes the linearized defect w.r.t to the velocity
+//
 template<typename TDomain>
 template <typename TElem, typename TFVGeom>
 void ElemDiscHH_FV1<TDomain>::
@@ -1654,33 +873,7 @@ template<typename TDomain>
 void ElemDiscHH_FV1<TDomain>::
 set_upwind(SmartPtr<IConvectionShapes<dim> > shapes) {m_spConvShape = shapes;}
 
-//	computes the linearized defect w.r.t to the velocity
-template<typename TDomain>
-const typename ElemDiscHH_FV1<TDomain>::conv_shape_type&
-ElemDiscHH_FV1<TDomain>::
-get_updated_conv_shapes(const FVGeometryBase& geo)
-{
-	std::cout << "get_updated_conv_shapes" << std::endl;
-//	compute upwind shapes for transport equation
-//	\todo: we should move this computation into the preparation part of the
-//			disc, to only compute the shapes once, reusing them several times.
-	if(m_imVelocity.data_given())
-	{
-	//	get diffusion at ips
-		const MathMatrix<dim, dim>* vDiffusion = NULL;
-		if(m_imDiffusion.data_given()) vDiffusion = m_imDiffusion.values();
 
-	//	update convection shapes
-		if(!m_spConvShape->update(&geo, m_imVelocity.values(), vDiffusion, true))
-		{
-			UG_LOG("ERROR in 'ElemDiscHHFV1::add_jac_A_elem': "
-					"Cannot compute convection shapes.\n");
-		} else {std::cout << "update done" << std::endl;}
-	}
-
-//	return a const (!!) reference to the upwind
-	return *const_cast<const IConvectionShapes<dim>*>(m_spConvShape.get());
-}
 
 
 
@@ -1771,28 +964,9 @@ register_func()
 	this->set_add_jac_A_elem_fct(id, &T::template add_jac_A_elem<TElem, TFVGeom>);
 	this->set_add_jac_M_elem_fct(id, &T::template add_jac_M_elem<TElem, TFVGeom>);
 	this->set_add_def_A_elem_fct(id, &T::template add_def_A_elem<TElem, TFVGeom>);
-	this->set_add_def_A_expl_elem_fct(id, &T::template add_def_A_expl_elem<TElem, TFVGeom>);
 	this->set_add_def_M_elem_fct(id, &T::template add_def_M_elem<TElem, TFVGeom>);
 	this->set_add_rhs_elem_fct(  id, &T::template add_rhs_elem<TElem, TFVGeom>);
 
-// error estimator parts
-	this->set_prep_err_est_elem_loop(id, &T::template prep_err_est_elem_loop<TElem, TFVGeom>);
-	this->set_prep_err_est_elem(id, &T::template prep_err_est_elem<TElem, TFVGeom>);
-	this->set_compute_err_est_A_elem(id, &T::template compute_err_est_A_elem<TElem, TFVGeom>);
-	this->set_compute_err_est_M_elem(id, &T::template compute_err_est_M_elem<TElem, TFVGeom>);
-	this->set_compute_err_est_rhs_elem(id, &T::template compute_err_est_rhs_elem<TElem, TFVGeom>);
-	this->set_fsh_err_est_elem_loop(id, &T::template fsh_err_est_elem_loop<TElem, TFVGeom>);
-
-//	set computation of linearized defect w.r.t velocity
-	m_imDiffusion.set_fct(id, this, &T::template lin_def_diffusion<TElem, TFVGeom>);
-	m_imVelocity. set_fct(id, this, &T::template lin_def_velocity<TElem, TFVGeom>);
-	m_imFlux.set_fct(id, this, &T::template lin_def_flux<TElem, TFVGeom>);
-	m_imReactionRate. set_fct(id, this, &T::template lin_def_reaction_rate<TElem, TFVGeom>);
-	m_imReaction. set_fct(id, this, &T::template lin_def_reaction<TElem, TFVGeom>);
-	m_imSource.	  set_fct(id, this, &T::template lin_def_source<TElem, TFVGeom>);
-	m_imVectorSource.set_fct(id, this, &T::template lin_def_vector_source<TElem, TFVGeom>);
-	m_imMassScale.set_fct(id, this, &T::template lin_def_mass_scale<TElem, TFVGeom>);
-	m_imMass.	set_fct(id, this, &T::template lin_def_mass<TElem, TFVGeom>);
 
 //	exports
 	m_exValue->	   template set_fct<T,refDim>(id, this, &T::template ex_value<TElem, TFVGeom>);

@@ -87,10 +87,6 @@ class ElemDiscHH_FV1 : public ElemDiscHH_Base<TDomain>
 		template <typename TElem, typename TFVGeom>
 		void add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
-	///	assembles the stiffness part of the local defect explicit reaction, reaction_rate and source
-		template <typename TElem, typename TFVGeom>
-		void add_def_A_expl_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-
 	///	assembles the mass part of the local defect
 		template <typename TElem, typename TFVGeom>
 		void add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
@@ -99,84 +95,7 @@ class ElemDiscHH_FV1 : public ElemDiscHH_Base<TDomain>
 		template <typename TElem, typename TFVGeom>
 		void add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
-	///	prepares the loop over all elements of one type for the computation of the error estimator
-		template <typename TElem, typename TFVGeom>
-		void prep_err_est_elem_loop(const ReferenceObjectID roid, const int si);
 
-	///	prepares the element for assembling the error estimator
-		template <typename TElem, typename TFVGeom>
-		void prep_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-
-	///	computes the error estimator contribution for one element
-		template <typename TElem, typename TFVGeom>
-		void compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale);
-
-	///	computes the error estimator contribution for one element
-		template <typename TElem, typename TFVGeom>
-		void compute_err_est_M_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale);
-
-	///	computes the error estimator contribution for one element
-		template <typename TElem, typename TFVGeom>
-		void compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale);
-
-	///	postprocesses the loop over all elements of one type in the computation of the error estimator
-		template <typename TElem, typename TFVGeom>
-		void fsh_err_est_elem_loop();
-
-	protected:
-	///	computes the linearized defect w.r.t to the velocity
-		template <typename TElem, typename TFVGeom>
-		void lin_def_velocity(const LocalVector& u,
-		                      std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
-		                      const size_t nip);
-
-	///	computes the linearized defect w.r.t to the velocity
-		template <typename TElem, typename TFVGeom>
-		void lin_def_diffusion(const LocalVector& u,
-		                       std::vector<std::vector<MathMatrix<dim,dim> > > vvvLinDef[],
-		                       const size_t nip);
-
-	///	computes the linearized defect w.r.t to the velocity
-		template <typename TElem, typename TFVGeom>
-		void lin_def_flux(const LocalVector& u,
-		                  std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
-		                  const size_t nip);
-
-	///	computes the linearized defect w.r.t to the reaction
-		template <typename TElem, typename TFVGeom>
-		void lin_def_reaction(const LocalVector& u,
-		                      std::vector<std::vector<number> > vvvLinDef[],
-		                      const size_t nip);
-
-	///	computes the linearized defect w.r.t to the reaction
-		template <typename TElem, typename TFVGeom>
-		void lin_def_reaction_rate(const LocalVector& u,
-		                           std::vector<std::vector<number> > vvvLinDef[],
-		                           const size_t nip);
-
-	///	computes the linearized defect w.r.t to the source term
-		template <typename TElem, typename TFVGeom>
-		void lin_def_source(const LocalVector& u,
-		                    std::vector<std::vector<number> > vvvLinDef[],
-		                    const size_t nip);
-
-	///	computes the linearized defect w.r.t to the vector source term
-		template <typename TElem, typename TFVGeom>
-		void lin_def_vector_source(const LocalVector& u,
-		                           std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
-		                           const size_t nip);
-
-	///	computes the linearized defect w.r.t to the mass scale term
-		template <typename TElem, typename TFVGeom>
-		void lin_def_mass_scale(const LocalVector& u,
-		                        std::vector<std::vector<number> > vvvLinDef[],
-		                        const size_t nip);
-
-	///	computes the linearized defect w.r.t to the mass scale term
-		template <typename TElem, typename TFVGeom>
-		void lin_def_mass(const LocalVector& u,
-		                  std::vector<std::vector<number> > vvvLinDef[],
-		                  const size_t nip);
 							  
 	private:
 	///	abbreviation for the local solution
@@ -189,17 +108,8 @@ class ElemDiscHH_FV1 : public ElemDiscHH_Base<TDomain>
 		IFunction<number>* m_Injection;
 		IFunction<number>* m_Diameter;
 		using base_type::m_imDiffusion;
-		using base_type::m_imVelocity;
-		using base_type::m_imFlux;
-		using base_type::m_imSource;
-		using base_type::m_imSourceExpl;
-		using base_type::m_imVectorSource;
-		using base_type::m_imReactionRate;
-		using base_type::m_imReactionRateExpl;
-		using base_type::m_imReaction;
-		using base_type::m_imReactionExpl;
 		using base_type::m_imMassScale;
-		using base_type::m_imMass;
+		using base_type::m_imSource;
 
 		using base_type::m_exGrad;
 		using base_type::m_exValue;
@@ -210,7 +120,7 @@ class ElemDiscHH_FV1 : public ElemDiscHH_Base<TDomain>
 
 	///	returns the updated convection shapes
 		typedef IConvectionShapes<dim> conv_shape_type;
-		const IConvectionShapes<dim>& get_updated_conv_shapes(const FVGeometryBase& geo);
+
 
 	///	computes the concentration
 		template <typename TElem, typename TFVGeom>
