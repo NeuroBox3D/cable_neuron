@@ -18,6 +18,7 @@
 namespace ug{
 
 
+// TODO: Use grid attachments instead of this macro!
 #define DIAM_CONST 1e-4
 
 
@@ -31,9 +32,6 @@ class ElemDiscHH_FV1 : public ElemDiscHH_Base<TDomain>
 	///	Own type
 		typedef ElemDiscHH_FV1<TDomain> this_type;
 
-	/// error estimator type
-		typedef SideAndElemErrEstData<TDomain> err_est_type;
-
 	public:
 	///	World dimension
 		static const int dim = base_type::dim;
@@ -42,14 +40,10 @@ class ElemDiscHH_FV1 : public ElemDiscHH_Base<TDomain>
 	///	Constructor
 		ElemDiscHH_FV1(const char* functions, const char* subsets);
 
-	///	set the upwind method
-	/**
-	 * This method sets the upwind method used to upwind the convection.
-	 *
-	 * \param	shapes		upwind method
-	 */
-		void set_upwind(SmartPtr<IConvectionShapes<dim> > shapes);
+		//TODO: use attachments instead of IFunction for diameter
 		void set_diameter(IFunction<number>& functor) { m_Diameter = &functor;}
+
+		// TODO: use UserData instead of IFunction for injection; best use the m_imSource member
 		void set_injection(IFunction<number>& functor) { m_Injection = &functor;}
 
 	private:
@@ -95,58 +89,18 @@ class ElemDiscHH_FV1 : public ElemDiscHH_Base<TDomain>
 		template <typename TElem, typename TFVGeom>
 		void add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
-
 							  
 	private:
 	///	abbreviation for the local solution
-		// later on c must be deleted
-		//static const size_t _C_ = 0;
 		static const size_t _VM_ = 0;
 		static const size_t _h_ = 1;
 		static const size_t _m_ = 2;
 		static const size_t _n_ = 3;
+
 		IFunction<number>* m_Injection;
 		IFunction<number>* m_Diameter;
-		using base_type::m_imDiffusion;
-		using base_type::m_imMassScale;
+
 		using base_type::m_imSource;
-
-		using base_type::m_exGrad;
-		using base_type::m_exValue;
-
-	protected:
-	/// method to compute the upwind shapes
-		SmartPtr<IConvectionShapes<dim> > m_spConvShape;
-
-	///	returns the updated convection shapes
-		typedef IConvectionShapes<dim> conv_shape_type;
-
-
-	///	computes the concentration
-		template <typename TElem, typename TFVGeom>
-		void ex_value(number vValue[],
-		              const MathVector<dim> vGlobIP[],
-		              number time, int si,
-		              const LocalVector& u,
-		              GridObject* elem,
-		              const MathVector<dim> vCornerCoords[],
-		              const MathVector<TFVGeom::dim> vLocIP[],
-		              const size_t nip,
-		              bool bDeriv,
-		              std::vector<std::vector<number> > vvvDeriv[]);
-
-	///	computes the gradient of the concentration
-		template <typename TElem, typename TFVGeom>
-		void ex_grad(MathVector<dim> vValue[],
-		             const MathVector<dim> vGlobIP[],
-		             number time, int si,
-		             const LocalVector& u,
-		             GridObject* elem,
-		             const MathVector<dim> vCornerCoords[],
-		             const MathVector<TFVGeom::dim> vLocIP[],
-		             const size_t nip,
-		             bool bDeriv,
-		             std::vector<std::vector<MathVector<dim> > > vvvDeriv[]);
 
 	public:
 	///	type of trial space for each function used
@@ -164,30 +118,6 @@ class ElemDiscHH_FV1 : public ElemDiscHH_Base<TDomain>
 		void register_all_funcs(bool bHang);
 		template <typename TElem, typename TFVGeom> void register_func();
 	/// \}
-
-	private:
-		/// struct holding values of shape functions in IPs
-		struct ShapeValues
-		{
-			public:
-				void resize(std::size_t nEip, std::size_t nSip, std::size_t _nSh)
-				{
-					nSh = _nSh;
-					elemVals.resize(nEip);
-					sideVals.resize(nSip);
-					for (std::size_t i = 0; i < nEip; i++) elemVals[i].resize(nSh);
-					for (std::size_t i = 0; i < nSip; i++) sideVals[i].resize(nSh);
-				}
-				number& shapeAtElemIP(std::size_t sh, std::size_t ip) {return elemVals[ip][sh];}
-				number& shapeAtSideIP(std::size_t sh, std::size_t ip) {return sideVals[ip][sh];}
-				number* shapesAtElemIP(std::size_t ip) {return &elemVals[ip][0];}
-				number* shapesAtSideIP(std::size_t ip) {return &sideVals[ip][0];}
-				std::size_t num_sh() {return nSh;}
-			private:
-				std::size_t nSh;
-				std::vector<std::vector<number> > elemVals;
-				std::vector<std::vector<number> > sideVals;
-		} m_shapeValues;
 };
 
 

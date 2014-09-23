@@ -43,7 +43,7 @@ using namespace std;
 namespace ug {
 
 /**
- *  This Plugin provides the Kabelgleichund in 1D
+ *  This Plugin provides the Kabelgleichung in 1D
  */
 
 /**
@@ -85,18 +85,14 @@ static void Domain(bridge::Registry& reg, string grp)
 
 
 
-//	Kabel Diff FV
+//	Kabel Diff FV1
 	{
 		typedef ElemDiscHH_FV1<TDomain> T;
 		typedef ElemDiscHH_Base<TDomain> TBase;
 		string name = string("ElemDiscHH_FV1").append(suffix);
 		reg.add_class_<T, TBase >(name, grp)
 			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
-			.add_method("set_upwind", &T::set_upwind)
 			.add_method("set_injection", &T::set_injection)
-			//.add_method("set_quad_order", &T::set_quad_order)
-			//.template add_method("prep_elem_loop",(&T::prep_elem_loop),"", "setelemloop")
-			//.add_method("set_diffusion", &TBase::set_diffusion)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ElemDiscHH_FV1", tag);
 	}
