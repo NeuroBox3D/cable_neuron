@@ -43,7 +43,7 @@ class ElemDiscHH_FV1 : public ElemDiscHH_Base<TDomain>
 		//TODO: use attachments instead of IFunction for diameter
 		void set_diameter(IFunction<number>& functor) { m_Diameter = &functor;}
 
-		// TODO: use UserData instead of IFunction for injection; best use the m_imSource member
+		// Problem is solved with IFunction position could get with vcornercoords
 		void set_injection(IFunction<number>& functor) { m_Injection = &functor;}
 
 	private:
