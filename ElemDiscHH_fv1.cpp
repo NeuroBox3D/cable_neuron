@@ -168,14 +168,14 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		// injection flux
 		number inject = 0.0;
 
-		// For Different Dimensions we need different inputs
+		// time for every flux the same
 		number time = this->time();
 
+		// For Different Dimensions we need different inputs
 		if (dim == 3) {
 			number x = vCornerCoords[0][0];
 			number y = vCornerCoords[0][1];
 			number z = vCornerCoords[0][2];
-			//std::cout << "vCornerCoords:[0][0] " << x << ","<< y << "," << z << std::endl;
 			(*m_Injection)(inject, 4, time, x, y, z);
 		}
 
@@ -190,8 +190,6 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 			(*m_Injection)(inject, 2, time, x);
 		}
 
-		//
-		//std::cout << "vCornerCoords:[0][0] " << vCornerCoords[0][0][0] << std::endl;
 		const number flux =   (potassium_part_of_flux
 							+ sodium_part_of_flux
 							+ leakage_part_of_flux);
@@ -200,7 +198,7 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		// fehler in defekt normal -inject/radius
 		d(_VM_, co) += scv.volume()*PI*DIAM_CONST*(flux-(inject));
 
-		// bei - deffekt l�ufts in die falsche richtung
+		// bei - defekt gates change in false direction
 		d(_h_, co) += rate_h;
 		d(_m_, co) += rate_m;
 		d(_n_, co) += rate_n;
