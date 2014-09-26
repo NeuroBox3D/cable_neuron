@@ -168,11 +168,30 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		// injection flux
 		number inject = 0.0;
 
-		// TODO: this works only in 1D -- we need three coordinates; better use UserData like in ConvDiff
+		// For Different Dimensions we need different inputs
 		number time = this->time();
-		number x = vCornerCoords[0][0];
-		(*m_Injection)(inject, 2, time, x);
 
+		if (dim == 3) {
+			number x = vCornerCoords[0][0];
+			number y = vCornerCoords[0][1];
+			number z = vCornerCoords[0][2];
+			//std::cout << "vCornerCoords:[0][0] " << x << ","<< y << "," << z << std::endl;
+			(*m_Injection)(inject, 4, time, x, y, z);
+		}
+
+		if (dim == 2) {
+			number x = vCornerCoords[0][0];
+			number y = vCornerCoords[0][1];
+			(*m_Injection)(inject, 3, time, x, y);
+		}
+
+		if (dim == 1) {
+			number x = vCornerCoords[0][0];
+			(*m_Injection)(inject, 2, time, x);
+		}
+
+		//
+		//std::cout << "vCornerCoords:[0][0] " << vCornerCoords[0][0][0] << std::endl;
 		const number flux =   (potassium_part_of_flux
 							+ sodium_part_of_flux
 							+ leakage_part_of_flux);
@@ -450,6 +469,7 @@ register_func()
 {
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 	typedef this_type T;
+	static const int refDim = reference_element_traits<TElem>::dim;
 
 	this->clear_add_fct(id);
 	this->set_prep_elem_loop_fct(id, &T::template prep_elem_loop<TElem, TFVGeom>);
