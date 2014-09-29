@@ -38,13 +38,15 @@ class ElemDiscHH_FV1 : public ElemDiscHH_Base<TDomain>
 
 	public:
 	///	Constructor
-		ElemDiscHH_FV1(const char* functions, const char* subsets);
+		ElemDiscHH_FV1(SmartPtr<ApproximationSpace<TDomain> > approx,
+				const char* functions, const char* subsets);
 
 		//TODO: use attachments instead of IFunction for diameter
-		void set_diameter(IFunction<number>& functor) { m_Diameter = &functor;}
+		void set_diameter(const number d);
 
 		// Problem is solved with IFunction position could get with vcornercoords
 		void set_injection(IFunction<number>& functor) { m_Injection = &functor;}
+
 
 	private:
 	///	prepares the loop over all elements
@@ -89,7 +91,7 @@ class ElemDiscHH_FV1 : public ElemDiscHH_Base<TDomain>
 		template <typename TElem, typename TFVGeom>
 		void add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
-							  
+
 	private:
 	///	abbreviation for the local solution
 		static const size_t _VM_ = 0;
@@ -112,6 +114,13 @@ class ElemDiscHH_FV1 : public ElemDiscHH_Base<TDomain>
 	protected:
 	///	current regular grid flag
 		bool m_bNonRegularGrid;
+
+	/// approximation space (needed before given by domainDisc)
+		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
+
+	/// dendritic radius attachment and accessor
+		ANumber m_aDiameter;
+		Grid::AttachmentAccessor<Edge, ANumber> m_aaDiameter;
 
 	///	register utils
 	///	\{

@@ -26,11 +26,27 @@ namespace ug{
 
 template<typename TDomain>
 ElemDiscHH_FV1<TDomain>::
-ElemDiscHH_FV1(const char* functions, const char* subsets)
+ElemDiscHH_FV1(SmartPtr<ApproximationSpace<TDomain> > approx,
+		const char* functions, const char* subsets)
  : ElemDiscHH_Base<TDomain>(functions,subsets),
+   m_spApproxSpace(approx),
+   m_aDiameter("diameter"),
    m_bNonRegularGrid(false)
 {
 	register_all_funcs(m_bNonRegularGrid);
+}
+
+template<typename TDomain>
+void ElemDiscHH_FV1<TDomain>::
+set_diameter(const number d)
+{
+	// handle the attachment
+	if (m_spApproxSpace->domain()->grid()->has_edge_attachment(m_aDiameter))
+		UG_THROW("Radius attachment necessary for HH elem disc "
+				 "could not be made, since it already exists.");
+	m_spApproxSpace->domain()->grid()->attach_to_edges_dv(m_aDiameter, d);
+
+	m_aaDiameter = Grid::AttachmentAccessor<Edge, ANumber>(*m_spApproxSpace->domain()->grid(), m_aDiameter);
 }
 
 template<typename TDomain>
