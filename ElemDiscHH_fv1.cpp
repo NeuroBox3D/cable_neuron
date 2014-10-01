@@ -491,7 +491,7 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		J(_n_, co, _n_, co) += 1.0;
 
 		// potential equation
-		J(_VM_, co, _VM_, co) += PI*Diam*scv.volume()*spec_capacity;)*spec_capacity;
+		J(_VM_, co, _VM_, co) += PI*Diam*scv.volume()*spec_capacity;
 	}
 }
 
