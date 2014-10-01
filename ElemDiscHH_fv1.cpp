@@ -93,6 +93,7 @@ prep_elem_loop(const ReferenceObjectID roid, const int si)
 	const size_t numSCVip = geo.num_scv_ips();
 
 	m_imSource.template 		set_local_ips<refDim>(vSCVip,numSCVip, false);
+	m_spec_capa.template		set_local_ips<refDim>(vSCVip,numSCVip, false);
 }
 
 template<typename TDomain>
@@ -110,13 +111,14 @@ prep_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerC
 	static TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
 	try{geo.update(elem, vCornerCoords, &(this->subset_handler()));}
-	UG_CATCH_THROW("KabelDiffFV1::prep_elem: Cannot update Finite Volume Geometry.");
+	UG_CATCH_THROW("ElemDiscHHFV1::prep_elem: Cannot update Finite Volume Geometry.");
 
 	// set global positions
 	const MathVector<dim>* vSCVip = geo.scv_global_ips();
 	const size_t numSCVip = geo.num_scv_ips();
 
 	m_imSource.				set_global_ips(vSCVip, numSCVip);
+	m_spec_capa.			set_global_ips(vSCVip, numSCVip);
 }
 
 
@@ -227,20 +229,11 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		d(_m_, co) += rate_m;
 		d(_n_, co) += rate_n;
 
-		/*
-		std::cout << "flux: " << flux << std::endl;
-		std::cout << "defekt VM: " << d(_VM_, co) << "bei Loesung: " << u(_VM_,co) << std::endl;
-		std::cout << "defekt h: " << d(_h_, co) << "bei Loesung h: " << u(_h_,co)<< std::endl;
-		std::cout << "defekt m: " << d(_m_, co) << "bei Loesung m: " << u(_m_,co)<< std::endl;
-		std::cout << "defekt n: " << d(_n_, co) << "bei Loesung n: " << u(_n_,co)<< std::endl;
-		std::cout << "A/B-Hn: " << AlphaHn <<" " << BetaHn<< std::endl;
-		std::cout << "A/B-Hm: " << AlphaHm <<" " << BetaHm<< std::endl;
-		std::cout << "A/B-Hh: " << AlphaHh <<" " << BetaHh<< std::endl;
-		*/
 	}
 
 // diffusion part for cable equation
 	// TODO: We set constant values for resistance here; this will have to be changed
+	// R = V/I
 	number spec_resistance = 1.0;
 
 	MathVector<dim> grad_c;
@@ -291,9 +284,6 @@ add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 	//get Diameter from element
 	number Diam = m_aaDiameter[pElem];
 
-	// TODO: This constant will have to be set elsewhere
-	number spec_capacity = 1.0;
-
 	for (size_t ip = 0; ip < geo.num_scv(); ++ip)
 	{
 		// get current SCV
@@ -301,6 +291,8 @@ add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 
 		// get associated node
 		const int co = scv.node_id();
+
+		number spec_capacity = m_spec_capa[ip];
 
 		// gating parameters time derivative
 		d(_h_, co) += u(_h_, co);
@@ -481,8 +473,6 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 	//get Diameter from element
 	number Diam = m_aaDiameter[pElem];
 
-	// TODO: This constant will have to be set elsewhere
-	number spec_capacity = 1.0;
 
 	for (size_t ip = 0; ip < geo.num_scv(); ++ip)
 	{
@@ -492,13 +482,16 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		// get associated node
 		const int co = scv.node_id();
 
+		// get spec capacity
+		number spec_capacity = m_spec_capa[ip];
+
 		// gating parameters
 		J(_h_, co, _h_, co) += 1.0;
 		J(_m_, co, _m_, co) += 1.0;
 		J(_n_, co, _n_, co) += 1.0;
 
 		// potential equation
-		J(_VM_, co, _VM_, co) += PI*Diam*scv.volume()*spec_capacity;
+		J(_VM_, co, _VM_, co) += PI*Diam*scv.volume()*spec_capacity;)*spec_capacity;
 	}
 }
 
