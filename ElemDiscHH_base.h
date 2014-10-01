@@ -180,10 +180,10 @@ class ElemDiscHH_Base
 	 * This method sets the mass scale value. The default value is 1.0.
 	 */
 	///	\{
-		void set_mass_scale(SmartPtr<CplUserData<number, dim> > user);
-		void set_mass_scale(number val);
+		void set_spec_capa(SmartPtr<CplUserData<number, dim> > user);
+		void set_spec_capa(number val);
 #ifdef UG_FOR_LUA
-		void set_mass_scale(const char* fctName);
+		void set_spec_capa(const char* fctName);
 #endif
 	///	\}
 
@@ -231,7 +231,7 @@ class ElemDiscHH_Base
 		DataImport<MathVector<dim>, dim > m_imVectorSource;
 
 	///	Data import for the mass scale
-		DataImport<number, dim> m_imMassScale;
+		DataImport<number, dim> m_spec_capa;
 
 	///	Data import for the mass scale
 		DataImport<number, dim> m_imMass;

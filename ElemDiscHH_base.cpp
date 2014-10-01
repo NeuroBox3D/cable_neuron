@@ -298,25 +298,25 @@ void ElemDiscHH_Base<TDomain>::set_vector_source(const char* fctName)
 
 template<typename TDomain>
 void ElemDiscHH_Base<TDomain>::
-set_mass_scale(SmartPtr<CplUserData<number, dim> > user)
+set_spec_capa(SmartPtr<CplUserData<number, dim> > user)
 {
-	m_imMassScale.set_data(user);
+	m_spec_capa.set_data(user);
 }
 
 template<typename TDomain>
 void ElemDiscHH_Base<TDomain>::
-set_mass_scale(number val)
+set_spec_capa(number val)
 {
-	if(val == 0.0) set_mass_scale(SmartPtr<CplUserData<number, dim> >());
-	else set_mass_scale(make_sp(new ConstUserNumber<dim>(val)));
+	if(val == 0.0) set_spec_capa(SmartPtr<CplUserData<number, dim> >());
+	else set_spec_capa(make_sp(new ConstUserNumber<dim>(val)));
 }
 
 #ifdef UG_FOR_LUA
 template<typename TDomain>
 void ElemDiscHH_Base<TDomain>::
-set_mass_scale(const char* fctName)
+set_spec_capa(const char* fctName)
 {
-	set_mass_scale(LuaUserDataFactory<number,dim>::create(fctName));
+	set_spec_capa(LuaUserDataFactory<number,dim>::create(fctName));
 }
 #endif
 
@@ -388,10 +388,10 @@ ElemDiscHH_Base(const char* functions, const char* subsets)
 	this->register_import(m_imSourceExpl);
 	this->register_import(m_imSource);
 	this->register_import(m_imVectorSource);
-	this->register_import(m_imMassScale);
+	this->register_import(m_spec_capa);
 	this->register_import(m_imMass);
 
-	m_imMassScale.set_mass_part();
+	//m_imMassScale.set_mass_part();
 	m_imMass.set_mass_part();
 	m_imSource.set_rhs_part();
 	m_imVectorSource.set_rhs_part();
@@ -399,8 +399,7 @@ ElemDiscHH_Base(const char* functions, const char* subsets)
 	m_imReactionExpl.set_expl_part();
 	m_imReactionRateExpl.set_expl_part();
 
-//	default value for mass scale
-	set_mass_scale(1.0);
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////

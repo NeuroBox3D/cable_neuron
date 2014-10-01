@@ -78,8 +78,11 @@ static void Domain(bridge::Registry& reg, string grp)
 		string name = string("ElemDiscHH_Base").append(suffix);
 		reg.add_class_<T, TBase >(name, grp)
 				//.add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)");
-					.add_method("set_diffusion", static_cast<void (T::*)(SmartPtr<CplUserData<MathMatrix<dim, dim>, dim> >)>(&T::set_diffusion), "", "Diffusion")
-					.add_method("set_diffusion", static_cast<void (T::*)(number)>(&T::set_diffusion), "", "Diagonal Diffusion");
+					.add_method("set_spec_capa", static_cast<void (T::*)(SmartPtr<CplUserData<number, dim> >)>(&T::set_spec_capa), "", "Spec Capa")
+					.add_method("set_spec_capa", static_cast<void (T::*)(number)>(&T::set_spec_capa), "", "Spec Capa")
+		#ifdef UG_FOR_LUA
+					.add_method("set_spec_capa", static_cast<void (T::*)(const char*)>(&T::set_spec_capa), "", "Spec Capa");
+		#endif
 		reg.add_class_to_group(name, "ElemDiscHH_Base", tag);
 	}
 

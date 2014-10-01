@@ -18,9 +18,6 @@
 namespace ug{
 
 
-// TODO: Use grid attachments instead of this macro!
-#define DIAM_CONST 1e-4
-
 
 template<	typename TDomain>
 class ElemDiscHH_FV1 : public ElemDiscHH_Base<TDomain>
@@ -41,7 +38,7 @@ class ElemDiscHH_FV1 : public ElemDiscHH_Base<TDomain>
 		ElemDiscHH_FV1(SmartPtr<ApproximationSpace<TDomain> > approx,
 				const char* functions, const char* subsets);
 
-		//TODO: use attachments instead of IFunction for diameter
+		// set diameter for dendrit
 		void set_diameter(const number d);
 
 		// Problem is solved with IFunction position could get with vcornercoords
@@ -100,8 +97,8 @@ class ElemDiscHH_FV1 : public ElemDiscHH_Base<TDomain>
 		static const size_t _n_ = 3;
 
 		IFunction<number>* m_Injection;
-		IFunction<number>* m_Diameter;
 
+		using base_type::m_spec_capa;
 		using base_type::m_imSource;
 
 	public:
@@ -110,6 +107,7 @@ class ElemDiscHH_FV1 : public ElemDiscHH_Base<TDomain>
 
 	///	returns if hanging nodes are needed
 		virtual bool use_hanging() const;
+
 
 	protected:
 	///	current regular grid flag
