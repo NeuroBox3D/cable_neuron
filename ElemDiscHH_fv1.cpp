@@ -155,7 +155,7 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		volume += scv.volume();
 
 		// gating param h
-		number AlphaHh = 0.07*exp(-(u(_VM_,co)+65)/20.0);
+		number AlphaHh = 0.07*exp(-(u(_VM_,co)+65.0)/20.0);
 		number BetaHh = 1.0/(exp(3.0-0.1*(u(_VM_,co)+65.0))+1.0);
 
 		// gating param m
@@ -166,7 +166,7 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		else
 			AlphaHm = 1.0;
 
-		number BetaHm = 4.0*exp(-(u(_VM_,co)+65)/18.0);
+		number BetaHm = 4.0*exp(-(u(_VM_,co)+65.0)/18.0);
 
 		// gating param n
 		number AlphaHn;
@@ -374,7 +374,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 	// calculate several help variables for efficient calculation of derivatives
 		// gating param h
-		number AlphaHh = 0.07*exp(-(u(_VM_,co)+65)/20.0);
+		number AlphaHh = 0.07*exp(-(u(_VM_,co)+65.0)/20.0);
 		number BetaHh = 1.0/(exp(3.0-0.1*(u(_VM_,co)+65.0))+1.0);
 
 		// gating param m
@@ -385,7 +385,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		else
 			AlphaHm = 1.0;
 
-		number BetaHm = 4.0*exp(-(u(_VM_,co)+65)/18.0);
+		number BetaHm = 4.0*exp(-(u(_VM_,co)+65.0)/18.0);
 
 		// gating param n
 		number AlphaHn;
@@ -399,7 +399,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		number BetaHn = 0.125*exp((u(_VM_,co)+65.0)/80.0);
 
 		// gating param h derivatives
-		number dAlphaHh_dVm = 0.07/20.0 * exp(-(u(_VM_,co)+65.0)/20.0);
+		number dAlphaHh_dVm = -0.07/20.0 * exp(-(u(_VM_,co)+65.0)/20.0);
 		number help = exp(3.0-0.1*(u(_VM_,co)+65.0));
 		number dBetaHh_dVm = 0.1*help / pow(help+1.0, 2);
 
@@ -434,7 +434,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 		// derivatives of potential from HH channels
 		J(_VM_, co, _h_, co) += scv.volume()*PI*Diam * 120.0*pow(u(_m_,co),3) * (u(_VM_, co) - 50.0);
-		J(_VM_, co, _m_, co) += scv.volume()*PI*Diam * 3.0*120.0*pow(u(_m_,co),2) * (u(_VM_, co) - 50.0);
+		J(_VM_, co, _m_, co) += scv.volume()*PI*Diam * 3.0*120.0*pow(u(_m_,co),2) * u(_h_,co) * (u(_VM_, co) - 50.0);
 		J(_VM_, co, _n_, co) += scv.volume()*PI*Diam * 4.0*36.0*pow(u(_n_,co),3) * (u(_VM_,co) + 77.0);
 		J(_VM_, co, _VM_, co) += scv.volume()*PI*Diam * (36.0*pow(u(_n_,co),4) + 120.0*pow(u(_m_,co),3)*u(_h_,co) + 0.3);
 	}
