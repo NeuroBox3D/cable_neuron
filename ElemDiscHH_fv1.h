@@ -41,9 +41,16 @@ class ElemDiscHH_FV1 : public ElemDiscHH_Base<TDomain>
 		// set diameter for dendrit
 		void set_diameter(const number d);
 
+		// set spec_resistance
+		void set_spec_res(number val);
+
+		void set_accuracy(double ac);
+
 		// Problem is solved with IFunction position could get with vcornercoords
 		void set_injection(IFunction<number>& functor) { m_Injection = &functor;}
 
+		// set Sodium, Potassium and Leakage constants
+		void set_consts(number Na, number K, number L);
 
 	private:
 	///	prepares the loop over all elements
@@ -95,6 +102,13 @@ class ElemDiscHH_FV1 : public ElemDiscHH_Base<TDomain>
 		static const size_t _h_ = 1;
 		static const size_t _m_ = 2;
 		static const size_t _n_ = 3;
+
+		number m_spec_res;
+		number m_g_K;
+		number m_g_Na;
+		number m_g_I;
+
+		double m_accuracy;
 
 		IFunction<number>* m_Injection;
 

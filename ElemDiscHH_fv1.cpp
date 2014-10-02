@@ -51,6 +51,29 @@ set_diameter(const number d)
 
 template<typename TDomain>
 void ElemDiscHH_FV1<TDomain>::
+set_spec_res(number val)
+{
+	m_spec_res = val;
+}
+template<typename TDomain>
+void ElemDiscHH_FV1<TDomain>::
+set_accuracy(double ac)
+{
+	m_accuracy = ac;
+}
+
+
+template<typename TDomain>
+void ElemDiscHH_FV1<TDomain>::
+set_consts(number Na, number K, number L)
+{
+	m_g_K = K;
+	m_g_Na = Na;
+	m_g_I = L;
+}
+
+template<typename TDomain>
+void ElemDiscHH_FV1<TDomain>::
 prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid)
 {
 	// check number
@@ -156,6 +179,8 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		// save Volumen needed for pre_resistance
 		volume += scv.volume();
 
+		pre_resistance += scv.volume() / (0.25*PI*Diam_Elem*Diam_Elem);
+
 		// gating param h
 		number AlphaHh = 0.07*exp(-(u(_VM_,co)+65.0)/20.0);
 		number BetaHh = 1.0/(exp(3.0-0.1*(u(_VM_,co)+65.0))+1.0);
@@ -163,7 +188,7 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		// gating param m
 		number AlphaHm;
 		number AlphaHm_test = exp(2.5-0.1*(u(_VM_,co)+65.0))-1.0;
-		if (fabs(AlphaHm_test) > 1e-5)
+		if (fabs(AlphaHm_test) > m_accuracy)
 			AlphaHm = (2.5 - 0.1*(u(_VM_,co)+65.0)) / AlphaHm_test;
 		else
 			AlphaHm = 1.0;
@@ -174,7 +199,7 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		number AlphaHn;
 		number AlphaHn_test;
 		AlphaHn_test = exp(1.0-0.1*(u(_VM_,co)+65.0))-1.0;
-		if (fabs(AlphaHn_test) > 1e-5)
+		if (fabs(AlphaHn_test) > m_accuracy)
 			AlphaHn = (0.1-0.01*(u(_VM_,co)+65.0)) / AlphaHn_test;
 		else
 			AlphaHn = 0.1;
@@ -187,9 +212,9 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		number rate_n = -((AlphaHn * (1.0-u(_n_,co))) - BetaHn * u(_n_,co));
 
 		// single channel type fluxes
-		const number potassium_part_of_flux = 36.0 * pow(u(_n_,co),4) * (u(_VM_,co) + 77.0);
-		const number sodium_part_of_flux =  120.0 * pow(u(_m_,co),3) * u(_h_,co) * (u(_VM_, co) - 50.0);
-		const number leakage_part_of_flux = 0.3 * (u(_VM_,co) + 54.4);
+		const number potassium_part_of_flux = m_g_K * pow(u(_n_,co),4) * (u(_VM_,co) + 77.0);
+		const number sodium_part_of_flux =  m_g_Na * pow(u(_m_,co),3) * u(_h_,co) * (u(_VM_, co) - 50.0);
+		const number leakage_part_of_flux = m_g_I * (u(_VM_,co) + 54.4);
 
 		// injection flux
 		number inject = 0.0;
@@ -220,7 +245,13 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 							+ sodium_part_of_flux
 							+ leakage_part_of_flux);
 
-		//std::cout<< "Injection: " << inject << std::endl;
+		/*
+		if (vCornerCoords[0][1] == 2.5e-4)
+		{
+			std::cout<< "Flux: " << flux << std::endl;
+			std::cout<< "Injection: " << inject << std::endl;
+		}
+		*/
 		// fehler in defekt normal -inject/radius
 		d(_VM_, co) += scv.volume()*PI*Diam_Elem*(flux-(inject));
 
@@ -231,10 +262,6 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 
 	}
 
-// diffusion part for cable equation
-	// TODO: We set constant values for resistance here; this will have to be changed
-	// R = V/I
-	number spec_resistance = 1.0;
 
 	MathVector<dim> grad_c;
 
@@ -251,15 +278,14 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		// scalar product with normal
 		number diff_flux = VecDot(grad_c, scvf.normal());
 
-		number Diam_FromTo = m_aaDiameter[pElem];
+		//number Diam_FromTo = m_aaDiameter[pElem];
 				//0.5 * (m_aaDiameter[pElem->vertex(scvf.from())] +
 				//			 	    m_aaDiameter[pElem->vertex(scvf.to())]);
 
 		//
-		pre_resistance += volume / (0.25*PI*Diam_FromTo*Diam_FromTo);
 
 		// scale by 1/resistance and by length of element
-		diff_flux *= element_length / (spec_resistance*pre_resistance);
+		diff_flux *= element_length / (m_spec_res*pre_resistance);
 
 		// add to local defect
 		d(_VM_, scvf.from()) -= diff_flux;
@@ -300,6 +326,7 @@ add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		d(_n_, co) += u(_n_, co);
 
 		// potential equation time derivative
+		//std::cout<< "spannungswert: " << u(_VM_, co) << std::endl;
 		d(_VM_, co) += PI*Diam*scv.volume()*u(_VM_, co)*spec_capacity;
 	}
 }
@@ -372,7 +399,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		// gating param m
 		number AlphaHm;
 		number AlphaHm_test = exp(2.5-0.1*(u(_VM_,co)+65.0))-1.0;
-		if (fabs(AlphaHm_test) > 1e-5)
+		if (fabs(AlphaHm_test) > m_accuracy)
 			AlphaHm = (2.5 - 0.1*(u(_VM_,co)+65.0)) / AlphaHm_test;
 		else
 			AlphaHm = 1.0;
@@ -383,7 +410,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		number AlphaHn;
 		number AlphaHn_test;
 		AlphaHn_test = exp(1.0-0.1*(u(_VM_,co)+65.0))-1.0;
-		if (fabs(AlphaHn_test) > 1e-5)
+		if (fabs(AlphaHn_test) > m_accuracy)
 			AlphaHn = (0.1-0.01*(u(_VM_,co)+65.0)) / AlphaHn_test;
 		else
 			AlphaHn = 0.1;
@@ -398,7 +425,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		// gating param m derivatives
 		help = 2.5 - 0.1*(u(_VM_,co)+65.0);
 		number dAlphaHm_dVm;
-		if (fabs(exp(help)-1.0) > 1e-5)
+		if (fabs(exp(help)-1.0) > m_accuracy)
 			dAlphaHm_dVm = -0.1 * (((1.0-help)*exp(help)-1.0)) / pow(exp(help)-1.0, 2);
 		else
 			dAlphaHm_dVm = 1.0;
@@ -408,7 +435,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		// gating param n derivatives
 		help = 1.0 - 0.1*(u(_VM_,co)+65.0);
 		number dAlphaHn_dVm;
-		if (fabs(exp(help)-1.0) > 1e-5)
+		if (fabs(exp(help)-1.0) > m_accuracy)
 			dAlphaHn_dVm = -0.01 * (((1.0-help)*exp(help)-1.0)) / pow(exp(help)-1.0, 2);
 		else
 			dAlphaHn_dVm = 0.005;
@@ -425,14 +452,13 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		J(_n_, co, _VM_, co) += -((dAlphaHn_dVm * (1.0-u(_n_,co))) - dBetaHn_dVm * u(_n_,co));
 
 		// derivatives of potential from HH channels
-		J(_VM_, co, _h_, co) += scv.volume()*PI*Diam * 120.0*pow(u(_m_,co),3) * (u(_VM_, co) - 50.0);
-		J(_VM_, co, _m_, co) += scv.volume()*PI*Diam * 3.0*120.0*pow(u(_m_,co),2) * u(_h_,co) * (u(_VM_, co) - 50.0);
-		J(_VM_, co, _n_, co) += scv.volume()*PI*Diam * 4.0*36.0*pow(u(_n_,co),3) * (u(_VM_,co) + 77.0);
-		J(_VM_, co, _VM_, co) += scv.volume()*PI*Diam * (36.0*pow(u(_n_,co),4) + 120.0*pow(u(_m_,co),3)*u(_h_,co) + 0.3);
+		J(_VM_, co, _h_, co) += scv.volume()*PI*Diam * m_g_Na*pow(u(_m_,co),3) * (u(_VM_, co) - 50.0);
+		J(_VM_, co, _m_, co) += scv.volume()*PI*Diam * 3.0*m_g_Na*pow(u(_m_,co),2) * u(_h_,co) * (u(_VM_, co) - 50.0);
+		J(_VM_, co, _n_, co) += scv.volume()*PI*Diam * 4.0*m_g_K*pow(u(_n_,co),3) * (u(_VM_,co) + 77.0);
+		J(_VM_, co, _VM_, co) += scv.volume()*PI*Diam * (m_g_K*pow(u(_n_,co),4) + m_g_Na*pow(u(_m_,co),3)*u(_h_,co) + m_g_I);
 	}
 
 // "diffusion" derivatives
-	number spec_resistance = 1.0;
 
 	// loop Sub Control Volume Faces (SCVF)
 	for (size_t ip = 0; ip < geo.num_scvf(); ++ip)
@@ -447,7 +473,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 			number d_diff_flux = element_length * VecDot(scvf.global_grad(sh), scvf.normal());
 
 			// scale by 1/resistance and by length of element
-			d_diff_flux *= element_length / (spec_resistance*pre_resistance);
+			d_diff_flux *= element_length / (m_spec_res*pre_resistance);
 
 			// add flux term to local matrix
 			J(_VM_, scvf.from(), _VM_, sh) -= d_diff_flux;
