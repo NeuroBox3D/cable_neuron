@@ -124,15 +124,15 @@ class ElemDiscHH_FV1 : public ElemDiscHH_Base<TDomain>
 
 
 	protected:
-	///	current regular grid flag
-		bool m_bNonRegularGrid;
-
 	/// approximation space (needed before given by domainDisc)
 		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
 
 	/// dendritic radius attachment and accessor
 		ANumber m_aDiameter;
 		Grid::AttachmentAccessor<Vertex, ANumber> m_aaDiameter;
+
+	///	current regular grid flag
+		bool m_bNonRegularGrid;
 
 	///	register utils
 	///	\{

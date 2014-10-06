@@ -155,7 +155,6 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 
 	number element_length = 0.0;
 	number pre_resistance = 0.0;
-	number volume = 0.0;
 
 	// cast elem to appropriate type
 	TElem* pElem = dynamic_cast<TElem*>(elem);
@@ -171,16 +170,13 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		const int co = scv.node_id();
 
 		// get diam from attachment for Element
-		number Diam_Elem = 	m_aaDiameter[pElem->vertex(ip)];
+		number Diam = m_aaDiameter[pElem->vertex(co)];
 
 
 		// add length of scv to element length
 		element_length += scv.volume();
-
-		// save Volumen needed for pre_resistance
-		volume += scv.volume();
-
-		pre_resistance += scv.volume() / (0.25*PI*Diam_Elem*Diam_Elem);
+		// add "pre_resistance" parts
+		pre_resistance += scv.volume() / (0.25*PI*Diam*Diam);
 
 		// gating param h
 		number AlphaHh = 0.07*exp(-(u(_VM_,co)+65.0)/20.0);
@@ -258,16 +254,15 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		}*/
 
 		// fehler in defekt normal -inject/radius
-		d(_VM_, co) += scv.volume()*PI*Diam_Elem*(flux-(inject));
+		d(_VM_, co) += scv.volume()*PI*Diam*(flux-(inject));
 
 		// bei - defekt gates change in false direction
 		d(_h_, co) += rate_h;
 		d(_m_, co) += rate_m;
 		d(_n_, co) += rate_n;
-
 	}
 
-
+// cable equation, "diffusion" part
 	MathVector<dim> grad_c;
 
 	for (size_t ip = 0; ip < geo.num_scvf(); ++ip)
@@ -275,18 +270,13 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		// get current SCVF
 		const typename TFVGeom::SCVF& scvf = geo.scvf(ip);
 
-		// compute gradient and shape at ip
+		// compute gradient at ip
 		VecSet(grad_c, 0.0);
 		for (size_t sh = 0; sh < scvf.num_sh(); ++sh)
 			VecScaleAppend(grad_c, u(_VM_,sh), scvf.global_grad(sh));
 
 		// scalar product with normal
 		number diff_flux = VecDot(grad_c, scvf.normal());
-
-		//number Diam_FromTo = m_aaDiameter[pElem];
-
-
-		//
 
 		// scale by 1/resistance and by length of element
 		diff_flux *= element_length / (m_spec_res*pre_resistance);
@@ -306,12 +296,9 @@ add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 	// get finite volume geometry
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
-
 	// cast elem to appropriate type
 	TElem* pElem = dynamic_cast<TElem*>(elem);
 	if (!pElem) {UG_THROW("Wrong element type.");}
-
-
 
 	for (size_t ip = 0; ip < geo.num_scv(); ++ip)
 	{
@@ -321,11 +308,11 @@ add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		// get associated node
 		const int co = scv.node_id();
 
-		number spec_capacity = m_spec_capa[ip];
-
 		//get Diameter from element
-		number Diam = m_aaDiameter[pElem->vertex(ip)];
+		number Diam = m_aaDiameter[pElem->vertex(co)];
 
+		// get spec capacity
+		number spec_capacity = m_spec_capa[ip];
 
 		// gating parameters time derivative
 		d(_h_, co) += u(_h_, co);
@@ -333,7 +320,6 @@ add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		d(_n_, co) += u(_n_, co);
 
 		// potential equation time derivative
-		//std::cout<< "spannungswert: " << u(_VM_, co) << std::endl;
 		d(_VM_, co) += PI*Diam*scv.volume()*u(_VM_, co)*spec_capacity;
 	}
 }
@@ -380,8 +366,6 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 	// cast elem to appropriate type
 	TElem* pElem = dynamic_cast<TElem*>(elem);
 	if (!pElem) {UG_THROW("Wrong element type.");}
-
-
 
 // channel kinetics derivatives
 	for (size_t ip = 0; ip < geo.num_scv(); ++ip)
@@ -436,9 +420,9 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		help = 2.5 - 0.1*(u(_VM_,co)+65.0);
 		number dAlphaHm_dVm;
 		if (fabs(exp(help)-1.0) > m_accuracy)
-			dAlphaHm_dVm = -0.1 * (((1.0-help)*exp(help)-1.0)) / pow(exp(help)-1.0, 2);
+			dAlphaHm_dVm = -0.1 * ((1.0-help)*exp(help)-1.0) / pow(exp(help)-1.0, 2);
 		else
-			dAlphaHm_dVm = 1.0;
+			dAlphaHm_dVm = 0.05;
 
 		number dBetaHm_dVm = -4.0/18.0 * exp(-(u(_VM_,co)+65.0)/18.0);
 
@@ -446,9 +430,9 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		help = 1.0 - 0.1*(u(_VM_,co)+65.0);
 		number dAlphaHn_dVm;
 		if (fabs(exp(help)-1.0) > m_accuracy)
-			dAlphaHn_dVm = -0.01 * (((1.0-help)*exp(help)-1.0)) / pow(exp(help)-1.0, 2);
+			dAlphaHn_dVm = -0.01 * ((1.0-help)*exp(help)-1.0) / pow(exp(help)-1.0, 2);
 		else
-			dAlphaHn_dVm = 0.005;
+			dAlphaHn_dVm = 0.05;
 
 		number dBetaHn_dVm = 0.125/80.0 * exp((u(_VM_,co)+65.0)/80.0);
 
@@ -480,7 +464,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		for (size_t sh = 0; sh < scvf.num_sh(); ++sh)
 		{
 			// scalar product with normal
-			number d_diff_flux = element_length * VecDot(scvf.global_grad(sh), scvf.normal());
+			number d_diff_flux = VecDot(scvf.global_grad(sh), scvf.normal());
 
 			// scale by 1/resistance and by length of element
 			d_diff_flux *= element_length / (m_spec_res*pre_resistance);
@@ -501,12 +485,9 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 	// get finite volume geometry
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
-
 	// cast elem to appropriate type
 	TElem* pElem = dynamic_cast<TElem*>(elem);
 	if (!pElem) {UG_THROW("Wrong element type.");}
-
-
 
 	for (size_t ip = 0; ip < geo.num_scv(); ++ip)
 	{
@@ -517,7 +498,7 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		const int co = scv.node_id();
 
 		//get Diameter from element
-		number Diam = m_aaDiameter[pElem->vertex(ip)];
+		number Diam = m_aaDiameter[pElem->vertex(co)];
 
 		// get spec capacity
 		number spec_capacity = m_spec_capa[ip];
@@ -551,7 +532,6 @@ register_func()
 {
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 	typedef this_type T;
-	static const int refDim = reference_element_traits<TElem>::dim;
 
 	this->clear_add_fct(id);
 	this->set_prep_elem_loop_fct(id, &T::template prep_elem_loop<TElem, TFVGeom>);
