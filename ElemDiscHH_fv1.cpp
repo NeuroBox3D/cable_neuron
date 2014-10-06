@@ -41,12 +41,12 @@ void ElemDiscHH_FV1<TDomain>::
 set_diameter(const number d)
 {
 	// handle the attachment
-	if (m_spApproxSpace->domain()->grid()->has_edge_attachment(m_aDiameter))
+	if (m_spApproxSpace->domain()->grid()->has_vertex_attachment(m_aDiameter))
 		UG_THROW("Radius attachment necessary for HH elem disc "
 				 "could not be made, since it already exists.");
-	m_spApproxSpace->domain()->grid()->attach_to_edges_dv(m_aDiameter, d);
+	m_spApproxSpace->domain()->grid()->attach_to_vertices_dv(m_aDiameter, d);
 
-	m_aaDiameter = Grid::AttachmentAccessor<Edge, ANumber>(*m_spApproxSpace->domain()->grid(), m_aDiameter);
+	m_aaDiameter = Grid::AttachmentAccessor<Vertex, ANumber>(*m_spApproxSpace->domain()->grid(), m_aDiameter);
 }
 
 template<typename TDomain>
@@ -171,7 +171,8 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		const int co = scv.node_id();
 
 		// get diam from attachment for Element
-		number Diam_Elem = (m_aaDiameter[pElem]);
+		number Diam_Elem = 	m_aaDiameter[pElem->vertex(ip)];
+
 
 		// add length of scv to element length
 		element_length += scv.volume();
@@ -245,13 +246,17 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 							+ sodium_part_of_flux
 							+ leakage_part_of_flux);
 
-		/*
-		if (vCornerCoords[0][1] == 2.5e-4)
+
+		/*if (vCornerCoords[0][1] == 2.5e-4)
 		{
 			std::cout<< "Flux: " << flux << std::endl;
 			std::cout<< "Injection: " << inject << std::endl;
-		}
-		*/
+			std::cout<< "VM: " << u(_VM_,co) << std::endl;
+			std::cout<< "m: " << (u(_m_,co))  << std::endl;
+			std::cout<< "h: " <<u(_h_,co) << std::endl;
+			std::cout<< "n: " <<u(_n_,co) << std::endl;
+		}*/
+
 		// fehler in defekt normal -inject/radius
 		d(_VM_, co) += scv.volume()*PI*Diam_Elem*(flux-(inject));
 
@@ -279,8 +284,7 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		number diff_flux = VecDot(grad_c, scvf.normal());
 
 		//number Diam_FromTo = m_aaDiameter[pElem];
-				//0.5 * (m_aaDiameter[pElem->vertex(scvf.from())] +
-				//			 	    m_aaDiameter[pElem->vertex(scvf.to())]);
+
 
 		//
 
@@ -307,8 +311,7 @@ add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 	TElem* pElem = dynamic_cast<TElem*>(elem);
 	if (!pElem) {UG_THROW("Wrong element type.");}
 
-	//get Diameter from element
-	number Diam = m_aaDiameter[pElem];
+
 
 	for (size_t ip = 0; ip < geo.num_scv(); ++ip)
 	{
@@ -319,6 +322,10 @@ add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		const int co = scv.node_id();
 
 		number spec_capacity = m_spec_capa[ip];
+
+		//get Diameter from element
+		number Diam = m_aaDiameter[pElem->vertex(ip)];
+
 
 		// gating parameters time derivative
 		d(_h_, co) += u(_h_, co);
@@ -374,8 +381,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 	TElem* pElem = dynamic_cast<TElem*>(elem);
 	if (!pElem) {UG_THROW("Wrong element type.");}
 
-	//get Diameter from element
-	number Diam = m_aaDiameter[pElem];
+
 
 // channel kinetics derivatives
 	for (size_t ip = 0; ip < geo.num_scv(); ++ip)
@@ -385,6 +391,10 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 		// get associated node
 		const int co = scv.node_id();
+
+		//get Diameter from element
+		number Diam = m_aaDiameter[pElem->vertex(co)];
+
 
 		// add length of scv to element length
 		element_length += scv.volume();
@@ -496,8 +506,6 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 	TElem* pElem = dynamic_cast<TElem*>(elem);
 	if (!pElem) {UG_THROW("Wrong element type.");}
 
-	//get Diameter from element
-	number Diam = m_aaDiameter[pElem];
 
 
 	for (size_t ip = 0; ip < geo.num_scv(); ++ip)
@@ -507,6 +515,9 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 		// get associated node
 		const int co = scv.node_id();
+
+		//get Diameter from element
+		number Diam = m_aaDiameter[pElem->vertex(ip)];
 
 		// get spec capacity
 		number spec_capacity = m_spec_capa[ip];

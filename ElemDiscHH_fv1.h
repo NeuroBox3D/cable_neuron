@@ -132,7 +132,7 @@ class ElemDiscHH_FV1 : public ElemDiscHH_Base<TDomain>
 
 	/// dendritic radius attachment and accessor
 		ANumber m_aDiameter;
-		Grid::AttachmentAccessor<Edge, ANumber> m_aaDiameter;
+		Grid::AttachmentAccessor<Vertex, ANumber> m_aaDiameter;
 
 	///	register utils
 	///	\{
