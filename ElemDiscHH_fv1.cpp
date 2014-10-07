@@ -278,6 +278,16 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		// scalar product with normal
 		number diff_flux = VecDot(grad_c, scvf.normal());
 
+<<<<<<< .mine
+		number Diam_FromTo = 0.5 * (m_aaDiameter[pElem->vertex(scvf.from())]
+		                          + m_aaDiameter[pElem->vertex(scvf.to())]);
+
+
+		//calculates pre_resistance
+		pre_resistance = volume / (0.25*PI*Diam_FromTo*Diam_FromTo);
+
+=======
+>>>>>>> .r16458
 		// scale by 1/resistance and by length of element
 		diff_flux *= element_length / (m_spec_res*pre_resistance);
 
@@ -362,6 +372,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 	number element_length = 0.0;
 	number pre_resistance = 0.0;
+	number volume = 0;
 
 	// cast elem to appropriate type
 	TElem* pElem = dynamic_cast<TElem*>(elem);
@@ -382,8 +393,10 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 		// add length of scv to element length
 		element_length += scv.volume();
-		// add "pre_resistance" parts
-		pre_resistance += scv.volume() / (0.25*PI*Diam*Diam);
+
+		// calculates volume for later use
+		volume += scv.volume();
+
 
 	// calculate several help variables for efficient calculation of derivatives
 		// gating param h
@@ -464,7 +477,15 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		for (size_t sh = 0; sh < scvf.num_sh(); ++sh)
 		{
 			// scalar product with normal
+<<<<<<< .mine
+			number Diam_FromTo = 0.5 * (m_aaDiameter[pElem->vertex(scvf.from())]
+			                          + m_aaDiameter[pElem->vertex(scvf.to())]);
+
+			pre_resistance = volume / (0.25*PI*Diam_FromTo*Diam_FromTo);
+
+=======
 			number d_diff_flux = VecDot(scvf.global_grad(sh), scvf.normal());
+>>>>>>> .r16458
 
 			// scale by 1/resistance and by length of element
 			d_diff_flux *= element_length / (m_spec_res*pre_resistance);
