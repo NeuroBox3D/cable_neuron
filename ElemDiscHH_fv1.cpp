@@ -155,6 +155,7 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 
 	number element_length = 0.0;
 	number pre_resistance = 0.0;
+	number volume = 0.0;
 
 	// cast elem to appropriate type
 	TElem* pElem = dynamic_cast<TElem*>(elem);
@@ -173,6 +174,7 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		number Diam = m_aaDiameter[pElem->vertex(co)];
 
 
+		volume += scv.volume();
 		// add length of scv to element length
 		element_length += scv.volume();
 		// add "pre_resistance" parts
@@ -389,6 +391,9 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 		// add length of scv to element length
 		element_length += scv.volume();
+		
+		// add "pre_resistance" parts
+		pre_resistance += scv.volume() / (0.25*PI*Diam*Diam);
 
 		// calculates volume for later use
 		volume += scv.volume();
