@@ -74,6 +74,17 @@ set_consts(number Na, number K, number L)
 
 template<typename TDomain>
 void ElemDiscHH_FV1<TDomain>::
+set_nernst_consts( number R, number T, number F)
+{
+	m_R = R;
+	m_T = T;
+	m_F = F;
+
+}
+
+
+template<typename TDomain>
+void ElemDiscHH_FV1<TDomain>::
 prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid)
 {
 	// check number
@@ -128,7 +139,7 @@ fsh_elem_loop()
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
 void ElemDiscHH_FV1<TDomain>::
-prep_elem(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[])
+prep_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	// update Geometry for this element
 	static TFVGeom& geo = GeomProvider<TFVGeom>::get();
@@ -156,6 +167,10 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 	number element_length = 0.0;
 	number pre_resistance = 0.0;
 	number volume = 0.0;
+
+	//need to set later in another way
+	number Na_out = 120;
+	number K_out = 2.5;
 
 	// cast elem to appropriate type
 	TElem* pElem = dynamic_cast<TElem*>(elem);
@@ -210,9 +225,15 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		number rate_m = -((AlphaHm * (1.0-u(_m_,co))) - BetaHm * u(_m_,co));
 		number rate_n = -((AlphaHn * (1.0-u(_n_,co))) - BetaHn * u(_n_,co));
 
+
+		const number helpV = (m_R*m_T)/m_F;
+		// nernst potential of potassium and sodium
+		const number potassium_nernst_eq 	= helpV*(log(K_out/u(_K_,co)));
+		const number sodium_nernst_eq	 	= -helpV*(log(Na_out/u(_Na_,co)));
+
 		// single channel type fluxes
-		const number potassium_part_of_flux = m_g_K * pow(u(_n_,co),4) * (u(_VM_,co) + 77.0);
-		const number sodium_part_of_flux =  m_g_Na * pow(u(_m_,co),3) * u(_h_,co) * (u(_VM_, co) - 50.0);
+		const number potassium_part_of_flux = m_g_K * pow(u(_n_,co),4) * (u(_VM_,co) - potassium_nernst_eq);
+		const number sodium_part_of_flux =  m_g_Na * pow(u(_m_,co),3) * u(_h_,co) * (u(_VM_, co) + sodium_nernst_eq);
 		const number leakage_part_of_flux = m_g_I * (u(_VM_,co) + 54.4);
 
 		// injection flux
@@ -262,6 +283,10 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		d(_h_, co) += rate_h;
 		d(_m_, co) += rate_m;
 		d(_n_, co) += rate_n;
+
+		// defekt of Na and K
+		d(_Na_, co) += sodium_part_of_flux;
+		d(_K_, co)  += potassium_part_of_flux;
 	}
 
 // cable equation, "diffusion" part
@@ -327,6 +352,10 @@ add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		d(_m_, co) += u(_m_, co);
 		d(_n_, co) += u(_n_, co);
 
+		// Nernst Paras time derivative
+		d(_Na_, co) += u(_Na_, co);
+		d(_K_, co)  += u(_K_, co);
+
 		// potential equation time derivative
 		d(_VM_, co) += PI*Diam*scv.volume()*u(_VM_, co)*spec_capacity;
 	}
@@ -371,6 +400,8 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 	number element_length = 0.0;
 	number pre_resistance = 0.0;
 	number volume = 0;
+	number Na_out = 120;
+	number K_out = 2.5;
 
 	// cast elem to appropriate type
 	TElem* pElem = dynamic_cast<TElem*>(elem);
@@ -450,7 +481,49 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 		number dBetaHn_dVm = 0.125/80.0 * exp((u(_VM_,co)+65.0)/80.0);
 
-	// add to Jacobian
+		//
+		const number helpV = (m_R*m_T)/m_F;
+
+
+
+		// nernst potential of potassium and sodium
+		const number potassium_nernst_eq 	= helpV*(log(K_out/u(_K_,co)));
+		const number sodium_nernst_eq	 	= -helpV*(log(Na_out/u(_Na_,co)));
+
+		const number potassium_part_of_flux = m_g_K * pow(u(_n_,co),4) * (u(_VM_,co) - potassium_nernst_eq);
+		const number sodium_part_of_flux =  m_g_Na * pow(u(_m_,co),3) * u(_h_,co) * (u(_VM_, co) + sodium_nernst_eq);
+
+		// derivatives of nernst equas // choosen with grapher
+		const number potassium_nernst_eq_dK 	=  helpV * (-K_out/u(_K_,co))*0.18; //helpV * (-K_out/pow(u(_K_,co),2));
+		const number sodium_nernst_eq_dNa		=  -helpV * (-Na_out/u(_Na_,co))*0.003; //helpV * (-Na_out/pow(u(_Na_,co),2));
+	// add to Jacobian;
+
+
+		std::cout << "K_Nernst: " << potassium_nernst_eq << std::endl;
+		std::cout << "Na_Nernst: " << sodium_nernst_eq << std::endl;
+		/*std::cout << "Na_in: " << u(_Na_, co) << std::endl;
+		std::cout << "K_in: " << u(_K_, co) << std::endl;
+		std::cout << "K_Ab:" << potassium_nernst_eq_dK << std::endl;
+		std::cout << "Na_Ab: " << sodium_nernst_eq_dNa << std::endl;
+		std::cout << "VM: " << u(_VM_,co) << std::endl;
+		std::cout << "h: " << u(_h_,co) << std::endl;
+		std::cout << "m: " << u(_m_,co) << std::endl;
+		std::cout << "n: " << u(_n_,co) << std::endl;*/
+
+
+		J(_K_, co, _K_, co)   +=  potassium_nernst_eq_dK;
+		J(_K_, co, _n_, co)   +=  m_g_K * 4*pow(u(_n_,co),3) * (u(_VM_,co));
+		J(_K_, co, _VM_, co)  +=  m_g_K * pow(u(_n_,co),4);
+
+		J(_Na_, co, _Na_, co) += sodium_nernst_eq_dNa;
+		J(_Na_, co, _m_, co) +=  m_g_Na * 3*pow(u(_m_,co),2) * u(_h_,co) * u(_VM_, co);
+		J(_Na_, co, _h_, co) +=  m_g_Na * pow(u(_m_,co),3) * u(_VM_, co);
+		J(_Na_, co, _VM_, co) +=  m_g_Na * pow(u(_m_,co),3) * u(_h_,co);
+
+
+		J(_VM_, co, _K_,co) += scv.volume()*PI*Diam * m_g_K * pow(u(_n_,co),4) * potassium_nernst_eq_dK;
+		J(_VM_, co, _Na_,co) += scv.volume()*PI*Diam * m_g_Na * pow(u(_m_,co),3) * u(_h_,co) * sodium_nernst_eq_dNa;
+
 		// derivatives of channel states
 		J(_h_, co, _h_, co) += AlphaHh + BetaHh;
 		J(_m_, co, _m_, co) += AlphaHm + BetaHm;
@@ -459,10 +532,15 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		J(_m_, co, _VM_, co) += -((dAlphaHm_dVm * (1.0-u(_m_,co))) - dBetaHm_dVm * u(_m_,co));
 		J(_n_, co, _VM_, co) += -((dAlphaHn_dVm * (1.0-u(_n_,co))) - dBetaHn_dVm * u(_n_,co));
 
+
+		// derivatives of potential from nernst-equatation
+		//J(_VM_, co, _K_,co) +=    ;
+		//J(_VM_, co, _Na_,co) +=    ;
+
 		// derivatives of potential from HH channels
-		J(_VM_, co, _h_, co) += scv.volume()*PI*Diam * m_g_Na*pow(u(_m_,co),3) * (u(_VM_, co) - 50.0);
-		J(_VM_, co, _m_, co) += scv.volume()*PI*Diam * 3.0*m_g_Na*pow(u(_m_,co),2) * u(_h_,co) * (u(_VM_, co) - 50.0);
-		J(_VM_, co, _n_, co) += scv.volume()*PI*Diam * 4.0*m_g_K*pow(u(_n_,co),3) * (u(_VM_,co) + 77.0);
+		J(_VM_, co, _h_, co) += scv.volume()*PI*Diam * m_g_Na*pow(u(_m_,co),3) * (u(_VM_, co) + sodium_nernst_eq);
+		J(_VM_, co, _m_, co) += scv.volume()*PI*Diam * 3.0*m_g_Na*pow(u(_m_,co),2) * u(_h_,co) * (u(_VM_, co) + sodium_nernst_eq);
+		J(_VM_, co, _n_, co) += scv.volume()*PI*Diam * 4.0*m_g_K*pow(u(_n_,co),3) * (u(_VM_,co) - potassium_nernst_eq);
 		J(_VM_, co, _VM_, co) += scv.volume()*PI*Diam * (m_g_K*pow(u(_n_,co),4) + m_g_Na*pow(u(_m_,co),3)*u(_h_,co) + m_g_I);
 	}
 
@@ -527,6 +605,9 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		J(_h_, co, _h_, co) += 1.0;
 		J(_m_, co, _m_, co) += 1.0;
 		J(_n_, co, _n_, co) += 1.0;
+
+		J(_Na_, co, _Na_, co) += 1.0;
+		J(_K_, co, _K_, co) += 1.0;
 
 		// potential equation
 		J(_VM_, co, _VM_, co) += PI*Diam*scv.volume()*spec_capacity;
