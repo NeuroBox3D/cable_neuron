@@ -52,6 +52,9 @@ class ElemDiscHH_FV1 : public ElemDiscHH_Base<TDomain>
 		// set Sodium, Potassium and Leakage constants
 		void set_consts(number Na, number K, number L);
 
+		// set params for nernst equa
+		void set_nernst_consts( number R, number T, number F);
+
 	private:
 	///	prepares the loop over all elements
 	/**
@@ -69,7 +72,7 @@ class ElemDiscHH_FV1 : public ElemDiscHH_Base<TDomain>
 	 * The global ip positions are scheduled at the data imports.
 	 */
 		template <typename TElem, typename TFVGeom>
-		void prep_elem(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[]);
+		void prep_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	finishes the loop over all elements
 		template <typename TElem, typename TFVGeom>
@@ -102,11 +105,19 @@ class ElemDiscHH_FV1 : public ElemDiscHH_Base<TDomain>
 		static const size_t _h_ = 1;
 		static const size_t _m_ = 2;
 		static const size_t _n_ = 3;
+		static const size_t _Na_ = 4;
+		static const size_t _K_ = 5;
 
 		number m_spec_res;
 		number m_g_K;
 		number m_g_Na;
 		number m_g_I;
+
+		// params for nernst equatation
+		number m_R;
+		number m_T;
+		number m_F;
+
 
 		double m_accuracy;
 
