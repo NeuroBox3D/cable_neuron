@@ -53,7 +53,7 @@ class ElemDiscHH_FV1 : public ElemDiscHH_Base<TDomain>
 		void set_consts(number Na, number K, number L);
 
 		// set params for nernst equa
-		void set_nernst_consts( number R, number T, number F);
+		void set_nernst_consts(bool activate, number R, number T, number F);
 
 	private:
 	///	prepares the loop over all elements
@@ -113,10 +113,15 @@ class ElemDiscHH_FV1 : public ElemDiscHH_Base<TDomain>
 		number m_g_Na;
 		number m_g_I;
 
+		// decision if natrium and sodium is activated
+		bool m_Na_and_Sodium_activated;
+
 		// params for nernst equatation
 		number m_R;
 		number m_T;
 		number m_F;
+
+
 
 
 		double m_accuracy;

@@ -74,8 +74,9 @@ set_consts(number Na, number K, number L)
 
 template<typename TDomain>
 void ElemDiscHH_FV1<TDomain>::
-set_nernst_consts( number R, number T, number F)
+set_nernst_consts(bool activate, number R, number T, number F)
 {
+	m_Na_and_Sodium_activated = activate;
 	m_R = R;
 	m_T = T;
 	m_F = F;
@@ -169,7 +170,7 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 	number volume = 0.0;
 
 	//need to set later in another way
-	number Na_out = 120;
+	number Na_out = 140;
 	number K_out = 2.5;
 
 	// cast elem to appropriate type
@@ -226,15 +227,22 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		number rate_n = -((AlphaHn * (1.0-u(_n_,co))) - BetaHn * u(_n_,co));
 
 
+
+
 		const number helpV = (m_R*m_T)/m_F;
 		// nernst potential of potassium and sodium
 		const number potassium_nernst_eq 	= helpV*(log(K_out/u(_K_,co)));
 		const number sodium_nernst_eq	 	= -helpV*(log(Na_out/u(_Na_,co)));
 
+
 		// single channel type fluxes
 		const number potassium_part_of_flux = m_g_K * pow(u(_n_,co),4) * (u(_VM_,co) - potassium_nernst_eq);
 		const number sodium_part_of_flux =  m_g_Na * pow(u(_m_,co),3) * u(_h_,co) * (u(_VM_, co) + sodium_nernst_eq);
 		const number leakage_part_of_flux = m_g_I * (u(_VM_,co) + 54.4);
+
+
+		number x, y, z;
+
 
 		// injection flux
 		number inject = 0.0;
@@ -244,20 +252,20 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 
 		// For Different Dimensions we need different inputs
 		if (dim == 3) {
-			number x = vCornerCoords[0][0];
-			number y = vCornerCoords[0][1];
-			number z = vCornerCoords[0][2];
+			x = vCornerCoords[0][0];
+			y = vCornerCoords[0][1];
+			z = vCornerCoords[0][2];
 			(*m_Injection)(inject, 4, time, x, y, z);
 		}
 
 		if (dim == 2) {
-			number x = vCornerCoords[0][0];
-			number y = vCornerCoords[0][1];
+			x = vCornerCoords[0][0];
+			y = vCornerCoords[0][1];
 			(*m_Injection)(inject, 3, time, x, y);
 		}
 
 		if (dim == 1) {
-			number x = vCornerCoords[0][0];
+			x = vCornerCoords[0][0];
 			(*m_Injection)(inject, 2, time, x);
 		}
 
@@ -276,6 +284,17 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 			std::cout<< "n: " <<u(_n_,co) << std::endl;
 		}*/
 
+		std::cout<< "volume: " << scv.volume() << std::endl;
+		std::cout<< "Diam " << Diam  << std::endl;
+		std::cout<< "flux: " << flux << std::endl;
+		std::cout<< "inject " << inject << std::endl;
+
+		if (scv.volume()==0) {
+			if (dim==3) {
+				std::cout<< "x: " << x << "y: " << y << "z: " << z << std::endl;
+			}
+		}
+
 		// fehler in defekt normal -inject/radius
 		d(_VM_, co) += scv.volume()*PI*Diam*(flux-(inject));
 
@@ -285,8 +304,8 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		d(_n_, co) += rate_n;
 
 		// defekt of Na and K
-		d(_Na_, co) += sodium_part_of_flux;
-		d(_K_, co)  += potassium_part_of_flux;
+		d(_Na_, co) += sodium_part_of_flux/m_F;
+		d(_K_, co)  += potassium_part_of_flux/m_F;
 	}
 
 // cable equation, "diffusion" part
@@ -400,7 +419,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 	number element_length = 0.0;
 	number pre_resistance = 0.0;
 	number volume = 0;
-	number Na_out = 120;
+	number Na_out = 140;
 	number K_out = 2.5;
 
 	// cast elem to appropriate type
@@ -499,8 +518,8 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 	// add to Jacobian;
 
 
-		std::cout << "K_Nernst: " << potassium_nernst_eq << std::endl;
-		std::cout << "Na_Nernst: " << sodium_nernst_eq << std::endl;
+		//std::cout << "K_Nernst: " << potassium_nernst_eq << std::endl;
+		//std::cout << "Na_Nernst: " << sodium_nernst_eq << std::endl;
 		/*std::cout << "Na_in: " << u(_Na_, co) << std::endl;
 		std::cout << "K_in: " << u(_K_, co) << std::endl;
 		std::cout << "K_Ab:" << potassium_nernst_eq_dK << std::endl;
