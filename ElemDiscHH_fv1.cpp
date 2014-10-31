@@ -140,7 +140,7 @@ fsh_elem_loop()
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
 void ElemDiscHH_FV1<TDomain>::
-prep_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
+prep_elem(const LocalVector& u, GridObject* elem, ReferenceObjectID id, const MathVector<dim> vCornerCoords[])
 {
 	// update Geometry for this element
 	static TFVGeom& geo = GeomProvider<TFVGeom>::get();

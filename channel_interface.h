@@ -9,6 +9,10 @@
 #define CHANNEL_INTERFACE_H_
 
 #include "lib_grid/lg_base.h"
+#include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
+#include "lib_disc/spatial_disc/disc_util/fv1_geom.h"
+#include "lib_disc/spatial_disc/disc_util/hfv1_geom.h"
+#include "lib_disc/spatial_disc/disc_util/geom_provider.h"
 
 namespace ug
 {
@@ -38,6 +42,7 @@ class IChannel
 	// TODO: - define which variables are needed for flux computation
 		IChannel(const char* functions, const char* subsets);
 
+
 	///	Destructor
 		virtual ~IChannel();
 
@@ -59,7 +64,7 @@ class IChannel
 	 * The global ip positions are scheduled at the data imports.
 	 */
 		template <typename TElem, typename TFVGeom>
-		void prep_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+		void prep_elem(const LocalVector& u, GridObject* elem, ReferenceObjectID id, const MathVector<dim> vCornerCoords[]);
 
 	///	finishes the loop over all elements
 		template <typename TElem, typename TFVGeom>
@@ -96,6 +101,10 @@ class IChannel
 	///	current regular grid flag
 		bool m_bNonRegularGrid;
 
+		SmartPtr<TDomain> m_dom;					//!< underlying domain
+		SmartPtr<MultiGrid> m_mg;						//!< underlying multigrid
+		SmartPtr<DoFDistribution> m_dd;				//!< underlying surface dof distribution
+
 	///	register utils
 	///	\{
 		void register_all_funcs(bool bHang);
@@ -106,33 +115,42 @@ class IChannel
 
 
 template <typename TDomain>
-class ChannelExample
+class ChannelHH
 	: public IChannel<TDomain>
 {
 	public:
 	/// constructor
-		ChannelExample(	const char* functions,
-						const char* subsets,
-						ApproximationSpace<TDomain>& approx
+		ChannelHH	  (	ApproximationSpace<TDomain>& approx,
+						const char* functions,
+						const char* subsets
 					  )
-			: IChannel<TDomain>(functions, subsets) {};
+		: IChannel<TDomain>(functions, subsets)
+	{
+		//m_spApproxSpace(approx);
+		m_dom(approx.domain());
+		m_mg(approx.domain()->grid());
+		m_dd(approx.dof_distribution(GridLevel::TOP));
+	};
+
 
 		/// destructor
-		virtual ~ChannelExample() {};
+		virtual ~ChannelHH() {};
 
 		// inherited from IChannel
 		virtual void init(number time);
 		virtual void update_gating(number newTime);
-		virtual number ionic_current(Vertex* v);
+		virtual void ionic_current(Vertex* v, std::vector<number>& outCurrentValues) = 0;
 
 	private:
 		// one attachment per state variable
 		ADouble m_MGate;							//!< activating gating "particle"
 		ADouble m_HGate;							//!< inactivating gating "particle"
-		ADouble m_Vm;								//!< membrane voltage (in Volt)
+		ADouble m_NGate;
+		ADouble m_Vm;								//!< membrane voltage (in mili Volt)
 
 		Grid::AttachmentAccessor<Vertex, ADouble> m_aaMGate;	//!< accessor for activating gate
 		Grid::AttachmentAccessor<Vertex, ADouble> m_aaHGate;	//!< accessor for inactivating gate
+		Grid::AttachmentAccessor<Vertex, ADouble> m_aaNGate;	//!< accessor for inactivating gate
 		Grid::AttachmentAccessor<Vertex, ADouble> m_aaVm;		//!< accessor for membrane potential
 };
 

@@ -25,8 +25,7 @@
 
 
 // Hodgin und Huxley includes
-//#include "HH.h"
-//#include "MHHDiscretization.h"
+#include "channel_interface.h"
 #include "ElemDiscHH_base.h"
 #include "ElemDiscHH_fv1.h"
 
@@ -99,10 +98,35 @@ static void Domain(bridge::Registry& reg, string grp)
 			.add_method("set_diameter", &T::set_diameter)
 			.add_method("set_spec_res", &T::set_spec_res)
 			.add_method("set_consts", &T::set_consts)
-			.add_method("set_nernst_consts", &T::set_nernst_consts)
+			.add_method("set_nernst_consts", &T::set_consts)
 			.add_method("set_accuracy", &T::set_accuracy)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ElemDiscHH_FV1", tag);
+	}
+
+//	Channel Interface Base
+	{
+		typedef IChannel<TDomain> T;
+		typedef IElemDisc<TDomain> TBase;
+		string name = string("IChannel").append(suffix);
+		reg.add_class_<T, TBase >(name, grp)
+			//.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "IChannel", tag);
+	}
+
+//	Channel Interface HH
+	{
+		typedef ChannelHH<TDomain> T;
+		typedef IChannel<TDomain> TBase;
+		string name = string("ChannelHH").append(suffix);
+		reg.add_class_<T, TBase >(name, grp)
+			.template add_constructor<void (*)(ApproximationSpace<TDomain>&, const char*,const char*)>("Function(s)#Subset(s)")
+			/*.add_method("init", &TBase::init)
+			.add_method("update_gating", &T::update_gating)
+			.add_method("ionic_current", &T::ionic_current)*/
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ChannelHH", tag);
 	}
 
 
