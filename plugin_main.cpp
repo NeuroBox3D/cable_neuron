@@ -114,17 +114,17 @@ static void Domain(bridge::Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "IChannel", tag);
 	}
-
+	std::cout << "diese registry" << std::endl;
 //	Channel Interface HH
 	{
 		typedef ChannelHH<TDomain> T;
 		typedef IChannel<TDomain> TBase;
 		string name = string("ChannelHH").append(suffix);
 		reg.add_class_<T, TBase >(name, grp)
-			.template add_constructor<void (*)(ApproximationSpace<TDomain>&, const char*,const char*)>("Function(s)#Subset(s)")
-			/*.add_method("init", &TBase::init)
+			.template add_constructor<void (*)(const char*,const char*, ApproximationSpace<TDomain>&)>("Function(s)#Subset(s)#ApproxSpace")
+			.add_method("init", &T::init)
 			.add_method("update_gating", &T::update_gating)
-			.add_method("ionic_current", &T::ionic_current)*/
+			.add_method("ionic_current", &T::ionic_current)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ChannelHH", tag);
 	}
