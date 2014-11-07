@@ -13,6 +13,10 @@
 #include "lib_disc/spatial_disc/disc_util/fv1_geom.h"
 #include "lib_disc/spatial_disc/disc_util/hfv1_geom.h"
 #include "lib_disc/spatial_disc/disc_util/geom_provider.h"
+#include <vector>
+#include <stdio.h>
+#include "bindings/lua/lua_user_data.h"
+#include "common/util/smart_pointer.h"
 
 namespace ug
 {
@@ -40,11 +44,15 @@ class IChannel
 	///	Constructor
 	// TODO: - define which variables will be influenced
 	// TODO: - define which variables are needed for flux computation
-		IChannel(const char* functions, const char* subsets);
+		IChannel(const char* functions, const char* subsets, ApproximationSpace<TDomain>& approx)
+		 : IElemDisc<TDomain>(functions,subsets)
+		   {
+			m_bNonRegularGrid = false;
+		   }
 
 
 	///	Destructor
-		virtual ~IChannel();
+		virtual ~IChannel() {};
 
 	// inherited from IElemDisc
 	public:
@@ -94,21 +102,23 @@ class IChannel
 		virtual void prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid);
 
 	///	returns if hanging nodes are needed
-		virtual bool use_hanging() const;
+		//virtual bool use_hanging() const;
 
 	protected:
 
-	///	current regular grid flag
+		///	current regular grid flag
 		bool m_bNonRegularGrid;
 
 		SmartPtr<TDomain> m_dom;					//!< underlying domain
-		SmartPtr<MultiGrid> m_mg;						//!< underlying multigrid
+		SmartPtr<MultiGrid> m_mg;					//!< underlying multigrid
 		SmartPtr<DoFDistribution> m_dd;				//!< underlying surface dof distribution
+		//using IElemDisc<TDomain>::dim;
 
 	///	register utils
 	///	\{
 		void register_all_funcs(bool bHang);
-		template <typename TElem, typename TFVGeom> void register_func();
+		template <typename TElem, typename TFVGeom>
+		void register_func();
 	/// \}
 
 };
@@ -120,26 +130,43 @@ class ChannelHH
 {
 	public:
 	/// constructor
-		ChannelHH	  (	ApproximationSpace<TDomain>& approx,
-						const char* functions,
-						const char* subsets
-					  )
-		: IChannel<TDomain>(functions, subsets)
-	{
-		//m_spApproxSpace(approx);
-		m_dom(approx.domain());
-		m_mg(approx.domain()->grid());
-		m_dd(approx.dof_distribution(GridLevel::TOP));
-	};
+		///	World dimension
 
+		ChannelHH	  (	const char* functions,
+						const char* subsets,
+						ApproximationSpace<TDomain>& approx
+					  )
+		: IChannel<TDomain>(functions, subsets, approx),
+		  			  m_dom(approx.domain()), m_mg(approx.domain()->grid()), m_dd(approx.dof_distribution(GridLevel::TOP)),
+		  			  m_bNonRegularGrid(false)//, m_spApproxSpace(approx)
+		  			  {
+						register_all_funcs(m_bNonRegularGrid);
+		  			  };
 
 		/// destructor
 		virtual ~ChannelHH() {};
 
+		static const int dim = IChannel<TDomain>::dim;
+
 		// inherited from IChannel
 		virtual void init(number time);
 		virtual void update_gating(number newTime);
-		virtual void ionic_current(Vertex* v, std::vector<number>& outCurrentValues) = 0;
+		virtual void ionic_current(Vertex* v, std::vector<number>& outCurrentValues);
+
+	protected:
+		SmartPtr<TDomain> m_dom;					//!< underlying domain
+		SmartPtr<Grid> m_mg;						//!< underlying multigrid
+		SmartPtr<DoFDistribution> m_dd;				//!< underlying surface dof distribution
+		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
+		bool m_bNonRegularGrid;
+
+
+		///	register utils
+		///	\{
+			void register_all_funcs(bool bHang);
+			template <typename TElem, typename TFVGeom>
+			void register_func();
+		/// \}
 
 	private:
 		// one attachment per state variable
@@ -152,6 +179,12 @@ class ChannelHH
 		Grid::AttachmentAccessor<Vertex, ADouble> m_aaHGate;	//!< accessor for inactivating gate
 		Grid::AttachmentAccessor<Vertex, ADouble> m_aaNGate;	//!< accessor for inactivating gate
 		Grid::AttachmentAccessor<Vertex, ADouble> m_aaVm;		//!< accessor for membrane potential
+
+
+		typedef IChannel<TDomain> base_type;
+
+	///	Own type
+		typedef ChannelHH<TDomain> this_type;
 };
 
 } // namespace ug
