@@ -13,13 +13,7 @@
 namespace ug {
 
 // Methods for Interface class
-template<typename TDomain>
-IChannel<TDomain>::
-IChannel(const char* functions, const char* subsets)
- : IElemDisc<TDomain>(functions,subsets)
-   {
 
-   };
 
 
 template<typename TDomain>
@@ -34,6 +28,22 @@ void IChannel<TDomain>::prep_elem(const LocalVector& u, GridObject* elem, Refere
 	UG_CATCH_THROW("Cannot update Finite Volume Geometry.\n");
 
 }
+
+template<typename TDomain>
+void IChannel<TDomain>::prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid)
+{
+	// remember
+	m_bNonRegularGrid = bNonRegularGrid;
+
+	// update assemble functions
+	register_all_funcs(m_bNonRegularGrid);
+}
+
+
+/* IChannel:: use_hanging()
+{
+	return false;
+}*/
 
 
 // Methods for HH-Channel-Class
@@ -93,7 +103,7 @@ void ChannelHH<TDomain>::init(number time)
 
 		for (itType iter = iterBegin; iter != iterEnd; ++iter)
 		{
-			// retrieve membrane potential via vm2ug
+			// missing how to get memb pot
 			// gating param h
 			number AlphaHh = 0.07*exp(-(m_aaVm[*iter] + 65.0)/20.0);
 			number BetaHh = 1.0/(exp(3.0-0.1*(m_aaVm[*iter]  + 65.0))+1.0);
@@ -183,11 +193,82 @@ void ChannelHH<TDomain>::update_gating(number newTime)
 			m_aaMGate[*iter] -= dt * rate_m;
 			m_aaNGate[*iter] -= dt * rate_n;
 
+
 		}
 	}
 
 }
 
+template<typename TDomain>
+void ChannelHH<TDomain>::ionic_current(Vertex* v, std::vector<number>& outCurrentValues)
+{
+	// values for nernst-equatations not used here
+	//const number helpV = (m_R*m_T)/m_F;
+	// nernst potential of potassium and sodium
+	//const number potassium_nernst_eq 	= helpV*(log(K_out/u(_K_,co)));
+	//const number sodium_nernst_eq	 	= -helpV*(log(Na_out/u(_Na_,co)));
+
+
+	const number m_g_K  = 0.36e-3;
+	const number m_g_Na = 1.2e-3;
+	const number m_g_I  = 0.003e-3;
+
+	// single channel type fluxes
+	/*const number potassium_part_of_flux = m_g_K * pow(u(_n_,co),4) * (u(_VM_,co) - -77);
+	const number sodium_part_of_flux =  m_g_Na * pow(u(_m_,co),3) * u(_h_,co) * (u(_VM_, co) + -50);
+	const number leakage_part_of_flux = m_g_I * (u(_VM_,co) + 54.4);
+
+	number flux_value = potassium_part_of_flux + sodium_part_of_flux + leakage_part_of_flux;*/
+
+}
+////////////////////////////////////////////////////////////////////////////////
+//	register assemble functions
+////////////////////////////////////////////////////////////////////////////////
+template<typename TDomain>
+void IChannel<TDomain>::
+register_all_funcs(bool bHang)
+{
+	//register_func<RegularEdge, FV1Geometry<RegularEdge, dim> >();
+}
+
+template<typename TDomain>
+template<typename TElem, typename TFVGeom>
+void IChannel<TDomain>::
+register_func()
+{
+	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+	typedef this_type T;
+
+	//this->set_prep_elem_loop_fct(id, &T::template prep_elem_loop<TElem, TFVGeom>);
+	//this->set_prep_elem_fct(id, &T::template prep_elem<TElem, TFVGeom>);
+	//this->set_fsh_elem_loop_fct(id, &T::template fsh_elem_loop<TElem, TFVGeom>);
+	//this->set_add_rhs_elem_fct(id, &T::template add_rhs_elem<TElem, TFVGeom>);
+
+}
+
+
+
+template<typename TDomain>
+void ChannelHH<TDomain>::
+register_all_funcs(bool bHang)
+{
+	//register_func<RegularEdge, FV1Geometry<RegularEdge, dim> >();
+}
+
+template<typename TDomain>
+template<typename TElem, typename TFVGeom>
+void ChannelHH<TDomain>::
+register_func()
+{
+	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+	typedef this_type T;
+
+	//this->set_prep_elem_loop_fct(id, &T::template prep_elem_loop<TElem, TFVGeom>);
+	//this->set_prep_elem_fct(id, &T::template prep_elem<TElem, TFVGeom>);
+	//this->set_fsh_elem_loop_fct(id, &T::template fsh_elem_loop<TElem, TFVGeom>);
+	//this->set_add_rhs_elem_fct(id, &T::template add_rhs_elem<TElem, TFVGeom>);
+
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 //	explicit template instantiations
