@@ -110,7 +110,7 @@ static void Domain(bridge::Registry& reg, string grp)
 		typedef IElemDisc<TDomain> TBase;
 		string name = string("IChannel").append(suffix);
 		reg.add_class_<T, TBase >(name, grp)
-			//.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
+			//.template add_constructor<void (*)(const char*,const char*, ApproximationSpace<TDomain>&)>("Function(s)#Subset(s)")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "IChannel", tag);
 	}
@@ -121,7 +121,7 @@ static void Domain(bridge::Registry& reg, string grp)
 		typedef IChannel<TDomain> TBase;
 		string name = string("ChannelHH").append(suffix);
 		reg.add_class_<T, TBase >(name, grp)
-			.template add_constructor<void (*)(const char*,const char*, ApproximationSpace<TDomain>&)>("Function(s)#Subset(s)#ApproxSpace")
+			.template add_constructor<void (*)(const char*,const char*, SmartPtr<ApproximationSpace<TDomain> >)>("Function(s)#Subset(s)#ApproxSpace")
 			.add_method("init", &T::init)
 			.add_method("update_gating", &T::update_gating)
 			.add_method("ionic_current", &T::ionic_current)
@@ -149,45 +149,27 @@ Register_Domain(bridge::Registry& reg, string grp)
 	string tag = bridge::GetDomainTag<TDomain>();
 
 
-	/*typedef HH THH;
-		string name = string("HH").append(suffix);
-		reg.add_class_<THH>(name, grp)
-	   .add_constructor<void (*)(number, number, number)>("Spannung#Einstrom#Kapa")
-	   .add_method("get_flux", &THH::get_flux,
-			   	   "dt","Vm#dt","Returns HH Vm Wert.", grp)
-	   .add_method("setSpannung", &THH::setSpannung,
-			       "Vm#", grp)
-	   .add_method("getSpannung", &THH::getSpannung,
-			       "gibt spannung zurueck", grp)
-	   .add_method("setEK", &THH::setEK,
-			       "sets EK zurueck", grp)
-	   .add_method("setEL", &THH::setEL,
-				   "sets EL zurueck", grp)
-	   .add_method("setENa", &THH::setENa,
-				   "sets ENa zurueck", grp)
-	   .add_method("setGI", &THH::setGI,
-				   "sets GI zurueck", grp)
-	   .add_method("setGK", &THH::setGK,
-				   "sets GK zurueck", grp)
-	   .add_method("setGNa", &THH::setGNa,
-				   "sets GNa", grp)
-	   .add_method("setEinstromPlatz", &THH::setEinstromPlatz, "SetsInjektionPlace", grp)
-	   .add_method("setEinstrom", &THH::setEinstrom, "SetsInjektion", grp)
-	   .add_method("setEinstromZeitDauer", &THH::setEinstromZeitDauer, "SetsInjektionDuration", grp)
-	   .add_method("setEinstromWert", &THH::setEinstromWert, "SetsInjektionValue", grp)
-	   .add_method("setEinstromZeit", &THH::setEinstromZeit, "SetsInjektionStarttime", grp)
-	   .add_method("getEinstromPlatz", &THH::getEinstromPlatz, "GetsInjektionPlace", grp)
-	   .add_method("getEinstrom", &THH::getEinstrom, "GetsInjektion", grp)
-	   .add_method("getEinstromZeitDauer", &THH::getEinstromZeitDauer, "GetsInjektionDuration", grp)
-	   .add_method("getEinstromWert", &THH::getEinstromWert, "GetsInjektionValue", grp)
-	   .add_method("getEinstromZeit", &THH::getEinstromZeit, "GetsInjektionStarttime", grp);
-	   //.set_construct_as_smart_pointer(true);
-	reg.add_class_to_group(name, "HH", tag);*/
-
-
 }
 
 
+
+	// Algebra depending parts
+
+/*template <typename TAlgebra>
+static void Algebra(bridge::Registry& reg, string grp)
+{
+	string suffix = GetAlgebraSuffix<TAlgebra>();
+	string tag = GetAlgebraTag<TAlgebra>();
+
+}
+
+template <typename TDomain, typename TAlgebra>
+static void DomainAlgebra(bridge::Registry& reg, string grp)
+{
+	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
+	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
+
+}*/
 
 
 
@@ -214,12 +196,18 @@ InitUGPlugin_HHKabelnew(ug::bridge::Registry* reg, std::string parentGroup)
 	{
 		#ifdef UG_DIM_1
 			bridge::RegisterDomain1dDependent<Functionality>(*reg, grpHH);
+			//bridge::RegisterAlgebraDependent<Functionality>(*reg,grpHH);
+			//bridge::RegisterDomain1dAlgebraDependent<Functionality>(*reg,grpHH);
 		#endif
 		#ifdef UG_DIM_2
 			bridge::RegisterDomain2dDependent<Functionality>(*reg, grpHH);
+			//bridge::RegisterAlgebraDependent<Functionality>(*reg,grpHH);
+			//bridge::RegisterDomain2dAlgebraDependent<Functionality>(*reg,grpHH);
 		#endif
 		#ifdef UG_DIM_3
 			bridge::RegisterDomain3dDependent<Functionality>(*reg, grpHH);
+			//bridge::RegisterAlgebraDependent<Functionality>(*reg,grpHH);
+			//bridge::RegisterDomain3dAlgebraDependent<Functionality>(*reg,grpHH);
 		#endif
 	}
 	UG_REGISTRY_CATCH_THROW(grpHH);

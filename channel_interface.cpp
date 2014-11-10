@@ -115,7 +115,7 @@ void ChannelHH<TDomain>::init(number time)
 			//m_dd->constrained_vertex_dof_indices(fct, multInd, lfeID);
 			m_dd->inner_dof_indices(*iter, fct, multInd);
 			// we need here some better settings
-			m_aaVm[*iter] = multInd[0];
+			m_aaVm[*iter] = multInd[0][0];
 
 			// Writting Gatting-Params in attachement
 			// gating param h

@@ -44,10 +44,11 @@ class IChannel
 	///	Constructor
 	// TODO: - define which variables will be influenced
 	// TODO: - define which variables are needed for flux computation
-		IChannel(const char* functions, const char* subsets, ApproximationSpace<TDomain>& approx)
+		IChannel(const char* functions, const char* subsets, SmartPtr<ApproximationSpace<TDomain> > approx)
 		 : IElemDisc<TDomain>(functions,subsets)
 		   {
 			m_bNonRegularGrid = false;
+			register_all_funcs(m_bNonRegularGrid);
 		   }
 
 
@@ -112,6 +113,7 @@ class IChannel
 		SmartPtr<TDomain> m_dom;					//!< underlying domain
 		SmartPtr<MultiGrid> m_mg;					//!< underlying multigrid
 		SmartPtr<DoFDistribution> m_dd;				//!< underlying surface dof distribution
+		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
 		//using IElemDisc<TDomain>::dim;
 
 	///	register utils
@@ -134,11 +136,11 @@ class ChannelHH
 
 		ChannelHH	  (	const char* functions,
 						const char* subsets,
-						ApproximationSpace<TDomain>& approx
+						SmartPtr<ApproximationSpace<TDomain> > approx
 					  )
 		: IChannel<TDomain>(functions, subsets, approx),
-		  			  m_dom(approx.domain()), m_mg(approx.domain()->grid()), m_dd(approx.dof_distribution(GridLevel::TOP)),
-		  			  m_bNonRegularGrid(false)//, m_spApproxSpace(approx)
+		  			  m_dom(approx->domain()), m_mg(approx->domain()->grid()), m_dd(approx->dof_distribution(GridLevel::TOP)),
+		  			  m_bNonRegularGrid(false), m_spApproxSpace(approx)
 		  			  {
 						register_all_funcs(m_bNonRegularGrid);
 		  			  };
