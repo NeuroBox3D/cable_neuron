@@ -110,7 +110,7 @@ static void Domain(bridge::Registry& reg, string grp)
 		typedef IElemDisc<TDomain> TBase;
 		string name = string("IChannel").append(suffix);
 		reg.add_class_<T, TBase >(name, grp)
-			//.template add_constructor<void (*)(const char*,const char*, ApproximationSpace<TDomain>&)>("Function(s)#Subset(s)")
+			//.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >, const char*,const char*)>("Function(s)#Subset(s)")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "IChannel", tag);
 	}
@@ -121,7 +121,7 @@ static void Domain(bridge::Registry& reg, string grp)
 		typedef IChannel<TDomain> TBase;
 		string name = string("ChannelHH").append(suffix);
 		reg.add_class_<T, TBase >(name, grp)
-			.template add_constructor<void (*)(const char*,const char*, SmartPtr<ApproximationSpace<TDomain> >)>("Function(s)#Subset(s)#ApproxSpace")
+			.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >, const char*,const char*)>("Function(s)#Subset(s)#ApproxSpace")
 			.add_method("init", &T::init)
 			.add_method("update_gating", &T::update_gating)
 			.add_method("ionic_current", &T::ionic_current)
