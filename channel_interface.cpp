@@ -39,6 +39,67 @@ void IChannel<TDomain>::prepare_setting(const std::vector<LFEID>& vLfeID, bool b
 	register_all_funcs(m_bNonRegularGrid);
 }
 
+template <typename TElem, typename TFVGeom>
+void IChannel<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[])
+{
+
+	// get finite volume geometry
+	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
+
+	// some help constants
+	number element_length = 0.0;
+	number pre_resistance = 0.0;
+	number volume = 0.0;
+
+	//need to set later in another way also given from elsewhere
+	number Na_out = 140;
+	number K_out = 2.5;
+
+	// helper for saving defekts
+	std::vector<number> outCurrentValues;
+
+	// cast elem to appropriate type
+	TElem* pElem = dynamic_cast<TElem*>(elem);
+	if (!pElem) {UG_THROW("Wrong element type.");}
+
+	for (size_t ip = 0; ip < geo.num_scv(); ++ip)
+	{
+		// get current SCV
+		const typename TFVGeom::SCV& scv = geo.scv(ip);
+
+		// get associated node
+		const int co = scv.node_id();
+
+		// get diam from attachment for Element
+		number Diam = m_aaDiameter[pElem->vertex(co)];
+
+
+		volume += scv.volume();
+		// add length of scv to element length
+		element_length += scv.volume();
+		// add "pre_resistance" parts
+		pre_resistance += scv.volume() / (0.25*PI*Diam*Diam);
+
+
+
+		// values we are getting from ionic_flux function
+
+		ionic_current(pElem->vertex(co), outCurrentValues);
+
+		//need to add all fluxes for every single element in hh case only VM-Flux
+		d(_VM_, co) += scv.volume()*PI*Diam*(outCurrentValues[co]);
+
+
+		// add defekt of gatting Params
+		//d(_h_, co) += outCurrentValues[0];
+		//d(_m_, co) += outCurrentValues[1];
+		//d(_n_, co) += outCurrentValues[2];
+	}
+
+
+
+}
+
 
 /* IChannel:: use_hanging()
 {
@@ -217,20 +278,28 @@ template<typename TDomain>
 void ChannelHH<TDomain>::ionic_current(Vertex* v, std::vector<number>& outCurrentValues)
 {
 
+	// later need to be set somewhere else
 	const number m_g_K  = 0.36e-3;
 	const number m_g_Na = 1.2e-3;
 	const number m_g_I  = 0.003e-3;
 
 
+	// getting attachments out of Vertex
+	double NGate = m_aaNGate[v];
+	double MGate = m_aaMGate[v];
+	double HGate = m_aaHGate[v];
+	double VM 	 = m_aaVM[v];
 
 
-
+	// TODO Influx values needed
 	// single channel type fluxes
-	//const number potassium_part_of_flux = m_g_K * pow(u(_n_,co),4) * (u(_VM_,co) - -77);
-	//const number sodium_part_of_flux =  m_g_Na * pow(u(_m_,co),3) * u(_h_,co) * (u(_VM_, co) + -50);
-	//const number leakage_part_of_flux = m_g_I * (u(_VM_,co) + 54.4);
+	const number potassium_part_of_flux = m_g_K * pow(NGate,4) * (VM + 77);
+	const number sodium_part_of_flux =  m_g_Na * pow(MGate,3) * HGate * (VM - 50);
+	const number leakage_part_of_flux = m_g_I * (VM + 54.4);
 
-	//number flux_value = potassium_part_of_flux + sodium_part_of_flux + leakage_part_of_flux;
+	number flux_value = potassium_part_of_flux + sodium_part_of_flux + leakage_part_of_flux;
+
+	outCurrentValues.push_back(flux_value);
 
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -251,10 +320,10 @@ register_func()
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 	typedef this_type T;
 
-	//this->set_prep_elem_loop_fct(id, &T::template prep_elem_loop<TElem, TFVGeom>);
-	//this->set_prep_elem_fct(id, &T::template prep_elem<TElem, TFVGeom>);
-	//this->set_fsh_elem_loop_fct(id, &T::template fsh_elem_loop<TElem, TFVGeom>);
-	//this->set_add_rhs_elem_fct(id, &T::template add_rhs_elem<TElem, TFVGeom>);
+	this->set_prep_elem_loop_fct(id, &T::template prep_elem_loop<TElem, TFVGeom>);
+	this->set_prep_elem_fct(id, &T::template prep_elem<TElem, TFVGeom>);
+	this->set_fsh_elem_loop_fct(id, &T::template fsh_elem_loop<TElem, TFVGeom>);
+	this->set_add_rhs_elem_fct(id, &T::template add_rhs_elem<TElem, TFVGeom>);
 
 }
 

@@ -18,6 +18,7 @@
 #include "bindings/lua/lua_user_data.h"
 #include "common/util/smart_pointer.h"
 
+
 namespace ug
 {
 
@@ -44,8 +45,8 @@ class IChannel
 	///	Constructor
 	// TODO: - define which variables will be influenced
 	// TODO: - define which variables are needed for flux computation
-		IChannel(const char* functions, const char* subsets, SmartPtr<ApproximationSpace<TDomain> > approx)
-		 : IElemDisc<TDomain>(functions,subsets)
+		IChannel(SmartPtr<ApproximationSpace<TDomain> > approx, const char* functions, const char* subsets)
+		 : IElemDisc<TDomain>(functions, subsets), m_spApproxSpace(approx)
 		   {
 			m_bNonRegularGrid = false;
 			register_all_funcs(m_bNonRegularGrid);
@@ -134,13 +135,13 @@ class ChannelHH
 	/// constructor
 		///	World dimension
 
-		ChannelHH	  (	const char* functions,
-						const char* subsets,
-						SmartPtr<ApproximationSpace<TDomain> > approx
+		ChannelHH	  (	SmartPtr<ApproximationSpace<TDomain> > approx,
+						const char* functions,
+						const char* subsets
 					  )
-		: IChannel<TDomain>(functions, subsets, approx),
+		: IChannel<TDomain>(approx, functions, subsets),
 		  			  m_dom(approx->domain()), m_mg(approx->domain()->grid()), m_dd(approx->dof_distribution(GridLevel::TOP)),
-		  			  m_bNonRegularGrid(false), m_spApproxSpace(approx)
+		  			  m_bNonRegularGrid(false)
 		  			  {
 						register_all_funcs(m_bNonRegularGrid);
 		  			  };
