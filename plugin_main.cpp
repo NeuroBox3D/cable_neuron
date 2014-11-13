@@ -107,7 +107,7 @@ static void Domain(bridge::Registry& reg, string grp)
 
 //	Kabel Diff FV1 with dynamic calculated reversal potential of K and Na (Nernst-Equatation)
 	{
-		typedef ElemDiscHH_FV1<TDomain> T;
+		typedef ElemDiscHH_Nernst_FV1<TDomain> T;
 		typedef ElemDiscHH_Base<TDomain> TBase;
 		string name = string("ElemDiscHH_Nernst_FV1").append(suffix);
 		reg.add_class_<T, TBase >(name, grp)
