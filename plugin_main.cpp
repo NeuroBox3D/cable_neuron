@@ -127,7 +127,7 @@ static void Domain(bridge::Registry& reg, string grp)
 
 
 
-/*
+
 //	Channel Interface Base
 	{
 		typedef IChannel<TDomain> T;
@@ -152,7 +152,7 @@ static void Domain(bridge::Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ChannelHH", tag);
 	}
-*/
+
 
 }
 

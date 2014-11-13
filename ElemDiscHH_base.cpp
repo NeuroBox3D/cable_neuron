@@ -373,9 +373,9 @@ ElemDiscHH_Base(const char* functions, const char* subsets)
    m_exGrad(new DataExport<MathVector<dim>, dim>(functions))
 {
 //	check number of functions
-	if(this->num_fct() != 6)
-		UG_THROW("Wrong number of functions: The ElemDisc 'ElemDiscHH_Base'"
-					   " needs exactly "<<6<<" symbolic function.");
+	if(this->num_fct() < 4)
+		UG_THROW("Wrong number of functions: The ElemDiscHH 'ElemDiscHH_Base'"
+					   " needs a minimum of "<<4<<" symbolic function (1 for VM and 3 for Gate-Vars)");
 
 //	register imports
 	this->register_import(m_imDiffusion);
