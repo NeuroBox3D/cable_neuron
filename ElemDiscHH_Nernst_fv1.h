@@ -8,8 +8,8 @@
  * from andreasvogel
  */
 
-#ifndef __H__ElemDisc_fv1__
-#define __H__ElemDisc_fv1__
+#ifndef __H__ElemDisc_Nernst_fv1__
+#define __H__ElemDisc_Nernst_fv1__
 
 // library intern headers
 #include "ElemDiscHH_base.h"
@@ -160,4 +160,4 @@ class ElemDiscHH_Nernst_FV1 : public ElemDiscHH_Base<TDomain>
 } // end namespace ug
 
 
-#endif /*__H__ElemDisc_fv1__*/
+#endif /*__H__ElemDisc_Nernst_fv1__*/

@@ -28,6 +28,7 @@
 #include "channel_interface.h"
 #include "ElemDiscHH_base.h"
 #include "ElemDiscHH_fv1.h"
+#include "ElemDiscHH_Nernst_fv1.h"
 
 // Kabel_diff includes
 //#include "kabel_diff_base.h"
@@ -116,7 +117,7 @@ static void Domain(bridge::Registry& reg, string grp)
 			.add_method("set_diameter", &T::set_diameter)
 			.add_method("set_spec_res", &T::set_spec_res)
 			.add_method("set_consts", &T::set_consts)
-			.add_method("set_nernst_consts", &T::set_rev_pot)
+			.add_method("set_nernst_consts", &T::set_nernst_consts)
 			.add_method("set_accuracy", &T::set_accuracy)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ElemDiscHH_Nernst_FV1", tag);

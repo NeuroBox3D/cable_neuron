@@ -9,7 +9,7 @@
  */
 
 #define _USE_MATH_DEFINES
-#include "ElemDiscHH_Nernst_FV1.h"
+#include "ElemDiscHH_Nernst_fv1.h"
 
 #include "lib_disc/spatial_disc/disc_util/geom_provider.h"
 #include "lib_disc/spatial_disc/disc_util/fv1_geom.h"
