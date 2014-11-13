@@ -20,14 +20,14 @@ namespace ug{
 
 
 template<	typename TDomain>
-class ElemDiscHH_FV1 : public ElemDiscHH_Base<TDomain>
+class ElemDiscHH_Nernst_FV1 : public ElemDiscHH_Base<TDomain>
 {
 	private:
 	///	Base class type
 		typedef ElemDiscHH_Base<TDomain> base_type;
 
 	///	Own type
-		typedef ElemDiscHH_FV1<TDomain> this_type;
+		typedef ElemDiscHH_Nernst_FV1<TDomain> this_type;
 
 	public:
 	///	World dimension
@@ -35,7 +35,7 @@ class ElemDiscHH_FV1 : public ElemDiscHH_Base<TDomain>
 
 	public:
 	///	Constructor
-		ElemDiscHH_FV1(SmartPtr<ApproximationSpace<TDomain> > approx,
+		ElemDiscHH_Nernst_FV1(SmartPtr<ApproximationSpace<TDomain> > approx,
 				const char* functions, const char* subsets);
 
 		// set diameter for dendrit
@@ -53,7 +53,7 @@ class ElemDiscHH_FV1 : public ElemDiscHH_Base<TDomain>
 		void set_consts(number Na, number K, number L);
 
 		// set params for nernst equa
-		void set_rev_pot(number R_Na, number R_K);
+		void set_nernst_consts(number R, number T, number F);
 
 	private:
 	///	prepares the loop over all elements
@@ -108,18 +108,18 @@ class ElemDiscHH_FV1 : public ElemDiscHH_Base<TDomain>
 		static const size_t _Na_ = 4;
 		static const size_t _K_ = 5;
 
-
 		number m_spec_res;
-
-	// Params for HH-Fluxes
 		number m_g_K;
 		number m_g_Na;
 		number m_g_I;
 
+		// params for nernst equatation
 
-	// reversal Pot of Sodium and Natrium
-		number m_sodium;
-		number m_potassium;
+		number m_R;
+		number m_T;
+		number m_F;
+
+
 
 
 		double m_accuracy;

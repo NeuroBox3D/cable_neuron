@@ -9,7 +9,7 @@
  */
 
 #define _USE_MATH_DEFINES
-#include "ElemDiscHH_fv1.h"
+#include "ElemDiscHH_Nernst_FV1.h"
 
 #include "lib_disc/spatial_disc/disc_util/geom_provider.h"
 #include "lib_disc/spatial_disc/disc_util/fv1_geom.h"
@@ -25,8 +25,8 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////
 
 template<typename TDomain>
-ElemDiscHH_FV1<TDomain>::
-ElemDiscHH_FV1(SmartPtr<ApproximationSpace<TDomain> > approx,
+ElemDiscHH_Nernst_FV1<TDomain>::
+ElemDiscHH_Nernst_FV1(SmartPtr<ApproximationSpace<TDomain> > approx,
 		const char* functions, const char* subsets)
  : ElemDiscHH_Base<TDomain>(functions,subsets),
    m_spApproxSpace(approx),
@@ -37,7 +37,7 @@ ElemDiscHH_FV1(SmartPtr<ApproximationSpace<TDomain> > approx,
 }
 
 template<typename TDomain>
-void ElemDiscHH_FV1<TDomain>::
+void ElemDiscHH_Nernst_FV1<TDomain>::
 set_diameter(const number d)
 {
 	// handle the attachment
@@ -50,13 +50,13 @@ set_diameter(const number d)
 }
 
 template<typename TDomain>
-void ElemDiscHH_FV1<TDomain>::
+void ElemDiscHH_Nernst_FV1<TDomain>::
 set_spec_res(number val)
 {
 	m_spec_res = val;
 }
 template<typename TDomain>
-void ElemDiscHH_FV1<TDomain>::
+void ElemDiscHH_Nernst_FV1<TDomain>::
 set_accuracy(double ac)
 {
 	m_accuracy = ac;
@@ -64,7 +64,7 @@ set_accuracy(double ac)
 
 
 template<typename TDomain>
-void ElemDiscHH_FV1<TDomain>::
+void ElemDiscHH_Nernst_FV1<TDomain>::
 set_consts(number Na, number K, number L)
 {
 	m_g_K = K;
@@ -73,22 +73,24 @@ set_consts(number Na, number K, number L)
 }
 
 template<typename TDomain>
-void ElemDiscHH_FV1<TDomain>::
-set_rev_pot(number R_Na, number R_K)
+void ElemDiscHH_Nernst_FV1<TDomain>::
+set_nernst_consts(number R, number T, number F)
 {
-  m_sodium = R_Na;
-  m_potassium = R_K;
+	//std::cout << "using nernst consts" << std::endl;
+	m_R = R;
+	m_T = T;
+	m_F = F;
 
 }
 
 
 template<typename TDomain>
-void ElemDiscHH_FV1<TDomain>::
+void ElemDiscHH_Nernst_FV1<TDomain>::
 prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid)
 {
 	// check number
-	if (vLfeID.size() != 4)
-		UG_THROW("ElemDiscHH_FV1: Wrong number of functions given. Need exactly "<< 6);
+	if (vLfeID.size() != 6)
+		UG_THROW("ElemDiscHH_Nernst_FV1: Wrong number of functions given. Need exactly "<< 6);
 
 	if (vLfeID[0].order() != 1 || vLfeID[0].type() != LFEID::LAGRANGE)
 		UG_THROW("ElemDiscHH FV Scheme only implemented for 1st order.");
@@ -101,7 +103,7 @@ prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid)
 }
 
 template<typename TDomain>
-bool ElemDiscHH_FV1<TDomain>::
+bool ElemDiscHH_Nernst_FV1<TDomain>::
 use_hanging() const
 {
 	// As this is basically a 1D discretization,
@@ -115,7 +117,7 @@ use_hanging() const
 
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
-void ElemDiscHH_FV1<TDomain>::
+void ElemDiscHH_Nernst_FV1<TDomain>::
 prep_elem_loop(const ReferenceObjectID roid, const int si)
 {
 	// set local positions
@@ -131,13 +133,13 @@ prep_elem_loop(const ReferenceObjectID roid, const int si)
 
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
-void ElemDiscHH_FV1<TDomain>::
+void ElemDiscHH_Nernst_FV1<TDomain>::
 fsh_elem_loop()
 {}
 
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
-void ElemDiscHH_FV1<TDomain>::
+void ElemDiscHH_Nernst_FV1<TDomain>::
 prep_elem(const LocalVector& u, GridObject* elem, ReferenceObjectID id, const MathVector<dim> vCornerCoords[])
 {
 	// update Geometry for this element
@@ -157,7 +159,7 @@ prep_elem(const LocalVector& u, GridObject* elem, ReferenceObjectID id, const Ma
 
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
-void ElemDiscHH_FV1<TDomain>::
+void ElemDiscHH_Nernst_FV1<TDomain>::
 add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	// get finite volume geometry
@@ -167,6 +169,9 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 	number pre_resistance = 0.0;
 	number volume = 0.0;
 
+	//need to set later in another way
+	number Na_out = 140;
+	number K_out = 2.5;
 
 	// cast elem to appropriate type
 	TElem* pElem = dynamic_cast<TElem*>(elem);
@@ -223,14 +228,20 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 
 
 
+
+		const number helpV = (m_R*m_T)/m_F;
+		// nernst potential of potassium and sodium
+		const number potassium_nernst_eq 	= helpV*(log(K_out/u(_K_,co)));
+		const number sodium_nernst_eq	 	= -helpV*(log(Na_out/u(_Na_,co)));
+
 		/*std::cout << m_R << m_T << m_F << std::endl;
 		std::cout << helpV << std::endl;
 		std::cout << "potas: " << potassium_nernst_eq << std::endl;
 		std::cout << "sod: " << sodium_nernst_eq << std::endl;*/
 
 		// single channel type fluxes
-		const number potassium_part_of_flux = m_g_K * pow(u(_n_,co),4) * (u(_VM_,co) + m_potassium);
-		const number sodium_part_of_flux =  m_g_Na * pow(u(_m_,co),3) * u(_h_,co) * (u(_VM_, co) - m_sodium);
+		const number potassium_part_of_flux = m_g_K * pow(u(_n_,co),4) * (u(_VM_,co) - potassium_nernst_eq);
+		const number sodium_part_of_flux =  m_g_Na * pow(u(_m_,co),3) * u(_h_,co) * (u(_VM_, co) + sodium_nernst_eq);
 		const number leakage_part_of_flux = m_g_I * (u(_VM_,co) + 54.4);
 
 
@@ -296,7 +307,9 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		d(_m_, co) += rate_m;
 		d(_n_, co) += rate_n;
 
-
+		// defekt of Na and K
+		d(_Na_, co) += sodium_part_of_flux/m_F;
+		d(_K_, co)  += potassium_part_of_flux/m_F;
 	}
 
 // cable equation, "diffusion" part
@@ -333,7 +346,7 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
-void ElemDiscHH_FV1<TDomain>::
+void ElemDiscHH_Nernst_FV1<TDomain>::
 add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	// get finite volume geometry
@@ -362,6 +375,9 @@ add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		d(_m_, co) += u(_m_, co);
 		d(_n_, co) += u(_n_, co);
 
+		// Nernst Paras time derivative
+		d(_Na_, co) += u(_Na_, co);
+		d(_K_, co)  += u(_K_, co);
 
 		// potential equation time derivative
 		d(_VM_, co) += PI*Diam*scv.volume()*u(_VM_, co)*spec_capacity;
@@ -371,7 +387,7 @@ add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
-void ElemDiscHH_FV1<TDomain>::
+void ElemDiscHH_Nernst_FV1<TDomain>::
 add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 /*
@@ -398,7 +414,7 @@ add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoor
 
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
-void ElemDiscHH_FV1<TDomain>::
+void ElemDiscHH_Nernst_FV1<TDomain>::
 add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	// get finite volume geometry
@@ -407,6 +423,8 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 	number element_length = 0.0;
 	number pre_resistance = 0.0;
 	number volume = 0;
+	number Na_out = 140;
+	number K_out = 2.5;
 
 	// cast elem to appropriate type
 	TElem* pElem = dynamic_cast<TElem*>(elem);
@@ -486,6 +504,48 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 		number dBetaHn_dVm = 0.125/80.0 * exp((u(_VM_,co)+65.0)/80.0);
 
+		//
+		const number helpV = (m_R*m_T)/m_F;
+
+
+
+		// nernst potential of potassium and sodium
+		const number potassium_nernst_eq 	= helpV*(log(K_out/u(_K_,co)));
+		const number sodium_nernst_eq	 	= -helpV*(log(Na_out/u(_Na_,co)));
+
+		const number potassium_part_of_flux = m_g_K * pow(u(_n_,co),4) * (u(_VM_,co) - potassium_nernst_eq);
+		const number sodium_part_of_flux =  m_g_Na * pow(u(_m_,co),3) * u(_h_,co) * (u(_VM_, co) + sodium_nernst_eq);
+
+		// derivatives of nernst equas // choosen with grapher
+		const number potassium_nernst_eq_dK 	=  helpV * (-K_out/u(_K_,co))*0.18; //helpV * (-K_out/pow(u(_K_,co),2));
+		const number sodium_nernst_eq_dNa		=  -helpV * (-Na_out/u(_Na_,co))*0.003; //helpV * (-Na_out/pow(u(_Na_,co),2));
+	// add to Jacobian;
+
+
+		//std::cout << "K_Nernst: " << potassium_nernst_eq << std::endl;
+		//std::cout << "Na_Nernst: " << sodium_nernst_eq << std::endl;
+		/*std::cout << "Na_in: " << u(_Na_, co) << std::endl;
+		std::cout << "K_in: " << u(_K_, co) << std::endl;
+		std::cout << "K_Ab:" << potassium_nernst_eq_dK << std::endl;
+		std::cout << "Na_Ab: " << sodium_nernst_eq_dNa << std::endl;
+		std::cout << "VM: " << u(_VM_,co) << std::endl;
+		std::cout << "h: " << u(_h_,co) << std::endl;
+		std::cout << "m: " << u(_m_,co) << std::endl;
+		std::cout << "n: " << u(_n_,co) << std::endl;*/
+
+
+		J(_K_, co, _K_, co)   +=  potassium_nernst_eq_dK;
+		J(_K_, co, _n_, co)   +=  m_g_K * 4*pow(u(_n_,co),3) * (u(_VM_,co));
+		J(_K_, co, _VM_, co)  +=  m_g_K * pow(u(_n_,co),4);
+
+		J(_Na_, co, _Na_, co) += sodium_nernst_eq_dNa;
+		J(_Na_, co, _m_, co) +=  m_g_Na * 3*pow(u(_m_,co),2) * u(_h_,co) * u(_VM_, co);
+		J(_Na_, co, _h_, co) +=  m_g_Na * pow(u(_m_,co),3) * u(_VM_, co);
+		J(_Na_, co, _VM_, co) +=  m_g_Na * pow(u(_m_,co),3) * u(_h_,co);
+
+
+		J(_VM_, co, _K_,co) += scv.volume()*PI*Diam * m_g_K * pow(u(_n_,co),4) * potassium_nernst_eq_dK;
+		J(_VM_, co, _Na_,co) += scv.volume()*PI*Diam * m_g_Na * pow(u(_m_,co),3) * u(_h_,co) * sodium_nernst_eq_dNa;
 
 		// derivatives of channel states
 		J(_h_, co, _h_, co) += AlphaHh + BetaHh;
@@ -501,9 +561,9 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		//J(_VM_, co, _Na_,co) +=    ;
 
 		// derivatives of potential from HH channels
-		J(_VM_, co, _h_, co) += scv.volume()*PI*Diam * m_g_Na*pow(u(_m_,co),3) * (u(_VM_, co) - m_sodium);
-		J(_VM_, co, _m_, co) += scv.volume()*PI*Diam * 3.0*m_g_Na*pow(u(_m_,co),2) * u(_h_,co) * (u(_VM_, co) - m_sodium);
-		J(_VM_, co, _n_, co) += scv.volume()*PI*Diam * 4.0*m_g_K*pow(u(_n_,co),3) * (u(_VM_,co) + m_potassium);
+		J(_VM_, co, _h_, co) += scv.volume()*PI*Diam * m_g_Na*pow(u(_m_,co),3) * (u(_VM_, co) + sodium_nernst_eq);
+		J(_VM_, co, _m_, co) += scv.volume()*PI*Diam * 3.0*m_g_Na*pow(u(_m_,co),2) * u(_h_,co) * (u(_VM_, co) + sodium_nernst_eq);
+		J(_VM_, co, _n_, co) += scv.volume()*PI*Diam * 4.0*m_g_K*pow(u(_n_,co),3) * (u(_VM_,co) - potassium_nernst_eq);
 		J(_VM_, co, _VM_, co) += scv.volume()*PI*Diam * (m_g_K*pow(u(_n_,co),4) + m_g_Na*pow(u(_m_,co),3)*u(_h_,co) + m_g_I);
 	}
 
@@ -540,7 +600,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
-void ElemDiscHH_FV1<TDomain>::
+void ElemDiscHH_Nernst_FV1<TDomain>::
 add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	// get finite volume geometry
@@ -569,6 +629,9 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		J(_m_, co, _m_, co) += 1.0;
 		J(_n_, co, _n_, co) += 1.0;
 
+		J(_Na_, co, _Na_, co) += 1.0;
+		J(_K_, co, _K_, co) += 1.0;
+
 		// potential equation
 		J(_VM_, co, _VM_, co) += PI*Diam*scv.volume()*spec_capacity;
 	}
@@ -580,7 +643,7 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 
 template<typename TDomain>
-void ElemDiscHH_FV1<TDomain>::
+void ElemDiscHH_Nernst_FV1<TDomain>::
 register_all_funcs(bool bHang)
 {
 	register_func<RegularEdge, FV1Geometry<RegularEdge, dim> >();
@@ -588,7 +651,7 @@ register_all_funcs(bool bHang)
 
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
-void ElemDiscHH_FV1<TDomain>::
+void ElemDiscHH_Nernst_FV1<TDomain>::
 register_func()
 {
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
@@ -610,13 +673,13 @@ register_func()
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifdef UG_DIM_1
-template class ElemDiscHH_FV1<Domain1d>;
+template class ElemDiscHH_Nernst_FV1<Domain1d>;
 #endif
 #ifdef UG_DIM_2
-template class ElemDiscHH_FV1<Domain2d>;
+template class ElemDiscHH_Nernst_FV1<Domain2d>;
 #endif
 #ifdef UG_DIM_3
-template class ElemDiscHH_FV1<Domain3d>;
+template class ElemDiscHH_Nernst_FV1<Domain3d>;
 #endif
 
 } // namespace ug

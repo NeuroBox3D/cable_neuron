@@ -117,6 +117,12 @@ class IChannel
 		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
 		//using IElemDisc<TDomain>::dim;
 
+	private:
+		// VM is needed by every Channel
+		static const size_t _VM_ = 0;
+
+
+
 	///	register utils
 	///	\{
 		void register_all_funcs(bool bHang);

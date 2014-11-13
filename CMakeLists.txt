@@ -15,7 +15,7 @@ include("../../../cmake/ug_plugin_includes.cmake")
 # sources
 set(SOURCES	ElemDiscHH_base.cpp
 			ElemDiscHH_fv1.cpp
-			channel_interface.cpp
+			ElemDiscHH_Nernst_fv1.cpp
 			plugin_main.cpp
 
 			)

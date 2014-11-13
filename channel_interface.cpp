@@ -39,6 +39,7 @@ void IChannel<TDomain>::prepare_setting(const std::vector<LFEID>& vLfeID, bool b
 	register_all_funcs(m_bNonRegularGrid);
 }
 
+template<typename TDomain>
 template <typename TElem, typename TFVGeom>
 void IChannel<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
@@ -70,8 +71,8 @@ void IChannel<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, const Mat
 		// get associated node
 		const int co = scv.node_id();
 
-		// get diam from attachment for Element
-		number Diam = m_aaDiameter[pElem->vertex(co)];
+		//TODO get Diam from somewhere
+		number Diam = 0.25; //m_aaDiameter[pElem->vertex(co)];
 
 
 		volume += scv.volume();
@@ -288,7 +289,7 @@ void ChannelHH<TDomain>::ionic_current(Vertex* v, std::vector<number>& outCurren
 	double NGate = m_aaNGate[v];
 	double MGate = m_aaMGate[v];
 	double HGate = m_aaHGate[v];
-	double VM 	 = m_aaVM[v];
+	double VM 	 = m_aaVm[v];
 
 
 	// TODO Influx values needed

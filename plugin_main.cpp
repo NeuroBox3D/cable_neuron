@@ -87,7 +87,7 @@ static void Domain(bridge::Registry& reg, string grp)
 
 
 
-//	Kabel Diff FV1
+//	Kabel Diff FV1 with constant reversal potential of K and Na
 	{
 		typedef ElemDiscHH_FV1<TDomain> T;
 		typedef ElemDiscHH_Base<TDomain> TBase;
@@ -98,12 +98,35 @@ static void Domain(bridge::Registry& reg, string grp)
 			.add_method("set_diameter", &T::set_diameter)
 			.add_method("set_spec_res", &T::set_spec_res)
 			.add_method("set_consts", &T::set_consts)
-			.add_method("set_nernst_consts", &T::set_consts)
+			.add_method("set_rev_pot", &T::set_rev_pot)
 			.add_method("set_accuracy", &T::set_accuracy)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ElemDiscHH_FV1", tag);
 	}
 
+
+//	Kabel Diff FV1 with dynamic calculated reversal potential of K and Na (Nernst-Equatation)
+	{
+		typedef ElemDiscHH_FV1<TDomain> T;
+		typedef ElemDiscHH_Base<TDomain> TBase;
+		string name = string("ElemDiscHH_Nernst_FV1").append(suffix);
+		reg.add_class_<T, TBase >(name, grp)
+			.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >, const char*,const char*)>("Function(s)#Subset(s)")
+			.add_method("set_injection", &T::set_injection)
+			.add_method("set_diameter", &T::set_diameter)
+			.add_method("set_spec_res", &T::set_spec_res)
+			.add_method("set_consts", &T::set_consts)
+			.add_method("set_nernst_consts", &T::set_rev_pot)
+			.add_method("set_accuracy", &T::set_accuracy)
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ElemDiscHH_Nernst_FV1", tag);
+		}
+
+
+
+
+
+/*
 //	Channel Interface Base
 	{
 		typedef IChannel<TDomain> T;
@@ -128,7 +151,7 @@ static void Domain(bridge::Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ChannelHH", tag);
 	}
-
+*/
 
 }
 
@@ -151,25 +174,6 @@ Register_Domain(bridge::Registry& reg, string grp)
 
 }
 
-
-
-	// Algebra depending parts
-
-/*template <typename TAlgebra>
-static void Algebra(bridge::Registry& reg, string grp)
-{
-	string suffix = GetAlgebraSuffix<TAlgebra>();
-	string tag = GetAlgebraTag<TAlgebra>();
-
-}
-
-template <typename TDomain, typename TAlgebra>
-static void DomainAlgebra(bridge::Registry& reg, string grp)
-{
-	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
-	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
-
-}*/
 
 
 
