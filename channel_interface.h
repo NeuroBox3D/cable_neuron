@@ -17,7 +17,9 @@
 #include <stdio.h>
 #include "bindings/lua/lua_user_data.h"
 #include "common/util/smart_pointer.h"
-
+#include "common/util/vector_util.h"
+#include "lib_grid/grid/grid_base_objects.h"
+#include "lib_disc/common/local_algebra.h"
 
 namespace ug
 {
@@ -80,6 +82,22 @@ class IChannel
 		template <typename TElem, typename TFVGeom>
 		void fsh_elem_loop();
 
+	///	assembles stiffness part of local defekt
+		template <typename TElem, typename TFVGeom>
+		void add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+
+	///	assembles mass part of local defect
+		template <typename TElem, typename TFVGeom>
+		void add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+
+	/// assembles jacobian of stiffnes part
+		template<typename TElem, typename TFVGeom>
+		void add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+
+		/// assembles jacobian of mass part
+		template<typename TElem, typename TFVGeom>
+		void add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+
 	///	assembles the local right hand side
 		template <typename TElem, typename TFVGeom>
 		void add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[]);
@@ -89,7 +107,7 @@ class IChannel
 	 *	and their values calculated by the equilibrium state for the start membrane potential.
 	**/
 		// TODO: somehow pass arbitrary other unknowns
-		virtual void init(number time) = 0;
+		virtual void init(number time, SmartPtr<ApproximationSpace<TDomain> > approx, SmartPtr<LocalVector> u) = 0;
 
 	/// updates the gating parameters
 	// TODO: somehow pass arbitrary other unknowns
@@ -152,13 +170,15 @@ class ChannelHH
 						register_all_funcs(m_bNonRegularGrid);
 		  			  };
 
+		virtual ~ChannelHH();
+
 		/// destructor
 		virtual ~ChannelHH() {};
 
 		static const int dim = IChannel<TDomain>::dim;
 
 		// inherited from IChannel
-		virtual void init(number time);
+		virtual void init(number time, SmartPtr<ApproximationSpace<TDomain> > approx, SmartPtr<LocalVector> u);
 		virtual void update_gating(number newTime);
 		virtual void ionic_current(Vertex* v, std::vector<number>& outCurrentValues);
 

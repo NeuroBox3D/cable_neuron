@@ -10,10 +10,55 @@
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
 
 
+
 namespace ug {
 
 // Methods for Interface class
 
+template<typename TDomain>
+template<typename TElem, typename TFVGeom>
+void IChannel<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
+{
+
+}
+
+template<typename TDomain>
+template<typename TElem, typename TFVGeom>
+void IChannel<TDomain>::add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
+{
+
+}
+
+template<typename TDomain>
+template<typename TElem, typename TFVGeom>
+void IChannel<TDomain>::
+add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
+{
+
+}
+
+
+template<typename TDomain>
+template<typename TElem, typename TFVGeom>
+void IChannel<TDomain>::
+add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
+{
+
+}
+
+template<typename TDomain>
+IChannel<TDomain>::~IChannel()
+{
+
+}
+
+template<typename TDomain>
+template <typename TElem, typename TFVGeom>
+void IChannel<TDomain>::fsh_elem_loop()
+{
+
+
+}
 
 
 template<typename TDomain>
@@ -29,6 +74,17 @@ void IChannel<TDomain>::prep_elem(const LocalVector& u, GridObject* elem, Refere
 
 }
 
+
+template<typename TDomain>
+template <typename TElem, typename TFVGeom>
+void IChannel<TDomain>::prep_elem_loop(const ReferenceObjectID roid, const int si)
+{
+
+
+
+}
+
+
 template<typename TDomain>
 void IChannel<TDomain>::prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid)
 {
@@ -37,6 +93,8 @@ void IChannel<TDomain>::prepare_setting(const std::vector<LFEID>& vLfeID, bool b
 
 	// update assemble functions
 	register_all_funcs(m_bNonRegularGrid);
+
+	//TODO here we need some option to get the number of unknowns
 }
 
 template<typename TDomain>
@@ -57,7 +115,7 @@ void IChannel<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, const Mat
 	number K_out = 2.5;
 
 	// helper for saving defekts
-	std::vector<number> outCurrentValues;
+	std::vector<double> outCurrentValues;
 
 	// cast elem to appropriate type
 	TElem* pElem = dynamic_cast<TElem*>(elem);
@@ -112,7 +170,14 @@ void IChannel<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, const Mat
 
 
 template<typename TDomain>
-void ChannelHH<TDomain>::init(number time)
+ChannelHH<TDomain>::~ChannelHH()
+{
+
+}
+
+
+template<typename TDomain>
+void ChannelHH<TDomain>::init(number time, SmartPtr<ApproximationSpace<TDomain> > approx, SmartPtr<LocalVector> u)
 {
 	// attach attachments
 	if (this->m_mg->has_vertex_attachment(this->m_MGate))
@@ -121,20 +186,14 @@ void ChannelHH<TDomain>::init(number time)
 	this->m_mg->attach_to_vertices(this->m_MGate);
 
 	if (this->m_mg->has_vertex_attachment(this->m_HGate))
-	{
-		if (this->m_mg->has_vertex_attachment(this->m_HGate))
-			UG_THROW("Attachment necessary (HGate) for Hodgkin and Huxley channel dynamics "
-					 "could not be made, since it already exists.");
+		UG_THROW("Attachment necessary (HGate) for Hodgkin and Huxley channel dynamics "
+				 "could not be made, since it already exists.");
 		this->m_mg->attach_to_vertices(this->m_HGate);
-	}
 
 	if (this->m_mg->has_vertex_attachment(this->m_NGate))
-	{
-		if (this->m_mg->has_vertex_attachment(this->m_NGate))
-			UG_THROW("Attachment necessary (NGate) for Hodgkin and Huxley channel dynamics "
-					 "could not be made, since it already exists.");
-		this->m_mg->attach_to_vertices(this->m_NGate);
-	}
+		UG_THROW("Attachment necessary (NGate) for Hodgkin and Huxley channel dynamics "
+				 "could not be made, since it already exists.");
+	this->m_mg->attach_to_vertices(this->m_NGate);
 
 
 	if (this->m_mg->has_vertex_attachment(this->m_Vm))
@@ -152,9 +211,9 @@ void ChannelHH<TDomain>::init(number time)
 	//TODO set accuracy later on another point
 	number m_accuracy = 1e-6;
 
-
 	// creates Multi index
 	std::vector<DoFIndex> multInd;
+	SmartPtr<DoFDistribution> dd;
 
 	typedef typename DoFDistribution::traits<Vertex>::const_iterator itType;
 	SubsetGroup ssGrp;
@@ -172,12 +231,16 @@ void ChannelHH<TDomain>::init(number time)
 			// TODO getting potential out of approxSpace into attachement
 			// TODO later the number of attachements needs to be variable, also some outer concentrations have to be given
 			const size_t fct = 0;
-			const LFEID& lfeID = m_dd->local_finite_element_id(fct);
+			dd = (approx->dof_distribution(GridLevel::TOP));
+			const LFEID& lfeID = dd->local_finite_element_id(fct);
 			//const
-			//m_dd->constrained_vertex_dof_indices(fct, multInd, lfeID);
-			m_dd->inner_dof_indices(*iter, fct, multInd);
-			// we need here some better settings
-			m_aaVm[*iter] = multInd[0][0];
+			//getting exakt index of value
+			dd->inner_dof_indices(*iter, fct, multInd);
+			// has to be the solvung values
+			number test = multInd[0][0];
+			this->m_aaVm[*iter] = ;
+
+			std::cout<< "getting VM is working in false way: " << m_aaVm[*iter] << std::endl;
 
 			// Writting Gatting-Params in attachement
 			// gating param h
@@ -205,9 +268,11 @@ void ChannelHH<TDomain>::init(number time)
 
 			number BetaHn = 0.125*exp((m_aaVm[*iter] + 65.0)/80.0);
 
-			m_aaHGate[*iter] = AlphaHh / (AlphaHh + BetaHh);
-			m_aaMGate[*iter] = AlphaHm / (AlphaHm + BetaHm);
-			m_aaNGate[*iter] = AlphaHn / (AlphaHn + BetaHn);
+			// Setting Starting gatting params independent on VM
+			this->m_aaHGate[*iter] = AlphaHh / (AlphaHh + BetaHh);
+			this->m_aaMGate[*iter] = AlphaHm / (AlphaHm + BetaHm);
+			this->m_aaNGate[*iter] = AlphaHn / (AlphaHn + BetaHn);
+
 
 		}
 	}
@@ -268,6 +333,7 @@ void ChannelHH<TDomain>::update_gating(number newTime)
 			m_aaHGate[*iter] -= dt * rate_h;
 			m_aaMGate[*iter] -= dt * rate_m;
 			m_aaNGate[*iter] -= dt * rate_n;
+			std::cout << "Rates: " << rate_h << " , " << rate_m << " , " << rate_n << std::endl;
 
 		}
 	}
@@ -310,7 +376,7 @@ template<typename TDomain>
 void IChannel<TDomain>::
 register_all_funcs(bool bHang)
 {
-	//register_func<RegularEdge, FV1Geometry<RegularEdge, dim> >();
+	register_func<RegularEdge, FV1Geometry<RegularEdge, dim> >();
 }
 
 template<typename TDomain>
@@ -325,6 +391,10 @@ register_func()
 	this->set_prep_elem_fct(id, &T::template prep_elem<TElem, TFVGeom>);
 	this->set_fsh_elem_loop_fct(id, &T::template fsh_elem_loop<TElem, TFVGeom>);
 	this->set_add_rhs_elem_fct(id, &T::template add_rhs_elem<TElem, TFVGeom>);
+	this->set_add_def_A_elem_fct(id, &T::template add_def_A_elem<TElem, TFVGeom>);
+	this->set_add_def_M_elem_fct(id, &T::template add_def_M_elem<TElem, TFVGeom>);
+	this->set_add_jac_A_elem_fct(id, &T::template add_jac_A_elem<TElem, TFVGeom>);
+	this->set_add_jac_M_elem_fct(id, &T::template add_jac_M_elem<TElem, TFVGeom>);
 
 }
 
@@ -334,7 +404,7 @@ template<typename TDomain>
 void ChannelHH<TDomain>::
 register_all_funcs(bool bHang)
 {
-	//register_func<RegularEdge, FV1Geometry<RegularEdge, dim> >();
+	register_func<RegularEdge, FV1Geometry<RegularEdge, dim> >();
 }
 
 template<typename TDomain>

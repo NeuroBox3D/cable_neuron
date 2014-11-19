@@ -117,7 +117,7 @@ class ElemDiscHH_FV1 : public ElemDiscHH_Base<TDomain>
 		number m_g_I;
 
 
-	// reversal Pot of Sodium and Natrium
+	// reversal Pot of Sodium and Potassium
 		number m_sodium;
 		number m_potassium;
 

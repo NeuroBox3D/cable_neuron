@@ -121,7 +121,7 @@ static void Domain(bridge::Registry& reg, string grp)
 			.add_method("set_accuracy", &T::set_accuracy)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ElemDiscHH_Nernst_FV1", tag);
-		}
+	}
 
 
 
@@ -145,14 +145,13 @@ static void Domain(bridge::Registry& reg, string grp)
 		typedef IChannel<TDomain> TBase;
 		string name = string("ChannelHH").append(suffix);
 		reg.add_class_<T, TBase >(name, grp)
-			.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >, const char*,const char*)>("Function(s)#Subset(s)#ApproxSpace")
+			.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >, const char*,const char*)>("ApproxSpace#Function(s)#Subset(s)")
 			.add_method("init", &T::init)
 			.add_method("update_gating", &T::update_gating)
-			.add_method("ionic_current", &T::ionic_current)
+			//.add_method("ionic_current", /*static_cast<void (TBase::*) (Vertex*, std::vector<double>&)> (*/&T::ionic_current) /*, "","", "doing flux")*/
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ChannelHH", tag);
 	}
-
 
 }
 

@@ -88,7 +88,7 @@ prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid)
 {
 	// check number
 	if (vLfeID.size() != 4)
-		UG_THROW("ElemDiscHH_FV1: Wrong number of functions given. Need exactly "<< 6);
+		UG_THROW("ElemDiscHH_FV1: Wrong number of functions given. Need exactly "<< 4);
 
 	if (vLfeID[0].order() != 1 || vLfeID[0].type() != LFEID::LAGRANGE)
 		UG_THROW("ElemDiscHH FV Scheme only implemented for 1st order.");
