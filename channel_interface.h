@@ -9,22 +9,37 @@
 #define CHANNEL_INTERFACE_H_
 
 #include "lib_grid/lg_base.h"
+#include "lib_grid/grid/grid_base_objects.h"
+
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
 #include "lib_disc/spatial_disc/disc_util/fv1_geom.h"
 #include "lib_disc/spatial_disc/disc_util/hfv1_geom.h"
 #include "lib_disc/spatial_disc/disc_util/geom_provider.h"
+#include "lib_disc/function_spaces/grid_function.h"
+#include "lib_disc/function_spaces/local_transfer_interface.h"
+#include "lib_disc/common/local_algebra.h"
+#include "lib_disc/function_spaces/grid_function.h"
+
+#include "bridge/bridge.h"
+#include "bridge/util.h"
+#include "bridge/util_domain_algebra_dependent.h"
+#include "bridge/util_domain_dependent.h"
+
 #include <vector>
 #include <stdio.h>
+
 #include "bindings/lua/lua_user_data.h"
+
 #include "common/util/smart_pointer.h"
 #include "common/util/vector_util.h"
-#include "lib_grid/grid/grid_base_objects.h"
-#include "lib_disc/common/local_algebra.h"
+
+
+
 
 namespace ug
 {
 
-template <typename TDomain>
+template <typename TDomain, typename TAlgebra>
 class IChannel
 	: public IElemDisc<TDomain>
 {
@@ -37,7 +52,10 @@ class IChannel
 		typedef IElemDisc<TDomain> base_type;
 
 	///	Own type
-		typedef IChannel<TDomain> this_type;
+		typedef IChannel<TDomain, TAlgebra> this_type;
+
+	/// Type for Gridfunction
+		typedef GridFunction<TDomain, TAlgebra> TGridFunction;
 
 	public:
 	///	World dimension
@@ -99,22 +117,20 @@ class IChannel
 		void add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	assembles the local right hand side
-		template <typename TElem, typename TFVGeom>
+		template<typename TElem, typename TFVGeom>
 		void add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	/// initializes the defined channel type
 	/** During the initialization, the necessary attachments are attached to the vertices
 	 *	and their values calculated by the equilibrium state for the start membrane potential.
 	**/
-		// TODO: somehow pass arbitrary other unknowns
-		virtual void init(number time, SmartPtr<ApproximationSpace<TDomain> > approx, SmartPtr<LocalVector> u) = 0;
+
+		virtual void init(number time, SmartPtr<ApproximationSpace<TDomain> > approx, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct) = 0;
 
 	/// updates the gating parameters
-	// TODO: somehow pass arbitrary other unknowns
-		virtual void update_gating(number newTime) = 0;
+		virtual void update_gating(number newTime, SmartPtr<ApproximationSpace<TDomain> > approx, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct) = 0;
 
 	/// provides the ionic current (mol*s^-1) at a given vertex
-		// TODO: somehow pass arbitrary other unknowns
 		virtual void ionic_current(Vertex* v, std::vector<number>& outCurrentValues) = 0;
 
 	public:
@@ -133,11 +149,16 @@ class IChannel
 		SmartPtr<MultiGrid> m_mg;					//!< underlying multigrid
 		SmartPtr<DoFDistribution> m_dd;				//!< underlying surface dof distribution
 		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
+		//AdaptionSurfaceGridFunction<TDomain> m_AdaptSGF;
 		//using IElemDisc<TDomain>::dim;
 
 	private:
 		// VM is needed by every Channel
 		static const size_t _VM_ = 0;
+		// gating params
+		static const size_t _h_ = 1;
+		static const size_t _m_ = 2;
+		static const size_t _n_ = 3;
 
 
 
@@ -151,9 +172,9 @@ class IChannel
 };
 
 
-template <typename TDomain>
+template <typename TDomain, typename TAlgebra>
 class ChannelHH
-	: public IChannel<TDomain>
+	: public IChannel<TDomain, TAlgebra>
 {
 	public:
 	/// constructor
@@ -163,7 +184,7 @@ class ChannelHH
 						const char* functions,
 						const char* subsets
 					  )
-		: IChannel<TDomain>(approx, functions, subsets),
+		: IChannel<TDomain, TAlgebra>(approx, functions, subsets),
 		  			  m_dom(approx->domain()), m_mg(approx->domain()->grid()), m_dd(approx->dof_distribution(GridLevel::TOP)),
 		  			  m_bNonRegularGrid(false)
 		  			  {
@@ -175,12 +196,16 @@ class ChannelHH
 		/// destructor
 		virtual ~ChannelHH() {};
 
-		static const int dim = IChannel<TDomain>::dim;
+		static const int dim = IChannel<TDomain, TAlgebra>::dim;
 
 		// inherited from IChannel
-		virtual void init(number time, SmartPtr<ApproximationSpace<TDomain> > approx, SmartPtr<LocalVector> u);
-		virtual void update_gating(number newTime);
+		virtual void init(number time, SmartPtr<ApproximationSpace<TDomain> > approx, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct);
+		virtual void update_gating(number newTime, SmartPtr<ApproximationSpace<TDomain> > approx, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct);
 		virtual void ionic_current(Vertex* v, std::vector<number>& outCurrentValues);
+
+	///	assembles the local right hand side
+		template<typename TElem, typename TFVGeom>
+		void add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	protected:
 		SmartPtr<TDomain> m_dom;					//!< underlying domain
@@ -203,17 +228,23 @@ class ChannelHH
 		ADouble m_HGate;							//!< inactivating gating "particle"
 		ADouble m_NGate;
 		ADouble m_Vm;								//!< membrane voltage (in mili Volt)
+		number m_rate_h;
+		number m_rate_m;
+		number m_rate_n;
 
 		Grid::AttachmentAccessor<Vertex, ADouble> m_aaMGate;	//!< accessor for activating gate
 		Grid::AttachmentAccessor<Vertex, ADouble> m_aaHGate;	//!< accessor for inactivating gate
 		Grid::AttachmentAccessor<Vertex, ADouble> m_aaNGate;	//!< accessor for inactivating gate
 		Grid::AttachmentAccessor<Vertex, ADouble> m_aaVm;		//!< accessor for membrane potential
 
-
-		typedef IChannel<TDomain> base_type;
+	/// Base type
+		typedef IChannel<TDomain, TAlgebra> base_type;
 
 	///	Own type
-		typedef ChannelHH<TDomain> this_type;
+		typedef ChannelHH<TDomain, TAlgebra> this_type;
+
+	/// GridFunction type
+		typedef GridFunction<TDomain, TAlgebra> TGridFunction;
 };
 
 } // namespace ug

@@ -13,6 +13,7 @@
 #include "lib_algebra/cpu_algebra_types.h"
 #include "lib_algebra/operator/interface/operator.h"
 #include "lib_algebra/operator/interface/matrix_operator.h"
+#include "lib_disc/common/local_algebra.h"
 //#include "extensions/algebra_extensions.h"
 
 
@@ -125,43 +126,51 @@ static void Domain(bridge::Registry& reg, string grp)
 
 
 
-
-
-
-//	Channel Interface Base
-	{
-		typedef IChannel<TDomain> T;
-		typedef IElemDisc<TDomain> TBase;
-		string name = string("IChannel").append(suffix);
-		reg.add_class_<T, TBase >(name, grp)
-			//.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >, const char*,const char*)>("Function(s)#Subset(s)")
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "IChannel", tag);
-	}
-	std::cout << "diese registry" << std::endl;
-//	Channel Interface HH
-	{
-		typedef ChannelHH<TDomain> T;
-		typedef IChannel<TDomain> TBase;
-		string name = string("ChannelHH").append(suffix);
-		reg.add_class_<T, TBase >(name, grp)
-			.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >, const char*,const char*)>("ApproxSpace#Function(s)#Subset(s)")
-			.add_method("init", &T::init)
-			.add_method("update_gating", &T::update_gating)
-			//.add_method("ionic_current", /*static_cast<void (TBase::*) (Vertex*, std::vector<double>&)> (*/&T::ionic_current) /*, "","", "doing flux")*/
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "ChannelHH", tag);
-	}
-
 }
 
 }; // end Functionality
 
 
+template <typename TDomain, typename TAlgebra>
+static void Domain__Algebra(bridge::Registry& reg, string grp)
+{
+	static const int dim = TDomain::dim;
+	string suffix = ug::bridge::GetDomainAlgebraSuffix<TDomain, TAlgebra>();
+	string tag = ug::bridge::GetDomainAlgebraTag<TDomain, TAlgebra>();
+
+	typedef ug::GridFunction<TDomain, TAlgebra> TFct;
+
+	//	Channel Interface Base
+		{
+			typedef IChannel<TDomain, TAlgebra> T;
+			typedef IElemDisc<TDomain> TBase;
+			string name = string("IChannel").append(suffix);
+			reg.add_class_<T, TBase >(name, grp)
+				//.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >, const char*,const char*)>("Function(s)#Subset(s)")
+				.set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "IChannel", tag);
+		}
+		std::cout << "diese registry" << std::endl;
+	//	Channel Interface HH
+		{
+			typedef ChannelHH<TDomain, TAlgebra> T;
+			typedef IChannel<TDomain, TAlgebra> TBase;
+			string name = string("ChannelHH").append(suffix);
+			reg.add_class_<T, TBase >(name, grp)
+				.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >, const char*,const char*)>("ApproxSpace#Function(s)#Subset(s)")
+				.add_method("init", &T::init)
+				.add_method("update_gating", &T::update_gating)
+				//.add_method("ionic_current", /*static_cast<void (TBase::*) (Vertex*, std::vector<double>&)> (*/&T::ionic_current) /*, "","", "doing flux")*/
+				.set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "ChannelHH", tag);
+		}
+
+
+}
 
 
 
-namespace scd {
+
 
 
 
@@ -174,7 +183,35 @@ Register_Domain(bridge::Registry& reg, string grp)
 
 }
 
+template <typename TAlgebra>
+	static bool Register__Algebra(bridge::Registry& reg, std::string parentGroup)
+	{
+	//	get group string
+		std::string grp = parentGroup; grp.append("/Discretization");
 
+		try
+		{
+
+	#ifdef UG_DIM_1
+			Domain__Algebra<Domain1d, TAlgebra>(reg, grp);
+	#endif
+	#ifdef UG_DIM_2
+			Domain__Algebra<Domain2d, TAlgebra>(reg, grp);
+	#endif
+	#ifdef UG_DIM_3
+			Domain__Algebra<Domain3d, TAlgebra>(reg, grp);
+	#endif
+
+		}
+		catch(bridge::UGRegistryError ex)
+		{
+			UG_LOG("### ERROR in Register__Algebra_DoFDistribution: "
+					"Registration failed (using name " << ex.name << ").\n");
+			return false;
+		}
+
+		return true;
+	}
 
 
 
@@ -195,6 +232,23 @@ InitUGPlugin_HHKabelnew(ug::bridge::Registry* reg, std::string parentGroup)
 		//RegisterDimensionDependent<Functionality>(*reg,grp);
 		//RegisterDomainDependent<Functionality>(*reg,grp);
 	typedef Functionality Functionality;
+	bool bReturn = true;
+
+#ifdef UG_CPU_1
+	bReturn &= Register__Algebra<CPUAlgebra>(*reg, grpHH);
+#endif
+#ifdef UG_CPU_2
+	bReturn &= Register__Algebra<CPUBlockAlgebra<2> >(*reg, grpHH);
+#endif
+#ifdef UG_CPU_3
+	bReturn &= Register__Algebra<CPUBlockAlgebra<3> >(*reg, grpHH);
+#endif
+#ifdef UG_CPU_4
+	bReturn &= Register__Algebra<CPUBlockAlgebra<4> >(*reg, grpHH);
+#endif
+#ifdef UG_CPU_VAR
+	bReturn &= Register__Algebra<CPUVariableBlockAlgebra >(*reg, grpHH);
+#endif
 
 	try
 	{
@@ -237,6 +291,5 @@ InitUGPlugin_HHKabelnew(ug::bridge::Registry* reg, std::string parentGroup)
 
 }
 
-}
 }
 
