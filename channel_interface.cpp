@@ -16,6 +16,73 @@
 
 namespace ug {
 
+
+
+// Standard Methods for VM-Equatations
+template<typename TDomain, typename TAlgebra>
+void IChannel<TDomain, TAlgebra>::
+set_diameter(const number d)
+{
+	// handle the attachment
+	if (m_spApproxSpace->domain()->grid()->has_vertex_attachment(m_aDiameter))
+		UG_THROW("Radius attachment necessary for HH elem disc "
+				 "could not be made, since it already exists.");
+	m_spApproxSpace->domain()->grid()->attach_to_vertices_dv(m_aDiameter, d);
+
+	m_aaDiameter = Grid::AttachmentAccessor<Vertex, ANumber>(*m_spApproxSpace->domain()->grid(), m_aDiameter);
+}
+
+template<typename TDomain, typename TAlgebra>
+void IChannel<TDomain, TAlgebra>::
+set_spec_res(number val)
+{
+	m_spec_res = val;
+}
+template<typename TDomain, typename TAlgebra>
+void IChannel<TDomain, TAlgebra>::
+set_accuracy(double ac)
+{
+	m_accuracy = ac;
+}
+
+
+template<typename TDomain, typename TAlgebra>
+void IChannel<TDomain, TAlgebra>::
+set_consts(number Na, number K, number L)
+{
+	m_g_K = K;
+	m_g_Na = Na;
+	m_g_I = L;
+}
+
+template<typename TDomain, typename TAlgebra>
+void IChannel<TDomain, TAlgebra>::
+set_rev_pot(number R_Na, number R_K)
+{
+  m_sodium = R_Na;
+  m_potassium = R_K;
+
+}
+
+template<typename TDomain, typename TAlgebra>
+void IChannel<TDomain, TAlgebra>::
+set_spec_cap(number val)
+{
+	m_spec_cap = val;
+}
+
+template<typename TDomain, typename TAlgebra>
+void IChannel<TDomain, TAlgebra>::
+set_influx(number Flux, number x, number y, number z, number dur, number beg)
+{
+
+}
+
+
+
+
+
+
 // Methods for Interface class
 
 template<typename TDomain, typename TAlgebra>
@@ -52,7 +119,7 @@ void IChannel<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVect
 		const int co = scv.node_id();
 
 		//TODO get Diam from somewhere
-		number Diam = 3.18e-6; //m_aaDiameter[pElem->vertex(co)];
+		number Diam = m_aaDiameter[pElem->vertex(co)];
 
 
 		volume += scv.volume();
@@ -60,6 +127,15 @@ void IChannel<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVect
 		element_length += scv.volume();
 		// add "pre_resistance" parts
 		pre_resistance += scv.volume() / (0.25*PI*Diam*Diam);
+
+
+		//TODO Influx handling
+
+		//const typename TDomain::position_type& vert_coords = aaPos[pElem->vertex(co)];
+		// set flux variable
+		double flux = 0;
+		/*if 	(vert_coords[0]==flux_coords[0] and vert_coords[1]==flux_coords[1] and vert_coords[2]==flux_coords[2])
+			flux = influx;*/
 
 
 
@@ -128,11 +204,6 @@ void IChannel<TDomain, TAlgebra>::
 add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 
-	// later need to be set somewhere else
-	const number m_g_K  = 0.36e-3;
-	const number m_g_Na = 1.2e-3;
-	const number m_g_I  = 0.003e-3;
-
 
 
 	// get finite volume geometry
@@ -141,8 +212,6 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		number element_length = 0.0;
 		number pre_resistance = 0.0;
 		number volume = 0;
-
-		number m_accuracy = 1e-9;
 
 		// cast elem to appropriate type
 		TElem* pElem = dynamic_cast<TElem*>(elem);
@@ -204,7 +273,6 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 			J(_h_, co, _h_, co) += ((AlphaHh/(AlphaHh+BetaHh))-u(_h_, co)) / (1/(AlphaHh+BetaHh));
 			J(_m_, co, _m_, co) += ((AlphaHm/(AlphaHm+BetaHm))-u(_m_, co)) / (1/(AlphaHm+BetaHm));
 			J(_n_, co, _n_, co) += ((AlphaHn/(AlphaHn+BetaHn))-u(_n_, co)) / (1/(AlphaHn+BetaHn));
-
 
 
 
@@ -365,8 +433,6 @@ void ChannelHH<TDomain, TAlgebra>::init(number time, SmartPtr<ApproximationSpace
 	this->m_aaHGate = Grid::AttachmentAccessor<Vertex, ADouble>(*this->m_mg, this->m_HGate);
 	this->m_aaVm = Grid::AttachmentAccessor<Vertex, ADouble>(*this->m_mg, this->m_Vm);
 
-	//TODO set accuracy later on another point
-	number m_accuracy = 1e-9;
 
 	// creates Multi index
 	std::vector<DoFIndex> multInd;
@@ -482,9 +548,6 @@ void ChannelHH<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<Approx
 	try { ssGrp = SubsetGroup(this->m_dom->subset_handler(), this->m_vSubset);}
 	UG_CATCH_THROW("Subset group creation failed.");
 
-	//TODO set accuracy later on another point
-	number m_accuracy = 1e-9;
-
 
 	const typename TDomain::position_accessor_type& aaPos = this->m_dom->position_accessor();
 	for (std::size_t si = 0; si < ssGrp.size(); si++)
@@ -585,27 +648,22 @@ void ChannelHH<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<Approx
 template<typename TDomain, typename TAlgebra>
 void ChannelHH<TDomain, TAlgebra>::ionic_current(Vertex* v, std::vector<number>& outCurrentValues)
 {
-
-	// later need to be set somewhere else
-	const number m_g_K  = 0.36e-3;
-	const number m_g_Na = 1.2e-3;
-	const number m_g_I  = 0.003e-3;
-
-
 	// getting attachments out of Vertex
+
 	double NGate = m_aaNGate[v];
 	double MGate = m_aaMGate[v];
 	double HGate = m_aaHGate[v];
 	double VM 	 = m_aaVm[v];
 
 
+
 	// TODO Influx values needed
 	// single channel type fluxes
-	const number potassium_part_of_flux = m_g_K * pow(NGate,4) * (VM + 77);
-	const number sodium_part_of_flux =  m_g_Na * pow(MGate,3) * HGate * (VM - 50);
+	const number potassium_part_of_flux = m_g_K * pow(NGate,4) * (VM + m_potassium);
+	const number sodium_part_of_flux =  m_g_Na * pow(MGate,3) * HGate * (VM - m_sodium);
 	const number leakage_part_of_flux = m_g_I * (VM + 54.4);
 
-	number flux_value = potassium_part_of_flux + sodium_part_of_flux + leakage_part_of_flux;
+	number flux_value = (potassium_part_of_flux + sodium_part_of_flux + leakage_part_of_flux); //- flux;
 	//std::cout << "Flux_Value: " << flux_value << std::endl;
 	outCurrentValues.push_back(flux_value);
 

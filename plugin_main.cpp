@@ -147,10 +147,16 @@ static void Domain__Algebra(bridge::Registry& reg, string grp)
 			string name = string("IChannel").append(suffix);
 			reg.add_class_<T, TBase >(name, grp)
 				//.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >, const char*,const char*)>("Function(s)#Subset(s)")
+				.add_method("set_diameter", &T::set_diameter)
+				.add_method("set_spec_res", &T::set_spec_res)
+				.add_method("set_spec_cap", &T::set_spec_res)
+				.add_method("set_consts", &T::set_consts)
+				.add_method("set_rev_pot", &T::set_rev_pot)
+				.add_method("set_accuracy", &T::set_accuracy)
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "IChannel", tag);
 		}
-		std::cout << "diese registry" << std::endl;
+
 	//	Channel Interface HH
 		{
 			typedef ChannelHH<TDomain, TAlgebra> T;
