@@ -60,23 +60,7 @@ class IChannel
 	///	World dimension
 		static const int dim = base_type::dim;
 
-		// Params dendrit
-		number m_spec_res;
-		number m_spec_cap;
 
-		// Params for HH-Fluxes
-		number m_g_K;
-		number m_g_Na;
-		number m_g_I;
-
-		// reversal Pot of Sodium and Potassium
-		number m_sodium;
-		number m_potassium;
-
-		// params gatting
-		double m_accuracy;
-
-		IFunction<number>* m_Injection;
 
 	public:
 	///	Constructor
@@ -92,30 +76,6 @@ class IChannel
 	///	Destructor
 		virtual ~IChannel() {};
 
-	/// Functions for Standard VM and dendrit dependet settings
-		// set diameter for dendrit
-		void set_diameter(const number d);
-
-		// set spec_resistance
-		void set_spec_res(number val);
-
-		// set spec capa
-		void set_spec_cap(number val);
-
-		// sets accuracy of gatting params before going to limiting value
-		void set_accuracy(double ac);
-
-		// Injection Problem is solved with IFunction position could get with vcornercoords
-		void set_injection(IFunction<number>& functor) { m_Injection = &functor;}
-
-		// set Sodium, Potassium and Leakage constants
-		void set_consts(number Na, number K, number L);
-
-		// set reversal potential for "VM-Flux"
-		void set_rev_pot(number R_Na, number R_K);
-
-		// set influx params (Flux-value, koordinates, duration, beginning)
-		void set_influx(number Flux, number x, number y, number z, number dur, number beg);
 
 
 	// inherited from IElemDisc
@@ -142,25 +102,18 @@ class IChannel
 		template <typename TElem, typename TFVGeom>
 		void fsh_elem_loop();
 
-	///	assembles stiffness part of local defekt
-		template <typename TElem, typename TFVGeom>
-		void add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-
-	///	assembles mass part of local defect
-		template <typename TElem, typename TFVGeom>
-		void add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-
-	/// assembles jacobian of stiffnes part
-		template<typename TElem, typename TFVGeom>
-		void add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-
-		/// assembles jacobian of mass part
-		template<typename TElem, typename TFVGeom>
-		void add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-
 	///	assembles the local right hand side
 		template<typename TElem, typename TFVGeom>
 		void add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+
+	/// functions for setting some HH params
+		set_accuracy(double ac);
+
+		set_consts(number Na, number K, number L);
+
+		set_rev_pot(number R_Na, number R_K);
+
+
 
 	/// initializes the defined channel type
 	/** During the initialization, the necessary attachments are attached to the vertices
@@ -194,21 +147,12 @@ class IChannel
 		//AdaptionSurfaceGridFunction<TDomain> m_AdaptSGF;
 		//using IElemDisc<TDomain>::dim;
 
-	/// dendritic radius attachment and accessor
-		ANumber m_aDiameter;
-		Grid::AttachmentAccessor<Vertex, ANumber> m_aaDiameter;
-
-
 
 
 
 	private:
 		// VM is needed by every Channel
 		static const size_t _VM_ = 0;
-		// gating params
-		static const size_t _h_ = 1;
-		static const size_t _m_ = 2;
-		static const size_t _n_ = 3;
 
 
 

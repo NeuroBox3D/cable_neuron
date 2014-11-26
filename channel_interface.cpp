@@ -16,321 +16,9 @@
 
 namespace ug {
 
-
-
-// Standard Methods for VM-Equatations
-template<typename TDomain, typename TAlgebra>
-void IChannel<TDomain, TAlgebra>::
-set_diameter(const number d)
-{
-	// handle the attachment
-	if (m_spApproxSpace->domain()->grid()->has_vertex_attachment(m_aDiameter))
-		UG_THROW("Radius attachment necessary for HH elem disc "
-				 "could not be made, since it already exists.");
-	m_spApproxSpace->domain()->grid()->attach_to_vertices_dv(m_aDiameter, d);
-
-	m_aaDiameter = Grid::AttachmentAccessor<Vertex, ANumber>(*m_spApproxSpace->domain()->grid(), m_aDiameter);
-}
-
-template<typename TDomain, typename TAlgebra>
-void IChannel<TDomain, TAlgebra>::
-set_spec_res(number val)
-{
-	m_spec_res = val;
-}
-template<typename TDomain, typename TAlgebra>
-void IChannel<TDomain, TAlgebra>::
-set_accuracy(double ac)
-{
-	m_accuracy = ac;
-}
-
-
-template<typename TDomain, typename TAlgebra>
-void IChannel<TDomain, TAlgebra>::
-set_consts(number Na, number K, number L)
-{
-	m_g_K = K;
-	m_g_Na = Na;
-	m_g_I = L;
-}
-
-template<typename TDomain, typename TAlgebra>
-void IChannel<TDomain, TAlgebra>::
-set_rev_pot(number R_Na, number R_K)
-{
-  m_sodium = R_Na;
-  m_potassium = R_K;
-
-}
-
-template<typename TDomain, typename TAlgebra>
-void IChannel<TDomain, TAlgebra>::
-set_spec_cap(number val)
-{
-	m_spec_cap = val;
-}
-
-template<typename TDomain, typename TAlgebra>
-void IChannel<TDomain, TAlgebra>::
-set_influx(number Flux, number x, number y, number z, number dur, number beg)
-{
-
-}
-
-
-
-
-
-
+//////////////////////////////////
 // Methods for Interface class
-
-template<typename TDomain, typename TAlgebra>
-template<typename TElem, typename TFVGeom>
-void IChannel<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
-{
-
-
-	// get finite volume geometry
-	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
-
-	// some help constants
-	number element_length = 0.0;
-	number pre_resistance = 0.0;
-	number volume = 0.0;
-
-	//need to set later in another way also given from elsewhere
-	number Na_out = 140;
-	number K_out = 2.5;
-
-	// helper for saving defekts
-	std::vector<double> outCurrentValues;
-
-	// cast elem to appropriate type
-	TElem* pElem = dynamic_cast<TElem*>(elem);
-	if (!pElem) {UG_THROW("Wrong element type.");}
-
-	for (size_t ip = 0; ip < geo.num_scv(); ++ip)
-	{
-		// get current SCV
-		const typename TFVGeom::SCV& scv = geo.scv(ip);
-
-		// get associated node
-		const int co = scv.node_id();
-
-		//TODO get Diam from somewhere
-		number Diam = m_aaDiameter[pElem->vertex(co)];
-
-
-		volume += scv.volume();
-		// add length of scv to element length
-		element_length += scv.volume();
-		// add "pre_resistance" parts
-		pre_resistance += scv.volume() / (0.25*PI*Diam*Diam);
-
-
-		//TODO Influx handling
-
-		//const typename TDomain::position_type& vert_coords = aaPos[pElem->vertex(co)];
-		// set flux variable
-		double flux = 0;
-		/*if 	(vert_coords[0]==flux_coords[0] and vert_coords[1]==flux_coords[1] and vert_coords[2]==flux_coords[2])
-			flux = influx;*/
-
-
-
-		// values we are getting from ionic_flux function
-
-		ionic_current(pElem->vertex(co), outCurrentValues);
-
-
-		//need to add all fluxes for every single element in hh case only VM-Flux
-		//std::cout << "outCurrentValue: " << outCurrentValues[co] << std::endl;
-
-		d(_VM_, co) += scv.volume()*PI*Diam*(outCurrentValues[co]);
-
-
-
-		//std::cout << "defekt changes: "<< d(_VM_, co) << std::endl;
-	}
-
-}
-
-template<typename TDomain, typename TAlgebra>
-template<typename TElem, typename TFVGeom>
-void IChannel<TDomain, TAlgebra>::add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
-{
-	// get finite volume geometry
-	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
-
-	// cast elem to appropriate type
-	TElem* pElem = dynamic_cast<TElem*>(elem);
-	if (!pElem) {UG_THROW("Wrong element type.");}
-
-	for (size_t ip = 0; ip < geo.num_scv(); ++ip)
-	{
-		// get current SCV
-		const typename TFVGeom::SCV& scv = geo.scv(ip);
-
-		// get associated node
-		const int co = scv.node_id();
-
-		//get Diameter from element
-		number Diam = 3.18e-6;
-
-		// get spec capacity
-		number spec_capacity = 1e-5;
-
-		// gating parameters time derivative
-		d(_h_, co) += u(_h_, co);
-		d(_m_, co) += u(_m_, co);
-		d(_n_, co) += u(_n_, co);
-
-
-		// potential equation time derivative
-		/*std::cout << "u: " << u(_VM_, co) << std::endl;
-		std::cout << "co: " << co << std::endl;
-		std::cout << "time derivative: " << (PI*Diam*scv.volume()*u(_VM_, co)*spec_capacity) << std::endl;*/
-
-		d(_VM_, co) += PI*Diam*scv.volume()*u(_VM_, co)*spec_capacity;
-	}
-
-
-}
-
-template<typename TDomain, typename TAlgebra>
-template<typename TElem, typename TFVGeom>
-void IChannel<TDomain, TAlgebra>::
-add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
-{
-
-
-
-	// get finite volume geometry
-		static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
-
-		number element_length = 0.0;
-		number pre_resistance = 0.0;
-		number volume = 0;
-
-		// cast elem to appropriate type
-		TElem* pElem = dynamic_cast<TElem*>(elem);
-		if (!pElem) {UG_THROW("Wrong element type.");}
-
-	// channel kinetics derivatives
-		for (size_t ip = 0; ip < geo.num_scv(); ++ip)
-		{
-			// get current SCV
-			const typename TFVGeom::SCV& scv = geo.scv(ip);
-
-			// get associated node
-			const int co = scv.node_id();
-
-			//get Diameter from element later in attachment
-			number Diam = 3.18e-6;
-
-
-			// add length of scv to element length
-			element_length += scv.volume();
-
-			// add "pre_resistance" parts
-			pre_resistance += scv.volume() / (0.25*PI*Diam*Diam);
-
-			// calculates volume for later use
-			volume += scv.volume();
-
-
-		// calculate several help variables for efficient calculation of derivatives
-			// gating param h
-			number AlphaHh = 0.07*exp(-(u(_VM_,co)+65.0)/20.0);
-			number BetaHh = 1.0/(exp(3.0-0.1*(u(_VM_,co)+65.0))+1.0);
-
-			// gating param m
-			number AlphaHm;
-			number AlphaHm_test = exp(2.5-0.1*(u(_VM_,co)+65.0))-1.0;
-			if (fabs(AlphaHm_test) > m_accuracy)
-				AlphaHm = (2.5 - 0.1*(u(_VM_,co)+65.0)) / AlphaHm_test;
-			else
-				AlphaHm = 1.0;
-
-			number BetaHm = 4.0*exp(-(u(_VM_,co)+65.0)/18.0);
-
-
-			// gating param n
-			number AlphaHn;
-			number AlphaHn_test;
-			AlphaHn_test = exp(1.0-0.1*(u(_VM_,co)+65.0))-1.0;
-			if (fabs(AlphaHn_test) > m_accuracy)
-				AlphaHn = (0.1-0.01*(u(_VM_,co)+65.0)) / AlphaHn_test;
-			else
-				AlphaHn = 0.1;
-
-			number BetaHn = 0.125*exp((u(_VM_,co)+65.0)/80.0);
-
-
-
-			// derivatives of channel states
-			J(_h_, co, _h_, co) += ((AlphaHh/(AlphaHh+BetaHh))-u(_h_, co)) / (1/(AlphaHh+BetaHh));
-			J(_m_, co, _m_, co) += ((AlphaHm/(AlphaHm+BetaHm))-u(_m_, co)) / (1/(AlphaHm+BetaHm));
-			J(_n_, co, _n_, co) += ((AlphaHn/(AlphaHn+BetaHn))-u(_n_, co)) / (1/(AlphaHn+BetaHn));
-
-
-
-			// derivatives of potential from HH channels
-			//J(_VM_, co, _h_, co) += scv.volume()*PI*Diam * m_g_Na*pow(u(_m_,co),3) * (u(_VM_, co) - m_sodium);
-			//J(_VM_, co, _m_, co) += scv.volume()*PI*Diam * 3.0*m_g_Na*pow(u(_m_,co),2) * u(_h_,co) * (u(_VM_, co) - m_sodium);
-			//J(_VM_, co, _n_, co) += scv.volume()*PI*Diam * 4.0*m_g_K*pow(u(_n_,co),3) * (u(_VM_,co) + m_potassium);
-			J(_VM_, co, _VM_, co) += scv.volume()*PI*Diam * (m_g_K*pow(u(_n_,co),4) + m_g_Na*pow(u(_m_,co),3)*u(_h_,co) + m_g_I);
-		}
-}
-
-
-template<typename TDomain, typename TAlgebra>
-template<typename TElem, typename TFVGeom>
-void IChannel<TDomain, TAlgebra>::
-add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
-{
-	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
-
-	// cast elem to appropriate type
-	TElem* pElem = dynamic_cast<TElem*>(elem);
-	if (!pElem) {UG_THROW("Wrong element type.");}
-
-	for (size_t ip = 0; ip < geo.num_scv(); ++ip)
-	{
-		// get current SCV
-		const typename TFVGeom::SCV& scv = geo.scv(ip);
-
-		// get associated node
-		const int co = scv.node_id();
-
-		//get Diameter from element later in attachment
-		number Diam = 3.18e-6;
-
-		//spec_capa has to be set later on in an varialbe
-
-		// get spec capacity
-		number spec_capacity = 1e-5;
-
-		// gating parameters
-		J(_h_, co, _h_, co) += 1.0;
-		J(_m_, co, _m_, co) += 1.0;
-		J(_n_, co, _n_, co) += 1.0;
-
-		// potential equation
-		J(_VM_, co, _VM_, co) += PI*Diam*scv.volume()*spec_capacity;
-	}
-}
-
-
-template<typename TDomain, typename TAlgebra>
-template <typename TElem, typename TFVGeom>
-void IChannel<TDomain, TAlgebra>::fsh_elem_loop()
-{
-
-
-}
-
+//////////////////////////////////
 
 template<typename TDomain, typename TAlgebra>
 template<typename TElem, typename TFVGeom>
@@ -342,8 +30,6 @@ void IChannel<TDomain, TAlgebra>::prep_elem(const LocalVector& u, GridObject* el
 		geo.update(elem, vCornerCoords, &(this->subset_handler()));
 	}
 	UG_CATCH_THROW("Cannot update Finite Volume Geometry.\n");
-
-	//we coud update vm here...
 
 }
 
@@ -380,15 +66,41 @@ void IChannel<TDomain, TAlgebra>::add_rhs_elem(LocalVector& d, GridObject* elem,
 }
 
 
-/* IChannel:: use_hanging()
-{
-	return false;
-}*/
 
-
+////////////////////////////////////////////////
 // Methods for HH-Channel-Class
+////////////////////////////////////////////////
+
+template<typename TDomain, typename TAlgebra>
+void ChannelHH<TDomain, TAlgebra>::
+set_accuracy(double ac)
+{
+	m_accuracy = ac;
+}
 
 
+template<typename TDomain, typename TAlgebra>
+void ChannelHH<TDomain, TAlgebra>::
+set_consts(number Na, number K, number L)
+{
+	m_g_K = K;
+	m_g_Na = Na;
+	m_g_I = L;
+}
+
+template<typename TDomain, typename TAlgebra>
+void ChannelHH<TDomain, TAlgebra>::
+set_rev_pot(number R_Na, number R_K)
+{
+  m_sodium = R_Na;
+  m_potassium = R_K;
+
+}
+
+
+
+
+// Methods for using gatings
 template<typename TDomain, typename TAlgebra>
 void ChannelHH<TDomain, TAlgebra>::init(number time, SmartPtr<ApproximationSpace<TDomain> > approx, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct)
 {
@@ -711,11 +423,11 @@ register_func()
 	this->set_prep_elem_loop_fct(id, &T::template prep_elem_loop<TElem, TFVGeom>);
 	this->set_prep_elem_fct(id, &T::template prep_elem<TElem, TFVGeom>);
 	this->set_fsh_elem_loop_fct(id, &T::template fsh_elem_loop<TElem, TFVGeom>);
-	this->set_add_rhs_elem_fct(id, &T::template add_rhs_elem<TElem, TFVGeom>);
-	this->set_add_def_A_elem_fct(id, &T::template add_def_A_elem<TElem, TFVGeom>);
-	this->set_add_def_M_elem_fct(id, &T::template add_def_M_elem<TElem, TFVGeom>);
-	this->set_add_jac_A_elem_fct(id, &T::template add_jac_A_elem<TElem, TFVGeom>);
-	this->set_add_jac_M_elem_fct(id, &T::template add_jac_M_elem<TElem, TFVGeom>);
+	//this->set_add_rhs_elem_fct(id, &T::template add_rhs_elem<TElem, TFVGeom>);
+	//this->set_add_def_A_elem_fct(id, &T::template add_def_A_elem<TElem, TFVGeom>);
+	//this->set_add_def_M_elem_fct(id, &T::template add_def_M_elem<TElem, TFVGeom>);
+	//this->set_add_jac_A_elem_fct(id, &T::template add_jac_A_elem<TElem, TFVGeom>);
+	//this->set_add_jac_M_elem_fct(id, &T::template add_jac_M_elem<TElem, TFVGeom>);
 
 }
 
