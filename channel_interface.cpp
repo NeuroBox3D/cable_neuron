@@ -322,11 +322,6 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 	}
 }
 
-template<typename TDomain, typename TAlgebra>
-IChannel<TDomain, TAlgebra>::~IChannel()
-{
-
-}
 
 template<typename TDomain, typename TAlgebra>
 template <typename TElem, typename TFVGeom>
@@ -392,13 +387,6 @@ void IChannel<TDomain, TAlgebra>::add_rhs_elem(LocalVector& d, GridObject* elem,
 
 
 // Methods for HH-Channel-Class
-
-
-template<typename TDomain, typename TAlgebra>
-ChannelHH<TDomain, TAlgebra>::~ChannelHH()
-{
-
-}
 
 
 template<typename TDomain, typename TAlgebra>

@@ -45,7 +45,6 @@ class IChannel
 {
 	public:
 		IChannel();
-		virtual ~IChannel();
 
 	private:
 	///	Base class type
@@ -89,7 +88,6 @@ class IChannel
 			m_bNonRegularGrid = false;
 			register_all_funcs(m_bNonRegularGrid);
 		   }
-
 
 	///	Destructor
 		virtual ~IChannel() {};
@@ -262,8 +260,6 @@ class ChannelHH
 		  			  {
 						register_all_funcs(m_bNonRegularGrid);
 		  			  };
-
-		virtual ~ChannelHH();
 
 		/// destructor
 		virtual ~ChannelHH() {};
