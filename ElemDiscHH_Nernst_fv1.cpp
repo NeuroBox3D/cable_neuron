@@ -308,8 +308,8 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		d(_n_, co) += rate_n;
 
 		// defekt of Na and K
-		d(_Na_, co) += sodium_part_of_flux/m_F;
-		d(_K_, co)  += potassium_part_of_flux/m_F;
+		d(_Na_, co) += sodium_part_of_flux/m_F * PI*Diam*scv.volume();
+		d(_K_, co)  += potassium_part_of_flux/m_F * PI*Diam*scv.volume();
 	}
 
 // cable equation, "diffusion" part
@@ -376,8 +376,8 @@ add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		d(_n_, co) += u(_n_, co);
 
 		// Nernst Paras time derivative
-		d(_Na_, co) += u(_Na_, co);
-		d(_K_, co)  += u(_K_, co);
+		d(_Na_, co) += u(_Na_, co)*scv.volume()*0.25*PI*Diam*Diam;
+		d(_K_, co)  += u(_K_, co)*scv.volume()*0.25*PI*Diam*Diam;
 
 		// potential equation time derivative
 		d(_VM_, co) += PI*Diam*scv.volume()*u(_VM_, co)*spec_capacity;
@@ -534,14 +534,14 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		std::cout << "n: " << u(_n_,co) << std::endl;*/
 
 
-		J(_K_, co, _K_, co)   +=  potassium_nernst_eq_dK;
-		J(_K_, co, _n_, co)   +=  m_g_K * 4*pow(u(_n_,co),3) * (u(_VM_,co));
-		J(_K_, co, _VM_, co)  +=  m_g_K * pow(u(_n_,co),4);
+		J(_K_, co, _K_, co)   +=  potassium_nernst_eq_dK * PI*Diam*scv.volume();
+		J(_K_, co, _n_, co)   +=  m_g_K * 4*pow(u(_n_,co),3) * (u(_VM_,co)) * PI*Diam*scv.volume();
+		J(_K_, co, _VM_, co)  +=  m_g_K * pow(u(_n_,co),4) * PI*Diam*scv.volume();
 
-		J(_Na_, co, _Na_, co) += sodium_nernst_eq_dNa;
-		J(_Na_, co, _m_, co) +=  m_g_Na * 3*pow(u(_m_,co),2) * u(_h_,co) * u(_VM_, co);
-		J(_Na_, co, _h_, co) +=  m_g_Na * pow(u(_m_,co),3) * u(_VM_, co);
-		J(_Na_, co, _VM_, co) +=  m_g_Na * pow(u(_m_,co),3) * u(_h_,co);
+		J(_Na_, co, _Na_, co) += sodium_nernst_eq_dNa * PI*Diam*scv.volume();
+		J(_Na_, co, _m_, co) +=  m_g_Na * 3*pow(u(_m_,co),2) * u(_h_,co) * u(_VM_, co) * PI*Diam*scv.volume();
+		J(_Na_, co, _h_, co) +=  m_g_Na * pow(u(_m_,co),3) * u(_VM_, co) * PI*Diam*scv.volume();
+		J(_Na_, co, _VM_, co) +=  m_g_Na * pow(u(_m_,co),3) * u(_h_,co) * PI*Diam*scv.volume();
 
 
 		J(_VM_, co, _K_,co) += scv.volume()*PI*Diam * m_g_K * pow(u(_n_,co),4) * potassium_nernst_eq_dK;
@@ -629,8 +629,8 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		J(_m_, co, _m_, co) += 1.0;
 		J(_n_, co, _n_, co) += 1.0;
 
-		J(_Na_, co, _Na_, co) += 1.0;
-		J(_K_, co, _K_, co) += 1.0;
+		J(_Na_, co, _Na_, co) += 1.0*scv.volume()*0.25*PI*Diam*Diam;
+		J(_K_, co, _K_, co) += 1.0*scv.volume()*0.25*PI*Diam*Diam;
 
 		// potential equation
 		J(_VM_, co, _VM_, co) += PI*Diam*scv.volume()*spec_capacity;
