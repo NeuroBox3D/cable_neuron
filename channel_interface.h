@@ -106,12 +106,7 @@ class IChannel
 		template<typename TElem, typename TFVGeom>
 		void add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
-	/// functions for setting some HH params
-		set_accuracy(double ac);
 
-		set_consts(number Na, number K, number L);
-
-		set_rev_pot(number R_Na, number R_K);
 
 
 
@@ -128,12 +123,15 @@ class IChannel
 	/// provides the ionic current (mol*s^-1) at a given vertex
 		virtual void ionic_current(Vertex* v, std::vector<number>& outCurrentValues) = 0;
 
+	/// addin some jacobian infos at given vertex
+		virtual void Jacobi_sets(Vertex* v, std::vector<number>& outJFlux) = 0;
+
 	public:
 	///	type of trial space for each function used
 		virtual void prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid);
 
 	///	returns if hanging nodes are needed
-		//virtual bool use_hanging() const;
+		virtual bool use_hanging() const;
 
 	protected:
 
@@ -205,15 +203,25 @@ class ChannelHH
 						register_all_funcs(m_bNonRegularGrid);
 		  			  };
 
-		/// destructor
+	/// destructor
 		virtual ~ChannelHH() {};
 
 		static const int dim = IChannel<TDomain, TAlgebra>::dim;
+
+
+	/// functions for setting some HH params
+		void set_accuracy(double ac);
+
+		void set_consts(number Na, number K, number L);
+
+		void set_rev_pot(number R_Na, number R_K);
+
 
 		// inherited from IChannel
 		virtual void init(number time, SmartPtr<ApproximationSpace<TDomain> > approx, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct);
 		virtual void update_gating(number newTime, SmartPtr<ApproximationSpace<TDomain> > approx, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct);
 		virtual void ionic_current(Vertex* v, std::vector<number>& outCurrentValues);
+		virtual void Jacobi_sets(Vertex* v, std::vector<number>& outJFlux);
 
 	///	assembles the local right hand side
 		template<typename TElem, typename TFVGeom>

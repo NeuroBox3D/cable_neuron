@@ -43,6 +43,13 @@ void IChannel<TDomain, TAlgebra>::prep_elem_loop(const ReferenceObjectID roid, c
 
 }
 
+template<typename TDomain, typename TAlgebra>
+template <typename TElem, typename TFVGeom>
+void IChannel<TDomain, TAlgebra>::fsh_elem_loop()
+{
+
+}
+
 
 template<typename TDomain, typename TAlgebra>
 void IChannel<TDomain, TAlgebra>::prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid)
@@ -54,6 +61,15 @@ void IChannel<TDomain, TAlgebra>::prepare_setting(const std::vector<LFEID>& vLfe
 	register_all_funcs(m_bNonRegularGrid);
 
 	//TODO here we need some option to get the number of unknowns
+}
+
+template<typename TDomain, typename TAlgebra>
+bool IChannel<TDomain, TAlgebra>::
+use_hanging() const
+{
+	// As this is basically a 1D discretization,
+	// there will never be any hanging nodes.
+	return true;
 }
 
 
@@ -212,29 +228,6 @@ void ChannelHH<TDomain, TAlgebra>::init(number time, SmartPtr<ApproximationSpace
 			this->m_aaMGate[*iter] = AlphaHm / (AlphaHm + BetaHm);
 			this->m_aaNGate[*iter] = AlphaHn / (AlphaHn + BetaHn);
 
-			//Write Start-Values in Functions
-			//TODO later we need a possibility to decide in which function to write
-			const size_t fcth = 1;
-			const size_t fctm = 2;
-			const size_t fctn = 3;
-
-			// creates Multi index
-			std::vector<DoFIndex> multIndh;
-			std::vector<DoFIndex> multIndm;
-			std::vector<DoFIndex> multIndn;
-
-			// write multi_index with values
-			spGridFct->dof_indices(vrt, fcth, multIndh);
-			spGridFct->dof_indices(vrt, fctm, multIndm);
-			spGridFct->dof_indices(vrt, fctn, multIndn);
-
-			//write values of h, m and n into DoF
-			for (int i=0; i < multIndh.size(); i++)
-			{
-				DoFRef(*spGridFct, multIndh[i]) = m_aaHGate[*iter];
-				DoFRef(*spGridFct, multIndm[i]) = m_aaMGate[*iter];
-				DoFRef(*spGridFct, multIndn[i]) = m_aaNGate[*iter];
-			}
 		}
 	}
 
@@ -307,32 +300,9 @@ void ChannelHH<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<Approx
 			m_aaHGate[*iter] += rate_h;
 			m_aaMGate[*iter] += rate_m;
 			m_aaNGate[*iter] += rate_n;
-			std::cout << "VM: " << (m_aaVm[*iter]) << "h: "<< m_aaHGate[*iter] << "m: "<< m_aaMGate[*iter] <<  "n: "<< m_aaNGate[*iter] <<std::endl;
-			std::cout << "Rates: " << rate_h << " , " << rate_m << " , " << rate_n << std::endl;
+			//std::cout << "VM: " << (m_aaVm[*iter]) << "h: "<< m_aaHGate[*iter] << "m: "<< m_aaMGate[*iter] <<  "n: "<< m_aaNGate[*iter] <<std::endl;
+			//std::cout << "Rates: " << rate_h << " , " << rate_m << " , " << rate_n << std::endl;
 
-			//Write Values in Functions
-			//TODO later we need a possibility to decide in which function to write
-			const size_t fcth = 1;
-			const size_t fctm = 2;
-			const size_t fctn = 3;
-
-			// creates Multi index
-			std::vector<DoFIndex> multIndh;
-			std::vector<DoFIndex> multIndm;
-			std::vector<DoFIndex> multIndn;
-
-			// write multi_index with values
-			spGridFct->dof_indices(vrt, fcth, multIndh);
-			spGridFct->dof_indices(vrt, fctm, multIndm);
-			spGridFct->dof_indices(vrt, fctn, multIndn);
-
-			//write values of h, m and n into DoF
-			for (int i=0; i < multIndh.size(); i++)
-			{
-				DoFRef(*spGridFct, multIndh[i]) = m_aaHGate[*iter];
-				DoFRef(*spGridFct, multIndm[i]) = m_aaMGate[*iter];
-				DoFRef(*spGridFct, multIndn[i]) = m_aaNGate[*iter];
-			}
 		}
 	}
 
@@ -368,7 +338,23 @@ void ChannelHH<TDomain, TAlgebra>::ionic_current(Vertex* v, std::vector<number>&
 	outCurrentValues.push_back(flux_value);
 
 }
-/*
+
+
+
+template<typename TDomain, typename TAlgebra>
+void ChannelHH<TDomain, TAlgebra>::Jacobi_sets(Vertex* v, std::vector<number>& outJFlux)
+{
+	double NGate = m_aaNGate[v];
+	double MGate = m_aaMGate[v];
+	double HGate = m_aaHGate[v];
+
+
+	number Jac = (m_g_K*pow(NGate,4) + m_g_Na*pow(MGate,3)*HGate + m_g_I);
+
+	outJFlux.push_back(Jac);
+
+}
+
 template<typename TDomain, typename TAlgebra>
 template <typename TElem, typename TFVGeom>
 void ChannelHH<TDomain, TAlgebra>::add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[])
@@ -376,10 +362,10 @@ void ChannelHH<TDomain, TAlgebra>::add_rhs_elem(LocalVector& d, GridObject* elem
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
 	//TODO later we need a possibility to decide in which function to write
-	const size_t fcth = 1;
-	const size_t fctm = 2;
-	const size_t fctn = 3;
+	const size_t _VM_ = 0;
 
+
+	/*std::vector<number> outCurrentValues;
 
 	// cast elem to appropriate type
 	TElem* pElem = dynamic_cast<TElem*>(elem);
@@ -393,15 +379,13 @@ void ChannelHH<TDomain, TAlgebra>::add_rhs_elem(LocalVector& d, GridObject* elem
 		// get associated node
 		const int co = scv.node_id();
 
+		ionic_current(pElem->vertex(co), outCurrentValues);
 
 
+		d(_VM_, co) += outCurrentValues[co];
+	}*/
 
-		d(fcth, co) += rate_h;
-		d(fctm, co) += rate_m;
-		d(fctn, co) += rate_n;
-	}
-
-}*/
+}
 ////////////////////////////////////////////////////////////////////////////////
 //	register assemble functions
 ////////////////////////////////////////////////////////////////////////////////
@@ -423,7 +407,7 @@ register_func()
 	this->set_prep_elem_loop_fct(id, &T::template prep_elem_loop<TElem, TFVGeom>);
 	this->set_prep_elem_fct(id, &T::template prep_elem<TElem, TFVGeom>);
 	this->set_fsh_elem_loop_fct(id, &T::template fsh_elem_loop<TElem, TFVGeom>);
-	//this->set_add_rhs_elem_fct(id, &T::template add_rhs_elem<TElem, TFVGeom>);
+	this->set_add_rhs_elem_fct(id, &T::template add_rhs_elem<TElem, TFVGeom>);
 	//this->set_add_def_A_elem_fct(id, &T::template add_def_A_elem<TElem, TFVGeom>);
 	//this->set_add_def_M_elem_fct(id, &T::template add_def_M_elem<TElem, TFVGeom>);
 	//this->set_add_jac_A_elem_fct(id, &T::template add_jac_A_elem<TElem, TFVGeom>);
@@ -451,7 +435,7 @@ register_func()
 	//this->set_prep_elem_loop_fct(id, &T::template prep_elem_loop<TElem, TFVGeom>);
 	//this->set_prep_elem_fct(id, &T::template prep_elem<TElem, TFVGeom>);
 	//this->set_fsh_elem_loop_fct(id, &T::template fsh_elem_loop<TElem, TFVGeom>);
-	//this->set_add_rhs_elem_fct(id, &T::template add_rhs_elem<TElem, TFVGeom>);
+	this->set_add_rhs_elem_fct(id, &T::template add_rhs_elem<TElem, TFVGeom>);
 
 }
 
