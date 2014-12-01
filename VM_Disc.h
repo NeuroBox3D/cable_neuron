@@ -83,6 +83,15 @@ class VMDisc
 		// params gatting
 		double m_accuracy;
 
+		//lists for all influxes
+		std::vector<MathVector<dim> > m_coords;
+		std::vector<number> m_flux_value;
+		std::vector<number> m_beg_flux;
+		std::vector<number> m_dur_flux;
+
+		// influx ac
+		number m_influx_ac;
+
 		//list with all channels
 		std::vector<SmartPtr<TIChannel> > m_channel;
 
@@ -110,9 +119,11 @@ class VMDisc
 		// set spec capa
 		void set_spec_cap(number val);
 
-//TODO
+		// set influx ac
+		void set_influx_ac(number influx_ac);
+
 		// set influx params (Flux-value, koordinates, duration, beginning)
-		void set_influx(number Flux, number x, number y, number z, number dur, number beg);
+		void set_influx(number Flux, number x, number y, number z, number beg, number dur);
 
 		//Adding function for channels
 		void add_channel(SmartPtr<IChannel<TDomain, TAlgebra> > Channel, SmartPtr<ApproximationSpace<TDomain> > approx, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct);

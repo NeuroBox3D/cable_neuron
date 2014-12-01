@@ -17,6 +17,7 @@ set(SOURCES	ElemDiscHH_base.cpp
 			ElemDiscHH_fv1.cpp
 			ElemDiscHH_Nernst_fv1.cpp
 			channel_interface.cpp
+			VM_Disc.cpp
 			plugin_main.cpp
 
 			)

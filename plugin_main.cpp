@@ -152,6 +152,8 @@ static void Domain__Algebra(bridge::Registry& reg, string grp)
 				.add_method("set_spec_res", &T::set_spec_res)
 				.add_method("set_spec_cap", &T::set_spec_res)
 				.add_method("add_channel", &T::add_channel)
+				.add_method("set_influx", &T::set_influx)
+				.add_method("set_influx_ac", &T::set_influx_ac)
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "VMDisc", tag);
 		}

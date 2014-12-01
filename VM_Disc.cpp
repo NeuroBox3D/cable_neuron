@@ -40,6 +40,12 @@ set_spec_res(number val)
 	m_spec_res = val;
 }
 
+template<typename TDomain, typename TAlgebra>
+void VMDisc<TDomain, TAlgebra>::
+set_influx_ac(number influx_ac)
+{
+	m_influx_ac = influx_ac;
+}
 
 
 template<typename TDomain, typename TAlgebra>
@@ -51,8 +57,17 @@ set_spec_cap(number val)
 
 template<typename TDomain, typename TAlgebra>
 void VMDisc<TDomain, TAlgebra>::
-set_influx(number Flux, number x, number y, number z, number dur, number beg)
+set_influx(number Flux, number x, number y, number z, number beg, number dur)
 {
+
+	int flux_number = m_flux_value.size();
+
+	m_flux_value.push_back(Flux);
+
+	m_beg_flux.push_back(beg);
+	m_dur_flux.push_back(dur);
+
+	m_coords.push_back((x, y, z));
 
 }
 
@@ -117,34 +132,51 @@ void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector
 		// add "pre_resistance" parts
 		pre_resistance += scv.volume() / (0.25*PI*Diam*Diam);
 
-
-		//TODO Influx handling
-
-		//const typename TDomain::position_type& vert_coords = aaPos[pElem->vertex(co)];
-		// set flux variable
-		double flux = 0;
-		/*if 	(vert_coords[0]==flux_coords[0] and vert_coords[1]==flux_coords[1] and vert_coords[2]==flux_coords[2])
-			flux = influx;*/
+		// Helpers for Influx-Handling
+		number time = this->time();
+		double influx = 0;
 
 
-		// loop over all channels
+	///Influx handling
+		for (int i = 0; i < m_flux_value.size(); i++)
+		{
+			/*std::cout << "coords: " << m_coords[i][0] << " - " << vCornerCoords[0][1] << std::endl;
+			std::cout << "times: " << time << " - " << m_beg_flux[i] << std::endl;
+			std::cout << "echtes erg: " << (vCornerCoords[0][2] - m_coords[i][2]) << std::endl;
+			std::cout << "abs erg: " << ((fabs((vCornerCoords[0][2] - m_coords[i][2])))) << std::endl;*/
+			// Time depending vars
+			if ((m_beg_flux[i] <= time)
+			and ((m_dur_flux[i] + m_beg_flux[i]) >= time)
+			// place depending vars
+			and ((fabs(vCornerCoords[0][0] - m_coords[i][0])) < m_influx_ac)
+			and ((fabs(vCornerCoords[0][1] - m_coords[i][1])) < m_influx_ac)
+			and ((fabs(vCornerCoords[0][2] - m_coords[i][2])) < m_influx_ac))
+			{
+				//std::cout << "influx should happening" << std::endl;
+				influx = m_flux_value[i];
+			}
+
+		}
+		AlloutCurrentValues.push_back(0);
+
+	/// Channel defekt adding
 		for (int i = 0; i < m_channel.size(); i++)
 		{
-
 			// values we are getting from ionic_flux function in channels
 			m_channel[i].get()->ionic_current(pElem->vertex(co), outCurrentValues);
-			AlloutCurrentValues[co] += outCurrentValues[co];
+			// adding defekt from every channel
+			AlloutCurrentValues[co] += (outCurrentValues[co]);
 		}
 
-		d(_VM_, co) += scv.volume()*PI*Diam *(AlloutCurrentValues[co]);
-
+	/// Writing all into defekts
+		d(_VM_, co) += scv.volume()*PI*Diam *(AlloutCurrentValues[co]-influx);
 
 
 		//std::cout << "defekt changes: "<< d(_VM_, co) << std::endl;
 	}
 
 	// cable equation, "diffusion" part
-		/*MathVector<dim> grad_c;
+		MathVector<dim> grad_c;
 
 		for (size_t ip = 0; ip < geo.num_scvf(); ++ip)
 		{
@@ -171,7 +203,7 @@ void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector
 			// add to local defect
 			d(_VM_, scvf.from()) -= diff_flux;
 			d(_VM_, scvf.to()  ) += diff_flux;
-		}*/
+		}
 
 
 
@@ -262,25 +294,26 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 			// calculates volume for later use
 			volume += scv.volume();
 
+
+			AlljacFlux.push_back(0);
+
+
+		/// Jacobi Matrix-Channel handling
 			for (int i = 0;  i < m_channel.size() ; i++)
 			{
 				// getting jacobian depending on vertex-attachments
 				m_channel[i].get()->Jacobi_sets(pElem->vertex(co), jacFlux);
-				AlljacFlux[co] += jacFlux[co];
+				//adding jacobian from every channel
+				AlljacFlux[co] += (jacFlux[co]);
 			}
 
+			J(_VM_, co, _VM_, co) += scv.volume()*PI*Diam*(jacFlux[co]);
 
-			// derivatives of potential from HH channels
-			//J(_VM_, co, _h_, co) += scv.volume()*PI*Diam * m_g_Na*pow(u(_m_,co),3) * (u(_VM_, co) - m_sodium);
-			//J(_VM_, co, _m_, co) += scv.volume()*PI*Diam * 3.0*m_g_Na*pow(u(_m_,co),2) * u(_h_,co) * (u(_VM_, co) - m_sodium);
-			//J(_VM_, co, _n_, co) += scv.volume()*PI*Diam * 4.0*m_g_K*pow(u(_n_,co),3) * (u(_VM_,co) + m_potassium);
-			//TODO Has to be settet elsewhere
-			J(_VM_, co, _VM_, co) += scv.volume()*PI*Diam*(AlljacFlux[co]); //* (m_g_K*pow(u(_n_,co),4) + m_g_Na*pow(u(_m_,co),3)*u(_h_,co) + m_g_I);
 		}
 
 
 		//diffusive part
-		/*for (size_t ip = 0; ip < geo.num_scvf(); ++ip)
+		for (size_t ip = 0; ip < geo.num_scvf(); ++ip)
 			{
 				// get current SCVF
 				const typename TFVGeom::SCVF& scvf = geo.scvf(ip);
@@ -304,7 +337,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 					J(_VM_, scvf.from(), _VM_, sh) -= d_diff_flux;
 					J(_VM_, scvf.to()  , _VM_, sh) += d_diff_flux;
 				}
-			}*/
+			}
 }
 
 
