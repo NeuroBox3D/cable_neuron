@@ -150,7 +150,7 @@ class IChannel
 
 	private:
 		// VM is needed by every Channel
-		static const size_t _VM_ = 0;
+		size_t _VM_;
 
 
 
@@ -266,6 +266,129 @@ class ChannelHH
 	/// GridFunction type
 		typedef GridFunction<TDomain, TAlgebra> TGridFunction;
 };
+
+	template <typename TDomain, typename TAlgebra>
+	class ChannelHHNernst
+		: public IChannel<TDomain, TAlgebra>
+	{
+		public:
+		/// constructor
+			// Params dendrit
+			number m_spec_res;
+			number m_spec_cap;
+
+			// Params for HH-Fluxes
+			number m_g_K;
+			number m_g_Na;
+			number m_g_I;
+
+			// reversal Pot of Sodium and Potassium
+			number m_sodium;
+			number m_potassium;
+
+			// params gatting
+			double m_accuracy;
+
+			IFunction<number>* m_Injection;
+
+			ChannelHHNernst	  (	SmartPtr<ApproximationSpace<TDomain> > approx,
+							const char* functions,
+							const char* subsets
+						  )
+			: IChannel<TDomain, TAlgebra>(approx, functions, subsets),
+			  			  m_dom(approx->domain()), m_mg(approx->domain()->grid()), m_dd(approx->dof_distribution(GridLevel::TOP)),
+			  			  m_bNonRegularGrid(false)
+			  			  {
+							register_all_funcs(m_bNonRegularGrid);
+			  			  };
+
+		/// destructor
+			virtual ~ChannelHHNernst() {};
+
+			static const int dim = IChannel<TDomain, TAlgebra>::dim;
+
+
+		/// functions for setting some HH params
+			void set_accuracy(double ac);
+
+			void set_consts(number Na, number K, number L);
+
+			void set_nernst_consts(number R, number T, number F);
+
+			void set_out_conc(number Na, number k);
+
+
+			// inherited from IChannel
+			virtual void init(number time, SmartPtr<ApproximationSpace<TDomain> > approx, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct);
+			virtual void update_gating(number newTime, SmartPtr<ApproximationSpace<TDomain> > approx, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct);
+			virtual void ionic_current(Vertex* v, std::vector<number>& outCurrentValues);
+			virtual void Jacobi_sets(Vertex* v, std::vector<number>& outJFlux);
+
+		///	assembles the local right hand side
+			template<typename TElem, typename TFVGeom>
+			void add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+
+		protected:
+			SmartPtr<TDomain> m_dom;					//!< underlying domain
+			SmartPtr<Grid> m_mg;						//!< underlying multigrid
+			SmartPtr<DoFDistribution> m_dd;				//!< underlying surface dof distribution
+			SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
+			bool m_bNonRegularGrid;
+
+
+			///	register utils
+			///	\{
+				void register_all_funcs(bool bHang);
+				template <typename TElem, typename TFVGeom>
+				void register_func();
+			/// \}
+
+		private:
+			// one attachment per state variable
+			ADouble m_MGate;							//!< activating gating "particle"
+			ADouble m_HGate;							//!< inactivating gating "particle"
+			ADouble m_NGate;
+			ADouble m_Vm;								//!< membrane voltage (in mili Volt)
+			ADouble m_Na;
+			ADouble m_K;
+
+			Grid::AttachmentAccessor<Vertex, ADouble> m_aaMGate;	//!< accessor for activating gate
+			Grid::AttachmentAccessor<Vertex, ADouble> m_aaHGate;	//!< accessor for inactivating gate
+			Grid::AttachmentAccessor<Vertex, ADouble> m_aaNGate;	//!< accessor for inactivating gate
+			Grid::AttachmentAccessor<Vertex, ADouble> m_aaVm;		//!< accessor for membrane potential
+
+
+			Grid::AttachmentAccessor<Vertex, ADouble> m_aaNa;		//!< accessor for Na conz
+			Grid::AttachmentAccessor<Vertex, ADouble> m_aaK;		//!< accessor for K conz
+
+			// new private values
+			size_t _Na_;
+			size_t _K_;
+
+			//outer concentrations
+			number m_Na_out;
+			number m_K_out;
+
+			// nernst const values
+			number m_R;
+			number m_T;
+			number m_F;
+
+		/// Base type
+			typedef IChannel<TDomain, TAlgebra> base_type;
+
+		///	Own type
+			typedef ChannelHH<TDomain, TAlgebra> this_type;
+
+		/// GridFunction type
+			typedef GridFunction<TDomain, TAlgebra> TGridFunction;
+	};
+
+
+
+
+
+
 
 } // namespace ug
 

@@ -95,12 +95,14 @@ class VMDisc
 		//list with all channels
 		std::vector<SmartPtr<TIChannel> > m_channel;
 
-		IFunction<number>* m_Injection;
+		//funcs params
+		std::vector<const char*> m_funcs;
+		number m_numb_funcs;
 
 	public:
 	///	Constructor
-		VMDisc(SmartPtr<ApproximationSpace<TDomain> > approx, const char* functions, const char* subsets)
-		 : IElemDisc<TDomain>(functions, subsets), m_spApproxSpace(approx)
+		VMDisc(SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct, const char* functions, const char* subsets)
+		 : IElemDisc<TDomain>(functions, subsets), m_spGridFct(spGridFct), m_numb_funcs(0)
 		   {
 			m_bNonRegularGrid = false;
 			register_all_funcs(m_bNonRegularGrid);
@@ -128,6 +130,8 @@ class VMDisc
 		//Adding function for channels
 		void add_channel(SmartPtr<IChannel<TDomain, TAlgebra> > Channel, SmartPtr<ApproximationSpace<TDomain> > approx, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct);
 
+		//Add func
+		void add_func(const char* func);
 
 
 	// inherited from IElemDisc
@@ -190,8 +194,7 @@ class VMDisc
 		SmartPtr<MultiGrid> m_mg;					//!< underlying multigrid
 		SmartPtr<DoFDistribution> m_dd;				//!< underlying surface dof distribution
 		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
-		//AdaptionSurfaceGridFunction<TDomain> m_AdaptSGF;
-		//using IElemDisc<TDomain>::dim;
+		SmartPtr<GridFunction<TDomain, TAlgebra> > m_spGridFct;
 
 	/// dendritic radius attachment and accessor
 		ANumber m_aDiameter;
@@ -203,8 +206,9 @@ class VMDisc
 
 	private:
 		// VM is needed by every Channel
-		static const size_t _VM_ = 0;
-
+		size_t _VM_;
+		size_t _Na_;
+		size_t _K_;
 
 
 

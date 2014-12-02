@@ -3,6 +3,9 @@
  *
  *  Created on: 26.11.2014
  *      Author: Pgottmann
+ *
+ *
+ *      Discretization of Kabelequatation depending on function called _VM_ needed
  */
 
 #include "VM_Disc.h"
@@ -25,12 +28,12 @@ void VMDisc<TDomain, TAlgebra>::
 set_diameter(const number d)
 {
 	// handle the attachment
-	if (m_spApproxSpace->domain()->grid()->has_vertex_attachment(m_aDiameter))
+	if (m_spGridFct->domain()->grid()->has_vertex_attachment(m_aDiameter))
 		UG_THROW("Radius attachment necessary for HH elem disc "
 				 "could not be made, since it already exists.");
-	m_spApproxSpace->domain()->grid()->attach_to_vertices_dv(m_aDiameter, d);
+	m_spGridFct->domain()->grid()->attach_to_vertices_dv(m_aDiameter, d);
 
-	m_aaDiameter = Grid::AttachmentAccessor<Vertex, ANumber>(*m_spApproxSpace->domain()->grid(), m_aDiameter);
+	m_aaDiameter = Grid::AttachmentAccessor<Vertex, ANumber>(*m_spGridFct->domain()->grid(), m_aDiameter);
 }
 
 template<typename TDomain, typename TAlgebra>
@@ -84,6 +87,14 @@ add_channel(SmartPtr<IChannel<TDomain, TAlgebra> > Channel, SmartPtr<Approximati
 	// add Channel function from IElem
 }
 
+template<typename TDomain, typename TAlgebra>
+void VMDisc<TDomain, TAlgebra>::
+add_func(const char* func)
+{
+	m_funcs.push_back(func);
+	m_numb_funcs += 1;
+}
+
 
 
 // Methods for Interface class
@@ -122,10 +133,10 @@ void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector
 		// get associated node
 		const int co = scv.node_id();
 
-		//TODO get Diam from somewhere
+		// get Diam from attachment
 		number Diam = m_aaDiameter[pElem->vertex(co)];
 
-
+		// calculate volume for later use
 		volume += scv.volume();
 		// add length of scv to element length
 		element_length += scv.volume();
@@ -157,20 +168,32 @@ void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector
 			}
 
 		}
-		AlloutCurrentValues.push_back(0);
-
+		// for all functions space is needed
+		for (int i=1; i<m_numb_funcs; i++)
+		{
+			AlloutCurrentValues.push_back(0);
+		}
 	/// Channel defekt adding
 		for (int i = 0; i < m_channel.size(); i++)
 		{
 			// values we are getting from ionic_flux function in channels
 			m_channel[i].get()->ionic_current(pElem->vertex(co), outCurrentValues);
 			// adding defekt from every channel
-			AlloutCurrentValues[co] += (outCurrentValues[co]);
+			// in 0 all Vms
+			for (int i=0; i<m_numb_funcs; i++)
+			{
+				AlloutCurrentValues[i] += (outCurrentValues[i]);
+			}
 		}
 
 	/// Writing all into defekts
-		d(_VM_, co) += scv.volume()*PI*Diam *(AlloutCurrentValues[co]-influx);
+		d(_VM_, co) += scv.volume()*PI*Diam *(AlloutCurrentValues[0]-influx);
 
+	/// Now all other defektes needed to be added
+		for (int i=1; i<m_numb_funcs; i++)
+		{
+			d(i, co) += scv.volume()*PI*Diam*AlloutCurrentValues[i];
+		}
 
 		//std::cout << "defekt changes: "<< d(_VM_, co) << std::endl;
 	}
@@ -230,16 +253,20 @@ void VMDisc<TDomain, TAlgebra>::add_def_M_elem(LocalVector& d, const LocalVector
 		const int co = scv.node_id();
 
 		//get Diameter from element
-		number Diam = 3.18e-6;
+		number Diam = m_aaDiameter[pElem->vertex(co)];
 
 		// get spec capacity
-		number spec_capacity = 1e-5;
+		number spec_capacity = m_spec_cap;
 
 
 		// potential equation time derivative
 		/*std::cout << "u: " << u(_VM_, co) << std::endl;
 		std::cout << "co: " << co << std::endl;
 		std::cout << "time derivative: " << (PI*Diam*scv.volume()*u(_VM_, co)*spec_capacity) << std::endl;*/
+
+		// Nernst Paras time derivative
+		d(_Na_, co) += u(_Na_, co)*scv.volume()*0.25*PI*Diam*Diam;
+		d(_K_, co)  += u(_K_, co)*scv.volume()*0.25*PI*Diam*Diam;
 
 		d(_VM_, co) += PI*Diam*scv.volume()*u(_VM_, co)*spec_capacity;
 	}
@@ -281,7 +308,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 			const int co = scv.node_id();
 
 			//get Diameter from element later in attachment
-			number Diam = 3.18e-6;
+			number Diam = m_aaDiameter[pElem->vertex(co)];
 
 
 
@@ -295,7 +322,11 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 			volume += scv.volume();
 
 
-			AlljacFlux.push_back(0);
+			// for all functions
+			for (int i=1; i<m_numb_funcs; i++)
+			{
+				AlljacFlux.push_back(0);
+			}
 
 
 		/// Jacobi Matrix-Channel handling
@@ -304,10 +335,16 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 				// getting jacobian depending on vertex-attachments
 				m_channel[i].get()->Jacobi_sets(pElem->vertex(co), jacFlux);
 				//adding jacobian from every channel
-				AlljacFlux[co] += (jacFlux[co]);
+				for (int i=0; i<m_numb_funcs; i++)
+				{
+					AlljacFlux[i] += (jacFlux[i]);
+				}
 			}
 
-			J(_VM_, co, _VM_, co) += scv.volume()*PI*Diam*(jacFlux[co]);
+			for (int i=0; i<m_numb_funcs; i++)
+			{
+				J(i, co, i, co) += scv.volume()*PI*Diam*(AlljacFlux[i]);
+			}
 
 		}
 
@@ -361,14 +398,15 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		const int co = scv.node_id();
 
 		//get Diameter from element later in attachment
-		number Diam = 3.18e-6;
+		number Diam = m_aaDiameter[pElem->vertex(co)];
 
 		//spec_capa has to be set later on in an varialbe
 
 		// get spec capacity
-		number spec_capacity = 1e-5;
+		number spec_capacity = m_spec_cap;
 
-
+		J(_Na_, co, _Na_, co) += 1.0*scv.volume()*0.25*PI*Diam*Diam;
+		J(_K_, co, _K_, co) += 1.0*scv.volume()*0.25*PI*Diam*Diam;
 
 		// potential equation
 		J(_VM_, co, _VM_, co) += PI*Diam*scv.volume()*spec_capacity;
@@ -396,7 +434,9 @@ void VMDisc<TDomain, TAlgebra>::prep_elem(const LocalVector& u, GridObject* elem
 	}
 	UG_CATCH_THROW("Cannot update Finite Volume Geometry.\n");
 
-	//we coud update vm here...
+	//std::cout << "unumber of all functions " << u.num_all_fct() << std::endl;
+	//number function_number = u.num_all_fct();
+	//_VM_ = u.fct_id_by_name(m_funcs[0]);
 
 }
 
@@ -411,6 +451,7 @@ void VMDisc<TDomain, TAlgebra>::prep_elem_loop(const ReferenceObjectID roid, con
 }
 
 
+
 template<typename TDomain, typename TAlgebra>
 void VMDisc<TDomain, TAlgebra>::prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid)
 {
@@ -421,6 +462,19 @@ void VMDisc<TDomain, TAlgebra>::prepare_setting(const std::vector<LFEID>& vLfeID
 	register_all_funcs(m_bNonRegularGrid);
 
 	//TODO here we need some option to get the number of unknowns
+
+
+	//VM always needed in this diskretication so it is easy only getting index of VM
+	for (int i = 0; i < m_numb_funcs; i++)
+	{
+		if (m_funcs[i] = "VM")
+			_VM_ = m_spGridFct->fct_id_by_name(m_funcs[i]);
+		if (m_funcs[i] = "K")
+			_K_ = m_spGridFct->fct_id_by_name(m_funcs[i]);
+		if (m_funcs[i] = "Na")
+			_Na_ = m_spGridFct->fct_id_by_name(m_funcs[i]);
+	}
+
 }
 
 
