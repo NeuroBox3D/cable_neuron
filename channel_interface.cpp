@@ -507,12 +507,12 @@ void ChannelHHNernst<TDomain, TAlgebra>::init(number time, SmartPtr<Approximatio
 			spGridFct->dof_indices(vrt, Na, multIndNa);
 
 
-			for (int i=0; i<multInd.size(); i++)
-			{
-				m_aaVm[*iter] = DoFRef(*spGridFct, multInd[i]);
-				m_aaK[*iter] = DoFRef(*spGridFct, multIndK[i]);
-				m_aaNa[*iter] = DoFRef(*spGridFct, multIndNa[i]);
-			}
+			//for (int i=0; i<multInd.size(); i++)
+			//{
+				m_aaVm[*iter] = DoFRef(*spGridFct, multInd[0]);
+				m_aaK[*iter] = DoFRef(*spGridFct, multIndK[0]);
+				m_aaNa[*iter] = DoFRef(*spGridFct, multIndNa[0]);
+			//}
 
 
 
@@ -589,12 +589,12 @@ void ChannelHHNernst<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<
 			spGridFct->dof_indices(vrt, Na, multIndNa);
 
 			// updating all Vars
-			for (int i=0; i<multInd.size(); i++)
-			{
-				m_aaVm[*iter] = DoFRef(*spGridFct, multInd[i]);
-				m_aaK[*iter] = DoFRef(*spGridFct, multIndK[i]);
-				m_aaNa[*iter] = DoFRef(*spGridFct, multIndNa[i]);
-			}
+			//for (int i=0; i<multInd.size(); i++)
+			//{
+				m_aaVm[*iter] = DoFRef(*spGridFct, multInd[0]);
+				m_aaK[*iter] = DoFRef(*spGridFct, multIndK[0]);
+				m_aaNa[*iter] = DoFRef(*spGridFct, multIndNa[0]);
+			//}
 
 			//set gatting Params
 			number AlphaHh = 0.07*exp(-(m_aaVm[*iter] + 65.0)/20.0);
@@ -660,21 +660,26 @@ void ChannelHHNernst<TDomain, TAlgebra>::ionic_current(Vertex* v, std::vector<nu
 
 	const number helpV = (m_R*m_T)/m_F;
 	// nernst potential of potassium and sodium
-	const number potassium_nernst_eq 	= -helpV*(log(m_K_out/K));
-	const number sodium_nernst_eq	 	= helpV*(log(m_Na_out/Na));
+	//std::cout << "K: " << K << std::endl;
+
+	const number potassium_nernst_eq 	= helpV*(log(m_K_out/K));
+	const number sodium_nernst_eq	 	= -helpV*(log(m_Na_out/Na));
 
 
-	// TODO Influx values needed
+	//std::cout << "potassium_nernst_eq: " << potassium_nernst_eq << std::endl;
+
 	// single channel type fluxes
-	const number potassium_part_of_flux = m_g_K * pow(NGate,4) * (VM + potassium_nernst_eq);
-	const number sodium_part_of_flux =  m_g_Na * pow(MGate,3) * HGate * (VM - sodium_nernst_eq);
+	const number potassium_part_of_flux = m_g_K * pow(NGate,4) * (VM - potassium_nernst_eq);
+	const number sodium_part_of_flux =  m_g_Na * pow(MGate,3) * HGate * (VM + sodium_nernst_eq);
 	const number leakage_part_of_flux = m_g_I * (VM + 54.4);
+
+	//std::cout << "potassium_part_of_flux: " << potassium_part_of_flux << std::endl;
 
 	outCurrentValues.push_back(potassium_part_of_flux + sodium_part_of_flux + leakage_part_of_flux);
 	outCurrentValues.push_back(sodium_part_of_flux/m_F);
 	outCurrentValues.push_back(potassium_part_of_flux/m_F);
 
-	std::cout << "outCurrentValues: " << outCurrentValues[0] << ", " << outCurrentValues[1] << ", " << outCurrentValues[2] << ", " << std::endl;
+	//std::cout << "outCurrentValues: " << outCurrentValues[0] << ", " << outCurrentValues[1] << ", " << outCurrentValues[2] << ", " << std::endl;
 
 }
 
@@ -691,14 +696,14 @@ void ChannelHHNernst<TDomain, TAlgebra>::Jacobi_sets(Vertex* v, std::vector<numb
 
 	const number helpV = (m_R*m_T)/m_F;
 
-	const number potassium_nernst_eq_dK 	=  -helpV * (-m_K_out/K)*0.18; //helpV * (-K_out/pow(u(_K_,co),2));
-	const number sodium_nernst_eq_dNa		=  helpV * (-m_Na_out/Na)*0.003;
+	const number potassium_nernst_eq_dK 	=  helpV * (-m_K_out/K)*0.18; //helpV * (-K_out/pow(u(_K_,co),2));
+	const number sodium_nernst_eq_dNa		=  -helpV * (-m_Na_out/Na)*0.003;
 
 	outJFlux.push_back(m_g_K*pow(NGate,4) + m_g_Na*pow(MGate,3)*HGate + m_g_I);
 	outJFlux.push_back(sodium_nernst_eq_dNa);
 	outJFlux.push_back(potassium_nernst_eq_dK);
 
-	std::cout << "outJFlux: " << outJFlux[0] << ", " << outJFlux[1] << ", " << outJFlux[2] << ", " << std::endl;
+	//std::cout << "outJFlux: " << outJFlux[0] << ", " << outJFlux[1] << ", " << outJFlux[2] << ", " << std::endl;
 }
 
 template<typename TDomain, typename TAlgebra>
