@@ -102,7 +102,7 @@ class VMDisc
 	public:
 	///	Constructor
 		VMDisc(SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct, const char* functions, const char* subsets)
-		 : IElemDisc<TDomain>(functions, subsets), m_spGridFct(spGridFct), m_numb_funcs(0)
+		 : IElemDisc<TDomain>(functions, subsets), m_spGridFct(spGridFct), m_numb_funcs(0), _VM_(0), _K_(1), _Na_(2)
 		   {
 			m_bNonRegularGrid = false;
 			register_all_funcs(m_bNonRegularGrid);

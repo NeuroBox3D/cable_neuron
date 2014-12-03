@@ -496,7 +496,7 @@ void ChannelHHNernst<TDomain, TAlgebra>::init(number time, SmartPtr<Approximatio
 			//dd->inner_dof_indices(*iter, fct, multInd);
 			// has to be the solvung values
 
-			number test = multInd[0][0];
+			//number test = multInd[0][0];
 			number sub;// = spGridFct[test];
 
 			Vertex* vrt = *iter;
@@ -622,7 +622,7 @@ void ChannelHHNernst<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<
 			number BetaHn = 0.125*exp((m_aaVm[*iter] + 65.0)/80.0);
 
 			// needs import later
-			number dt = 0.01;
+			number dt = newTime - this->time();//0.01;
 
 			number rate_h = ((AlphaHh/(AlphaHh+BetaHh)) - m_aaHGate[*iter]) / (1/(AlphaHh+BetaHh)) *dt;
 			number rate_m = ((AlphaHm/(AlphaHm+BetaHm)) - m_aaMGate[*iter]) / (1/(AlphaHm+BetaHm)) *dt;

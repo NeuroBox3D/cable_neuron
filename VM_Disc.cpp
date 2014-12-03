@@ -180,9 +180,9 @@ void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector
 			m_channel[i].get()->ionic_current(pElem->vertex(co), outCurrentValues);
 			// adding defekt from every channel
 			// in 0 all Vms
-			for (int i=0; i<m_numb_funcs; i++)
+			for (int j=0; j<m_numb_funcs; j++)
 			{
-				AlloutCurrentValues[i] += (outCurrentValues[i]);
+				AlloutCurrentValues[j] += (outCurrentValues[j]);
 			}
 		}
 
@@ -280,101 +280,99 @@ template<typename TElem, typename TFVGeom>
 void VMDisc<TDomain, TAlgebra>::
 add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
+// get finite volume geometry
+	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
+
+	number element_length = 0.0;
+	number pre_resistance = 0.0;
+	number volume = 0;
+
+	// cast elem to appropriate type
+	TElem* pElem = dynamic_cast<TElem*>(elem);
+	if (!pElem) {UG_THROW("Wrong element type.");}
+
+
+	std::vector<number> jacFlux;
+	std::vector<number> AlljacFlux;
+
+// channel kinetics derivatives
+	for (size_t ip = 0; ip < geo.num_scv(); ++ip)
+	{
+		// get current SCV
+		const typename TFVGeom::SCV& scv = geo.scv(ip);
+
+		// get associated node
+		const int co = scv.node_id();
+
+		//get Diameter from element later in attachment
+		number Diam = m_aaDiameter[pElem->vertex(co)];
 
 
 
-	// get finite volume geometry
-		static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
+		// add length of scv to element length
+		element_length += scv.volume();
 
-		number element_length = 0.0;
-		number pre_resistance = 0.0;
-		number volume = 0;
+		// add "pre_resistance" parts
+		pre_resistance += scv.volume() / (0.25*PI*Diam*Diam);
 
-		// cast elem to appropriate type
-		TElem* pElem = dynamic_cast<TElem*>(elem);
-		if (!pElem) {UG_THROW("Wrong element type.");}
+		// calculates volume for later use
+		volume += scv.volume();
 
 
-		std::vector<number> jacFlux;
-		std::vector<number> AlljacFlux;
-
-	// channel kinetics derivatives
-		for (size_t ip = 0; ip < geo.num_scv(); ++ip)
+		/*	ionic_current is constant in unknowns (new values for V_m, Na, K)
+		// for all functions
+		for (int i=1; i<m_numb_funcs; i++)
 		{
-			// get current SCV
-			const typename TFVGeom::SCV& scv = geo.scv(ip);
-
-			// get associated node
-			const int co = scv.node_id();
-
-			//get Diameter from element later in attachment
-			number Diam = m_aaDiameter[pElem->vertex(co)];
-
-
-
-			// add length of scv to element length
-			element_length += scv.volume();
-
-			// add "pre_resistance" parts
-			pre_resistance += scv.volume() / (0.25*PI*Diam*Diam);
-
-			// calculates volume for later use
-			volume += scv.volume();
-
-
-			// for all functions
-			for (int i=1; i<m_numb_funcs; i++)
-			{
-				AlljacFlux.push_back(0);
-			}
-
-
-		/// Jacobi Matrix-Channel handling
-			for (int i = 0;  i < m_channel.size() ; i++)
-			{
-				// getting jacobian depending on vertex-attachments
-				m_channel[i].get()->Jacobi_sets(pElem->vertex(co), jacFlux);
-				//adding jacobian from every channel
-				for (int i=0; i<m_numb_funcs; i++)
-				{
-					AlljacFlux[i] += (jacFlux[i]);
-				}
-			}
-
-			for (int i=0; i<m_numb_funcs; i++)
-			{
-				J(i, co, i, co) += scv.volume()*PI*Diam*(AlljacFlux[i]);
-			}
-
+			AlljacFlux.push_back(0);
 		}
 
 
-		//diffusive part
-		for (size_t ip = 0; ip < geo.num_scvf(); ++ip)
+	/// Jacobi Matrix-Channel handling
+		for (int i = 0;  i < m_channel.size() ; i++)
+		{
+			// getting jacobian depending on vertex-attachments
+			m_channel[i].get()->Jacobi_sets(pElem->vertex(co), jacFlux);
+			//adding jacobian from every channel
+			for (int i=0; i<m_numb_funcs; i++)
 			{
-				// get current SCVF
-				const typename TFVGeom::SCVF& scvf = geo.scvf(ip);
-
-				// loop shape functions
-				for (size_t sh = 0; sh < scvf.num_sh(); ++sh)
-				{
-					// scalar product with normal
-					number Diam_FromTo = 0.5 * (m_aaDiameter[pElem->vertex(scvf.from())]
-					                          + m_aaDiameter[pElem->vertex(scvf.to())]);
-
-					pre_resistance = volume / (0.25*PI*Diam_FromTo*Diam_FromTo);
-
-
-					number d_diff_flux = VecDot(scvf.global_grad(sh), scvf.normal());
-
-					// scale by 1/resistance and by length of element
-					d_diff_flux *= element_length / (m_spec_res*pre_resistance);
-
-					// add flux term to local matrix
-					J(_VM_, scvf.from(), _VM_, sh) -= d_diff_flux;
-					J(_VM_, scvf.to()  , _VM_, sh) += d_diff_flux;
-				}
+				AlljacFlux[i] += (jacFlux[i]);
 			}
+		}
+
+		for (int i=0; i<m_numb_funcs; i++)
+		{
+			J(i, co, i, co) += scv.volume()*PI*Diam*(AlljacFlux[i]);
+		}
+		 */
+	}
+
+
+	//diffusive part
+	for (size_t ip = 0; ip < geo.num_scvf(); ++ip)
+	{
+		// get current SCVF
+		const typename TFVGeom::SCVF& scvf = geo.scvf(ip);
+
+		// loop shape functions
+		for (size_t sh = 0; sh < scvf.num_sh(); ++sh)
+		{
+			// scalar product with normal
+			number Diam_FromTo = 0.5 * (m_aaDiameter[pElem->vertex(scvf.from())]
+									  + m_aaDiameter[pElem->vertex(scvf.to())]);
+
+			pre_resistance = volume / (0.25*PI*Diam_FromTo*Diam_FromTo);
+
+
+			number d_diff_flux = VecDot(scvf.global_grad(sh), scvf.normal());
+
+			// scale by 1/resistance and by length of element
+			d_diff_flux *= element_length / (m_spec_res*pre_resistance);
+
+			// add flux term to local matrix
+			J(_VM_, scvf.from(), _VM_, sh) -= d_diff_flux;
+			J(_VM_, scvf.to()  , _VM_, sh) += d_diff_flux;
+		}
+	}
 }
 
 
