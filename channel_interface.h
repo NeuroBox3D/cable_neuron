@@ -115,10 +115,10 @@ class IChannel
 	 *	and their values calculated by the equilibrium state for the start membrane potential.
 	**/
 
-		virtual void init(number time, SmartPtr<ApproximationSpace<TDomain> > approx, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct) = 0;
+		virtual void init(number time, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct) = 0;
 
 	/// updates the gating parameters
-		virtual void update_gating(number newTime, SmartPtr<ApproximationSpace<TDomain> > approx, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct) = 0;
+		virtual void update_gating(number newTime, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct) = 0;
 
 	/// provides the ionic current (mol*s^-1) at a given vertex
 		virtual void ionic_current(Vertex* v, std::vector<number>& outCurrentValues) = 0;
@@ -218,8 +218,8 @@ class ChannelHH
 
 
 		// inherited from IChannel
-		virtual void init(number time, SmartPtr<ApproximationSpace<TDomain> > approx, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct);
-		virtual void update_gating(number newTime, SmartPtr<ApproximationSpace<TDomain> > approx, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct);
+		virtual void init(number time, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct);
+		virtual void update_gating(number newTime, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct);
 		virtual void ionic_current(Vertex* v, std::vector<number>& outCurrentValues);
 		virtual void Jacobi_sets(Vertex* v, std::vector<number>& outJFlux);
 
@@ -319,8 +319,8 @@ class ChannelHH
 
 
 			// inherited from IChannel
-			virtual void init(number time, SmartPtr<ApproximationSpace<TDomain> > approx, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct);
-			virtual void update_gating(number newTime, SmartPtr<ApproximationSpace<TDomain> > approx, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct);
+			virtual void init(number time, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct);
+			virtual void update_gating(number newTime, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct);
 			virtual void ionic_current(Vertex* v, std::vector<number>& outCurrentValues);
 			virtual void Jacobi_sets(Vertex* v, std::vector<number>& outJFlux);
 

@@ -118,7 +118,7 @@ set_rev_pot(number R_Na, number R_K)
 
 // Methods for using gatings
 template<typename TDomain, typename TAlgebra>
-void ChannelHH<TDomain, TAlgebra>::init(number time, SmartPtr<ApproximationSpace<TDomain> > approx, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct)
+void ChannelHH<TDomain, TAlgebra>::init(number time, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct)
 {
 	// attach attachments
 	if (this->m_mg->has_vertex_attachment(this->m_MGate))
@@ -179,8 +179,6 @@ void ChannelHH<TDomain, TAlgebra>::init(number time, SmartPtr<ApproximationSpace
 			//std::cout << "VM: " << VM << std::endl;
 
 
-			dd = (approx->dof_distribution(GridLevel::TOP));
-			const LFEID& lfeID = dd->local_finite_element_id(VM);
 			//const
 			//getting exakt index of value
 			//dd->inner_dof_indices(*iter, fct, multInd);
@@ -241,7 +239,7 @@ void ChannelHH<TDomain, TAlgebra>::init(number time, SmartPtr<ApproximationSpace
 }
 
 template<typename TDomain, typename TAlgebra>
-void ChannelHH<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<ApproximationSpace<TDomain> > approx, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct)
+void ChannelHH<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct)
 {
 	typedef typename DoFDistribution::traits<Vertex>::const_iterator itType;
 	SubsetGroup ssGrp;
@@ -418,62 +416,64 @@ set_out_conc(number Na, number K)
 
 // Methods for using gatings
 template<typename TDomain, typename TAlgebra>
-void ChannelHHNernst<TDomain, TAlgebra>::init(number time, SmartPtr<ApproximationSpace<TDomain> > approx, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct)
+void ChannelHHNernst<TDomain, TAlgebra>::init(number time, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct)
 {
+	std::cout << "init starts" << std::endl;
 	// attach attachments
-	if (this->m_mg->has_vertex_attachment(this->m_MGate))
+
+	if (spGridFct->approx_space()->domain()->grid()->has_vertex_attachment(this->m_MGate))
 		UG_THROW("Attachment necessary (MGate) for Hodgkin and Huxley channel dynamics "
 				 "could not be made, since it already exists.");
-	this->m_mg->attach_to_vertices(this->m_MGate);
+	spGridFct->approx_space()->domain()->grid()->attach_to_vertices(this->m_MGate);
 
-	if (this->m_mg->has_vertex_attachment(this->m_HGate))
+	if (spGridFct->approx_space()->domain()->grid()->has_vertex_attachment(this->m_HGate))
 		UG_THROW("Attachment necessary (HGate) for Hodgkin and Huxley channel dynamics "
 				 "could not be made, since it already exists.");
-		this->m_mg->attach_to_vertices(this->m_HGate);
+	spGridFct->approx_space()->domain()->grid()->attach_to_vertices(this->m_HGate);
 
-	if (this->m_mg->has_vertex_attachment(this->m_NGate))
+	if (spGridFct->approx_space()->domain()->grid()->has_vertex_attachment(this->m_NGate))
 		UG_THROW("Attachment necessary (NGate) for Hodgkin and Huxley channel dynamics "
 				 "could not be made, since it already exists.");
-	this->m_mg->attach_to_vertices(this->m_NGate);
+	spGridFct->approx_space()->domain()->grid()->attach_to_vertices(this->m_NGate);
 
-	if (this->m_mg->has_vertex_attachment(this->m_Na))
+	if (spGridFct->approx_space()->domain()->grid()->has_vertex_attachment(this->m_Na))
 		UG_THROW("Attachment necessary (HGate) for Hodgkin and Huxley channel dynamics "
 				 "could not be made, since it already exists.");
-		this->m_mg->attach_to_vertices(this->m_Na);
+	spGridFct->approx_space()->domain()->grid()->attach_to_vertices(this->m_Na);
 
-	if (this->m_mg->has_vertex_attachment(this->m_K))
+	if (spGridFct->approx_space()->domain()->grid()->has_vertex_attachment(this->m_K))
 		UG_THROW("Attachment necessary (NGate) for Hodgkin and Huxley channel dynamics "
 				 "could not be made, since it already exists.");
-	this->m_mg->attach_to_vertices(this->m_K);
+	spGridFct->approx_space()->domain()->grid()->attach_to_vertices(this->m_K);
 
-	if (this->m_mg->has_vertex_attachment(this->m_Vm))
+	if (spGridFct->approx_space()->domain()->grid()->has_vertex_attachment(this->m_Vm))
 		UG_THROW("Attachment necessary (Vm) for Hodgkin and Huxley channel dynamics "
 				 "could not be made, since it already exists.");
-	this->m_mg->attach_to_vertices(this->m_Vm);
+	spGridFct->approx_space()->domain()->grid()->attach_to_vertices(this->m_Vm);
 
-
+	std::cout << "attachments are working" << std::endl;
 	// create attachment accessors
-	this->m_aaMGate = Grid::AttachmentAccessor<Vertex, ADouble>(*this->m_mg, this->m_MGate);
-	this->m_aaNGate = Grid::AttachmentAccessor<Vertex, ADouble>(*this->m_mg, this->m_NGate);
-	this->m_aaHGate = Grid::AttachmentAccessor<Vertex, ADouble>(*this->m_mg, this->m_HGate);
-	this->m_aaVm = Grid::AttachmentAccessor<Vertex, ADouble>(*this->m_mg, this->m_Vm);
-	this->m_aaNa = Grid::AttachmentAccessor<Vertex, ADouble>(*this->m_mg, this->m_Na);
-	this->m_aaK = Grid::AttachmentAccessor<Vertex, ADouble>(*this->m_mg, this->m_K);
+	this->m_aaMGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGridFct->approx_space()->domain()->grid(), this->m_MGate);
+	this->m_aaNGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGridFct->approx_space()->domain()->grid(), this->m_NGate);
+	this->m_aaHGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGridFct->approx_space()->domain()->grid(), this->m_HGate);
+	this->m_aaVm = Grid::AttachmentAccessor<Vertex, ADouble>(*spGridFct->approx_space()->domain()->grid(), this->m_Vm);
+	this->m_aaNa = Grid::AttachmentAccessor<Vertex, ADouble>(*spGridFct->approx_space()->domain()->grid(), this->m_Na);
+	this->m_aaK = Grid::AttachmentAccessor<Vertex, ADouble>(*spGridFct->approx_space()->domain()->grid(), this->m_K);
 
 
 	// creates Multi index
 	std::vector<DoFIndex> multInd, multIndK, multIndNa;
 	SmartPtr<DoFDistribution> dd;
 	//SmartPtr<vector_type> spU;
-
+	std::cout << "attachments accs are working" << std::endl;
 
 
 	typedef typename DoFDistribution::traits<Vertex>::const_iterator itType;
 	SubsetGroup ssGrp;
-	try { ssGrp = SubsetGroup(this->m_dom->subset_handler(), this->m_vSubset);}
+	try { ssGrp = SubsetGroup(spGridFct->domain()->subset_handler(), this->m_vSubset);}
 	UG_CATCH_THROW("Subset group creation failed.");
 
-	const typename TDomain::position_accessor_type& aaPos = this->m_dom->position_accessor();
+	const typename TDomain::position_accessor_type& aaPos = spGridFct->domain()->position_accessor();
 	for (std::size_t si = 0; si < ssGrp.size(); si++)
 	{
 		itType iterBegin = this->m_dd->template begin<Vertex>(ssGrp[si]);
@@ -489,8 +489,6 @@ void ChannelHHNernst<TDomain, TAlgebra>::init(number time, SmartPtr<Approximatio
 			//std::cout << "VM: " << VM << std::endl;
 
 
-			dd = (approx->dof_distribution(GridLevel::TOP));
-			const LFEID& lfeID = dd->local_finite_element_id(VM);
 			//const
 			//getting exakt index of value
 			//dd->inner_dof_indices(*iter, fct, multInd);
@@ -499,12 +497,12 @@ void ChannelHHNernst<TDomain, TAlgebra>::init(number time, SmartPtr<Approximatio
 			//number test = multInd[0][0];
 			number sub;// = spGridFct[test];
 
-			Vertex* vrt = *iter;
+			//Vertex* vrt = *iter;
 
 
-			spGridFct->dof_indices(vrt, VM, multInd);
-			spGridFct->dof_indices(vrt, K, multIndK);
-			spGridFct->dof_indices(vrt, Na, multIndNa);
+			spGridFct->dof_indices(*iter, VM, multInd);
+			spGridFct->dof_indices(*iter, K, multIndK);
+			spGridFct->dof_indices(*iter, Na, multIndNa);
 
 
 			//for (int i=0; i<multInd.size(); i++)
@@ -555,15 +553,16 @@ void ChannelHHNernst<TDomain, TAlgebra>::init(number time, SmartPtr<Approximatio
 }
 
 template<typename TDomain, typename TAlgebra>
-void ChannelHHNernst<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<ApproximationSpace<TDomain> > approx, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct)
+void ChannelHHNernst<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct)
 {
+	std::cout << "update gatting start" << std::endl;
 	typedef typename DoFDistribution::traits<Vertex>::const_iterator itType;
 	SubsetGroup ssGrp;
-	try { ssGrp = SubsetGroup(this->m_dom->subset_handler(), this->m_vSubset);}
+	try { ssGrp = SubsetGroup(spGridFct->domain()->subset_handler(), this->m_vSubset);}
 	UG_CATCH_THROW("Subset group creation failed.");
 
 
-	const typename TDomain::position_accessor_type& aaPos = this->m_dom->position_accessor();
+	const typename TDomain::position_accessor_type& aaPos = spGridFct->domain()->position_accessor();
 	for (std::size_t si = 0; si < ssGrp.size(); si++)
 	{
 		itType iterBegin = this->m_dd->template begin<Vertex>(ssGrp[si]);
@@ -573,7 +572,7 @@ void ChannelHHNernst<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<
 		{
 
 			//getting act vertex
-			Vertex* vrt = *iter;
+			//Vertex* vrt = *iter;
 
 			// needed konzentration has to be set
 			size_t VM = spGridFct->fct_id_by_name("VM");
@@ -584,9 +583,9 @@ void ChannelHHNernst<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<
 
 			std::vector<DoFIndex> multInd, multIndK, multIndNa;
 
-			spGridFct->dof_indices(vrt, VM, multInd);
-			spGridFct->dof_indices(vrt, K, multIndK);
-			spGridFct->dof_indices(vrt, Na, multIndNa);
+			spGridFct->dof_indices(*iter, VM, multInd);
+			spGridFct->dof_indices(*iter, K, multIndK);
+			spGridFct->dof_indices(*iter, Na, multIndNa);
 
 			// updating all Vars
 			//for (int i=0; i<multInd.size(); i++)
@@ -636,8 +635,10 @@ void ChannelHHNernst<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<
 			//std::cout << "VM: " << (m_aaVm[*iter]) << "h: "<< m_aaHGate[*iter] << "m: "<< m_aaMGate[*iter] <<  "n: "<< m_aaNGate[*iter] <<std::endl;
 			//std::cout << "Rates: " << rate_h << " , " << rate_m << " , " << rate_n << std::endl;
 
+
 		}
 	}
+	std::cout << "update gatting ends" << std::endl;
 
 
 }
@@ -650,6 +651,7 @@ void ChannelHHNernst<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<
 template<typename TDomain, typename TAlgebra>
 void ChannelHHNernst<TDomain, TAlgebra>::ionic_current(Vertex* v, std::vector<number>& outCurrentValues)
 {
+	std::cout << "start ionic curennt" << std::endl;
 	// getting attachments out of Vertex
 	double NGate = m_aaNGate[v];
 	double MGate = m_aaMGate[v];
@@ -663,7 +665,7 @@ void ChannelHHNernst<TDomain, TAlgebra>::ionic_current(Vertex* v, std::vector<nu
 	//std::cout << "K: " << K << std::endl;
 
 	const number potassium_nernst_eq 	= helpV*(log(m_K_out/K));
-	const number sodium_nernst_eq	 	= -helpV*(log(m_Na_out/Na));
+	const number sodium_nernst_eq	 	= -(helpV*(log(m_Na_out/Na)));
 
 
 	//std::cout << "potassium_nernst_eq: " << potassium_nernst_eq << std::endl;
@@ -676,11 +678,12 @@ void ChannelHHNernst<TDomain, TAlgebra>::ionic_current(Vertex* v, std::vector<nu
 	//std::cout << "potassium_part_of_flux: " << potassium_part_of_flux << std::endl;
 
 	outCurrentValues.push_back(potassium_part_of_flux + sodium_part_of_flux + leakage_part_of_flux);
-	outCurrentValues.push_back(sodium_part_of_flux/m_F);
 	outCurrentValues.push_back(potassium_part_of_flux/m_F);
+	outCurrentValues.push_back(sodium_part_of_flux/m_F);
+
 
 	//std::cout << "outCurrentValues: " << outCurrentValues[0] << ", " << outCurrentValues[1] << ", " << outCurrentValues[2] << ", " << std::endl;
-
+	std::cout << "end ionic current" << std::endl;
 }
 
 
@@ -829,17 +832,17 @@ template class ChannelHHNernst<Domain1d, CPUAlgebra>;
 #ifdef UG_CPU_2
 template class IChannel<Domain1d, CPUBlockAlgebra<2> >;
 template class ChannelHH<Domain1d, CPUBlockAlgebra<2> >;
-template class ChannelHHNernst<Domain1d, CPUAlgebra<2> >;
+template class ChannelHHNernst<Domain1d, CPUBlockAlgebra<2> >;
 #endif
 #ifdef UG_CPU_3
 template class IChannel<Domain1d, CPUBlockAlgebra<3> >;
 template class ChannelHH<Domain1d, CPUBlockAlgebra<3> >;
-template class ChannelHHNernst<Domain1d, CPUAlgebra<3> >;
+template class ChannelHHNernst<Domain1d, CPUBlockAlgebra<3> >;
 #endif
 #ifdef UG_CPU_4
 template class IChannel<Domain1d, CPUBlockAlgebra<4> >;
 template class ChannelHH<Domain1d, CPUBlockAlgebra<4> >;
-template class ChannelHHNernst<Domain1d, CPUAlgebra<4> >;
+template class ChannelHHNernst<Domain1d, CPUBlockAlgebra<4> >;
 #endif
 #ifdef UG_CPU_VAR
 template class IChannel<Domain1d, CPUVariableBlockAlgebra >;
