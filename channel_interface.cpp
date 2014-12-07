@@ -418,7 +418,7 @@ set_out_conc(number Na, number K)
 template<typename TDomain, typename TAlgebra>
 void ChannelHHNernst<TDomain, TAlgebra>::init(number time, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct)
 {
-	std::cout << "init starts" << std::endl;
+	//std::cout << "init starts" << std::endl;
 	// attach attachments
 
 	if (spGridFct->approx_space()->domain()->grid()->has_vertex_attachment(this->m_MGate))
@@ -451,7 +451,7 @@ void ChannelHHNernst<TDomain, TAlgebra>::init(number time, SmartPtr<GridFunction
 				 "could not be made, since it already exists.");
 	spGridFct->approx_space()->domain()->grid()->attach_to_vertices(this->m_Vm);
 
-	std::cout << "attachments are working" << std::endl;
+	//std::cout << "attachments are working" << std::endl;
 	// create attachment accessors
 	this->m_aaMGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGridFct->approx_space()->domain()->grid(), this->m_MGate);
 	this->m_aaNGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGridFct->approx_space()->domain()->grid(), this->m_NGate);
@@ -465,7 +465,7 @@ void ChannelHHNernst<TDomain, TAlgebra>::init(number time, SmartPtr<GridFunction
 	std::vector<DoFIndex> multInd, multIndK, multIndNa;
 	SmartPtr<DoFDistribution> dd;
 	//SmartPtr<vector_type> spU;
-	std::cout << "attachments accs are working" << std::endl;
+	//std::cout << "attachments accs are working" << std::endl;
 
 
 	typedef typename DoFDistribution::traits<Vertex>::const_iterator itType;
@@ -505,12 +505,12 @@ void ChannelHHNernst<TDomain, TAlgebra>::init(number time, SmartPtr<GridFunction
 			spGridFct->dof_indices(*iter, Na, multIndNa);
 
 
-			//for (int i=0; i<multInd.size(); i++)
-			//{
-				m_aaVm[*iter] = DoFRef(*spGridFct, multInd[0]);
-				m_aaK[*iter] = DoFRef(*spGridFct, multIndK[0]);
-				m_aaNa[*iter] = DoFRef(*spGridFct, multIndNa[0]);
-			//}
+			for (int i=0; i<multInd.size(); i++)
+			{
+				m_aaVm[*iter] = DoFRef(*spGridFct, multInd[i]);
+				m_aaK[*iter] = DoFRef(*spGridFct, multIndK[i]);
+				m_aaNa[*iter] = DoFRef(*spGridFct, multIndNa[i]);
+			}
 
 
 
@@ -555,7 +555,7 @@ void ChannelHHNernst<TDomain, TAlgebra>::init(number time, SmartPtr<GridFunction
 template<typename TDomain, typename TAlgebra>
 void ChannelHHNernst<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct)
 {
-	std::cout << "update gatting start" << std::endl;
+	//std::cout << "update gatting start" << std::endl;
 	typedef typename DoFDistribution::traits<Vertex>::const_iterator itType;
 	SubsetGroup ssGrp;
 	try { ssGrp = SubsetGroup(spGridFct->domain()->subset_handler(), this->m_vSubset);}
@@ -588,12 +588,12 @@ void ChannelHHNernst<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<
 			spGridFct->dof_indices(*iter, Na, multIndNa);
 
 			// updating all Vars
-			//for (int i=0; i<multInd.size(); i++)
-			//{
-				m_aaVm[*iter] = DoFRef(*spGridFct, multInd[0]);
-				m_aaK[*iter] = DoFRef(*spGridFct, multIndK[0]);
-				m_aaNa[*iter] = DoFRef(*spGridFct, multIndNa[0]);
-			//}
+			for (int i=0; i<multInd.size(); i++)
+			{
+				m_aaVm[*iter] = DoFRef(*spGridFct, multInd[i]);
+				m_aaK[*iter] = DoFRef(*spGridFct, multIndK[i]);
+				m_aaNa[*iter] = DoFRef(*spGridFct, multIndNa[i]);
+			}
 
 			//set gatting Params
 			number AlphaHh = 0.07*exp(-(m_aaVm[*iter] + 65.0)/20.0);
@@ -621,7 +621,7 @@ void ChannelHHNernst<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<
 			number BetaHn = 0.125*exp((m_aaVm[*iter] + 65.0)/80.0);
 
 			// needs import later
-			number dt = newTime - this->time();//0.01;
+			number dt = newTime;//0.01;
 
 			number rate_h = ((AlphaHh/(AlphaHh+BetaHh)) - m_aaHGate[*iter]) / (1/(AlphaHh+BetaHh)) *dt;
 			number rate_m = ((AlphaHm/(AlphaHm+BetaHm)) - m_aaMGate[*iter]) / (1/(AlphaHm+BetaHm)) *dt;
@@ -638,7 +638,7 @@ void ChannelHHNernst<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<
 
 		}
 	}
-	std::cout << "update gatting ends" << std::endl;
+	//std::cout << "update gatting ends" << std::endl;
 
 
 }
@@ -651,7 +651,7 @@ void ChannelHHNernst<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<
 template<typename TDomain, typename TAlgebra>
 void ChannelHHNernst<TDomain, TAlgebra>::ionic_current(Vertex* v, std::vector<number>& outCurrentValues)
 {
-	std::cout << "start ionic curennt" << std::endl;
+	//std::cout << "start ionic curennt" << std::endl;
 	// getting attachments out of Vertex
 	double NGate = m_aaNGate[v];
 	double MGate = m_aaMGate[v];
@@ -678,12 +678,13 @@ void ChannelHHNernst<TDomain, TAlgebra>::ionic_current(Vertex* v, std::vector<nu
 	//std::cout << "potassium_part_of_flux: " << potassium_part_of_flux << std::endl;
 
 	outCurrentValues.push_back(potassium_part_of_flux + sodium_part_of_flux + leakage_part_of_flux);
+	//outCurrentValues.push_back(sodium_part_of_flux/m_F);
 	outCurrentValues.push_back(potassium_part_of_flux/m_F);
 	outCurrentValues.push_back(sodium_part_of_flux/m_F);
 
 
 	//std::cout << "outCurrentValues: " << outCurrentValues[0] << ", " << outCurrentValues[1] << ", " << outCurrentValues[2] << ", " << std::endl;
-	std::cout << "end ionic current" << std::endl;
+	//std::cout << "end ionic current" << std::endl;
 }
 
 
