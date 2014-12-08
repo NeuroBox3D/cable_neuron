@@ -665,10 +665,11 @@ void ChannelHHNernst<TDomain, TAlgebra>::ionic_current(Vertex* v, std::vector<nu
 	//std::cout << "K: " << K << std::endl;
 
 	const number potassium_nernst_eq 	= helpV*(log(m_K_out/K));
-	const number sodium_nernst_eq	 	= -(helpV*(log(m_Na_out/Na)));
+	const number sodium_nernst_eq	 	= -helpV*(log(m_Na_out/Na));
 
 
-	//std::cout << "potassium_nernst_eq: " << potassium_nernst_eq << std::endl;
+	std::cout << "potassium_nernst_eq: " << potassium_nernst_eq << std::endl;
+	std::cout << "sodium_nernst_eq: " << sodium_nernst_eq << std::endl;
 
 	// single channel type fluxes
 	const number potassium_part_of_flux = m_g_K * pow(NGate,4) * (VM - potassium_nernst_eq);
@@ -678,12 +679,12 @@ void ChannelHHNernst<TDomain, TAlgebra>::ionic_current(Vertex* v, std::vector<nu
 	//std::cout << "potassium_part_of_flux: " << potassium_part_of_flux << std::endl;
 
 	outCurrentValues.push_back(potassium_part_of_flux + sodium_part_of_flux + leakage_part_of_flux);
-	//outCurrentValues.push_back(sodium_part_of_flux/m_F);
-	outCurrentValues.push_back(potassium_part_of_flux/m_F);
 	outCurrentValues.push_back(sodium_part_of_flux/m_F);
+	outCurrentValues.push_back(potassium_part_of_flux/m_F);
+	//outCurrentValues.push_back(sodium_part_of_flux/m_F);
 
 
-	//std::cout << "outCurrentValues: " << outCurrentValues[0] << ", " << outCurrentValues[1] << ", " << outCurrentValues[2] << ", " << std::endl;
+	std::cout << "outCurrentValues: " << outCurrentValues[0] << ", " << outCurrentValues[1] << ", " << outCurrentValues[2] << ", " << std::endl;
 	//std::cout << "end ionic current" << std::endl;
 }
 

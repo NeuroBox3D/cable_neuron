@@ -141,13 +141,27 @@ static void Domain__Algebra(bridge::Registry& reg, string grp)
 
 	typedef ug::GridFunction<TDomain, TAlgebra> TFct;
 
+
+	//	Channel Interface Base (virtual class)
+		{
+			typedef IChannel<TDomain, TAlgebra> T;
+			typedef IElemDisc<TDomain> TBase;
+			string name = string("IChannel").append(suffix);
+			reg.add_class_<T, TBase >(name, grp)
+				//.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >, const char*,const char*)>("Function(s)#Subset(s)")
+				.set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "IChannel", tag);
+		}
+
+
+
 	//	VM-Disc class
 		{
 			typedef VMDisc<TDomain, TAlgebra> T;
 			typedef IElemDisc<TDomain> TBase;
 			string name = string("VMDisc").append(suffix);
 			reg.add_class_<T, TBase >(name, grp)
-				.template add_constructor<void (*)(SmartPtr<GridFunction<TDomain, TAlgebra> >, const char*,const char*)>("Function(s)#Subset(s)")
+				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
 				.add_method("set_diameter", &T::set_diameter)
 				.add_method("set_spec_res", &T::set_spec_res)
 				.add_method("set_spec_cap", &T::set_spec_cap)
@@ -160,16 +174,6 @@ static void Domain__Algebra(bridge::Registry& reg, string grp)
 		}
 
 
-		//	Channel Interface Base (virtual class)
-			{
-				typedef IChannel<TDomain, TAlgebra> T;
-				typedef IElemDisc<TDomain> TBase;
-				string name = string("IChannel").append(suffix);
-				reg.add_class_<T, TBase >(name, grp)
-					//.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >, const char*,const char*)>("Function(s)#Subset(s)")
-					.set_construct_as_smart_pointer(true);
-				reg.add_class_to_group(name, "IChannel", tag);
-			}
 
 
 

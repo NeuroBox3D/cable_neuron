@@ -101,11 +101,15 @@ class VMDisc
 
 	public:
 	///	Constructor
-		VMDisc(SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct, const char* functions, const char* subsets)
-		 : IElemDisc<TDomain>(functions, subsets), m_spGridFct(spGridFct), m_numb_funcs(0), _VM_(0), _K_(1), _Na_(2), m_aDiameter("diameter"), m_spApproxSpace(spGridFct->approx_space())
+		VMDisc(const char* functions, const char* subsets)
+		 : IElemDisc<TDomain>(functions, subsets), m_numb_funcs(0), _VM_(0), _K_(1), _Na_(2), m_aDiameter("diameter")
 		   {
+
+
+
 			m_bNonRegularGrid = false;
 			register_all_funcs(m_bNonRegularGrid);
+
 		   }
 
 	///	Destructor
@@ -128,10 +132,12 @@ class VMDisc
 		void set_influx(number Flux, number x, number y, number z, number beg, number dur);
 
 		//Adding function for channels
-		void add_channel(SmartPtr<IChannel<TDomain, TAlgebra> > Channel, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct);
+		void add_channel(SmartPtr<IChannel<TDomain, TAlgebra> > Channel);
 
 		//Add func
 		void add_func(const char* func);
+
+		void create_GridFunc(SmartPtr<ApproximationSpace<TDomain> > approx);
 
 
 	// inherited from IElemDisc

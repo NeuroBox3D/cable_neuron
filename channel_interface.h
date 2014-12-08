@@ -60,6 +60,8 @@ class IChannel
 	///	World dimension
 		static const int dim = base_type::dim;
 
+		const char* m_funcs;
+
 
 
 	public:
@@ -67,7 +69,7 @@ class IChannel
 	// TODO: - define which variables will be influenced
 	// TODO: - define which variables are needed for flux computation
 		IChannel(SmartPtr<ApproximationSpace<TDomain> > approx, const char* functions, const char* subsets)
-		 : IElemDisc<TDomain>(functions, subsets), m_spApproxSpace(approx)
+		 : IElemDisc<TDomain>(functions, subsets), m_spApproxSpace(approx), m_funcs(functions)
 		   {
 			m_bNonRegularGrid = false;
 			register_all_funcs(m_bNonRegularGrid);
@@ -114,7 +116,6 @@ class IChannel
 	/** During the initialization, the necessary attachments are attached to the vertices
 	 *	and their values calculated by the equilibrium state for the start membrane potential.
 	**/
-
 		virtual void init(number time, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct) = 0;
 
 	/// updates the gating parameters
@@ -123,7 +124,7 @@ class IChannel
 	/// provides the ionic current (mol*s^-1) at a given vertex
 		virtual void ionic_current(Vertex* v, std::vector<number>& outCurrentValues) = 0;
 
-	/// addin some jacobian infos at given vertex
+	/// adding some jacobian infos at given vertex
 		virtual void Jacobi_sets(Vertex* v, std::vector<number>& outJFlux) = 0;
 
 	public:

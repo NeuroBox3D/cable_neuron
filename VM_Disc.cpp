@@ -77,14 +77,73 @@ set_influx(number Flux, number x, number y, number z, number beg, number dur)
 
 template<typename TDomain, typename TAlgebra>
 void VMDisc<TDomain, TAlgebra>::
-add_channel(SmartPtr<IChannel<TDomain, TAlgebra> > Channel, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct)
+create_GridFunc(SmartPtr<ApproximationSpace<TDomain> > approx)
 {
-	//std::cout << "Channel_size: " << m_channel.size() << std::endl;
-	Channel->init(0.01, spGridFct);
-	int Channel_size = m_channel.size();
+	GridFunction<TDomain, TAlgebra> spGridFct = GridFunction<TDomain, TAlgebra>(approx);
+
+	for (size_t k = 0; k < m_channel.size(); k++)
+	{
+		std::string test = m_channel[k]->m_funcs;
+		size_t start = 0;
+		std::string new_func;
+		size_t end;
+		bool exists;
+		std::vector<std::string> allFct = spGridFct.names();
+
+	/// Adding all needed functions if not existent
+		while (test.find(",", start) != -1)
+		{
+			exists = false;
+			end = test.find(",", start);
+			new_func = test.substr(start, (end-start));
+			std::cout << "test: " << test << "start: "<< start << "end: " << end << std::endl;
+			start = end+2;
+			std::cout << "neue funktion" << new_func << std::endl;
+
+			// proves if function exists
+			for (size_t i = 0; i < allFct.size(); i++)
+				{if (allFct[i] == new_func) { exists = true; }}
+
+			if (exists == false)
+			{
+					// add function to space
+					std::cout << "tryes to add" << std::endl;
+					spGridFct.approx_space()->add(new_func.c_str(), "Lagrange", 1);
+					std::cout << "new function added" << std::endl;
+			}
+		}
+		// adding last func
+		new_func = test.substr(start);
+		// proves if function exists
+		for (size_t i = 0; i < allFct.size(); i++)
+			{if (allFct[i] == new_func) { exists = true; }}
+
+		if (exists == false)
+		{
+			// add function to space
+			std::cout << "tryes to add" << std::endl;
+			spGridFct.approx_space()->add(new_func.c_str(), "Lagrange", 1);
+			std::cout << "new function added" << std::endl;
+		}
+	std::cout << "neue funktion" << new_func << std::endl;
+
+
+
+
+	}
+	//m_spGridFct = spGridFct;
+	// here all channels init...
+}
+
+
+
+
+
+template<typename TDomain, typename TAlgebra>
+void VMDisc<TDomain, TAlgebra>::
+add_channel(SmartPtr<IChannel<TDomain, TAlgebra> > Channel)
+{
 	m_channel.push_back(Channel);
-	//std::cout << "Channel added" << std::endl;
-	// add Channel function from IElem
 }
 
 template<typename TDomain, typename TAlgebra>
@@ -114,13 +173,7 @@ void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector
 	number pre_resistance = 0.0;
 	number volume = 0.0;
 
-	//need to set later in another way also given from elsewhere
-	number Na_out = 140;
-	number K_out = 2.5;
-
 	// helper for saving defekts
-	std::vector<double> outCurrentValues;
-	std::vector<double> AlloutCurrentValues;
 
 	// cast elem to appropriate type
 	TElem* pElem = dynamic_cast<TElem*>(elem);
@@ -128,6 +181,10 @@ void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector
 
 	for (size_t ip = 0; ip < geo.num_scv(); ++ip)
 	{
+
+		std::vector<double> outCurrentValues;
+		std::vector<double> AlloutCurrentValues;
+
 		// get current SCV
 		const typename TFVGeom::SCV& scv = geo.scv(ip);
 
@@ -150,7 +207,7 @@ void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector
 
 
 	///Influx handling
-		for (int i = 0; i < m_flux_value.size(); i++)
+		for (size_t i = 0; i < m_flux_value.size(); i++)
 		{
 			/*std::cout << "coords: " << m_coords[i][0] << " - " << vCornerCoords[0][1] << std::endl;
 			std::cout << "times: " << time << " - " << m_beg_flux[i] << std::endl;
@@ -178,7 +235,7 @@ void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector
 		}
 
 	/// Channel defekt adding
-		for (int i = 0; i < m_channel.size(); i++)
+		for (size_t i = 0; i < m_channel.size(); i++)
 		{
 			// values we are getting from ionic_flux function in channels
 			m_channel[i].get()->ionic_current(pElem->vertex(co), outCurrentValues);
@@ -186,7 +243,7 @@ void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector
 			// in 0 all Vms
 			for (int j=0; j<m_numb_funcs; j++)
 				{
-					AlloutCurrentValues[j] += (outCurrentValues[j]);
+					AlloutCurrentValues[j] -= (outCurrentValues[j]);
 				}
 		}
 
@@ -487,15 +544,15 @@ void VMDisc<TDomain, TAlgebra>::prepare_setting(const std::vector<LFEID>& vLfeID
 
 	//std::cout << "before prepare" << std::endl;
 	//VM always needed in this diskretication so it is easy only getting index of VM
-	for (int i = 0; i < m_numb_funcs; i++)
+	/*for (int i = 0; i < m_numb_funcs; i++)
 	{
-		if (m_funcs[i] = "VM")
+		if (m_funcs[i] == "VM")
 			_VM_ = m_spGridFct->fct_id_by_name(m_funcs[i]);
-		if (m_funcs[i] = "K")
+		if (m_funcs[i] == "K")
 			_K_ = m_spGridFct->fct_id_by_name(m_funcs[i]);
-		if (m_funcs[i] = "Na")
+		if (m_funcs[i] == "Na")
 			_Na_ = m_spGridFct->fct_id_by_name(m_funcs[i]);
-	}
+	}*/
 	//std::cout << "after prepare" << std::endl;
 
 }
