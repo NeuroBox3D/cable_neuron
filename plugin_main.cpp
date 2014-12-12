@@ -84,6 +84,8 @@ static void Domain(bridge::Registry& reg, string grp)
 					.add_method("set_spec_capa", static_cast<void (T::*)(number)>(&T::set_spec_capa), "", "Spec Capa")
 		#ifdef UG_FOR_LUA
 					.add_method("set_spec_capa", static_cast<void (T::*)(const char*)>(&T::set_spec_capa), "", "Spec Capa");
+		#else
+		;
 		#endif
 		reg.add_class_to_group(name, "ElemDiscHH_Base", tag);
 	}

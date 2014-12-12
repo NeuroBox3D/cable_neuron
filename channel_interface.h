@@ -271,7 +271,6 @@ class ChannelHH
 		: public IChannel<TDomain, TAlgebra>
 	{
 		public:
-		/// constructor
 			// Params dendrit
 			number m_spec_res;
 			number m_spec_cap;
@@ -293,6 +292,7 @@ class ChannelHH
 
 			IFunction<number>* m_Injection;
 
+			/// constructor
 			ChannelHHNernst	  (const char* functions,
 							   const char* subsets
 						  	  )
@@ -317,7 +317,7 @@ class ChannelHH
 
 			void set_out_conc(number Na, number k);
 
-			void set_diff(SmartPtr<std::vector<number> > diff);
+			void set_diff(const std::vector<number>& diff);
 
 
 

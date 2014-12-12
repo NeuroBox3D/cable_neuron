@@ -69,16 +69,16 @@ template<typename TDomain, typename TAlgebra>
 void VMDisc<TDomain, TAlgebra>::
 set_influx(number Flux, number x, number y, number z, number beg, number dur)
 {
-
-	int flux_number = m_flux_value.size();
-
 	m_flux_value.push_back(Flux);
 
 	m_beg_flux.push_back(beg);
 	m_dur_flux.push_back(dur);
 
-	m_coords.push_back((x, y, z));
-
+	// TODO: a little bit ugly; maybe save influx positions differently?
+	m_coords.resize(m_coords.size()+1);
+	m_coords[m_coords.size()-1][0] = x;
+	if (dim >= 2) m_coords[m_coords.size()-1][1] = y;
+	if (dim >= 3) m_coords[m_coords.size()-1][2] = z;
 }
 
 
@@ -249,6 +249,7 @@ void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector
 			d(_VM_, scvf.from()) -= diff_flux;
 			d(_VM_, scvf.to()  ) += diff_flux;
 
+			/*
 			// add local defect of all others
 			for (int k=1; k < m_numb_funcs; k++)
 			{
@@ -271,6 +272,8 @@ void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector
 				d(k, scvf.from()) -= diff_flux;
 				d(k, scvf.to()  ) += diff_flux;
 			}
+			*/
+
 		}
 		//std::cout << "def a elem ends" << std::endl;
 
@@ -421,6 +424,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 			J(_VM_, scvf.from(), _VM_, sh) -= d_diff_flux;
 			J(_VM_, scvf.to()  , _VM_, sh) += d_diff_flux;
 
+			/*
 			for (int k=1; k < m_numb_funcs; k++)
 			{
 				// scalar product with normal
@@ -439,7 +443,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 				J(k, scvf.from(), k, sh) -= d_diff_flux;
 				J(k, scvf.to()  , k, sh) += d_diff_flux;
 			}
-
+			*/
 		}
 	}
 }
@@ -548,6 +552,7 @@ void VMDisc<TDomain, TAlgebra>::prepare_setting(const std::vector<LFEID>& vLfeID
 
 	//std::cout << "before prepare" << std::endl;
 	//VM always needed in this diskretication so it is easy only getting index of VM
+	/*
 	for (int i = 0; i < m_numb_funcs; i++)
 	{
 		if (m_funcs[i] == "VM")
@@ -558,7 +563,7 @@ void VMDisc<TDomain, TAlgebra>::prepare_setting(const std::vector<LFEID>& vLfeID
 			_Na_ = m_spGridFct->fct_id_by_name(m_funcs[i]);
 	}
 	//std::cout << "after prepare" << std::endl;
-
+	*/
 }
 
 

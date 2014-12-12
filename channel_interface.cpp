@@ -416,12 +416,10 @@ set_out_conc(number Na, number K)
 
 template<typename TDomain, typename TAlgebra>
 void ChannelHHNernst<TDomain, TAlgebra>::
-set_diff(SmartPtr<std::vector<number> > diff)
+set_diff(const std::vector<number>& diff)
 {
-	for (size_t i = 0; i < diff->size(); i++)
-	{
-		m_diff.push_back(diff->at(i));
-	}
+	for (size_t i = 0; i < diff.size(); i++)
+		m_diff.push_back(diff[i]);
 }
 
 // Methods for using gatings
@@ -595,7 +593,7 @@ void ChannelHHNernst<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<
 			size_t VM = spGridFct->fct_id_by_name("VM");
 			size_t Na = spGridFct->fct_id_by_name("Na");
 			size_t K = spGridFct->fct_id_by_name("K");
-			std::cout << "VM: upg" << VM << " Na: " << Na << " K: "<< K << std::endl;
+			//std::cout << "VM: upg" << VM << " Na: " << Na << " K: "<< K << std::endl;
 
 
 			std::vector<DoFIndex> multInd, multIndK, multIndNa;
