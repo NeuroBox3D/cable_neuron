@@ -121,33 +121,33 @@ template<typename TDomain, typename TAlgebra>
 void ChannelHH<TDomain, TAlgebra>::init(number time, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct)
 {
 	// attach attachments
-	if (this->m_mg->has_vertex_attachment(this->m_MGate))
+	if (spGridFct->approx_space()->domain()->grid()->has_vertex_attachment(this->m_MGate))
 		UG_THROW("Attachment necessary (MGate) for Hodgkin and Huxley channel dynamics "
 				 "could not be made, since it already exists.");
-	this->m_mg->attach_to_vertices(this->m_MGate);
+	spGridFct->approx_space()->domain()->grid()->attach_to_vertices(this->m_MGate);
 
-	if (this->m_mg->has_vertex_attachment(this->m_HGate))
+	if (spGridFct->approx_space()->domain()->grid()->has_vertex_attachment(this->m_HGate))
 		UG_THROW("Attachment necessary (HGate) for Hodgkin and Huxley channel dynamics "
 				 "could not be made, since it already exists.");
-		this->m_mg->attach_to_vertices(this->m_HGate);
+		spGridFct->approx_space()->domain()->grid()->attach_to_vertices(this->m_HGate);
 
-	if (this->m_mg->has_vertex_attachment(this->m_NGate))
+	if (spGridFct->approx_space()->domain()->grid()->has_vertex_attachment(this->m_NGate))
 		UG_THROW("Attachment necessary (NGate) for Hodgkin and Huxley channel dynamics "
 				 "could not be made, since it already exists.");
-	this->m_mg->attach_to_vertices(this->m_NGate);
+	spGridFct->approx_space()->domain()->grid()->attach_to_vertices(this->m_NGate);
 
 
-	if (this->m_mg->has_vertex_attachment(this->m_Vm))
+	if (spGridFct->approx_space()->domain()->grid()->has_vertex_attachment(this->m_Vm))
 		UG_THROW("Attachment necessary (Vm) for Hodgkin and Huxley channel dynamics "
 				 "could not be made, since it already exists.");
-	this->m_mg->attach_to_vertices(this->m_Vm);
+	spGridFct->approx_space()->domain()->grid()->attach_to_vertices(this->m_Vm);
 
 
 	// create attachment accessors
-	this->m_aaMGate = Grid::AttachmentAccessor<Vertex, ADouble>(*this->m_mg, this->m_MGate);
-	this->m_aaNGate = Grid::AttachmentAccessor<Vertex, ADouble>(*this->m_mg, this->m_NGate);
-	this->m_aaHGate = Grid::AttachmentAccessor<Vertex, ADouble>(*this->m_mg, this->m_HGate);
-	this->m_aaVm = Grid::AttachmentAccessor<Vertex, ADouble>(*this->m_mg, this->m_Vm);
+	this->m_aaMGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGridFct->approx_space()->domain()->grid(), this->m_MGate);
+	this->m_aaNGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGridFct->approx_space()->domain()->grid(), this->m_NGate);
+	this->m_aaHGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGridFct->approx_space()->domain()->grid(), this->m_HGate);
+	this->m_aaVm = Grid::AttachmentAccessor<Vertex, ADouble>(*spGridFct->approx_space()->domain()->grid(), this->m_Vm);
 
 
 	// creates Multi index
@@ -159,14 +159,14 @@ void ChannelHH<TDomain, TAlgebra>::init(number time, SmartPtr<GridFunction<TDoma
 
 	typedef typename DoFDistribution::traits<Vertex>::const_iterator itType;
 	SubsetGroup ssGrp;
-	try { ssGrp = SubsetGroup(this->m_dom->subset_handler(), this->m_vSubset);}
+	try { ssGrp = SubsetGroup(spGridFct->approx_space()->domain()->subset_handler(), this->m_vSubset);}
 	UG_CATCH_THROW("Subset group creation failed.");
 
-	const typename TDomain::position_accessor_type& aaPos = this->m_dom->position_accessor();
+	const typename TDomain::position_accessor_type& aaPos = spGridFct->approx_space()->domain()->position_accessor();
 	for (std::size_t si = 0; si < ssGrp.size(); si++)
 	{
-		itType iterBegin = this->m_dd->template begin<Vertex>(ssGrp[si]);
-		itType iterEnd = this->m_dd->template end<Vertex>(ssGrp[si]);
+		itType iterBegin = spGridFct->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]);
+		itType iterEnd = spGridFct->approx_space()->dof_distribution(GridLevel::TOP)->template end<Vertex>(ssGrp[si]);
 
 		for (itType iter = iterBegin; iter != iterEnd; ++iter)
 		{
@@ -243,15 +243,15 @@ void ChannelHH<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<GridFu
 {
 	typedef typename DoFDistribution::traits<Vertex>::const_iterator itType;
 	SubsetGroup ssGrp;
-	try { ssGrp = SubsetGroup(this->m_dom->subset_handler(), this->m_vSubset);}
+	try { ssGrp = SubsetGroup(spGridFct->approx_space()->domain()->subset_handler(), this->m_vSubset);}
 	UG_CATCH_THROW("Subset group creation failed.");
 
 
-	const typename TDomain::position_accessor_type& aaPos = this->m_dom->position_accessor();
+	const typename TDomain::position_accessor_type& aaPos = spGridFct->approx_space()->domain()->position_accessor();
 	for (std::size_t si = 0; si < ssGrp.size(); si++)
 	{
-		itType iterBegin = this->m_dd->template begin<Vertex>(ssGrp[si]);
-		itType iterEnd = this->m_dd->template end<Vertex>(ssGrp[si]);
+		itType iterBegin = spGridFct->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]);
+		itType iterEnd = spGridFct->approx_space()->dof_distribution(GridLevel::TOP)->template end<Vertex>(ssGrp[si]);
 
 		for (itType iter = iterBegin; iter != iterEnd; ++iter)
 		{
@@ -414,6 +414,16 @@ set_out_conc(number Na, number K)
 	m_K_out  = K;
 }
 
+template<typename TDomain, typename TAlgebra>
+void ChannelHHNernst<TDomain, TAlgebra>::
+set_diff(SmartPtr<std::vector<number> > diff)
+{
+	for (size_t i = 0; i < diff->size(); i++)
+	{
+		m_diff.push_back(diff->at(i));
+	}
+}
+
 // Methods for using gatings
 template<typename TDomain, typename TAlgebra>
 void ChannelHHNernst<TDomain, TAlgebra>::init(number time, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct)
@@ -463,10 +473,10 @@ void ChannelHHNernst<TDomain, TAlgebra>::init(number time, SmartPtr<GridFunction
 
 	// creates Multi index
 	std::vector<DoFIndex> multInd, multIndK, multIndNa;
-	SmartPtr<DoFDistribution> dd;
-	//SmartPtr<vector_type> spU;
-	//std::cout << "attachments accs are working" << std::endl;
 
+/// Important set here all StartValues
+	Interpolate(54.4, spGridFct, "K", 0.0);
+	Interpolate(10.0, spGridFct, "Na", 0.0);
 
 	typedef typename DoFDistribution::traits<Vertex>::const_iterator itType;
 	SubsetGroup ssGrp;
@@ -476,18 +486,20 @@ void ChannelHHNernst<TDomain, TAlgebra>::init(number time, SmartPtr<GridFunction
 	const typename TDomain::position_accessor_type& aaPos = spGridFct->domain()->position_accessor();
 	for (std::size_t si = 0; si < ssGrp.size(); si++)
 	{
-		itType iterBegin = this->m_dd->template begin<Vertex>(ssGrp[si]);
-		itType iterEnd = this->m_dd->template end<Vertex>(ssGrp[si]);
+		itType iterBegin = spGridFct->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]);
+		itType iterEnd = spGridFct->approx_space()->dof_distribution(GridLevel::TOP)->template end<Vertex>(ssGrp[si]);
 
 		for (itType iter = iterBegin; iter != iterEnd; ++iter)
 		{
 
+			//std::cout << "before function id" << std::endl;
 			// needed konzentration has to be set
 			size_t VM = spGridFct->fct_id_by_name("VM");
 			size_t K = spGridFct->fct_id_by_name("K");
 			size_t Na = spGridFct->fct_id_by_name("Na");
 			//std::cout << "VM: " << VM << std::endl;
 
+			//std::cout << "fct id is working" << "VM: " << VM << " K: " << K << " Na: " << Na << std::endl;
 
 			//const
 			//getting exakt index of value
@@ -501,18 +513,22 @@ void ChannelHHNernst<TDomain, TAlgebra>::init(number time, SmartPtr<GridFunction
 
 
 			spGridFct->dof_indices(*iter, VM, multInd);
-			spGridFct->dof_indices(*iter, K, multIndK);
+			//std::cout << "getting dof_indices works VM" << std::endl;
 			spGridFct->dof_indices(*iter, Na, multIndNa);
+			//std::cout << "getting dof_indices works Na" << std::endl;
+			spGridFct->dof_indices(*iter, K, multIndK);
 
 
+			//std::cout<< "getting dof_indices works" << std::endl;
+
+			// Setting start values
 			for (int i=0; i<multInd.size(); i++)
 			{
 				m_aaVm[*iter] = DoFRef(*spGridFct, multInd[i]);
-				m_aaK[*iter] = DoFRef(*spGridFct, multIndK[i]);
-				m_aaNa[*iter] = DoFRef(*spGridFct, multIndNa[i]);
+				// sets start values
+				m_aaK[*iter] = 54.0;
+				m_aaNa[*iter] = 10.0;
 			}
-
-
 
 
 			// Writting Gatting-Params in attachement
@@ -550,6 +566,7 @@ void ChannelHHNernst<TDomain, TAlgebra>::init(number time, SmartPtr<GridFunction
 		}
 	}
 
+
 }
 
 template<typename TDomain, typename TAlgebra>
@@ -565,8 +582,8 @@ void ChannelHHNernst<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<
 	const typename TDomain::position_accessor_type& aaPos = spGridFct->domain()->position_accessor();
 	for (std::size_t si = 0; si < ssGrp.size(); si++)
 	{
-		itType iterBegin = this->m_dd->template begin<Vertex>(ssGrp[si]);
-		itType iterEnd = this->m_dd->template end<Vertex>(ssGrp[si]);
+		itType iterBegin = spGridFct->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]);
+		itType iterEnd = spGridFct->approx_space()->dof_distribution(GridLevel::TOP)->template end<Vertex>(ssGrp[si]);
 
 		for (itType iter = iterBegin; iter != iterEnd; ++iter)
 		{
@@ -578,7 +595,7 @@ void ChannelHHNernst<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<
 			size_t VM = spGridFct->fct_id_by_name("VM");
 			size_t Na = spGridFct->fct_id_by_name("Na");
 			size_t K = spGridFct->fct_id_by_name("K");
-			//std::cout << "VM: upg" << VM << std::endl;
+			std::cout << "VM: upg" << VM << " Na: " << Na << " K: "<< K << std::endl;
 
 
 			std::vector<DoFIndex> multInd, multIndK, multIndNa;
@@ -662,14 +679,14 @@ void ChannelHHNernst<TDomain, TAlgebra>::ionic_current(Vertex* v, std::vector<nu
 
 	const number helpV = (m_R*m_T)/m_F;
 	// nernst potential of potassium and sodium
-	//std::cout << "K: " << K << std::endl;
+	//std::cout << "K: " << K << " Na: " << Na << " VM: " << VM << std::endl;
 
 	const number potassium_nernst_eq 	= helpV*(log(m_K_out/K));
 	const number sodium_nernst_eq	 	= -helpV*(log(m_Na_out/Na));
 
 
-	std::cout << "potassium_nernst_eq: " << potassium_nernst_eq << std::endl;
-	std::cout << "sodium_nernst_eq: " << sodium_nernst_eq << std::endl;
+	//std::cout << "potassium_nernst_eq: " << potassium_nernst_eq << std::endl;
+	//std::cout << "sodium_nernst_eq: " << sodium_nernst_eq << std::endl;
 
 	// single channel type fluxes
 	const number potassium_part_of_flux = m_g_K * pow(NGate,4) * (VM - potassium_nernst_eq);
@@ -679,12 +696,12 @@ void ChannelHHNernst<TDomain, TAlgebra>::ionic_current(Vertex* v, std::vector<nu
 	//std::cout << "potassium_part_of_flux: " << potassium_part_of_flux << std::endl;
 
 	outCurrentValues.push_back(potassium_part_of_flux + sodium_part_of_flux + leakage_part_of_flux);
-	outCurrentValues.push_back(sodium_part_of_flux/m_F);
-	outCurrentValues.push_back(potassium_part_of_flux/m_F);
 	//outCurrentValues.push_back(sodium_part_of_flux/m_F);
+	outCurrentValues.push_back(potassium_part_of_flux/m_F);
+	outCurrentValues.push_back(sodium_part_of_flux/m_F);
 
 
-	std::cout << "outCurrentValues: " << outCurrentValues[0] << ", " << outCurrentValues[1] << ", " << outCurrentValues[2] << ", " << std::endl;
+	//std::cout << "outCurrentValues: " << outCurrentValues[0] << ", " << outCurrentValues[1] << ", " << outCurrentValues[2] << ", " << std::endl;
 	//std::cout << "end ionic current" << std::endl;
 }
 

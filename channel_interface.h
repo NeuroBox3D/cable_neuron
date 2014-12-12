@@ -19,6 +19,7 @@
 #include "lib_disc/function_spaces/local_transfer_interface.h"
 #include "lib_disc/common/local_algebra.h"
 #include "lib_disc/function_spaces/grid_function.h"
+#include "lib_disc/function_spaces/interpolate.h"
 
 #include "bridge/bridge.h"
 #include "bridge/util.h"
@@ -62,14 +63,17 @@ class IChannel
 
 		const char* m_funcs;
 
+		//params for diffusion of ions
+		std::vector<number> m_diff;
+
 
 
 	public:
 	///	Constructor
 	// TODO: - define which variables will be influenced
 	// TODO: - define which variables are needed for flux computation
-		IChannel(SmartPtr<ApproximationSpace<TDomain> > approx, const char* functions, const char* subsets)
-		 : IElemDisc<TDomain>(functions, subsets), m_spApproxSpace(approx), m_funcs(functions)
+		IChannel(const char* functions, const char* subsets)
+		 : IElemDisc<TDomain>(functions, subsets), m_funcs(functions)
 		   {
 			m_bNonRegularGrid = false;
 			register_all_funcs(m_bNonRegularGrid);
@@ -127,6 +131,9 @@ class IChannel
 	/// adding some jacobian infos at given vertex
 		virtual void Jacobi_sets(Vertex* v, std::vector<number>& outJFlux) = 0;
 
+	/// adding diffusion of ions
+		//virtual void set_diff(SmartPtr<std::vector<number> > diff) = 0;
+
 	public:
 	///	type of trial space for each function used
 		virtual void prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid);
@@ -139,10 +146,6 @@ class IChannel
 		///	current regular grid flag
 		bool m_bNonRegularGrid;
 
-		SmartPtr<TDomain> m_dom;					//!< underlying domain
-		SmartPtr<MultiGrid> m_mg;					//!< underlying multigrid
-		SmartPtr<DoFDistribution> m_dd;				//!< underlying surface dof distribution
-		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
 		//AdaptionSurfaceGridFunction<TDomain> m_AdaptSGF;
 		//using IElemDisc<TDomain>::dim;
 
@@ -193,12 +196,10 @@ class ChannelHH
 
 		IFunction<number>* m_Injection;
 
-		ChannelHH	  (	SmartPtr<ApproximationSpace<TDomain> > approx,
-						const char* functions,
+		ChannelHH	  (	const char* functions,
 						const char* subsets
 					  )
-		: IChannel<TDomain, TAlgebra>(approx, functions, subsets),
-		  			  m_dom(approx->domain()), m_mg(approx->domain()->grid()), m_dd(approx->dof_distribution(GridLevel::TOP)),
+		: IChannel<TDomain, TAlgebra>(functions, subsets),
 		  			  m_bNonRegularGrid(false)
 		  			  {
 						register_all_funcs(m_bNonRegularGrid);
@@ -229,10 +230,7 @@ class ChannelHH
 		void add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	protected:
-		SmartPtr<TDomain> m_dom;					//!< underlying domain
-		SmartPtr<Grid> m_mg;						//!< underlying multigrid
-		SmartPtr<DoFDistribution> m_dd;				//!< underlying surface dof distribution
-		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
+
 		bool m_bNonRegularGrid;
 
 
@@ -290,14 +288,15 @@ class ChannelHH
 			// params gatting
 			double m_accuracy;
 
+			//params for diffusion of ions
+			std::vector<number> m_diff;
+
 			IFunction<number>* m_Injection;
 
-			ChannelHHNernst	  (	SmartPtr<ApproximationSpace<TDomain> > approx,
-							const char* functions,
-							const char* subsets
-						  )
-			: IChannel<TDomain, TAlgebra>(approx, functions, subsets),
-			  			  m_dom(approx->domain()), m_mg(approx->domain()->grid()), m_dd(approx->dof_distribution(GridLevel::TOP)),
+			ChannelHHNernst	  (const char* functions,
+							   const char* subsets
+						  	  )
+			: IChannel<TDomain, TAlgebra>(functions, subsets),
 			  			  m_bNonRegularGrid(false)
 			  			  {
 							register_all_funcs(m_bNonRegularGrid);
@@ -318,8 +317,13 @@ class ChannelHH
 
 			void set_out_conc(number Na, number k);
 
+			void set_diff(SmartPtr<std::vector<number> > diff);
+
+
+
 
 			// inherited from IChannel
+
 			virtual void init(number time, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct);
 			virtual void update_gating(number newTime, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct);
 			virtual void ionic_current(Vertex* v, std::vector<number>& outCurrentValues);
@@ -330,10 +334,7 @@ class ChannelHH
 			void add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 		protected:
-			SmartPtr<TDomain> m_dom;					//!< underlying domain
-			SmartPtr<Grid> m_mg;						//!< underlying multigrid
-			SmartPtr<DoFDistribution> m_dd;				//!< underlying surface dof distribution
-			SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
+
 			bool m_bNonRegularGrid;
 
 

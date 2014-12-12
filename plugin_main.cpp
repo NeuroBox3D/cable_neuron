@@ -157,11 +157,14 @@ static void Domain__Algebra(bridge::Registry& reg, string grp)
 
 	//	VM-Disc class
 		{
+			typedef IChannel<TDomain, TAlgebra> TIChannel;
 			typedef VMDisc<TDomain, TAlgebra> T;
 			typedef IElemDisc<TDomain> TBase;
 			string name = string("VMDisc").append(suffix);
 			reg.add_class_<T, TBase >(name, grp)
-				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
+				.template add_constructor<void (*)(const char*, const char*, std::vector<SmartPtr<TIChannel> >, SmartPtr<ApproximationSpace<TDomain> > )>("Function(s)#Subset(s)")
+				//.add_method("create_GridFunc", &T::create_GridFunc)
+				.add_method("getApproxSpace" , &T::getApproxSpace)
 				.add_method("set_diameter", &T::set_diameter)
 				.add_method("set_spec_res", &T::set_spec_res)
 				.add_method("set_spec_cap", &T::set_spec_cap)
@@ -183,7 +186,7 @@ static void Domain__Algebra(bridge::Registry& reg, string grp)
 			typedef IChannel<TDomain, TAlgebra> TBase;
 			string name = string("ChannelHH").append(suffix);
 			reg.add_class_<T, TBase >(name, grp)
-				.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >, const char*,const char*)>("ApproxSpace#Function(s)#Subset(s)")
+				.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
 				.add_method("init", &T::init)
 				.add_method("update_gating", &T::update_gating)
 				.add_method("set_consts", &T::set_consts)
@@ -201,13 +204,14 @@ static void Domain__Algebra(bridge::Registry& reg, string grp)
 				typedef IChannel<TDomain, TAlgebra> TBase;
 				string name = string("ChannelHHNernst").append(suffix);
 				reg.add_class_<T, TBase >(name, grp)
-					.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >, const char*,const char*)>("ApproxSpace#Function(s)#Subset(s)")
+					.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
 					.add_method("init", &T::init)
 					.add_method("update_gating", &T::update_gating)
 					.add_method("set_out_conc", &T::set_out_conc)
 					.add_method("set_consts", &T::set_consts)
 					.add_method("set_accuracy", &T::set_accuracy)
 					.add_method("set_nernst_consts", &T::set_nernst_consts)
+					.add_method("set_diff", &T::set_diff)
 					//.add_method("ionic_current", /*static_cast<void (TBase::*) (Vertex*, std::vector<double>&)> (*/&T::ionic_current) /*, "","", "doing flux")*/
 					.set_construct_as_smart_pointer(true);
 				reg.add_class_to_group(name, "ChannelHHNernst", tag);

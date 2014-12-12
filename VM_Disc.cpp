@@ -28,12 +28,12 @@ void VMDisc<TDomain, TAlgebra>::
 set_diameter(const number d)
 {
 	// handle the attachment
-	if (m_spGridFct->approx_space()->domain()->grid()->has_vertex_attachment(m_aDiameter))
+	if (m_spApproxSpace->domain()->grid()->has_vertex_attachment(m_aDiameter))
 		UG_THROW("Radius attachment necessary for HH elem disc "
 				 "could not be made, since it already exists.");
-	m_spGridFct->approx_space()->domain()->grid()->attach_to_vertices_dv(m_aDiameter, d);
+	m_spApproxSpace->domain()->grid()->attach_to_vertices_dv(m_aDiameter, d);
 
-	m_aaDiameter = Grid::AttachmentAccessor<Vertex, ADouble>(*m_spGridFct->approx_space()->domain()->grid(), m_aDiameter);
+	m_aaDiameter = Grid::AttachmentAccessor<Vertex, ADouble>(*m_spApproxSpace->domain()->grid(), m_aDiameter);
 }
 
 template<typename TDomain, typename TAlgebra>
@@ -42,6 +42,13 @@ set_spec_res(number val)
 {
 	m_spec_res = val;
 }
+
+template<typename TDomain, typename TAlgebra>
+SmartPtr<ApproximationSpace<TDomain> > VMDisc<TDomain, TAlgebra>::getApproxSpace()
+{
+	return m_spApproxSpace;
+}
+
 
 template<typename TDomain, typename TAlgebra>
 void VMDisc<TDomain, TAlgebra>::
@@ -75,65 +82,14 @@ set_influx(number Flux, number x, number y, number z, number beg, number dur)
 }
 
 
-template<typename TDomain, typename TAlgebra>
-void VMDisc<TDomain, TAlgebra>::
+/*template<typename TDomain, typename TAlgebra>
+SmartPtr<GridFunction<TDomain, TAlgebra> > VMDisc<TDomain, TAlgebra>::
 create_GridFunc(SmartPtr<ApproximationSpace<TDomain> > approx)
 {
-	GridFunction<TDomain, TAlgebra> spGridFct = GridFunction<TDomain, TAlgebra>(approx);
-
-	for (size_t k = 0; k < m_channel.size(); k++)
-	{
-		std::string test = m_channel[k]->m_funcs;
-		size_t start = 0;
-		std::string new_func;
-		size_t end;
-		bool exists;
-		std::vector<std::string> allFct = spGridFct.names();
-
-	/// Adding all needed functions if not existent
-		while (test.find(",", start) != -1)
-		{
-			exists = false;
-			end = test.find(",", start);
-			new_func = test.substr(start, (end-start));
-			std::cout << "test: " << test << "start: "<< start << "end: " << end << std::endl;
-			start = end+2;
-			std::cout << "neue funktion" << new_func << std::endl;
-
-			// proves if function exists
-			for (size_t i = 0; i < allFct.size(); i++)
-				{if (allFct[i] == new_func) { exists = true; }}
-
-			if (exists == false)
-			{
-					// add function to space
-					std::cout << "tryes to add" << std::endl;
-					spGridFct.approx_space()->add(new_func.c_str(), "Lagrange", 1);
-					std::cout << "new function added" << std::endl;
-			}
-		}
-		// adding last func
-		new_func = test.substr(start);
-		// proves if function exists
-		for (size_t i = 0; i < allFct.size(); i++)
-			{if (allFct[i] == new_func) { exists = true; }}
-
-		if (exists == false)
-		{
-			// add function to space
-			std::cout << "tryes to add" << std::endl;
-			spGridFct.approx_space()->add(new_func.c_str(), "Lagrange", 1);
-			std::cout << "new function added" << std::endl;
-		}
-	std::cout << "neue funktion" << new_func << std::endl;
 
 
-
-
-	}
-	//m_spGridFct = spGridFct;
-	// here all channels init...
-}
+	return spGridPtr;
+}*/
 
 
 
@@ -243,16 +199,18 @@ void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector
 			// in 0 all Vms
 			for (int j=0; j<m_numb_funcs; j++)
 				{
-					AlloutCurrentValues[j] -= (outCurrentValues[j]);
+					AlloutCurrentValues[j] += (outCurrentValues[j]);
 				}
 		}
 
-
-
-
+		//std::cout << scv.volume() << std::endl;
+		//std::cout << m_numb_funcs << " - " << m_channel.size() <<std::endl;
+		//std::cout << "defekt adding does not work" << Diam << " - "<< _VM_ << " - "<< influx << " - "<< AlloutCurrentValues[0] << " - "<< scv.volume() <<std::endl;
 	/// Writing all into defekts
 		d(_VM_, co) += scv.volume()*PI*Diam *(AlloutCurrentValues[0]-influx);
 
+
+		//std::cout << "after setting defekt" << std::endl;
 	/// Now all other defektes needed to be added
 		for (int k=1; k < m_numb_funcs; k++)
 		{
@@ -287,9 +245,32 @@ void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector
 			// scale by 1/resistance and by length of element
 			diff_flux *= element_length / (m_spec_res*pre_resistance);
 
-			// add to local defect
+			// add to local defect of VM
 			d(_VM_, scvf.from()) -= diff_flux;
 			d(_VM_, scvf.to()  ) += diff_flux;
+
+			// add local defect of all others
+			for (int k=1; k < m_numb_funcs; k++)
+			{
+				VecSet(grad_c, 0.0);
+				for (size_t sh = 0; sh < scvf.num_sh(); ++sh)
+					VecScaleAppend(grad_c, u(k, sh), scvf.global_grad(sh));
+
+				// scalar product with normal
+				diff_flux = VecDot(grad_c, scvf.normal());
+
+				Diam_FromTo = 0.5 * (m_aaDiameter[pElem->vertex(scvf.from())]
+							         + m_aaDiameter[pElem->vertex(scvf.to())]);
+
+				//calculates pre_resistance
+				pre_resistance = volume / (0.25*PI*Diam_FromTo*Diam_FromTo);
+
+				// scale by 1/resistance and by length of element
+				diff_flux *= element_length / (m_diff[k-1]*pre_resistance);
+
+				d(k, scvf.from()) -= diff_flux;
+				d(k, scvf.to()  ) += diff_flux;
+			}
 		}
 		//std::cout << "def a elem ends" << std::endl;
 
@@ -331,8 +312,10 @@ void VMDisc<TDomain, TAlgebra>::add_def_M_elem(LocalVector& d, const LocalVector
 		std::cout << "time derivative: " << (PI*Diam*scv.volume()*u(_VM_, co)*spec_capacity) << std::endl;*/
 
 		// Nernst Paras time derivative
-		d(_Na_, co) += u(_Na_, co)*scv.volume()*0.25*PI*Diam*Diam;
-		d(_K_, co)  += u(_K_, co)*scv.volume()*0.25*PI*Diam*Diam;
+		for (int k=1; k < m_numb_funcs; k++)
+		{
+			d(k, co) += u(k, co)*scv.volume()*0.25*PI*Diam*Diam;
+		}
 
 		d(_VM_, co) += PI*Diam*scv.volume()*u(_VM_, co)*spec_capacity;
 	}
@@ -437,6 +420,26 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 			// add flux term to local matrix
 			J(_VM_, scvf.from(), _VM_, sh) -= d_diff_flux;
 			J(_VM_, scvf.to()  , _VM_, sh) += d_diff_flux;
+
+			for (int k=1; k < m_numb_funcs; k++)
+			{
+				// scalar product with normal
+				Diam_FromTo = 0.5 * (m_aaDiameter[pElem->vertex(scvf.from())]
+										  + m_aaDiameter[pElem->vertex(scvf.to())]);
+
+				pre_resistance = volume / (0.25*PI*Diam_FromTo*Diam_FromTo);
+
+
+				d_diff_flux = VecDot(scvf.global_grad(sh), scvf.normal());
+
+				// scale by 1/resistance and by length of element
+				d_diff_flux *= element_length / (m_diff[k-1]*pre_resistance);
+
+				// add flux term to local matrix
+				J(k, scvf.from(), k, sh) -= d_diff_flux;
+				J(k, scvf.to()  , k, sh) += d_diff_flux;
+			}
+
 		}
 	}
 }
@@ -469,10 +472,10 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 		// get spec capacity
 		number spec_capacity = m_spec_cap;
-
-		J(_Na_, co, _Na_, co) += 1.0*scv.volume()*0.25*PI*Diam*Diam;
-		J(_K_, co, _K_, co) += 1.0*scv.volume()*0.25*PI*Diam*Diam;
-
+		for (int k=1; k < m_numb_funcs; k++)
+		{
+			J(k, co, k, co) += 1.0*scv.volume()*0.25*PI*Diam*Diam;
+		}
 		// potential equation
 		J(_VM_, co, _VM_, co) += PI*Diam*scv.volume()*spec_capacity;
 	}
@@ -530,6 +533,7 @@ void VMDisc<TDomain, TAlgebra>::prepare_setting(const std::vector<LFEID>& vLfeID
 	// check number
 	if (vLfeID.size() < 1)
 		UG_THROW("VMDisc: Wrong number of functions given. Need min 1 function "<< 1);
+	//std::cout << "vLfeID size: " << (vLfeID.size()) << std::endl;
 
 	if (vLfeID[0].order() != 1 || vLfeID[0].type() != LFEID::LAGRANGE)
 		UG_THROW("VMDISC FV Scheme only implemented for 1st order.");
@@ -544,7 +548,7 @@ void VMDisc<TDomain, TAlgebra>::prepare_setting(const std::vector<LFEID>& vLfeID
 
 	//std::cout << "before prepare" << std::endl;
 	//VM always needed in this diskretication so it is easy only getting index of VM
-	/*for (int i = 0; i < m_numb_funcs; i++)
+	for (int i = 0; i < m_numb_funcs; i++)
 	{
 		if (m_funcs[i] == "VM")
 			_VM_ = m_spGridFct->fct_id_by_name(m_funcs[i]);
@@ -552,7 +556,7 @@ void VMDisc<TDomain, TAlgebra>::prepare_setting(const std::vector<LFEID>& vLfeID
 			_K_ = m_spGridFct->fct_id_by_name(m_funcs[i]);
 		if (m_funcs[i] == "Na")
 			_Na_ = m_spGridFct->fct_id_by_name(m_funcs[i]);
-	}*/
+	}
 	//std::cout << "after prepare" << std::endl;
 
 }

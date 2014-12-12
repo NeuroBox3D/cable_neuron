@@ -21,6 +21,7 @@
 #include "lib_disc/function_spaces/local_transfer_interface.h"
 #include "lib_disc/common/local_algebra.h"
 #include "lib_disc/function_spaces/grid_function.h"
+#include "lib_disc/function_spaces/interpolate.h"
 
 #include "bridge/bridge.h"
 #include "bridge/util.h"
@@ -36,6 +37,8 @@
 #include "common/util/vector_util.h"
 
 #include "channel_interface.h"
+
+
 
 
 
@@ -82,6 +85,8 @@ class VMDisc
 
 		// params gatting
 		double m_accuracy;
+		// list of all diffusions
+		std::vector<number> m_diff;
 
 		//lists for all influxes
 		std::vector<MathVector<dim> > m_coords;
@@ -101,10 +106,99 @@ class VMDisc
 
 	public:
 	///	Constructor
-		VMDisc(const char* functions, const char* subsets)
-		 : IElemDisc<TDomain>(functions, subsets), m_numb_funcs(0), _VM_(0), _K_(1), _Na_(2), m_aDiameter("diameter")
+		VMDisc(const char* functions, const char* subsets, std::vector<SmartPtr<TIChannel> > channels, SmartPtr<ApproximationSpace<TDomain> > approx)
+		 : IElemDisc<TDomain>(functions, subsets), m_numb_funcs(0), _VM_(0), m_aDiameter("diameter"), m_channel(channels), m_spApproxSpace(approx)
 		   {
+			GridFunction<TDomain, TAlgebra> spGridFct = GridFunction<TDomain, TAlgebra>(approx);
+				SmartPtr<GridFunction<TDomain, TAlgebra> > spGridPtr;
 
+				//spGridFct.m_bLocked = false;
+
+				for (size_t k = 0; k < m_channel.size(); k++)
+				{
+					std::string test = m_channel[k]->m_funcs;
+					size_t start = 0;
+					std::string new_func;
+					size_t end;
+					bool exists;
+					std::vector<std::string> allFct = spGridFct.names();
+
+				/// Adding all needed functions if not existent
+					while (test.find(",", start) != -1)
+					{
+						exists = false;
+						end = test.find(",", start);
+						new_func = test.substr(start, (end-start));
+						add_func(new_func.c_str());
+						//std::cout << "test: " << test << "start: "<< start << "end: " << end << std::endl;
+						start = end+2;
+						//std::cout << "neue funktion" << new_func << std::endl;
+
+						// proves if function exists
+						for (size_t i = 0; i < allFct.size(); i++)
+							{if (allFct[i] == new_func) { exists = true; }}
+
+						if (exists == false)
+						{
+								// add function to space
+								std::cout << "tryes to add" << std::endl;
+								spGridFct.approx_space()->add(new_func.c_str(), "Lagrange", 1);
+								//Interpolate(0.0 , spGridPtr, new_func.c_str(), 0.0);
+								std::cout << "new function added" << std::endl;
+
+
+								// for every channel we need also the diff coeffizients but only if it not was added before
+								for (size_t j = 0; j < m_channel[k]->m_diff.size(); j++)
+									{
+										m_diff.push_back(m_channel[k]->m_diff[j]);
+									}
+						}
+					}
+					// adding last func
+					new_func = test.substr(start);
+					add_func(new_func.c_str());
+					// proves if function exists
+					for (size_t i = 0; i < allFct.size(); i++)
+						{if (allFct[i] == new_func) { exists = true; }}
+
+					if (exists == false)
+					{
+						// add function to space
+						std::cout << "tryes to add" << std::endl;
+						spGridFct.approx_space()->add(new_func.c_str(), "Lagrange", 1);
+						//Interpolate(0.0 , spGridPtr, new_func.c_str(), 0.0);
+						std::cout << "new function added" << std::endl;
+
+
+						// for every channel we need also the diff coeffizients but only if ion not was added before
+						for (size_t j = 0; j < m_channel[k]->m_diff.size(); j++)
+							{
+								m_diff.push_back(m_channel[k]->m_diff[j]);
+							}
+					}
+					//std::cout << "neue funktion" << new_func << std::endl;
+
+
+
+				}
+
+				// sets approxSpace
+
+
+				// prepares return of Gridfunction needed by others
+
+
+				m_spApproxSpace = spGridFct.approx_space();
+				m_spApproxSpace->init_levels();
+				m_spApproxSpace->init_surfaces();
+				m_spApproxSpace->init_top_surface();
+				//m_spApproxSpace->print_statistic();
+				m_spApproxSpace->reinit();
+				GridFunction<TDomain, TAlgebra> spGridFct2 = GridFunction<TDomain, TAlgebra>(m_spApproxSpace);
+				spGridPtr = make_sp(&spGridFct2);
+				m_spGridFct = spGridPtr;
+
+				//spGridFct.m_bLocked = true;
 
 
 			m_bNonRegularGrid = false;
@@ -137,7 +231,7 @@ class VMDisc
 		//Add func
 		void add_func(const char* func);
 
-		void create_GridFunc(SmartPtr<ApproximationSpace<TDomain> > approx);
+		SmartPtr<ApproximationSpace<TDomain> > getApproxSpace();
 
 
 	// inherited from IElemDisc
