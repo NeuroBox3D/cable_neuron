@@ -83,7 +83,7 @@ class VMDisc
 		// params gatting
 		double m_accuracy;
 		// list of all diffusions
-		std::vector<number> m_diff;
+		std::vector<number> m_diff_Vm;
 
 		//lists for all influxes
 		std::vector<MathVector<dim> > m_coords;
@@ -124,7 +124,10 @@ class VMDisc
 				std::string new_func;
 				size_t end;
 				bool exists;
+				SmartPtr<TIChannel> Channel = m_channel[k];
 				std::vector<std::string> allFct = m_spApproxSpace->names();
+				std::cout << "in VM channel diff" << m_channel[k]->m_funcs << std::endl;
+				std::cout << "in VM channel diff" << Channel->m_diff.size() << std::endl;
 
 			/// Adding all needed functions if not existent
 				while (test.find(",", start) != test.npos)
@@ -150,10 +153,12 @@ class VMDisc
 							std::cout << "new function added" << std::endl;
 
 
+							std::cout << "m_diff size: " << m_channel[k]->m_diff.size() << std::endl;
 							// for every channel we need also the diff coeffizients but only if it not was added before
 							for (size_t j = 0; j < m_channel[k]->m_diff.size(); j++)
 								{
-									m_diff.push_back(m_channel[k]->m_diff[j]);
+									std::cout << "pushback m_diff" << std::endl;
+									m_diff_Vm.push_back(m_channel[k]->m_diff[j]);
 								}
 					}
 				}
@@ -176,7 +181,8 @@ class VMDisc
 					// for every channel we need also the diff coeffizients but only if ion not was added before
 					for (size_t j = 0; j < m_channel[k]->m_diff.size(); j++)
 						{
-							m_diff.push_back(m_channel[k]->m_diff[j]);
+							std::cout << "pushback m_diff" << std::endl;
+							m_diff_Vm.push_back(m_channel[k]->m_diff[j]);
 						}
 				}
 				//std::cout << "neue funktion" << new_func << std::endl;

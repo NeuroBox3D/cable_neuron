@@ -120,6 +120,8 @@ class IChannel
 	/** During the initialization, the necessary attachments are attached to the vertices
 	 *	and their values calculated by the equilibrium state for the start membrane potential.
 	**/
+		virtual void set_diff(const std::vector<number>& diff) = 0;
+
 		virtual void init(number time, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct) = 0;
 
 	/// updates the gating parameters
@@ -191,6 +193,7 @@ class ChannelHH
 		number m_sodium;
 		number m_potassium;
 
+		std::vector<number> m_diff;
 		// params gatting
 		double m_accuracy;
 
@@ -220,6 +223,7 @@ class ChannelHH
 
 
 		// inherited from IChannel
+		virtual void set_diff(const std::vector<number>& diff);
 		virtual void init(number time, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct);
 		virtual void update_gating(number newTime, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct);
 		virtual void ionic_current(Vertex* v, std::vector<number>& outCurrentValues);
@@ -290,8 +294,6 @@ class ChannelHH
 			//params for diffusion of ions
 			std::vector<number> m_diff;
 
-			IFunction<number>* m_Injection;
-
 			/// constructor
 			ChannelHHNernst	  (const char* functions,
 							   const char* subsets
@@ -317,13 +319,13 @@ class ChannelHH
 
 			void set_out_conc(number Na, number k);
 
-			void set_diff(const std::vector<number>& diff);
+
 
 
 
 
 			// inherited from IChannel
-
+			virtual void set_diff(const std::vector<number>& diff);
 			virtual void init(number time, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct);
 			virtual void update_gating(number newTime, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct);
 			virtual void ionic_current(Vertex* v, std::vector<number>& outCurrentValues);

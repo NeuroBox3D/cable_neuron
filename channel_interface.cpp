@@ -113,7 +113,18 @@ set_rev_pot(number R_Na, number R_K)
 
 }
 
-
+template<typename TDomain, typename TAlgebra>
+void ChannelHH<TDomain, TAlgebra>::
+set_diff(const std::vector<number>& diff)
+{
+	std::cout << "diff paras: " << diff.size() << " , " << diff[0] << std::endl;
+	for (size_t i = 0; i < diff.size(); i++)
+	{
+		m_diff.push_back(diff[i]);
+	}
+	std::cout << "diff paras2222: " << m_diff.size() << " , " << m_diff[0] << std::endl;
+	std::cout << "ich werd net mehr" << std::endl;
+}
 
 
 // Methods for using gatings
@@ -152,8 +163,7 @@ void ChannelHH<TDomain, TAlgebra>::init(number time, SmartPtr<GridFunction<TDoma
 
 	// creates Multi index
 	std::vector<DoFIndex> multInd;
-	SmartPtr<DoFDistribution> dd;
-	//SmartPtr<vector_type> spU;
+
 
 
 
@@ -162,7 +172,6 @@ void ChannelHH<TDomain, TAlgebra>::init(number time, SmartPtr<GridFunction<TDoma
 	try { ssGrp = SubsetGroup(spGridFct->approx_space()->domain()->subset_handler(), this->m_vSubset);}
 	UG_CATCH_THROW("Subset group creation failed.");
 
-	const typename TDomain::position_accessor_type& aaPos = spGridFct->approx_space()->domain()->position_accessor();
 	for (std::size_t si = 0; si < ssGrp.size(); si++)
 	{
 		itType iterBegin = spGridFct->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]);
@@ -171,21 +180,10 @@ void ChannelHH<TDomain, TAlgebra>::init(number time, SmartPtr<GridFunction<TDoma
 		for (itType iter = iterBegin; iter != iterEnd; ++iter)
 		{
 
-			// TODO getting potential out of approxSpace into attachement
-			// TODO later the number of attachements needs to be variable, also some outer concentrations have to be given
-
 			// needed konzentration has to be set
 			size_t VM = spGridFct->fct_id_by_name("VM");
 			//std::cout << "VM: " << VM << std::endl;
 
-
-			//const
-			//getting exakt index of value
-			//dd->inner_dof_indices(*iter, fct, multInd);
-			// has to be the solvung values
-
-			number test = multInd[0][0];
-			number sub;// = spGridFct[test];
 
 			Vertex* vrt = *iter;
 
@@ -193,7 +191,7 @@ void ChannelHH<TDomain, TAlgebra>::init(number time, SmartPtr<GridFunction<TDoma
 			spGridFct->dof_indices(vrt, VM, multInd);
 
 
-			for (int i=0; i<multInd.size(); i++)
+			for (size_t i=0; i<multInd.size(); i++)
 			{
 				m_aaVm[*iter] = DoFRef(*spGridFct, multInd[i]);
 			}
@@ -247,7 +245,6 @@ void ChannelHH<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<GridFu
 	UG_CATCH_THROW("Subset group creation failed.");
 
 
-	const typename TDomain::position_accessor_type& aaPos = spGridFct->approx_space()->domain()->position_accessor();
 	for (std::size_t si = 0; si < ssGrp.size(); si++)
 	{
 		itType iterBegin = spGridFct->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]);
@@ -268,7 +265,7 @@ void ChannelHH<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<GridFu
 			spGridFct->dof_indices(vrt, VM, multInd);
 
 			//update Vm
-			for (int i=0; i<multInd.size(); i++)
+			for (size_t i=0; i<multInd.size(); i++)
 			{
 				m_aaVm[*iter] = DoFRef(*spGridFct, multInd[i]);
 			}
@@ -418,8 +415,12 @@ template<typename TDomain, typename TAlgebra>
 void ChannelHHNernst<TDomain, TAlgebra>::
 set_diff(const std::vector<number>& diff)
 {
+	std::cout << "diff paras: " << diff.size() << " , " << diff[0] << std::endl;
 	for (size_t i = 0; i < diff.size(); i++)
+	{
 		m_diff.push_back(diff[i]);
+	}
+	std::cout << "diff paras2222: " << m_diff.size() << " , " << m_diff[0] << std::endl;
 }
 
 // Methods for using gatings
@@ -481,7 +482,6 @@ void ChannelHHNernst<TDomain, TAlgebra>::init(number time, SmartPtr<GridFunction
 	try { ssGrp = SubsetGroup(spGridFct->domain()->subset_handler(), this->m_vSubset);}
 	UG_CATCH_THROW("Subset group creation failed.");
 
-	const typename TDomain::position_accessor_type& aaPos = spGridFct->domain()->position_accessor();
 	for (std::size_t si = 0; si < ssGrp.size(); si++)
 	{
 		itType iterBegin = spGridFct->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]);
@@ -497,15 +497,6 @@ void ChannelHHNernst<TDomain, TAlgebra>::init(number time, SmartPtr<GridFunction
 			size_t Na = spGridFct->fct_id_by_name("Na");
 			//std::cout << "VM: " << VM << std::endl;
 
-			//std::cout << "fct id is working" << "VM: " << VM << " K: " << K << " Na: " << Na << std::endl;
-
-			//const
-			//getting exakt index of value
-			//dd->inner_dof_indices(*iter, fct, multInd);
-			// has to be the solvung values
-
-			//number test = multInd[0][0];
-			number sub;// = spGridFct[test];
 
 			//Vertex* vrt = *iter;
 
@@ -520,7 +511,7 @@ void ChannelHHNernst<TDomain, TAlgebra>::init(number time, SmartPtr<GridFunction
 			//std::cout<< "getting dof_indices works" << std::endl;
 
 			// Setting start values
-			for (int i=0; i<multInd.size(); i++)
+			for (size_t i=0; i<multInd.size(); i++)
 			{
 				m_aaVm[*iter] = DoFRef(*spGridFct, multInd[i]);
 				// sets start values
@@ -577,7 +568,6 @@ void ChannelHHNernst<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<
 	UG_CATCH_THROW("Subset group creation failed.");
 
 
-	const typename TDomain::position_accessor_type& aaPos = spGridFct->domain()->position_accessor();
 	for (std::size_t si = 0; si < ssGrp.size(); si++)
 	{
 		itType iterBegin = spGridFct->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]);
@@ -603,7 +593,7 @@ void ChannelHHNernst<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<
 			spGridFct->dof_indices(*iter, Na, multIndNa);
 
 			// updating all Vars
-			for (int i=0; i<multInd.size(); i++)
+			for (size_t i=0; i<multInd.size(); i++)
 			{
 				m_aaVm[*iter] = DoFRef(*spGridFct, multInd[i]);
 				m_aaK[*iter] = DoFRef(*spGridFct, multIndK[i]);

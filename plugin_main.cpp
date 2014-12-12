@@ -156,32 +156,6 @@ static void Domain__Algebra(bridge::Registry& reg, string grp)
 		}
 
 
-
-	//	VM-Disc class
-		{
-			typedef IChannel<TDomain, TAlgebra> TIChannel;
-			typedef VMDisc<TDomain, TAlgebra> T;
-			typedef IElemDisc<TDomain> TBase;
-			string name = string("VMDisc").append(suffix);
-			reg.add_class_<T, TBase >(name, grp)
-				.template add_constructor<void (*)(const char*, const char*, std::vector<SmartPtr<TIChannel> >, SmartPtr<ApproximationSpace<TDomain> > )>("Function(s)#Subset(s)")
-				//.add_method("create_GridFunc", &T::create_GridFunc)
-				.add_method("getApproxSpace" , &T::getApproxSpace)
-				.add_method("set_diameter", &T::set_diameter)
-				.add_method("set_spec_res", &T::set_spec_res)
-				.add_method("set_spec_cap", &T::set_spec_cap)
-				.add_method("add_channel", &T::add_channel)
-				.add_method("set_influx", &T::set_influx)
-				.add_method("set_influx_ac", &T::set_influx_ac)
-				.add_method("add_func", &T::add_func)
-				.set_construct_as_smart_pointer(true);
-			reg.add_class_to_group(name, "VMDisc", tag);
-		}
-
-
-
-
-
 	//	Channel Interface HH
 		{
 			typedef ChannelHH<TDomain, TAlgebra> T;
@@ -194,6 +168,7 @@ static void Domain__Algebra(bridge::Registry& reg, string grp)
 				.add_method("set_consts", &T::set_consts)
 				.add_method("set_rev_pot", &T::set_rev_pot)
 				.add_method("set_accuracy", &T::set_accuracy)
+				.add_method("set_diff", &T::set_diff)
 				//.add_method("ionic_current", /*static_cast<void (TBase::*) (Vertex*, std::vector<double>&)> (*/&T::ionic_current) /*, "","", "doing flux")*/
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "ChannelHH", tag);
@@ -217,6 +192,28 @@ static void Domain__Algebra(bridge::Registry& reg, string grp)
 					//.add_method("ionic_current", /*static_cast<void (TBase::*) (Vertex*, std::vector<double>&)> (*/&T::ionic_current) /*, "","", "doing flux")*/
 					.set_construct_as_smart_pointer(true);
 				reg.add_class_to_group(name, "ChannelHHNernst", tag);
+			}
+
+
+		//	VM-Disc class
+			{
+				typedef IChannel<TDomain, TAlgebra> TIChannel;
+				typedef VMDisc<TDomain, TAlgebra> T;
+				typedef IElemDisc<TDomain> TBase;
+				string name = string("VMDisc").append(suffix);
+				reg.add_class_<T, TBase >(name, grp)
+					.template add_constructor<void (*)(const char*, const char*, std::vector<SmartPtr<TIChannel> >, SmartPtr<ApproximationSpace<TDomain> > )>("Function(s)#Subset(s)")
+					//.add_method("create_GridFunc", &T::create_GridFunc)
+					.add_method("getApproxSpace" , &T::getApproxSpace)
+					.add_method("set_diameter", &T::set_diameter)
+					.add_method("set_spec_res", &T::set_spec_res)
+					.add_method("set_spec_cap", &T::set_spec_cap)
+					.add_method("add_channel", &T::add_channel)
+					.add_method("set_influx", &T::set_influx)
+					.add_method("set_influx_ac", &T::set_influx_ac)
+					.add_method("add_func", &T::add_func)
+					.set_construct_as_smart_pointer(true);
+				reg.add_class_to_group(name, "VMDisc", tag);
 			}
 
 }

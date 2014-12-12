@@ -221,6 +221,7 @@ void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector
 	}
 
 	// cable equation, "diffusion" part
+	std::cout << "diff flux" << std::endl;
 		MathVector<dim> grad_c;
 
 		for (size_t ip = 0; ip < geo.num_scvf(); ++ip)
@@ -248,8 +249,7 @@ void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector
 			// add to local defect of VM
 			d(_VM_, scvf.from()) -= diff_flux;
 			d(_VM_, scvf.to()  ) += diff_flux;
-
-			/*
+			std::cout << "m_diff ist doof" << std::endl;
 			// add local defect of all others
 			for (int k=1; k < m_numb_funcs; k++)
 			{
@@ -267,12 +267,12 @@ void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector
 				pre_resistance = volume / (0.25*PI*Diam_FromTo*Diam_FromTo);
 
 				// scale by 1/resistance and by length of element
-				diff_flux *= element_length / (m_diff[k-1]*pre_resistance);
+				std::cout << "diff k-1: " << m_diff_Vm[k-1] << std::endl;
+				diff_flux *= element_length / (m_diff_Vm[k-1]*pre_resistance);
 
 				d(k, scvf.from()) -= diff_flux;
 				d(k, scvf.to()  ) += diff_flux;
 			}
-			*/
 
 		}
 		//std::cout << "def a elem ends" << std::endl;
@@ -424,7 +424,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 			J(_VM_, scvf.from(), _VM_, sh) -= d_diff_flux;
 			J(_VM_, scvf.to()  , _VM_, sh) += d_diff_flux;
 
-			/*
+
 			for (int k=1; k < m_numb_funcs; k++)
 			{
 				// scalar product with normal
@@ -437,13 +437,13 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 				d_diff_flux = VecDot(scvf.global_grad(sh), scvf.normal());
 
 				// scale by 1/resistance and by length of element
-				d_diff_flux *= element_length / (m_diff[k-1]*pre_resistance);
+				d_diff_flux *= element_length / (m_diff_Vm[k-1]*pre_resistance);
 
 				// add flux term to local matrix
 				J(k, scvf.from(), k, sh) -= d_diff_flux;
 				J(k, scvf.to()  , k, sh) += d_diff_flux;
 			}
-			*/
+
 		}
 	}
 }
