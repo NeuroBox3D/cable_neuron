@@ -221,7 +221,7 @@ void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector
 	}
 
 	// cable equation, "diffusion" part
-	std::cout << "diff flux" << std::endl;
+	//std::cout << "diff flux" << std::endl;
 		MathVector<dim> grad_c;
 
 		for (size_t ip = 0; ip < geo.num_scvf(); ++ip)
@@ -249,7 +249,7 @@ void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector
 			// add to local defect of VM
 			d(_VM_, scvf.from()) -= diff_flux;
 			d(_VM_, scvf.to()  ) += diff_flux;
-			std::cout << "m_diff ist doof" << std::endl;
+			//std::cout << "m_diff ist doof" << std::endl;
 			// add local defect of all others
 			for (int k=1; k < m_numb_funcs; k++)
 			{
@@ -267,7 +267,8 @@ void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector
 				pre_resistance = volume / (0.25*PI*Diam_FromTo*Diam_FromTo);
 
 				// scale by 1/resistance and by length of element
-				std::cout << "diff k-1: " << m_diff_Vm[k-1] << std::endl;
+				//std::cout << "m_diff_VM ist doof" << std::endl;
+				//std::cout << "diff k-1: " << m_diff_Vm[k-1] << std::endl;
 				diff_flux *= element_length / (m_diff_Vm[k-1]*pre_resistance);
 
 				d(k, scvf.from()) -= diff_flux;

@@ -114,6 +114,13 @@ set_rev_pot(number R_Na, number R_K)
 }
 
 template<typename TDomain, typename TAlgebra>
+const std::vector<number> ChannelHH<TDomain, TAlgebra>::
+get_diff()
+{
+	return m_diff;
+}
+
+template<typename TDomain, typename TAlgebra>
 void ChannelHH<TDomain, TAlgebra>::
 set_diff(const std::vector<number>& diff)
 {
@@ -382,6 +389,12 @@ set_accuracy(double ac)
 	m_accuracy = ac;
 }
 
+template<typename TDomain, typename TAlgebra>
+const std::vector<number> ChannelHHNernst<TDomain, TAlgebra>::
+get_diff()
+{
+	return m_diff;
+}
 
 template<typename TDomain, typename TAlgebra>
 void ChannelHHNernst<TDomain, TAlgebra>::
@@ -669,17 +682,18 @@ void ChannelHHNernst<TDomain, TAlgebra>::ionic_current(Vertex* v, std::vector<nu
 	// nernst potential of potassium and sodium
 	//std::cout << "K: " << K << " Na: " << Na << " VM: " << VM << std::endl;
 
-	const number potassium_nernst_eq 	= helpV*(log(m_K_out/K));
-	const number sodium_nernst_eq	 	= -helpV*(log(m_Na_out/Na));
+	std::cout << "m_Na: " << m_Na_out << " m_K_out: " <<  m_K_out << std::endl;
+	number potassium_nernst_eq 	= helpV*(log(m_K_out/K));
+	number sodium_nernst_eq	 	= -helpV*(log(m_Na_out/Na));
 
 
 	//std::cout << "potassium_nernst_eq: " << potassium_nernst_eq << std::endl;
 	//std::cout << "sodium_nernst_eq: " << sodium_nernst_eq << std::endl;
 
 	// single channel type fluxes
-	const number potassium_part_of_flux = m_g_K * pow(NGate,4) * (VM - potassium_nernst_eq);
-	const number sodium_part_of_flux =  m_g_Na * pow(MGate,3) * HGate * (VM + sodium_nernst_eq);
-	const number leakage_part_of_flux = m_g_I * (VM + 54.4);
+	number potassium_part_of_flux = m_g_K * pow(NGate,4) * (VM - potassium_nernst_eq);
+	number sodium_part_of_flux =  m_g_Na * pow(MGate,3) * HGate * (VM - sodium_nernst_eq);
+	number leakage_part_of_flux = m_g_I * (VM + 54.4);
 
 	//std::cout << "potassium_part_of_flux: " << potassium_part_of_flux << std::endl;
 
@@ -688,9 +702,11 @@ void ChannelHHNernst<TDomain, TAlgebra>::ionic_current(Vertex* v, std::vector<nu
 	outCurrentValues.push_back(potassium_part_of_flux/m_F);
 	outCurrentValues.push_back(sodium_part_of_flux/m_F);
 
-
-	//std::cout << "outCurrentValues: " << outCurrentValues[0] << ", " << outCurrentValues[1] << ", " << outCurrentValues[2] << ", " << std::endl;
+	std::cout << "leakeage term: " << leakage_part_of_flux << std::endl;
+	std::cout << "outCurrentValues: " << outCurrentValues[0] << ", " << outCurrentValues[1] << ", " << outCurrentValues[2] << ", " << std::endl;
 	//std::cout << "end ionic current" << std::endl;
+
+
 }
 
 
