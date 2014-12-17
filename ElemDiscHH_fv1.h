@@ -38,6 +38,9 @@ class ElemDiscHH_FV1 : public ElemDiscHH_Base<TDomain>
 		ElemDiscHH_FV1(SmartPtr<ApproximationSpace<TDomain> > approx,
 				const char* functions, const char* subsets);
 
+
+
+
 		// set diameter for dendrit
 		void set_diameter(const number d);
 

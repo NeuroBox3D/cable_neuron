@@ -99,7 +99,7 @@ class VMDisc
 
 		//funcs params
 		std::vector<const char*> m_funcs;
-		number m_numb_funcs;
+		int m_numb_funcs;
 
 	public:
 	///	Constructor
@@ -119,6 +119,7 @@ class VMDisc
 
 			for (size_t k = 0; k < m_channel.size(); k++)
 			{
+				size_t position = 0;
 				std::string test = m_channel[k]->m_funcs;
 				size_t start = 0;
 				std::string new_func;
@@ -127,7 +128,11 @@ class VMDisc
 				SmartPtr<TIChannel> Channel = m_channel[k];
 				std::vector<std::string> allFct = m_spApproxSpace->names();
 				std::cout << "in VM channel diff" << m_channel[k]->m_funcs << std::endl;
-				std::cout << "in VM channel diff" << Channel->m_diff.size() << std::endl;
+				//std::cout << "in VM channel diff" << m_channel[k]->m_diff << std::endl;
+				std::vector<number> neuer;
+				neuer.resize(m_channel[k]->get_diff().size());
+				neuer = m_channel[k]->get_diff();
+				//std::cout << neuer.size() << "geht doch!" << std::endl;
 
 			/// Adding all needed functions if not existent
 				while (test.find(",", start) != test.npos)
@@ -135,79 +140,63 @@ class VMDisc
 					exists = false;
 					end = test.find(",", start);
 					new_func = test.substr(start, (end-start));
-					add_func(new_func.c_str());
 					//std::cout << "test: " << test << "start: "<< start << "end: " << end << std::endl;
 					start = end+2;
 					//std::cout << "neue funktion" << new_func << std::endl;
 
 					// proves if function exists
 					for (size_t i = 0; i < allFct.size(); i++)
-						{if (allFct[i] == new_func) { exists = true; }}
-
+						{if (allFct[i] == new_func) { exists = true;}}
 					if (exists == false)
 					{
 							// add function to space
-							std::cout << "tryes to add" << std::endl;
+							//std::cout << "tryes to add" << std::endl;
+							add_func(new_func.c_str());
 							m_spApproxSpace->add(new_func.c_str(), "Lagrange", 1);
 							//Interpolate(0.0 , spGridPtr, new_func.c_str(), 0.0);
-							std::cout << "new function added" << std::endl;
+							//std::cout << "new function added" << std::endl;
 
 
-							std::cout << "m_diff size: " << m_channel[k]->m_diff.size() << std::endl;
+							//std::cout << "m_diff size: " << m_channel[k]->m_diff.size() << std::endl;
 							// for every channel we need also the diff coeffizients but only if it not was added before
-							for (size_t j = 0; j < m_channel[k]->m_diff.size(); j++)
-								{
-									std::cout << "pushback m_diff" << std::endl;
-									m_diff_Vm.push_back(m_channel[k]->m_diff[j]);
-								}
+							std::cout << "pushback m_diff postion" << std::endl;
+							if (position <= neuer.size())
+							{
+								m_diff_Vm.push_back(neuer[position]);
+								position +=1;
+							} else {UG_THROW("Need to set diffusion coeffizient for ion " + new_func + " with set_diff(<LuaTable>)" +
+									" if you do not need diffusion set to 0.");}
 					}
 				}
 				// adding last func
 				new_func = test.substr(start);
-				add_func(new_func.c_str());
 				// proves if function exists
 				for (size_t i = 0; i < allFct.size(); i++)
-					{if (allFct[i] == new_func) { exists = true; }}
+					{if (allFct[i] == new_func) { exists = true;}}
 
 				if (exists == false)
 				{
 					// add function to space
-					std::cout << "tryes to add" << std::endl;
+					//std::cout << "tryes to add" << std::endl;
+					add_func(new_func.c_str());
 					m_spApproxSpace->add(new_func.c_str(), "Lagrange", 1);
 					//Interpolate(0.0 , spGridPtr, new_func.c_str(), 0.0);
-					std::cout << "new function added" << std::endl;
+					//std::cout << "new function added" << std::endl;
 
 
-					// for every channel we need also the diff coeffizients but only if ion not was added before
-					for (size_t j = 0; j < m_channel[k]->m_diff.size(); j++)
-						{
-							std::cout << "pushback m_diff" << std::endl;
-							m_diff_Vm.push_back(m_channel[k]->m_diff[j]);
-						}
+					//std::cout << "pushback m_diff" << std::endl;
+					if (position <= neuer.size())
+					{
+						m_diff_Vm.push_back(neuer[position]);
+						position +=1;
+					} else {UG_THROW("Need to set diffusion coeffizient for ion " + new_func + " with set_diff(<LuaTable>)" +
+							" if you do not need diffusion set to 0.");}
 				}
 				//std::cout << "neue funktion" << new_func << std::endl;
 
 
 
 			}
-
-			// sets approxSpace
-
-
-			// prepares return of Gridfunction needed by others
-			/*
-			m_spApproxSpace->init_levels();
-			m_spApproxSpace->init_surfaces();
-			m_spApproxSpace->init_top_surface();
-			//m_spApproxSpace->print_statistic();
-			//m_spApproxSpace->reinit();
-			GridFunction<TDomain, TAlgebra> spGridFct2 = GridFunction<TDomain, TAlgebra>(m_spApproxSpace);
-			spGridPtr = make_sp(&spGridFct2);
-			m_spGridFct = spGridPtr;
-
-			*/
-
-			//spGridFct.m_bLocked = true;
 
 
 		m_bNonRegularGrid = false;
@@ -241,6 +230,10 @@ class VMDisc
 		void add_func(const char* func);
 
 		SmartPtr<ApproximationSpace<TDomain> > getApproxSpace();
+
+	/// Functions for using different Ions
+
+		size_t get_index(std::string s);
 
 
 	// inherited from IElemDisc

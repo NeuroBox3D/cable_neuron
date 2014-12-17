@@ -119,7 +119,7 @@ template<typename TElem, typename TFVGeom>
 void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 
-	//std::cout << "deff a elem starts" << std::endl;
+	std::cout << "deff a elem starts" << std::endl;
 
 	// get finite volume geometry
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
@@ -138,8 +138,9 @@ void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector
 	for (size_t ip = 0; ip < geo.num_scv(); ++ip)
 	{
 
-		std::vector<double> outCurrentValues;
+
 		std::vector<double> AlloutCurrentValues;
+		//std::vector<double> outCurrentValues;
 
 		// get current SCV
 		const typename TFVGeom::SCV& scv = geo.scv(ip);
@@ -185,43 +186,49 @@ void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector
 		}
 
 		// for all functions space is needed
-		for (int i=0; i<m_numb_funcs; i++)
+		for (int i=0; i<m_numb_funcs+1; i++)
 		{
 			AlloutCurrentValues.push_back(0);
 		}
 
 	/// Channel defekt adding
 		for (size_t i = 0; i < m_channel.size(); i++)
-		{
+		{ 	std::vector<double> outCurrentValues;
 			// values we are getting from ionic_flux function in channels
 			m_channel[i].get()->ionic_current(pElem->vertex(co), outCurrentValues);
-			// adding defekt from every channel
-			// in 0 all Vms
-			for (int j=0; j<m_numb_funcs; j++)
+
+			//TODO perhaps here is a problem need to get on which funcs this channel is working
+
+			std::vector<std::string> funktions = m_channel[i].get()->m_wfunc;
+
+			// adding defekt from every channel for every ion
+			for (size_t j = 0; j < outCurrentValues.size(); j++)
 				{
-					AlloutCurrentValues[j] += (outCurrentValues[j]);
+					std::cout << "index: " << get_index(funktions[j]) << "value: " << outCurrentValues[j] << std::endl;
+					AlloutCurrentValues[get_index(funktions[j])] += (outCurrentValues[j]);
 				}
 		}
 
-		//std::cout << scv.volume() << std::endl;
+		std::cout << scv.volume() << std::endl;
 		//std::cout << m_numb_funcs << " - " << m_channel.size() <<std::endl;
 		//std::cout << "defekt adding does not work" << Diam << " - "<< _VM_ << " - "<< influx << " - "<< AlloutCurrentValues[0] << " - "<< scv.volume() <<std::endl;
 	/// Writing all into defekts
 		d(_VM_, co) += scv.volume()*PI*Diam *(AlloutCurrentValues[0]-influx);
 
-
+		std::cout << "Vm defekt: " << d(_VM_, co) << std::endl;
 		//std::cout << "after setting defekt" << std::endl;
 	/// Now all other defektes needed to be added
-		for (int k=1; k < m_numb_funcs; k++)
+		for (int k = 1; k < m_numb_funcs+1; k++)
 		{
 			d(k, co) += scv.volume()*PI*Diam*AlloutCurrentValues[k];
+			std::cout << "defekt changes: " << d(k, co) << " by k " << k << " AlloutVal " << AlloutCurrentValues[k] << std::endl;
 		}
 
 		//std::cout << "defekt changes: "<< d(_VM_, co) << std::endl;
 	}
 
 	// cable equation, "diffusion" part
-	//std::cout << "diff flux" << std::endl;
+	std::cout << "diff flux" << std::endl;
 		MathVector<dim> grad_c;
 
 		for (size_t ip = 0; ip < geo.num_scvf(); ++ip)
@@ -251,7 +258,7 @@ void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector
 			d(_VM_, scvf.to()  ) += diff_flux;
 			//std::cout << "m_diff ist doof" << std::endl;
 			// add local defect of all others
-			for (int k=1; k < m_numb_funcs; k++)
+			for (int k=1; k < m_numb_funcs+1; k++)
 			{
 				VecSet(grad_c, 0.0);
 				for (size_t sh = 0; sh < scvf.num_sh(); ++sh)
@@ -269,14 +276,15 @@ void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector
 				// scale by 1/resistance and by length of element
 				//std::cout << "m_diff_VM ist doof" << std::endl;
 				//std::cout << "diff k-1: " << m_diff_Vm[k-1] << std::endl;
+				// TODO here the same as above
 				diff_flux *= element_length / (m_diff_Vm[k-1]*pre_resistance);
-
+				if (m_diff_Vm[k-1] == 0) {diff_flux = 0;}
 				d(k, scvf.from()) -= diff_flux;
 				d(k, scvf.to()  ) += diff_flux;
 			}
 
 		}
-		//std::cout << "def a elem ends" << std::endl;
+		std::cout << "def a elem ends" << std::endl;
 
 
 
@@ -287,7 +295,7 @@ template<typename TDomain, typename TAlgebra>
 template<typename TElem, typename TFVGeom>
 void VMDisc<TDomain, TAlgebra>::add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
-	//std::cout << "add def m elem start" << std::endl;
+	std::cout << "add def m elem start" << std::endl;
 	// get finite volume geometry
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
@@ -316,7 +324,8 @@ void VMDisc<TDomain, TAlgebra>::add_def_M_elem(LocalVector& d, const LocalVector
 		std::cout << "time derivative: " << (PI*Diam*scv.volume()*u(_VM_, co)*spec_capacity) << std::endl;*/
 
 		// Nernst Paras time derivative
-		for (int k=1; k < m_numb_funcs; k++)
+		std::cout << "num functions: " << m_numb_funcs+1 << std::endl;
+		for (int k=1; k < m_numb_funcs+1; k++)
 		{
 			d(k, co) += u(k, co)*scv.volume()*0.25*PI*Diam*Diam;
 		}
@@ -325,7 +334,7 @@ void VMDisc<TDomain, TAlgebra>::add_def_M_elem(LocalVector& d, const LocalVector
 	}
 
 
-	//std::cout << "add def m elem end" << std::endl;
+	std::cout << "add def m elem end" << std::endl;
 }
 
 template<typename TDomain, typename TAlgebra>
@@ -334,6 +343,7 @@ void VMDisc<TDomain, TAlgebra>::
 add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 // get finite volume geometry
+	std::cout << "add_jac_A_elem" << std::endl;
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
 	number element_length = 0.0;
@@ -426,7 +436,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 			J(_VM_, scvf.to()  , _VM_, sh) += d_diff_flux;
 
 
-			for (int k=1; k < m_numb_funcs; k++)
+			for (int k=1; k < m_numb_funcs+1; k++)
 			{
 				// scalar product with normal
 				Diam_FromTo = 0.5 * (m_aaDiameter[pElem->vertex(scvf.from())]
@@ -441,12 +451,14 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 				d_diff_flux *= element_length / (m_diff_Vm[k-1]*pre_resistance);
 
 				// add flux term to local matrix
+				if (m_diff_Vm[k-1] == 0) {d_diff_flux = 0;}
 				J(k, scvf.from(), k, sh) -= d_diff_flux;
 				J(k, scvf.to()  , k, sh) += d_diff_flux;
 			}
 
 		}
 	}
+	std::cout << "add_jac_A_elem ends" << std::endl;
 }
 
 
@@ -477,7 +489,7 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 		// get spec capacity
 		number spec_capacity = m_spec_cap;
-		for (int k=1; k < m_numb_funcs; k++)
+		for (int k=1; k < m_numb_funcs+1; k++)
 		{
 			J(k, co, k, co) += 1.0*scv.volume()*0.25*PI*Diam*Diam;
 		}
@@ -574,6 +586,24 @@ template <typename TElem, typename TFVGeom>
 void VMDisc<TDomain, TAlgebra>::add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Functions for ion handling
+////////////////////////////////////////////////////////////////////////////////
+template<typename TDomain, typename TAlgebra>
+size_t VMDisc<TDomain, TAlgebra>::get_index(std::string s)
+{
+	std::vector<std::string> allFct = m_spApproxSpace->names();
+	for (size_t i = 0; i < allFct.size(); i++)
+	{
+		if (s == allFct[i])
+		{
+			return i;
+		}
+	}
+	return -1;
 }
 
 

@@ -36,6 +36,23 @@ ElemDiscHH_Nernst_FV1(SmartPtr<ApproximationSpace<TDomain> > approx,
 	register_all_funcs(m_bNonRegularGrid);
 }
 
+
+// sets diffusion consts
+template<typename TDomain>
+void ElemDiscHH_Nernst_FV1<TDomain>::
+set_diff_Na(number diff)
+{
+	m_diff_Na = diff;
+}
+
+template<typename TDomain>
+void ElemDiscHH_Nernst_FV1<TDomain>::
+set_diff_K(number diff)
+{
+	m_diff_K = diff;
+}
+
+
 template<typename TDomain>
 void ElemDiscHH_Nernst_FV1<TDomain>::
 set_diameter(const number d)
@@ -245,6 +262,9 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		const number leakage_part_of_flux = m_g_I * (u(_VM_,co) + 54.4);
 
 
+		//std::cout << "pot: " << potassium_part_of_flux << " sod : " << sodium_part_of_flux << " leak: " << leakage_part_of_flux << std::endl;
+
+
 		number x, y, z;
 
 
@@ -310,10 +330,12 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		// defekt of Na and K
 		d(_Na_, co) += sodium_part_of_flux/m_F * PI*Diam*scv.volume();
 		d(_K_, co)  += potassium_part_of_flux/m_F * PI*Diam*scv.volume();
+
+		//std::cout << "defekt VM: " << d(_VM_, co) << " Na-def: " << d(_Na_, co) << " K-def: " << d(_K_, co) << std::endl;
 	}
 
 // cable equation, "diffusion" part
-	MathVector<dim> grad_c;
+	MathVector<dim> grad_c, grad_k, grad_na;
 
 	for (size_t ip = 0; ip < geo.num_scvf(); ++ip)
 	{
@@ -322,11 +344,20 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 
 		// compute gradient at ip
 		VecSet(grad_c, 0.0);
+		VecSet(grad_k, 0.0);
+		VecSet(grad_na, 0.0);
+
 		for (size_t sh = 0; sh < scvf.num_sh(); ++sh)
+			{
 			VecScaleAppend(grad_c, u(_VM_,sh), scvf.global_grad(sh));
+			VecScaleAppend(grad_k, u(_K_,sh), scvf.global_grad(sh));
+			VecScaleAppend(grad_na, u(_Na_,sh), scvf.global_grad(sh));
+			}
 
 		// scalar product with normal
 		number diff_flux = VecDot(grad_c, scvf.normal());
+		number diff_fluxNa = VecDot(grad_na, scvf.normal());
+		number diff_fluxK = VecDot(grad_k, scvf.normal());
 
 		number Diam_FromTo = 0.5 * (m_aaDiameter[pElem->vertex(scvf.from())]
 		                          + m_aaDiameter[pElem->vertex(scvf.to())]);
@@ -336,10 +367,18 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 
 		// scale by 1/resistance and by length of element
 		diff_flux *= element_length / (m_spec_res*pre_resistance);
+		// diffusion for Na and K
+		//std::cout << diff_fluxNa << diff_fluxK << diff_flux <<std::endl;
+		diff_fluxNa *= element_length / (m_diff_Na*pre_resistance);
+		diff_fluxK *= element_length / (m_diff_K*pre_resistance);
 
 		// add to local defect
 		d(_VM_, scvf.from()) -= diff_flux;
 		d(_VM_, scvf.to()  ) += diff_flux;
+		d(_K_, scvf.from()) -= diff_fluxK;
+		d(_K_, scvf.to()  ) += diff_fluxK;
+		d(_Na_, scvf.from()) -= diff_fluxNa;
+		d(_Na_, scvf.to()  ) += diff_fluxNa;
 	}
 }
 
@@ -390,25 +429,7 @@ template<typename TElem, typename TFVGeom>
 void ElemDiscHH_Nernst_FV1<TDomain>::
 add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
-/*
-	// get finite volume geometry
-	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
-	// loop Sub Control Volumes (SCV)
-	for (size_t ip = 0; ip < geo.num_scv(); ++ip)
-	{
-		// get current SCV
-		const typename TFVGeom::SCV& scv = geo.scv( ip );
-
-		// get associated node
-		const int co = scv.node_id();
-
-// TODO: Implementiere den auskommentierten Bereich so, dass er auf unser Problem passt!
-// Maybe implement injection current here instead of defect. But not necessarily.
-		// Add to local rhs
-		d(_VM_, co) += m_imSource[ip] * scv.volume();
-	}
-*/
 }
 
 
@@ -513,9 +534,6 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		const number potassium_nernst_eq 	= helpV*(log(K_out/u(_K_,co)));
 		const number sodium_nernst_eq	 	= -helpV*(log(Na_out/u(_Na_,co)));
 
-		const number potassium_part_of_flux = m_g_K * pow(u(_n_,co),4) * (u(_VM_,co) - potassium_nernst_eq);
-		const number sodium_part_of_flux =  m_g_Na * pow(u(_m_,co),3) * u(_h_,co) * (u(_VM_, co) + sodium_nernst_eq);
-
 		// derivatives of nernst equas // choosen with grapher
 		const number potassium_nernst_eq_dK 	=  helpV * (-K_out/u(_K_,co))*0.18; //helpV * (-K_out/pow(u(_K_,co),2));
 		const number sodium_nernst_eq_dNa		=  -helpV * (-Na_out/u(_Na_,co))*0.003; //helpV * (-Na_out/pow(u(_Na_,co),2));
@@ -585,14 +603,24 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 			pre_resistance = volume / (0.25*PI*Diam_FromTo*Diam_FromTo);
 
 
-			number d_diff_flux = VecDot(scvf.global_grad(sh), scvf.normal());
+			number d_diff_flux 		= VecDot(scvf.global_grad(sh), scvf.normal());
+			number d_diff_fluxNa 	= VecDot(scvf.global_grad(sh), scvf.normal());
+			number d_diff_fluxK 	= VecDot(scvf.global_grad(sh), scvf.normal());
 
 			// scale by 1/resistance and by length of element
-			d_diff_flux *= element_length / (m_spec_res*pre_resistance);
+			d_diff_flux 	*= element_length / (m_spec_res*pre_resistance);
+			d_diff_fluxNa 	*= element_length / (m_diff_Na*pre_resistance);
+			d_diff_fluxK 	*= element_length / (m_diff_K*pre_resistance);
 
 			// add flux term to local matrix
 			J(_VM_, scvf.from(), _VM_, sh) -= d_diff_flux;
 			J(_VM_, scvf.to()  , _VM_, sh) += d_diff_flux;
+
+			J(_K_, scvf.from(), _K_, sh) -= d_diff_fluxK;
+			J(_K_, scvf.to()  , _K_, sh) += d_diff_fluxK;
+
+			J(_Na_, scvf.from(), _Na_, sh) -= d_diff_fluxNa;
+			J(_Na_, scvf.to()  , _Na_, sh) += d_diff_fluxNa;
 		}
 	}
 }

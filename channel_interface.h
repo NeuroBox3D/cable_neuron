@@ -62,6 +62,7 @@ class IChannel
 		static const int dim = base_type::dim;
 
 		const char* m_funcs;
+		std::vector<std::string> m_wfunc;
 
 		//params for diffusion of ions
 		std::vector<number> m_diff;
@@ -75,6 +76,22 @@ class IChannel
 		IChannel(const char* functions, const char* subsets)
 		 : IElemDisc<TDomain>(functions, subsets), m_funcs(functions)
 		   {
+			std::string test = m_funcs;
+			size_t end, start;
+			std::string new_func;
+			start = 0;
+			// add functions in std string for later use in VM Class
+			while (test.find(",", start) != test.npos)
+			{
+				end = test.find(",", start);
+				new_func = test.substr(start, (end-start));
+				m_wfunc.push_back(new_func);
+				//std::cout << "test: " << test << "start: "<< start << "end: " << end << std::endl;
+				start = end+2;
+			}
+			new_func = test.substr(start, (end-start));
+			m_wfunc.push_back(new_func);
+
 			m_bNonRegularGrid = false;
 			register_all_funcs(m_bNonRegularGrid);
 		   }

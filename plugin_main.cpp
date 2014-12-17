@@ -123,6 +123,8 @@ static void Domain(bridge::Registry& reg, string grp)
 			.add_method("set_consts", &T::set_consts)
 			.add_method("set_nernst_consts", &T::set_nernst_consts)
 			.add_method("set_accuracy", &T::set_accuracy)
+			.add_method("set_diff_Na", &T::set_diff_Na)
+			.add_method("set_diff_K", &T::set_diff_K)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ElemDiscHH_Nernst_FV1", tag);
 	}
@@ -137,7 +139,7 @@ static void Domain(bridge::Registry& reg, string grp)
 template <typename TDomain, typename TAlgebra>
 static void Domain__Algebra(bridge::Registry& reg, string grp)
 {
-	static const int dim = TDomain::dim;
+	//static const int dim = TDomain::dim;
 	string suffix = ug::bridge::GetDomainAlgebraSuffix<TDomain, TAlgebra>();
 	string tag = ug::bridge::GetDomainAlgebraTag<TDomain, TAlgebra>();
 

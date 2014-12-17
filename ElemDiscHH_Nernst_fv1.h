@@ -38,6 +38,10 @@ class ElemDiscHH_Nernst_FV1 : public ElemDiscHH_Base<TDomain>
 		ElemDiscHH_Nernst_FV1(SmartPtr<ApproximationSpace<TDomain> > approx,
 				const char* functions, const char* subsets);
 
+		// sets diffusion consts
+		void set_diff_Na(number diff);
+		void set_diff_K(number diff);
+
 		// set diameter for dendrit
 		void set_diameter(const number d);
 
@@ -114,11 +118,13 @@ class ElemDiscHH_Nernst_FV1 : public ElemDiscHH_Base<TDomain>
 		number m_g_I;
 
 		// params for nernst equatation
-
 		number m_R;
 		number m_T;
 		number m_F;
 
+		// params for diffusion
+		number m_diff_Na;
+		number m_diff_K;
 
 
 
