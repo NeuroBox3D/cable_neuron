@@ -30,6 +30,7 @@
 #include "ElemDiscHH_base.h"
 #include "ElemDiscHH_fv1.h"
 #include "ElemDiscHH_Nernst_fv1.h"
+#include "ElemDiscHH_Nernst_neuron_fv1.h"
 #include "VM_Disc.h"
 
 // Kabel_diff includes
@@ -129,6 +130,25 @@ static void Domain(bridge::Registry& reg, string grp)
 		reg.add_class_to_group(name, "ElemDiscHH_Nernst_FV1", tag);
 	}
 
+	//	Kabel Diff FV1 with dynamic calculated reversal potential of K and Na (Nernst-Equatation)
+	// Gating functions from neuron
+		{
+			typedef ElemDiscHH_Nernst_neuron_FV1<TDomain> T;
+			typedef ElemDiscHH_Base<TDomain> TBase;
+			string name = string("ElemDiscHH_Nernst_neuron_FV1").append(suffix);
+			reg.add_class_<T, TBase >(name, grp)
+				.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >, const char*,const char*)>("Function(s)#Subset(s)")
+				.add_method("set_injection", &T::set_injection)
+				.add_method("set_diameter", &T::set_diameter)
+				.add_method("set_spec_res", &T::set_spec_res)
+				.add_method("set_consts", &T::set_consts)
+				.add_method("set_nernst_consts", &T::set_nernst_consts)
+				.add_method("set_accuracy", &T::set_accuracy)
+				.add_method("set_diff_Na", &T::set_diff_Na)
+				.add_method("set_diff_K", &T::set_diff_K)
+				.set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "ElemDiscHH_Nernst_neuron_FV1", tag);
+		}
 
 
 }
