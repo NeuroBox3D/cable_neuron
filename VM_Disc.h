@@ -119,6 +119,10 @@ class VMDisc
 
 			for (size_t k = 0; k < m_channel.size(); k++)
 			{
+
+				// TODO: use: tokenize
+				//std::vector<std::string> tokenizedFcts = TokenizeString(functions);
+
 				size_t position = 0;
 				std::string test = m_channel[k]->m_funcs;
 				size_t start = 0;
@@ -167,6 +171,7 @@ class VMDisc
 							} else {UG_THROW("Need to set diffusion coeffizient for ion " + new_func + " with set_diff(<LuaTable>)" +
 									" if you do not need diffusion set to 0.");}
 					}
+					// TODO: else: check if diff_coefficient is consistent
 				}
 				// adding last func
 				new_func = test.substr(start);
@@ -220,7 +225,7 @@ class VMDisc
 		// set influx ac
 		void set_influx_ac(number influx_ac);
 
-		// set influx params (Flux-value, koordinates, duration, beginning)
+		// set influx params (Flux-value, koordinates, beginning, duration)
 		void set_influx(number Flux, number x, number y, number z, number beg, number dur);
 
 		//Adding function for channels

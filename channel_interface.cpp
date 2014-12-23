@@ -124,13 +124,13 @@ template<typename TDomain, typename TAlgebra>
 void ChannelHH<TDomain, TAlgebra>::
 set_diff(const std::vector<number>& diff)
 {
-	std::cout << "diff paras: " << diff.size() << " , " << diff[0] << std::endl;
+	//std::cout << "diff paras: " << diff.size() << " , " << diff[0] << std::endl;
 	for (size_t i = 0; i < diff.size(); i++)
 	{
 		m_diff.push_back(diff[i]);
 	}
-	std::cout << "diff paras2222: " << m_diff.size() << " , " << m_diff[0] << std::endl;
-	std::cout << "ich werd net mehr" << std::endl;
+	//std::cout << "diff paras2222: " << m_diff.size() << " , " << m_diff[0] << std::endl;
+	//std::cout << "ich werd net mehr" << std::endl;
 }
 
 
@@ -467,12 +467,12 @@ template<typename TDomain, typename TAlgebra>
 void ChannelHHNernst<TDomain, TAlgebra>::
 set_diff(const std::vector<number>& diff)
 {
-	std::cout << "diff paras: " << diff.size() << " , " << diff[0] << std::endl;
+	//std::cout << "diff paras: " << diff.size() << " , " << diff[0] << std::endl;
 	for (size_t i = 0; i < diff.size(); i++)
 	{
 		m_diff.push_back(diff[i]);
 	}
-	std::cout << "diff paras2222: " << m_diff.size() << " , " << m_diff[0] << std::endl;
+	//std::cout << "diff paras2222: " << m_diff.size() << " , " << m_diff[0] << std::endl;
 }
 
 // Methods for using gatings
@@ -567,6 +567,7 @@ void ChannelHHNernst<TDomain, TAlgebra>::init(number time, SmartPtr<GridFunction
 			{
 				m_aaVm[*iter] = DoFRef(*spGridFct, multInd[i]);
 				// sets start values
+				// TODO: remove me!
 				m_aaK[*iter] = 54.0;
 				m_aaNa[*iter] = 10.0;
 			}
@@ -647,7 +648,7 @@ void ChannelHHNernst<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<
 			// updating all Vars
 			for (size_t i=0; i<multInd.size(); i++)
 			{
-				m_aaVm[*iter] = DoFRef(*spGridFct, multInd[i]);
+				m_aaVm[*iter] = DoFRef(*spGridFct.get(), multInd[i]);
 				m_aaK[*iter] = DoFRef(*spGridFct, multIndK[i]);
 				m_aaNa[*iter] = DoFRef(*spGridFct, multIndNa[i]);
 			}
@@ -722,22 +723,22 @@ void ChannelHHNernst<TDomain, TAlgebra>::ionic_current(Vertex* v, std::vector<nu
 	//std::cout << "K: " << K << " Na: " << Na << " VM: " << VM << std::endl;
 
 	//std::cout << "m_Na: " << m_Na_out << " m_K_out: " <<  m_K_out << std::endl;
-	number potassium_nernst_eq 	= helpV*(log(m_K_out/K));
-	number sodium_nernst_eq	 	= -helpV*(log(m_Na_out/Na));
+	number potassium_nernst_eq 	= helpV*(std::log(m_K_out/K));
+	number sodium_nernst_eq	 	= helpV*(std::log(m_Na_out/Na));
 
 
 	//std::cout << "potassium_nernst_eq: " << potassium_nernst_eq << std::endl;
 	//std::cout << "sodium_nernst_eq: " << sodium_nernst_eq << std::endl;
 
 	// single channel type fluxes
-	number potassium_part_of_flux = m_g_K * pow(NGate,4) * (VM + potassium_nernst_eq);
+	number potassium_part_of_flux = m_g_K * pow(NGate,4) * (VM - potassium_nernst_eq);
 	number sodium_part_of_flux =  m_g_Na * pow(MGate,3) * HGate * (VM - sodium_nernst_eq);
-	number leakage_part_of_flux = m_g_I * (VM + 54.4);
+	number leakage_part_of_flux = m_g_I * (VM - (-54.4));
 
 	//std::cout << "potassium_part_of_flux: " << potassium_part_of_flux << std::endl;
+	//std::cout << "sodium_part_of_flux: " << sodium_part_of_flux << std::endl;
 
-	std::cout << " n: " << NGate << " m: "<< MGate << " h: " << HGate << std::endl;
-
+	//std::cout << " n: " << NGate << " m: "<< MGate << " h: " << HGate << std::endl;
 
 	outCurrentValues.push_back(potassium_part_of_flux + sodium_part_of_flux + leakage_part_of_flux);
 	//outCurrentValues.push_back(sodium_part_of_flux/m_F);
