@@ -134,6 +134,20 @@ set_diff(const std::vector<number>& diff)
 }
 
 
+
+template<typename TDomain, typename TAlgebra>
+number ChannelHH<TDomain, TAlgebra>::
+vtrap(number x, number y)
+{
+	number vtrap;
+    if (fabs(x/y) < 1e-6) {
+           	   vtrap = y*(1 - x/y/2);
+        }else{
+               vtrap = x/(exp(x/y) - 1);
+        }
+    return vtrap;
+}
+
 // Methods for using gatings
 template<typename TDomain, typename TAlgebra>
 void ChannelHH<TDomain, TAlgebra>::init(number time, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct)
@@ -203,10 +217,20 @@ void ChannelHH<TDomain, TAlgebra>::init(number time, SmartPtr<GridFunction<TDoma
 				m_aaVm[*iter] = DoFRef(*spGridFct, multInd[i]);
 			}
 
+	        // values for m gate
+	        number AlphaHm = 0.1 * vtrap(-(VM+40),10);
+	        number BetaHm =  4 * exp(-(VM+65)/18);
+
+	        // values for n gate
+	        number AlphaHn = 0.01*vtrap(-(VM+55),10);
+	        number BetaHn = 0.125*exp(-(VM+65)/80);
+
+	        // values for h gate
+	        number AlphaHh = 0.07 * exp(-(VM+65)/20.0);
+	        number BetaHh = 1.0 / (exp(-(VM+35.0)/10.0) + 1.0);
 
 
-
-			// Writting Gatting-Params in attachement
+			/*// Writting Gatting-Params in attachement
 			// gating param h
 			number AlphaHh = 0.07*exp(-(m_aaVm[*iter] + 65.0)/20.0);
 			number BetaHh = 1.0/(exp(3.0-0.1*(m_aaVm[*iter]  + 65.0))+1.0);
@@ -231,7 +255,7 @@ void ChannelHH<TDomain, TAlgebra>::init(number time, SmartPtr<GridFunction<TDoma
 			else
 				AlphaHn = 0.1;
 
-			number BetaHn = 0.125*exp((m_aaVm[*iter] + 65.0)/80.0);
+			number BetaHn = 0.125*exp((m_aaVm[*iter] + 65.0)/80.0);*/
 
 			// Setting Starting gatting params independent on VM
 			this->m_aaHGate[*iter] = AlphaHh / (AlphaHh + BetaHh);
@@ -277,7 +301,22 @@ void ChannelHH<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<GridFu
 				m_aaVm[*iter] = DoFRef(*spGridFct, multInd[i]);
 			}
 
-			//set gatting Params
+
+
+
+	        // values for m gate
+	        number AlphaHm = 0.1 * vtrap(-(VM+40),10);
+	        number BetaHm =  4 * exp(-(VM+65)/18);
+
+	        // values for n gate
+	        number AlphaHn = 0.01*vtrap(-(VM+55),10);
+	        number BetaHn = 0.125*exp(-(VM+65)/80);
+
+	        // values for h gate
+	        number AlphaHh = 0.07 * exp(-(VM+65)/20.0);
+	        number BetaHh = 1.0 / (exp(-(VM+35.0)/10.0) + 1.0);
+
+			/*//set gatting Params
 			number AlphaHh = 0.07*exp(-(m_aaVm[*iter] + 65.0)/20.0);
 			number BetaHh = 1.0/(exp(3.0-0.1*(m_aaVm[*iter]  + 65.0))+1.0);
 
@@ -300,7 +339,7 @@ void ChannelHH<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<GridFu
 			else
 				AlphaHn = 0.1;
 
-			number BetaHn = 0.125*exp((m_aaVm[*iter] + 65.0)/80.0);
+			number BetaHn = 0.125*exp((m_aaVm[*iter] + 65.0)/80.0);*/
 
 			// needs import later
 			number dt = 0.01;
@@ -342,8 +381,8 @@ void ChannelHH<TDomain, TAlgebra>::ionic_current(Vertex* v, std::vector<number>&
 
 	// TODO Influx values needed
 	// single channel type fluxes
-	const number potassium_part_of_flux = m_g_K * pow(NGate,4) * (VM + m_potassium);
-	const number sodium_part_of_flux =  m_g_Na * pow(MGate,3) * HGate * (VM - m_sodium);
+	const number potassium_part_of_flux = m_g_K * pow(NGate,4) * (VM - m_potassium);
+	const number sodium_part_of_flux =  m_g_Na * pow(MGate,3) * HGate * (VM + m_sodium);
 	const number leakage_part_of_flux = m_g_I * (VM + 54.4);
 
 	number flux_value = (potassium_part_of_flux + sodium_part_of_flux + leakage_part_of_flux);
@@ -691,8 +730,8 @@ void ChannelHHNernst<TDomain, TAlgebra>::ionic_current(Vertex* v, std::vector<nu
 	//std::cout << "sodium_nernst_eq: " << sodium_nernst_eq << std::endl;
 
 	// single channel type fluxes
-	number potassium_part_of_flux = m_g_K * pow(NGate,4) * (VM - potassium_nernst_eq);
-	number sodium_part_of_flux =  m_g_Na * pow(MGate,3) * HGate * (VM + sodium_nernst_eq);
+	number potassium_part_of_flux = m_g_K * pow(NGate,4) * (VM + potassium_nernst_eq);
+	number sodium_part_of_flux =  m_g_Na * pow(MGate,3) * HGate * (VM - sodium_nernst_eq);
 	number leakage_part_of_flux = m_g_I * (VM + 54.4);
 
 	//std::cout << "potassium_part_of_flux: " << potassium_part_of_flux << std::endl;

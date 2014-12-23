@@ -120,7 +120,7 @@ void ElemDiscHH_Nernst_neuron_FV1<TDomain>::
 prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid)
 {
 	// check number
-	if (vLfeID.size() != 6)
+	if (vLfeID.size() != 4)
 		UG_THROW("ElemDiscHH_Nernst_neuron_FV1: Wrong number of functions given. Need exactly "<< 6);
 
 	if (vLfeID[0].order() != 1 || vLfeID[0].type() != LFEID::LAGRANGE)
@@ -252,8 +252,8 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 
 		const number helpV = (m_R*m_T)/m_F;
 		// nernst potential of potassium and sodium
-		const number potassium_nernst_eq 	= helpV*(log(K_out/u(_K_,co)));
-		const number sodium_nernst_eq	 	= -helpV*(log(Na_out/u(_Na_,co)));
+		const number potassium_nernst_eq 	= -74.1266;//helpV*(log(K_out/u(_K_,co)));
+		const number sodium_nernst_eq	 	= -63.5129;//-helpV*(log(Na_out/u(_Na_,co)));
 
 		/*std::cout << m_R << m_T << m_F << std::endl;
 		std::cout << helpV << std::endl;
@@ -332,8 +332,8 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		d(_n_, co) += rate_n;
 
 		// defekt of Na and K
-		d(_Na_, co) += sodium_part_of_flux/m_F * PI*Diam*scv.volume();
-		d(_K_, co)  += potassium_part_of_flux/m_F * PI*Diam*scv.volume();
+		//d(_Na_, co) += sodium_part_of_flux/m_F * PI*Diam*scv.volume();
+		//d(_K_, co)  += potassium_part_of_flux/m_F * PI*Diam*scv.volume();
 
 		//std::cout << "defekt VM: " << d(_VM_, co) << " Na-def: " << d(_Na_, co) << " K-def: " << d(_K_, co) << std::endl;
 	}
@@ -354,14 +354,14 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		for (size_t sh = 0; sh < scvf.num_sh(); ++sh)
 			{
 			VecScaleAppend(grad_c, u(_VM_,sh), scvf.global_grad(sh));
-			VecScaleAppend(grad_k, u(_K_,sh), scvf.global_grad(sh));
-			VecScaleAppend(grad_na, u(_Na_,sh), scvf.global_grad(sh));
+			//VecScaleAppend(grad_k, u(_K_,sh), scvf.global_grad(sh));
+			//VecScaleAppend(grad_na, u(_Na_,sh), scvf.global_grad(sh));
 			}
 
 		// scalar product with normal
 		number diff_flux = VecDot(grad_c, scvf.normal());
-		number diff_fluxNa = VecDot(grad_na, scvf.normal());
-		number diff_fluxK = VecDot(grad_k, scvf.normal());
+		//number diff_fluxNa = VecDot(grad_na, scvf.normal());
+		//number diff_fluxK = VecDot(grad_k, scvf.normal());
 
 		number Diam_FromTo = 0.5 * (m_aaDiameter[pElem->vertex(scvf.from())]
 		                          + m_aaDiameter[pElem->vertex(scvf.to())]);
@@ -373,16 +373,16 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		diff_flux *= element_length / (m_spec_res*pre_resistance);
 		// diffusion for Na and K
 		//std::cout << diff_fluxNa << diff_fluxK << diff_flux <<std::endl;
-		diff_fluxNa *= element_length / (m_diff_Na*pre_resistance);
-		diff_fluxK *= element_length / (m_diff_K*pre_resistance);
+		//diff_fluxNa *= element_length / (m_diff_Na*pre_resistance);
+		//diff_fluxK *= element_length / (m_diff_K*pre_resistance);
 
 		// add to local defect
 		d(_VM_, scvf.from()) -= diff_flux;
 		d(_VM_, scvf.to()  ) += diff_flux;
-		d(_K_, scvf.from()) -= diff_fluxK;
-		d(_K_, scvf.to()  ) += diff_fluxK;
-		d(_Na_, scvf.from()) -= diff_fluxNa;
-		d(_Na_, scvf.to()  ) += diff_fluxNa;
+		//d(_K_, scvf.from()) -= diff_fluxK;
+		//d(_K_, scvf.to()  ) += diff_fluxK;
+		//d(_Na_, scvf.from()) -= diff_fluxNa;
+		//d(_Na_, scvf.to()  ) += diff_fluxNa;
 	}
 }
 
@@ -419,8 +419,8 @@ add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		d(_n_, co) += u(_n_, co);
 
 		// Nernst Paras time derivative
-		d(_Na_, co) += u(_Na_, co)*scv.volume()*0.25*PI*Diam*Diam;
-		d(_K_, co)  += u(_K_, co)*scv.volume()*0.25*PI*Diam*Diam;
+		//d(_Na_, co) += u(_Na_, co)*scv.volume()*0.25*PI*Diam*Diam;
+		//d(_K_, co)  += u(_K_, co)*scv.volume()*0.25*PI*Diam*Diam;
 
 		// potential equation time derivative
 		d(_VM_, co) += PI*Diam*scv.volume()*u(_VM_, co)*spec_capacity;
@@ -528,14 +528,13 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		const number helpV = (m_R*m_T)/m_F;
 
 
-
 		// nernst potential of potassium and sodium
-		const number potassium_nernst_eq 	= helpV*(log(K_out/u(_K_,co)));
-		const number sodium_nernst_eq	 	= -helpV*(log(Na_out/u(_Na_,co)));
+		const number potassium_nernst_eq 	= -74.1266;//helpV*(log(K_out/u(_K_,co)));
+		const number sodium_nernst_eq	 	= -63.5129;//-helpV*(log(Na_out/u(_Na_,co)));
 
 		// derivatives of nernst equas // choosen with grapher
-		const number potassium_nernst_eq_dK 	=  helpV * (-K_out/u(_K_,co))*0.18; //helpV * (-K_out/pow(u(_K_,co),2));
-		const number sodium_nernst_eq_dNa		=  -helpV * (-Na_out/u(_Na_,co))*0.003; //helpV * (-Na_out/pow(u(_Na_,co),2));
+		//const number potassium_nernst_eq_dK 	=  helpV * (-K_out/u(_K_,co))*0.18; //helpV * (-K_out/pow(u(_K_,co),2));
+		//const number sodium_nernst_eq_dNa		=  -helpV * (-Na_out/u(_Na_,co))*0.003; //helpV * (-Na_out/pow(u(_Na_,co),2));
 	// add to Jacobian;
 
 
@@ -551,7 +550,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		std::cout << "n: " << u(_n_,co) << std::endl;*/
 
 
-		J(_K_, co, _K_, co)   +=  potassium_nernst_eq_dK * PI*Diam*scv.volume();
+		/*J(_K_, co, _K_, co)   +=  potassium_nernst_eq_dK * PI*Diam*scv.volume();
 		J(_K_, co, _n_, co)   +=  m_g_K * 4*pow(u(_n_,co),3) * (u(_VM_,co)) * PI*Diam*scv.volume();
 		J(_K_, co, _VM_, co)  +=  m_g_K * pow(u(_n_,co),4) * PI*Diam*scv.volume();
 
@@ -562,7 +561,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 
 		J(_VM_, co, _K_,co) += scv.volume()*PI*Diam * m_g_K * pow(u(_n_,co),4) * potassium_nernst_eq_dK;
-		J(_VM_, co, _Na_,co) += scv.volume()*PI*Diam * m_g_Na * pow(u(_m_,co),3) * u(_h_,co) * sodium_nernst_eq_dNa;
+		J(_VM_, co, _Na_,co) += scv.volume()*PI*Diam * m_g_Na * pow(u(_m_,co),3) * u(_h_,co) * sodium_nernst_eq_dNa;*/
 
 		// derivatives of channel states
 		J(_h_, co, _h_, co) += AlphaHh + BetaHh;
@@ -615,11 +614,11 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 			J(_VM_, scvf.from(), _VM_, sh) -= d_diff_flux;
 			J(_VM_, scvf.to()  , _VM_, sh) += d_diff_flux;
 
-			J(_K_, scvf.from(), _K_, sh) -= d_diff_fluxK;
+			/*J(_K_, scvf.from(), _K_, sh) -= d_diff_fluxK;
 			J(_K_, scvf.to()  , _K_, sh) += d_diff_fluxK;
 
 			J(_Na_, scvf.from(), _Na_, sh) -= d_diff_fluxNa;
-			J(_Na_, scvf.to()  , _Na_, sh) += d_diff_fluxNa;
+			J(_Na_, scvf.to()  , _Na_, sh) += d_diff_fluxNa;*/
 		}
 	}
 }
@@ -656,8 +655,8 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		J(_m_, co, _m_, co) += 1.0;
 		J(_n_, co, _n_, co) += 1.0;
 
-		J(_Na_, co, _Na_, co) += 1.0*scv.volume()*0.25*PI*Diam*Diam;
-		J(_K_, co, _K_, co) += 1.0*scv.volume()*0.25*PI*Diam*Diam;
+		//J(_Na_, co, _Na_, co) += 1.0*scv.volume()*0.25*PI*Diam*Diam;
+		//J(_K_, co, _K_, co) += 1.0*scv.volume()*0.25*PI*Diam*Diam;
 
 		// potential equation
 		J(_VM_, co, _VM_, co) += PI*Diam*scv.volume()*spec_capacity;

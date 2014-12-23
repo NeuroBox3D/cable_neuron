@@ -133,6 +133,7 @@ class IChannel
 
 
 
+
 	/// initializes the defined channel type
 	/** During the initialization, the necessary attachments are attached to the vertices
 	 *	and their values calculated by the equilibrium state for the start membrane potential.
@@ -239,6 +240,8 @@ class ChannelHH
 		void set_consts(number Na, number K, number L);
 
 		void set_rev_pot(number R_Na, number R_K);
+
+		number vtrap(number x, number y);
 
 
 		// inherited from IChannel
