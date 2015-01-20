@@ -290,9 +290,9 @@ template <typename TAlgebra>
 
 
 ////////////////////////////////////////////////////////////////////////////////
-//	InitUGPlugin_SynapticCalciumDynamics
+//	InitUGPlugin_HH_Kabelnew
 extern "C" void
-InitUGPlugin_HHKabelnew(ug::bridge::Registry* reg, std::string parentGroup)
+InitUGPlugin_HH_Kabelnew(ug::bridge::Registry* reg, std::string parentGroup)
 {
 	//Registering HH-Fluxex
 	std::string grpHH = parentGroup;
