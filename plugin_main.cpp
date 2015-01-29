@@ -191,7 +191,7 @@ static void Domain__Algebra(bridge::Registry& reg, string grp)
 				.add_method("set_rev_pot", &T::set_rev_pot)
 				.add_method("set_accuracy", &T::set_accuracy)
 				.add_method("set_diff", &T::set_diff)
-				//.add_method("ionic_current", /*static_cast<void (TBase::*) (Vertex*, std::vector<double>&)> (*/&T::ionic_current) /*, "","", "doing flux")*/
+				//.add_method("ionic_current", /*static_cast<void (TBase::*) (Vertex*, std::vector<double>&)> (&T::ionic_current) /*, "","", "doing flux")
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "ChannelHH", tag);
 		}
@@ -234,6 +234,7 @@ static void Domain__Algebra(bridge::Registry& reg, string grp)
 					.add_method("set_influx", &T::set_influx)
 					.add_method("set_influx_ac", &T::set_influx_ac)
 					.add_method("add_func", &T::add_func)
+					.add_method("setGridFct", &T::setGridFct)
 					.set_construct_as_smart_pointer(true);
 				reg.add_class_to_group(name, "VMDisc", tag);
 			}
@@ -292,7 +293,7 @@ template <typename TAlgebra>
 ////////////////////////////////////////////////////////////////////////////////
 //	InitUGPlugin_HH_Kabelnew
 extern "C" void
-InitUGPlugin_HH_Kabelnew(ug::bridge::Registry* reg, std::string parentGroup)
+InitUGPlugin_HHKabelnew(ug::bridge::Registry* reg, std::string parentGroup)
 {
 	//Registering HH-Fluxex
 	std::string grpHH = parentGroup;
