@@ -220,18 +220,23 @@ void ChannelHH<TDomain, TAlgebra>::init(number time, SmartPtr<GridFunction<TDoma
 
 			//TODO: is that right? not the same as in the Nernst version!
 	        // values for m gate
-	        number AlphaHm = 0.1 * vtrap(-(VM+40.0),10.0);
-	        number BetaHm =  4 * exp(-(VM+65.0)/18.0);
+	        /*number AlphaHm = 0.1 * vtrap(-(m_aaVm[*iter]+40),10);
+	        number BetaHm =  4 * exp(-(m_aaVm[*iter]+65)/18);
+=
 
 	        // values for n gate
-	        number AlphaHn = 0.01*vtrap(-(VM+55.0),10.0);
-	        number BetaHn = 0.125*exp(-(VM+65.0)/80);
+
+	        number AlphaHn = 0.01*vtrap(-(m_aaVm[*iter]+55),10);
+	        number BetaHn = 0.125*exp(-(m_aaVm[*iter]+65)/80);
 
 	        // values for h gate
-	        number AlphaHh = 0.07 * exp(-(VM+65.0)/20.0);
-	        number BetaHh = 1.0 / (exp(-(VM+35.0)/10.0) + 1.0);
 
-	        /*// Writting Gatting-Params in attachement
+	        number AlphaHh = 0.07 * exp(-(m_aaVm[*iter]+65)/20.0);
+	        number BetaHh = 1.0 / (exp(-(m_aaVm[*iter]+35.0)/10.0) + 1.0);*/
+
+
+	        // Writting Gatting-Params in attachement
+
 			// gating param h
 			number AlphaHh = 0.07*exp(-(m_aaVm[*iter] + 65.0)/20.0);
 			number BetaHh = 1.0/(exp(3.0-0.1*(m_aaVm[*iter]  + 65.0))+1.0);
@@ -256,7 +261,7 @@ void ChannelHH<TDomain, TAlgebra>::init(number time, SmartPtr<GridFunction<TDoma
 			else
 				AlphaHn = 0.1;
 
-			number BetaHn = 0.125*exp((m_aaVm[*iter] + 65.0)/80.0);*/
+			number BetaHn = 0.125*exp((m_aaVm[*iter] + 65.0)/80.0);
 
 			// Setting Starting gatting params independent on VM
 			this->m_aaHGate[*iter] = AlphaHh / (AlphaHh + BetaHh);
@@ -271,9 +276,10 @@ void ChannelHH<TDomain, TAlgebra>::init(number time, SmartPtr<GridFunction<TDoma
 template<typename TDomain, typename TAlgebra>
 void ChannelHH<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct)
 {
+	//std::cout << "update gatting start" << std::endl;
 	typedef typename DoFDistribution::traits<Vertex>::const_iterator itType;
 	SubsetGroup ssGrp;
-	try { ssGrp = SubsetGroup(spGridFct->approx_space()->domain()->subset_handler(), this->m_vSubset);}
+	try { ssGrp = SubsetGroup(spGridFct->domain()->subset_handler(), this->m_vSubset);}
 	UG_CATCH_THROW("Subset group creation failed.");
 
 
@@ -305,7 +311,7 @@ void ChannelHH<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<GridFu
 			number VM = m_aaVm[*iter];
 
 	        // values for m gate
-	        number AlphaHm = 0.1 * vtrap(-(VM+40),10);
+	        /*number AlphaHm = 0.1 * vtrap(-(VM+40),10);
 	        number BetaHm =  4 * exp(-(VM+65)/18);
 
 	        // values for n gate
@@ -314,9 +320,9 @@ void ChannelHH<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<GridFu
 
 	        // values for h gate
 	        number AlphaHh = 0.07 * exp(-(VM+65)/20.0);
-	        number BetaHh = 1.0 / (exp(-(VM+35.0)/10.0) + 1.0);
+	        number BetaHh = 1.0 / (exp(-(VM+35.0)/10.0) + 1.0);*/
 
-			/*//set gatting Params
+			//set gatting Params
 			number AlphaHh = 0.07*exp(-(m_aaVm[*iter] + 65.0)/20.0);
 			number BetaHh = 1.0/(exp(3.0-0.1*(m_aaVm[*iter]  + 65.0))+1.0);
 
@@ -339,20 +345,22 @@ void ChannelHH<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<GridFu
 			else
 				AlphaHn = 0.1;
 
-			number BetaHn = 0.125*exp((m_aaVm[*iter] + 65.0)/80.0);*/
+			number BetaHn = 0.125*exp((m_aaVm[*iter] + 65.0)/80.0);
 
 			// needs import later
 			number dt = 0.01;
 
-			number rate_h = ((AlphaHh/(AlphaHh+BetaHh)) - m_aaHGate[*iter]) / (1/(AlphaHh+BetaHh)) *dt;
-			number rate_m = ((AlphaHm/(AlphaHm+BetaHm)) - m_aaMGate[*iter]) / (1/(AlphaHm+BetaHm)) *dt;
-			number rate_n = ((AlphaHn/(AlphaHn+BetaHn)) - m_aaNGate[*iter]) / (1/(AlphaHn+BetaHn)) *dt;
+			number rate_h = ((AlphaHh * (1.0-m_aaHGate[*iter])) - BetaHh * m_aaHGate[*iter])*dt;
+			number rate_m = ((AlphaHm * (1.0-m_aaMGate[*iter])) - BetaHm * m_aaMGate[*iter])*dt;
+			number rate_n = ((AlphaHn * (1.0-m_aaNGate[*iter])) - BetaHn * m_aaNGate[*iter])*dt;
 
-
-
+				//if ((abs(rate_h) >= 1e-5) or (abs(rate_m) >= 1e-4) or (abs(rate_n) >= 1e-5))
+				//{
+					//std::cout << "in rate" << std::endl;
 			m_aaHGate[*iter] += rate_h;
 			m_aaMGate[*iter] += rate_m;
 			m_aaNGate[*iter] += rate_n;
+			//} else {std::cout << "not changes" << std::endl; }
 			//std::cout << "VM: " << (m_aaVm[*iter]) << "h: "<< m_aaHGate[*iter] << "m: "<< m_aaMGate[*iter] <<  "n: "<< m_aaNGate[*iter] <<std::endl;
 			//std::cout << "Rates: " << rate_h << " , " << rate_m << " , " << rate_n << std::endl;
 
@@ -379,16 +387,99 @@ void ChannelHH<TDomain, TAlgebra>::ionic_current(Vertex* v, std::vector<number>&
 
 
 
-	// TODO Influx values needed
-	// single channel type fluxes
+
 	const number potassium_part_of_flux = m_g_K * pow(NGate,4) * (VM - m_potassium);
 	const number sodium_part_of_flux =  m_g_Na * pow(MGate,3) * HGate * (VM + m_sodium);
 	const number leakage_part_of_flux = m_g_I * (VM + 54.4);
 
 	number flux_value = (potassium_part_of_flux + sodium_part_of_flux + leakage_part_of_flux);
 	//std::cout << "Flux_Value: " << flux_value << std::endl;
+	std::cout << " n: " << NGate << " m: "<< MGate << " h: " << HGate << std::endl;
 	outCurrentValues.push_back(flux_value);
 
+}
+
+template<typename TDomain, typename TAlgebra>
+void ChannelHH<TDomain, TAlgebra>::update_values(SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct)
+{
+	typedef typename DoFDistribution::traits<Vertex>::const_iterator itType;
+	SubsetGroup ssGrp;
+	try { ssGrp = SubsetGroup(spGridFct->domain()->subset_handler(), this->m_vSubset);}
+	UG_CATCH_THROW("Subset group creation failed.");
+
+
+	for (std::size_t si = 0; si < ssGrp.size(); si++)
+	{
+		itType iterBegin = spGridFct->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]);
+		itType iterEnd = spGridFct->approx_space()->dof_distribution(GridLevel::TOP)->template end<Vertex>(ssGrp[si]);
+
+		for (itType iter = iterBegin; iter != iterEnd; ++iter)
+		{
+
+			//getting act vertex
+			//Vertex* vrt = *iter;
+
+			// needed konzentration has to be set
+			size_t VM = spGridFct->fct_id_by_name("VM");
+
+
+
+			std::vector<DoFIndex> multInd, multIndK, multIndNa;
+
+			spGridFct->dof_indices(*iter, VM, multInd);
+
+
+			// updating all Vars
+			for (size_t i=0; i<multInd.size(); i++)
+			{
+				m_aaVm[*iter] = DoFRef(*spGridFct.get(), multInd[i]);
+			}
+		}
+	}
+}
+
+template<typename TDomain, typename TAlgebra>
+void ChannelHH<TDomain, TAlgebra>::update_gating_vert(Vertex* v)
+{
+
+
+	//set gatting Params
+	number AlphaHh = 0.07*exp(-(m_aaVm[v] + 65.0)/20.0);
+	number BetaHh = 1.0/(exp(3.0-0.1*(m_aaVm[v]  + 65.0))+1.0);
+
+	// gating param m
+	number AlphaHm;
+	number AlphaHm_test = exp(2.5-0.1*(m_aaVm[v] + 65.0))-1.0;
+	if (fabs(AlphaHm_test) > m_accuracy)
+		AlphaHm = (2.5 - 0.1*( m_aaVm[v] + 65.0)) / AlphaHm_test;
+	else
+		AlphaHm = 1.0;
+
+	number BetaHm = 4.0*exp(-(m_aaVm[v] + 65.0)/18.0);
+
+	// gating param n
+	number AlphaHn;
+	number AlphaHn_test;
+	AlphaHn_test = exp(1.0-0.1*(m_aaVm[v] + 65.0))-1.0;
+	if (fabs(AlphaHn_test) > m_accuracy)
+		AlphaHn = (0.1-0.01*(m_aaVm[v] + 65.0)) / AlphaHn_test;
+	else
+		AlphaHn = 0.1;
+
+	number BetaHn = 0.125*exp((m_aaVm[v] + 65.0)/80.0);
+
+	// needs import later
+	number dt = 0.01;
+
+	number rate_h = -((AlphaHh/(AlphaHh+BetaHh)) - m_aaHGate[v]) / (1/(AlphaHh+BetaHh)) *dt;
+	number rate_m = -((AlphaHm/(AlphaHm+BetaHm)) - m_aaMGate[v]) / (1/(AlphaHm+BetaHm)) *dt;
+	number rate_n = -((AlphaHn/(AlphaHn+BetaHn)) - m_aaNGate[v]) / (1/(AlphaHn+BetaHn)) *dt;
+
+
+
+	m_aaHGate[v] += rate_h;
+	m_aaMGate[v] += rate_m;
+	m_aaNGate[v] += rate_n;
 }
 
 
@@ -698,17 +789,61 @@ void ChannelHHNernst<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<
 	}
 	//std::cout << "update gatting ends" << std::endl;
 
-
 }
 
 
+template<typename TDomain, typename TAlgebra>
+void ChannelHHNernst<TDomain, TAlgebra>::update_gating_vert(Vertex* v)
+{
 
+
+	//set gatting Params
+	number AlphaHh = 0.07*exp(-(m_aaVm[v] + 65.0)/20.0);
+	number BetaHh = 1.0/(exp(3.0-0.1*(m_aaVm[v]  + 65.0))+1.0);
+
+	// gating param m
+	number AlphaHm;
+	number AlphaHm_test = exp(2.5-0.1*(m_aaVm[v] + 65.0))-1.0;
+	if (fabs(AlphaHm_test) > m_accuracy)
+		AlphaHm = (2.5 - 0.1*( m_aaVm[v] + 65.0)) / AlphaHm_test;
+	else
+		AlphaHm = 1.0;
+
+	number BetaHm = 4.0*exp(-(m_aaVm[v] + 65.0)/18.0);
+
+	// gating param n
+	number AlphaHn;
+	number AlphaHn_test;
+	AlphaHn_test = exp(1.0-0.1*(m_aaVm[v] + 65.0))-1.0;
+	if (fabs(AlphaHn_test) > m_accuracy)
+		AlphaHn = (0.1-0.01*(m_aaVm[v] + 65.0)) / AlphaHn_test;
+	else
+		AlphaHn = 0.1;
+
+	number BetaHn = 0.125*exp((m_aaVm[v] + 65.0)/80.0);
+
+	// needs import later
+	number dt = 0.01;
+
+	number rate_h = -((AlphaHh/(AlphaHh+BetaHh)) - m_aaHGate[v]) / (1/(AlphaHh+BetaHh)) *dt;
+	number rate_m = -((AlphaHm/(AlphaHm+BetaHm)) - m_aaMGate[v]) / (1/(AlphaHm+BetaHm)) *dt;
+	number rate_n = -((AlphaHn/(AlphaHn+BetaHn)) - m_aaNGate[v]) / (1/(AlphaHn+BetaHn)) *dt;
+
+
+
+	m_aaHGate[v] += rate_h;
+	m_aaMGate[v] += rate_m;
+	m_aaNGate[v] += rate_n;
+}
 
 
 
 template<typename TDomain, typename TAlgebra>
 void ChannelHHNernst<TDomain, TAlgebra>::ionic_current(Vertex* v, std::vector<number>& outCurrentValues)
 {
+
+
+
 	//std::cout << "start ionic curennt" << std::endl;
 	// getting attachments out of Vertex
 	double NGate = m_aaNGate[v];
@@ -723,8 +858,9 @@ void ChannelHHNernst<TDomain, TAlgebra>::ionic_current(Vertex* v, std::vector<nu
 	//std::cout << "K: " << K << " Na: " << Na << " VM: " << VM << std::endl;
 
 	//std::cout << "m_Na: " << m_Na_out << " m_K_out: " <<  m_K_out << std::endl;
-	number potassium_nernst_eq 	= helpV*(std::log(m_K_out/K));
-	number sodium_nernst_eq	 	= helpV*(std::log(m_Na_out/Na));
+
+	number potassium_nernst_eq 	= helpV*(log(m_K_out/K));
+	number sodium_nernst_eq	 	= helpV*(log(m_Na_out/Na));
 
 
 	//std::cout << "potassium_nernst_eq: " << potassium_nernst_eq << std::endl;
@@ -733,7 +869,7 @@ void ChannelHHNernst<TDomain, TAlgebra>::ionic_current(Vertex* v, std::vector<nu
 	// single channel type fluxes
 	number potassium_part_of_flux = m_g_K * pow(NGate,4) * (VM - potassium_nernst_eq);
 	number sodium_part_of_flux =  m_g_Na * pow(MGate,3) * HGate * (VM - sodium_nernst_eq);
-	number leakage_part_of_flux = m_g_I * (VM - (-54.4));
+	number leakage_part_of_flux = m_g_I * (VM + 54.4);
 
 	//std::cout << "potassium_part_of_flux: " << potassium_part_of_flux << std::endl;
 	//std::cout << "sodium_part_of_flux: " << sodium_part_of_flux << std::endl;
@@ -742,17 +878,62 @@ void ChannelHHNernst<TDomain, TAlgebra>::ionic_current(Vertex* v, std::vector<nu
 
 	outCurrentValues.push_back(potassium_part_of_flux + sodium_part_of_flux + leakage_part_of_flux);
 	//outCurrentValues.push_back(sodium_part_of_flux/m_F);
-	outCurrentValues.push_back(potassium_part_of_flux/m_F);
-	outCurrentValues.push_back(sodium_part_of_flux/m_F);
+	outCurrentValues.push_back((potassium_part_of_flux/(m_F)));
+	outCurrentValues.push_back((sodium_part_of_flux/(m_F)));
 
 	//std::cout << "pot: " << potassium_part_of_flux << " sod : " << sodium_part_of_flux << " leak: " << leakage_part_of_flux << std::endl;
 	//std::cout << "leakeage term: " << leakage_part_of_flux << std::endl;
 	//std::cout << "outCurrentValues: " << outCurrentValues[0] << ", " << outCurrentValues[1] << ", " << outCurrentValues[2] << ", " << std::endl;
 	//std::cout << "end ionic current" << std::endl;
+	//update_gating(0.01, spGridFct);
 
-
+	//update_gating_vert(v);
 }
 
+
+template<typename TDomain, typename TAlgebra>
+void ChannelHHNernst<TDomain, TAlgebra>::update_values(SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct)
+{
+	typedef typename DoFDistribution::traits<Vertex>::const_iterator itType;
+	SubsetGroup ssGrp;
+	try { ssGrp = SubsetGroup(spGridFct->domain()->subset_handler(), this->m_vSubset);}
+	UG_CATCH_THROW("Subset group creation failed.");
+
+
+	for (std::size_t si = 0; si < ssGrp.size(); si++)
+	{
+		itType iterBegin = spGridFct->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]);
+		itType iterEnd = spGridFct->approx_space()->dof_distribution(GridLevel::TOP)->template end<Vertex>(ssGrp[si]);
+
+		for (itType iter = iterBegin; iter != iterEnd; ++iter)
+		{
+
+			//getting act vertex
+			//Vertex* vrt = *iter;
+
+			// needed konzentration has to be set
+			size_t VM = spGridFct->fct_id_by_name("VM");
+			size_t Na = spGridFct->fct_id_by_name("Na");
+			size_t K = spGridFct->fct_id_by_name("K");
+			//std::cout << "VM: upg" << VM << " Na: " << Na << " K: "<< K << std::endl;
+
+
+			std::vector<DoFIndex> multInd, multIndK, multIndNa;
+
+			spGridFct->dof_indices(*iter, VM, multInd);
+			spGridFct->dof_indices(*iter, K, multIndK);
+			spGridFct->dof_indices(*iter, Na, multIndNa);
+
+			// updating all Vars
+			for (size_t i=0; i<multInd.size(); i++)
+			{
+				m_aaVm[*iter] = DoFRef(*spGridFct.get(), multInd[i]);
+				m_aaK[*iter] = DoFRef(*spGridFct, multIndK[i]);
+				m_aaNa[*iter] = DoFRef(*spGridFct, multIndNa[i]);
+			}
+		}
+	}
+}
 
 
 template<typename TDomain, typename TAlgebra>
