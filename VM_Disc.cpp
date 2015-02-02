@@ -21,7 +21,6 @@
 namespace ug {
 
 
-
 // Standard Methods for VM-Equatations
 template<typename TDomain, typename TAlgebra>
 void VMDisc<TDomain, TAlgebra>::
@@ -118,52 +117,39 @@ template<typename TDomain, typename TAlgebra>
 template<typename TElem, typename TFVGeom>
 void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
-
-	//std::cout << "deff a elem starts" << std::endl;
-
 	// get finite volume geometry
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
-	// some help constants
+	// some helper vars
 	number element_length = 0.0;
 	number pre_resistance = 0.0;
-	number volume = 0.0;
 
-	// helper for saving defekts
-
-	// cast elem to appropriate type
+	// cast elem to appropriate type (in order to allow access to attachments)
 	TElem* pElem = dynamic_cast<TElem*>(elem);
 	if (!pElem) {UG_THROW("Wrong element type.");}
 
+	// membrane transport mechanisms and forced influx
 	for (size_t ip = 0; ip < geo.num_scv(); ++ip)
 	{
-
-
-		std::vector<number> AlloutCurrentValues;
-		//std::vector<double> outCurrentValues;
-
 		// get current SCV
 		const typename TFVGeom::SCV& scv = geo.scv(ip);
 
 		// get associated node
 		const int co = scv.node_id();
 
-		// get Diam from attachment
+		// get diam from attachment
 		number Diam = m_aaDiameter[pElem->vertex(co)];
 
-		// calculate volume for later use
-		volume += scv.volume();
 		// add length of scv to element length
 		element_length += scv.volume();
+
 		// add "pre_resistance" parts
 		pre_resistance += scv.volume() / (0.25*PI*Diam*Diam);
 
-		// Helpers for Influx-Handling
+
+		// influx handling
 		number time = this->time();
 		double influx = 0;
-
-
-		//Influx handling
 		for (size_t i = 0; i < m_flux_value.size(); i++)
 		{
 			/*std::cout << "coords: " << m_coords[i][0] << " - " << vCornerCoords[0][1] << std::endl;
@@ -177,60 +163,39 @@ void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector
 				&& fabs(vCornerCoords[co][2] - m_coords[i][2]) < m_influx_ac
 			   )
 			{
-				//std::cout << "influx should happening" << std::endl;
-				influx = m_flux_value[i];
-				//std::cout << "influx value: " << influx << std::endl;
+				influx += m_flux_value[i];
 			}
-
 		}
 
-		// for all functions space is needed
-		for (int i=0; i<m_numb_funcs+1; i++)
-		{
-			AlloutCurrentValues.push_back(0.0);
-		}
+		// membrane transport mechanisms
+		std::vector<number> allOutCurrentValues;
+		for (size_t i = 0; i < m_numb_funcs+1; ++i)
+			allOutCurrentValues.push_back(0.0);
 
-		// Channel defekt adding
 		for (size_t i = 0; i < m_channel.size(); i++)
 		{
 			std::vector<number> outCurrentValues;
+
 			// values we are getting from ionic_flux function in channels
-			m_channel[i].get()->ionic_current(pElem->vertex(co), outCurrentValues);
+			m_channel[i]->ionic_current(pElem->vertex(co), outCurrentValues);
 
-			//TODO perhaps here is a problem need to get on which funcs this channel is working
+			std::vector<std::string> functions = m_channel[i]->m_wfunc;
 
-			std::vector<std::string> funktions = m_channel[i].get()->m_wfunc;
-
-			// adding defekt from every channel for every ion
+			// adding defect for every ion species involved
 			for (size_t j = 0; j < outCurrentValues.size(); j++)
-				{
-					//std::cout << "index: " << get_index(funktions[j]) << "value: " << outCurrentValues[j] << std::endl;
-					AlloutCurrentValues[get_index(funktions[j])] += (outCurrentValues[j]);
-				}
+				allOutCurrentValues[get_index(functions[j])] += (outCurrentValues[j]);
 		}
 
-		//std::cout << scv.volume() << std::endl;
-		//std::cout << m_numb_funcs << " - " << m_channel.size() <<std::endl;
-		//std::cout << "defekt adding does not work" << Diam << " - "<< _VM_ << " - "<< influx << " - "<< AlloutCurrentValues[0] << " - "<< scv.volume() <<std::endl;
-	/// Writing all into defekts
-		d(_VM_, co) += scv.volume()*PI*Diam *(AlloutCurrentValues[0]-influx);
+		// writing potential defects
+		d(_VM_, co) += scv.volume()*PI*Diam * (allOutCurrentValues[0]-influx);
 
-		//std::cout << "Vm defekt: " << d(_VM_, co) << std::endl;
-		//std::cout << "after setting defekt" << std::endl;
-	/// Now all other defektes needed to be added
-		for (int k = 1; k < m_numb_funcs+1; k++)
-		{
-			d(k, co) += scv.volume()*PI*Diam*AlloutCurrentValues[k];
-			//std::cout << "defekt changes: " << d(k, co) << " by k " << k << " AlloutVal " << AlloutCurrentValues[k] << std::endl;
-		}
-
-		//std::cout << "defekt changes: "<< d(_VM_, co) << std::endl;
+		// writing ion species defects
+		for (size_t k = 1; k < m_numb_funcs+1; k++)
+			d(k, co) += scv.volume()*PI*Diam * allOutCurrentValues[k];
 	}
 
-	// cable equation, "diffusion" part
-	//std::cout << "diff flux" << std::endl;
+	// diffusive parts
 	MathVector<dim> grad_c;
-
 	for (size_t ip = 0; ip < geo.num_scvf(); ++ip)
 	{
 		// get current SCVF
@@ -242,53 +207,42 @@ void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector
 			VecScaleAppend(grad_c, u(_VM_,sh), scvf.global_grad(sh));
 
 		// scalar product with normal
-		number diff_flux = VecDot(grad_c, scvf.normal());
-
-		number Diam_FromTo = 0.5 * (m_aaDiameter[pElem->vertex(scvf.from())]
-								  + m_aaDiameter[pElem->vertex(scvf.to())]);
-
-		//calculates pre_resistance
-		//pre_resistance = volume / (0.25*PI*Diam_FromTo*Diam_FromTo);
+		number grad_normal = VecDot(grad_c, scvf.normal());
 
 		// scale by 1/resistance and by length of element
-		diff_flux *= element_length / (m_spec_res*pre_resistance);
+		number diff_flux = grad_normal * element_length / (m_spec_res*pre_resistance);
 
 		// add to local defect of VM
 		d(_VM_, scvf.from()) -= diff_flux;
 		d(_VM_, scvf.to()  ) += diff_flux;
-		//std::cout << "m_diff ist doof" << std::endl;
-		// add local defect of all others
-		for (int k=1; k < m_numb_funcs+1; k++)
+
+		// diameter of axial flux cross-section
+		number diam_fromTo = std::min(m_aaDiameter[pElem->vertex(scvf.from())],
+							   m_aaDiameter[pElem->vertex(scvf.to())]);
+
+		for (size_t k = 1; k < m_numb_funcs+1; k++)
 		{
+			// compute gradient at ip
 			VecSet(grad_c, 0.0);
 			for (size_t sh = 0; sh < scvf.num_sh(); ++sh)
-				VecScaleAppend(grad_c, u(k, sh), scvf.global_grad(sh));
+				VecScaleAppend(grad_c, u(k,sh), scvf.global_grad(sh));
 
 			// scalar product with normal
-			diff_flux = VecDot(grad_c, scvf.normal());
-
-			Diam_FromTo = std::min(m_aaDiameter[pElem->vertex(scvf.from())],
-								   m_aaDiameter[pElem->vertex(scvf.to())]);
+			grad_normal = VecDot(grad_c, scvf.normal());
 
 			// scale by cross section and diff const
-			diff_flux *= m_diff_Vm[k-1] * 0.25*PI * Diam_FromTo*Diam_FromTo;
+			diff_flux = grad_normal * m_diff_Vm[k-1] * 0.25*PI * diam_fromTo*diam_fromTo;
 			d(k, scvf.from()) -= diff_flux;
 			d(k, scvf.to()  ) += diff_flux;
 		}
 
 	}
-	//std::cout << "def a elem ends" << std::endl;
-
-
-
-
 }
 
 template<typename TDomain, typename TAlgebra>
 template<typename TElem, typename TFVGeom>
 void VMDisc<TDomain, TAlgebra>::add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
-	//std::cout << "add def m elem start" << std::endl;
 	// get finite volume geometry
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
@@ -305,25 +259,18 @@ void VMDisc<TDomain, TAlgebra>::add_def_M_elem(LocalVector& d, const LocalVector
 		const int co = scv.node_id();
 
 		//get Diameter from element
-		number Diam = m_aaDiameter[pElem->vertex(co)];
+		number diam = m_aaDiameter[pElem->vertex(co)];
 
 		// get spec capacity
 		number spec_capacity = m_spec_cap;
 
 
 		// potential equation time derivative
-		/*std::cout << "u: " << u(_VM_, co) << std::endl;
-		std::cout << "co: " << co << std::endl;
-		std::cout << "time derivative: " << (PI*Diam*scv.volume()*u(_VM_, co)*spec_capacity) << std::endl;*/
+		d(_VM_, co) += PI*diam*scv.volume()*u(_VM_, co)*spec_capacity;
 
-		// Nernst Paras time derivative
-		//std::cout << "num functions: " << m_numb_funcs+1 << std::endl;
-		for (int k=1; k < m_numb_funcs+1; k++)
-		{
-			d(k, co) += u(k, co)*scv.volume()*0.25*PI*Diam*Diam;
-		}
-
-		d(_VM_, co) += PI*Diam*scv.volume()*u(_VM_, co)*spec_capacity;
+		// ion species time derivative
+		for (size_t k = 1; k < m_numb_funcs+1; k++)
+			d(k, co) += u(k, co)*scv.volume()*0.25*PI*diam*diam;
 	}
 
 
@@ -335,23 +282,18 @@ template<typename TElem, typename TFVGeom>
 void VMDisc<TDomain, TAlgebra>::
 add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
-// get finite volume geometry
-	//std::cout << "add_jac_A_elem" << std::endl;
+	// get finite volume geometry
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
+	// some helper vars
 	number element_length = 0.0;
 	number pre_resistance = 0.0;
-	number volume = 0;
 
-	// cast elem to appropriate type
+	// cast elem to appropriate type  (in order to allow access to attachments)
 	TElem* pElem = dynamic_cast<TElem*>(elem);
 	if (!pElem) {UG_THROW("Wrong element type.");}
 
-
-	std::vector<number> jacFlux;
-	std::vector<number> AlljacFlux;
-
-// channel kinetics derivatives
+	// only helper calculations for axial current here (membrane fluxes are purely explicit)
 	for (size_t ip = 0; ip < geo.num_scv(); ++ip)
 	{
 		// get current SCV
@@ -360,50 +302,18 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		// get associated node
 		const int co = scv.node_id();
 
-		//get Diameter from element later in attachment
+		// get diam from attachment
 		number Diam = m_aaDiameter[pElem->vertex(co)];
-
-
 
 		// add length of scv to element length
 		element_length += scv.volume();
 
 		// add "pre_resistance" parts
 		pre_resistance += scv.volume() / (0.25*PI*Diam*Diam);
-
-		// calculates volume for later use
-		volume += scv.volume();
-
-
-		/*	ionic_current is constant in unknowns (new values for V_m, Na, K)
-		// for all functions
-		for (int i=1; i<m_numb_funcs; i++)
-		{
-			AlljacFlux.push_back(0);
-		}
-
-
-	/// Jacobi Matrix-Channel handling
-		for (int i = 0;  i < m_channel.size() ; i++)
-		{
-			// getting jacobian depending on vertex-attachments
-			m_channel[i].get()->Jacobi_sets(pElem->vertex(co), jacFlux);
-			//adding jacobian from every channel
-			for (int i=0; i<m_numb_funcs; i++)
-			{
-				AlljacFlux[i] += (jacFlux[i]);
-			}
-		}
-
-		for (int i=0; i<m_numb_funcs; i++)
-		{
-			J(i, co, i, co) += scv.volume()*PI*Diam*(AlljacFlux[i]);
-		}
-		 */
 	}
 
 
-	//diffusive part
+	// diffusive part
 	for (size_t ip = 0; ip < geo.num_scvf(); ++ip)
 	{
 		// get current SCVF
@@ -413,42 +323,28 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		for (size_t sh = 0; sh < scvf.num_sh(); ++sh)
 		{
 			// scalar product with normal
-			number Diam_FromTo = 0.5 * (m_aaDiameter[pElem->vertex(scvf.from())]
-									  + m_aaDiameter[pElem->vertex(scvf.to())]);
-
-			pre_resistance = volume / (0.25*PI*Diam_FromTo*Diam_FromTo);
-
-
-			number d_diff_flux = VecDot(scvf.global_grad(sh), scvf.normal());
+			number grad_normal = VecDot(scvf.global_grad(sh), scvf.normal());
 
 			// scale by 1/resistance and by length of element
-			d_diff_flux *= element_length / (m_spec_res*pre_resistance);
+			number d_diff_flux = grad_normal * element_length / (m_spec_res*pre_resistance);
 
 			// add flux term to local matrix
 			J(_VM_, scvf.from(), _VM_, sh) -= d_diff_flux;
 			J(_VM_, scvf.to()  , _VM_, sh) += d_diff_flux;
 
-
-			Diam_FromTo = std::min(m_aaDiameter[pElem->vertex(scvf.from())],
+			// diameter of axial flux cross-section
+			number diam_fromTo = std::min(m_aaDiameter[pElem->vertex(scvf.from())],
 								   m_aaDiameter[pElem->vertex(scvf.to())]);
 
-			for (int k=1; k < m_numb_funcs+1; k++)
+			for (size_t k = 1; k < m_numb_funcs+1; k++)
 			{
-				for (size_t sh = 0; sh < scvf.num_sh(); ++sh)
-				{
-					// scalar product with normal
-					d_diff_flux = VecDot(scvf.global_grad(sh), scvf.normal());
-
-					// scale by cross section and diff const
-					d_diff_flux *= m_diff_Vm[k-1] * 0.25*PI * Diam_FromTo*Diam_FromTo;
-					J(k, scvf.from(), k, sh) -= d_diff_flux;
-					J(k, scvf.to(), k, sh) += d_diff_flux;
-				}
+				// scale by cross section and diff const
+				d_diff_flux = grad_normal * m_diff_Vm[k-1] * 0.25*PI * diam_fromTo*diam_fromTo;
+				J(k, scvf.from(), k, sh) -= d_diff_flux;
+				J(k, scvf.to(), k, sh) += d_diff_flux;
 			}
-
 		}
 	}
-	//std::cout << "add_jac_A_elem ends" << std::endl;
 }
 
 
@@ -479,7 +375,7 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 		// get spec capacity
 		number spec_capacity = m_spec_cap;
-		for (int k=1; k < m_numb_funcs+1; k++)
+		for (size_t k = 1; k < m_numb_funcs+1; k++)
 		{
 			J(k, co, k, co) += scv.volume()*0.25*PI*Diam*Diam;
 		}
@@ -554,7 +450,7 @@ void VMDisc<TDomain, TAlgebra>::prepare_setting(const std::vector<LFEID>& vLfeID
 
 
 	//std::cout << "before prepare" << std::endl;
-	//VM always needed in this diskretication so it is easy only getting index of VM
+	//VM always needed in this discretization so it is easy only getting index of VM
 	/*
 	for (int i = 0; i < m_numb_funcs; i++)
 	{
@@ -695,8 +591,6 @@ template class VMDisc<Domain3d, CPUBlockAlgebra<4> >;
 template class VMDisc<Domain3d, CPUVariableBlockAlgebra >;
 #endif
 #endif
-
-
 
 
 } /* namespace ug */

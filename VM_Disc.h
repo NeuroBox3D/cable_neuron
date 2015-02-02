@@ -99,7 +99,7 @@ class VMDisc
 
 		//funcs params
 		std::vector<std::string> m_funcs;
-		int m_numb_funcs;
+		size_t m_numb_funcs;
 
 	public:
 	///	Constructor
