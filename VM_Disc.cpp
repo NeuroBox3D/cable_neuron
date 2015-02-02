@@ -104,7 +104,7 @@ add_channel(SmartPtr<IChannel<TDomain, TAlgebra> > Channel)
 
 template<typename TDomain, typename TAlgebra>
 void VMDisc<TDomain, TAlgebra>::
-add_func(const char* func)
+add_func(std::string func)
 {
 	m_funcs.push_back(func);
 	m_numb_funcs += 1;
@@ -163,7 +163,7 @@ void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector
 		double influx = 0;
 
 
-	///Influx handling
+		//Influx handling
 		for (size_t i = 0; i < m_flux_value.size(); i++)
 		{
 			/*std::cout << "coords: " << m_coords[i][0] << " - " << vCornerCoords[0][1] << std::endl;
@@ -187,12 +187,13 @@ void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector
 		// for all functions space is needed
 		for (int i=0; i<m_numb_funcs+1; i++)
 		{
-			AlloutCurrentValues.push_back(0);
+			AlloutCurrentValues.push_back(0.0);
 		}
 
-	/// Channel defekt adding
+		// Channel defekt adding
 		for (size_t i = 0; i < m_channel.size(); i++)
-		{ 	std::vector<number> outCurrentValues;
+		{
+			std::vector<number> outCurrentValues;
 			// values we are getting from ionic_flux function in channels
 			m_channel[i].get()->ionic_current(pElem->vertex(co), outCurrentValues);
 
@@ -228,55 +229,55 @@ void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector
 
 	// cable equation, "diffusion" part
 	//std::cout << "diff flux" << std::endl;
-		MathVector<dim> grad_c;
+	MathVector<dim> grad_c;
 
-		for (size_t ip = 0; ip < geo.num_scvf(); ++ip)
+	for (size_t ip = 0; ip < geo.num_scvf(); ++ip)
+	{
+		// get current SCVF
+		const typename TFVGeom::SCVF& scvf = geo.scvf(ip);
+
+		// compute gradient at ip
+		VecSet(grad_c, 0.0);
+		for (size_t sh = 0; sh < scvf.num_sh(); ++sh)
+			VecScaleAppend(grad_c, u(_VM_,sh), scvf.global_grad(sh));
+
+		// scalar product with normal
+		number diff_flux = VecDot(grad_c, scvf.normal());
+
+		number Diam_FromTo = 0.5 * (m_aaDiameter[pElem->vertex(scvf.from())]
+								  + m_aaDiameter[pElem->vertex(scvf.to())]);
+
+		//calculates pre_resistance
+		//pre_resistance = volume / (0.25*PI*Diam_FromTo*Diam_FromTo);
+
+		// scale by 1/resistance and by length of element
+		diff_flux *= element_length / (m_spec_res*pre_resistance);
+
+		// add to local defect of VM
+		d(_VM_, scvf.from()) -= diff_flux;
+		d(_VM_, scvf.to()  ) += diff_flux;
+		//std::cout << "m_diff ist doof" << std::endl;
+		// add local defect of all others
+		for (int k=1; k < m_numb_funcs+1; k++)
 		{
-			// get current SCVF
-			const typename TFVGeom::SCVF& scvf = geo.scvf(ip);
-
-			// compute gradient at ip
 			VecSet(grad_c, 0.0);
 			for (size_t sh = 0; sh < scvf.num_sh(); ++sh)
-				VecScaleAppend(grad_c, u(_VM_,sh), scvf.global_grad(sh));
+				VecScaleAppend(grad_c, u(k, sh), scvf.global_grad(sh));
 
 			// scalar product with normal
-			number diff_flux = VecDot(grad_c, scvf.normal());
+			diff_flux = VecDot(grad_c, scvf.normal());
 
-			number Diam_FromTo = 0.5 * (m_aaDiameter[pElem->vertex(scvf.from())]
-			                          + m_aaDiameter[pElem->vertex(scvf.to())]);
+			Diam_FromTo = std::min(m_aaDiameter[pElem->vertex(scvf.from())],
+								   m_aaDiameter[pElem->vertex(scvf.to())]);
 
-			//calculates pre_resistance
-			pre_resistance = volume / (0.25*PI*Diam_FromTo*Diam_FromTo);
-
-			// scale by 1/resistance and by length of element
-			diff_flux *= element_length / (m_spec_res*pre_resistance);
-
-			// add to local defect of VM
-			d(_VM_, scvf.from()) -= diff_flux;
-			d(_VM_, scvf.to()  ) += diff_flux;
-			//std::cout << "m_diff ist doof" << std::endl;
-			// add local defect of all others
-			for (int k=1; k < m_numb_funcs+1; k++)
-			{
-				VecSet(grad_c, 0.0);
-				for (size_t sh = 0; sh < scvf.num_sh(); ++sh)
-					VecScaleAppend(grad_c, u(k, sh), scvf.global_grad(sh));
-
-				// scalar product with normal
-				diff_flux = VecDot(grad_c, scvf.normal());
-
-				Diam_FromTo = std::min(m_aaDiameter[pElem->vertex(scvf.from())],
-									   m_aaDiameter[pElem->vertex(scvf.to())]);
-
-				// scale by cross section and diff const
-				diff_flux *= m_diff_Vm[k-1] * 0.25*PI * Diam_FromTo*Diam_FromTo;
-				d(k, scvf.from()) -= diff_flux;
-				d(k, scvf.to()  ) += diff_flux;
-			}
-
+			// scale by cross section and diff const
+			diff_flux *= m_diff_Vm[k-1] * 0.25*PI * Diam_FromTo*Diam_FromTo;
+			d(k, scvf.from()) -= diff_flux;
+			d(k, scvf.to()  ) += diff_flux;
 		}
-		//std::cout << "def a elem ends" << std::endl;
+
+	}
+	//std::cout << "def a elem ends" << std::endl;
 
 
 
@@ -440,7 +441,6 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 					// scale by cross section and diff const
 					d_diff_flux *= m_diff_Vm[k-1] * 0.25*PI * Diam_FromTo*Diam_FromTo;
-
 					J(k, scvf.from(), k, sh) -= d_diff_flux;
 					J(k, scvf.to(), k, sh) += d_diff_flux;
 				}

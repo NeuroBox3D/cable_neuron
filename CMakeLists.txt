@@ -30,6 +30,6 @@ if(buildEmbeddedPlugins)
 	# add the sources to ug4's sources
 	EXPORTSOURCES(plugins/experimental/HH_Kabelnew ${SOURCES})
 else(buildEmbeddedPlugins)
-	add_library(HHKabelnew SHARED ${SOURCES})
-	target_link_libraries (HHKabelnew ug4)
+	add_library(HH_Kabelnew SHARED ${SOURCES})
+	target_link_libraries (HH_Kabelnew ug4)
 endif(buildEmbeddedPlugins)

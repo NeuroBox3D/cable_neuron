@@ -224,7 +224,7 @@ static void Domain__Algebra(bridge::Registry& reg, string grp)
 				typedef IElemDisc<TDomain> TBase;
 				string name = string("VMDisc").append(suffix);
 				reg.add_class_<T, TBase >(name, grp)
-					.template add_constructor<void (*)(const char*, const char*, std::vector<SmartPtr<TIChannel> >, SmartPtr<ApproximationSpace<TDomain> > )>("Function(s)#Subset(s)")
+					.template add_constructor<void (*)(const char*, const char*, const std::vector<SmartPtr<TIChannel> >&, SmartPtr<ApproximationSpace<TDomain> > )>("Function(s)#Subset(s)")
 					//.add_method("create_GridFunc", &T::create_GridFunc)
 					.add_method("getApproxSpace" , &T::getApproxSpace)
 					.add_method("set_diameter", &T::set_diameter)
@@ -234,7 +234,7 @@ static void Domain__Algebra(bridge::Registry& reg, string grp)
 					.add_method("set_influx", &T::set_influx)
 					.add_method("set_influx_ac", &T::set_influx_ac)
 					.add_method("add_func", &T::add_func)
-					.add_method("setGridFct", &T::setGridFct)
+					//.add_method("setGridFct", &T::setGridFct)
 					.set_construct_as_smart_pointer(true);
 				reg.add_class_to_group(name, "VMDisc", tag);
 			}
@@ -293,11 +293,11 @@ template <typename TAlgebra>
 ////////////////////////////////////////////////////////////////////////////////
 //	InitUGPlugin_HH_Kabelnew
 extern "C" void
-InitUGPlugin_HHKabelnew(ug::bridge::Registry* reg, std::string parentGroup)
+InitUGPlugin_HH_Kabelnew(ug::bridge::Registry* reg, std::string parentGroup)
 {
 	//Registering HH-Fluxex
 	std::string grpHH = parentGroup;
-	grpHH.append("HHKabelnew/");
+	grpHH.append("HH_Kabelnew/");
 	//std::cout << "test: " << std::string grp(parentGroup) << endl;
 	//typedef Functionality Functionality;
 

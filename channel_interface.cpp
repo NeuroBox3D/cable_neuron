@@ -202,35 +202,36 @@ void ChannelHH<TDomain, TAlgebra>::init(number time, SmartPtr<GridFunction<TDoma
 		{
 
 			// needed konzentration has to be set
-			size_t VM = spGridFct->fct_id_by_name("VM");
+			size_t VM_fct_ind = spGridFct->fct_id_by_name("VM");
 			//std::cout << "VM: " << VM << std::endl;
 
 
 			Vertex* vrt = *iter;
 
 
-			spGridFct->dof_indices(vrt, VM, multInd);
-
+			spGridFct->dof_indices(vrt, VM_fct_ind, multInd);
 
 			for (size_t i=0; i<multInd.size(); i++)
 			{
 				m_aaVm[*iter] = DoFRef(*spGridFct, multInd[i]);
 			}
 
+			number VM = m_aaVm[*iter];
+
+			//TODO: is that right? not the same as in the Nernst version!
 	        // values for m gate
-	        number AlphaHm = 0.1 * vtrap(-(VM+40),10);
-	        number BetaHm =  4 * exp(-(VM+65)/18);
+	        number AlphaHm = 0.1 * vtrap(-(VM+40.0),10.0);
+	        number BetaHm =  4 * exp(-(VM+65.0)/18.0);
 
 	        // values for n gate
-	        number AlphaHn = 0.01*vtrap(-(VM+55),10);
-	        number BetaHn = 0.125*exp(-(VM+65)/80);
+	        number AlphaHn = 0.01*vtrap(-(VM+55.0),10.0);
+	        number BetaHn = 0.125*exp(-(VM+65.0)/80);
 
 	        // values for h gate
-	        number AlphaHh = 0.07 * exp(-(VM+65)/20.0);
+	        number AlphaHh = 0.07 * exp(-(VM+65.0)/20.0);
 	        number BetaHh = 1.0 / (exp(-(VM+35.0)/10.0) + 1.0);
 
-
-			/*// Writting Gatting-Params in attachement
+	        /*// Writting Gatting-Params in attachement
 			// gating param h
 			number AlphaHh = 0.07*exp(-(m_aaVm[*iter] + 65.0)/20.0);
 			number BetaHh = 1.0/(exp(3.0-0.1*(m_aaVm[*iter]  + 65.0))+1.0);
@@ -288,12 +289,12 @@ void ChannelHH<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<GridFu
 			Vertex* vrt = *iter;
 
 			// needed konzentration has to be set
-			size_t VM = spGridFct->fct_id_by_name("VM");
+			size_t VM_fct_ind = spGridFct->fct_id_by_name("VM");
 			//std::cout << "VM: upg" << VM << std::endl;
 
 
 			std::vector<DoFIndex> multInd;
-			spGridFct->dof_indices(vrt, VM, multInd);
+			spGridFct->dof_indices(vrt, VM_fct_ind, multInd);
 
 			//update Vm
 			for (size_t i=0; i<multInd.size(); i++)
@@ -301,8 +302,7 @@ void ChannelHH<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<GridFu
 				m_aaVm[*iter] = DoFRef(*spGridFct, multInd[i]);
 			}
 
-
-
+			number VM = m_aaVm[*iter];
 
 	        // values for m gate
 	        number AlphaHm = 0.1 * vtrap(-(VM+40),10);
@@ -373,7 +373,7 @@ void ChannelHH<TDomain, TAlgebra>::ionic_current(Vertex* v, std::vector<number>&
 	// getting attachments out of Vertex
 
 	double NGate = m_aaNGate[v];
-	double MGate = m_aaMGate[v];
+ 	double MGate = m_aaMGate[v];
 	double HGate = m_aaHGate[v];
 	double VM 	 = m_aaVm[v];
 
@@ -479,7 +479,7 @@ set_diff(const std::vector<number>& diff)
 template<typename TDomain, typename TAlgebra>
 void ChannelHHNernst<TDomain, TAlgebra>::init(number time, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct)
 {
-	//std::cout << "init starts" << std::endl;
+	//UG_LOG("init starts");
 	// attach attachments
 
 	if (spGridFct->approx_space()->domain()->grid()->has_vertex_attachment(this->m_MGate))

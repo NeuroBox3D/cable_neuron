@@ -98,7 +98,7 @@ class VMDisc
 		std::vector<SmartPtr<TIChannel> > m_channel;
 
 		//funcs params
-		std::vector<const char*> m_funcs;
+		std::vector<std::string> m_funcs;
 		int m_numb_funcs;
 
 	public:
@@ -107,22 +107,65 @@ class VMDisc
 		(
 			const char* functions,
 			const char* subsets,
-			std::vector<SmartPtr<TIChannel> > channels,
+			const std::vector<SmartPtr<TIChannel> >& channels,
 			SmartPtr<ApproximationSpace<TDomain> > approx
 		)
 		: IElemDisc<TDomain>(functions, subsets), m_channel(channels), m_numb_funcs(0),
 		  m_spApproxSpace(approx), m_aDiameter("diameter"),  _VM_(0)
 		{
-			SmartPtr<GridFunction<TDomain, TAlgebra> > spGridPtr;
+			//SmartPtr<GridFunction<TDomain, TAlgebra> > spGridPtr;
+			std::vector<std::string> allFct = m_spApproxSpace->names();
 
-			//spGridFct.m_bLocked = false;
-
+			// loop channel types
 			for (size_t k = 0; k < m_channel.size(); k++)
 			{
+				size_t new_fct_pos = 0;
+				// get vector of functions of the channel
+				std::vector<std::string> ch_fcts = TokenizeString(m_channel[k]->m_funcs);
 
-				// TODO: use: tokenize
-				//std::vector<std::string> tokenizedFcts = TokenizeString(functions);
+				// loop functions to test whether they already exist here
+				for (size_t j = 0; j < ch_fcts.size(); ++j)
+				{
+					bool exists = false;
+					for (size_t i = 0; i < allFct.size(); i++)
+					{
+						if (allFct[i] == ch_fcts[j])
+						{
+							exists = true;
+							break;
+						}
+					}
 
+					// add new function to approx space
+					if (!exists)
+					{
+						// add function to space
+						add_func(ch_fcts[j]);
+						m_spApproxSpace->add(ch_fcts[j].c_str(), "Lagrange", 1);
+						allFct.push_back(ch_fcts[j]);
+
+						// update local functions
+						std::vector<std::string> vFct = this->symb_fcts();
+						vFct.push_back(ch_fcts[j]);
+						this->set_functions(vFct);
+
+						// for every new species we also need the diffusion coefficients
+						std::vector<number> diff_coeffs = m_channel[k]->get_diff();
+
+						if (new_fct_pos < diff_coeffs.size())
+						{
+							m_diff_Vm.push_back(diff_coeffs[new_fct_pos]);
+							++new_fct_pos;
+						}
+						else
+						{
+							UG_THROW("Need to set diffusion coefficient for ion '" + ch_fcts[j] + "' with set_diff(<LuaTable>)" +
+								" if you do not want diffusion set to 0.");
+						}
+					}
+				}
+
+				/*
 				size_t position = 0;
 				std::string test = m_channel[k]->m_funcs;
 				size_t start = 0;
@@ -131,7 +174,7 @@ class VMDisc
 				bool exists;
 				SmartPtr<TIChannel> Channel = m_channel[k];
 				std::vector<std::string> allFct = m_spApproxSpace->names();
-				std::cout << "in VM channel diff" << m_channel[k]->m_funcs << std::endl;
+				std::cout << "in VM channel diff " << m_channel[k]->m_funcs << std::endl;
 				//std::cout << "in VM channel diff" << m_channel[k]->m_diff << std::endl;
 				std::vector<number> neuer;
 				neuer.resize(m_channel[k]->get_diff().size());
@@ -198,9 +241,7 @@ class VMDisc
 							" if you do not need diffusion set to 0.");}
 				}
 				//std::cout << "neue funktion" << new_func << std::endl;
-
-
-
+				*/
 			}
 
 
@@ -232,7 +273,7 @@ class VMDisc
 		void add_channel(SmartPtr<IChannel<TDomain, TAlgebra> > Channel);
 
 		//Add func
-		void add_func(const char* func);
+		void add_func(std::string func);
 
 		SmartPtr<ApproximationSpace<TDomain> > getApproxSpace();
 

@@ -201,8 +201,8 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 	number volume = 0.0;
 
 	//need to set later in another way
-	number Na_out = 140;
-	number K_out = 2.5;
+	//number Na_out = 140;
+	//number K_out = 2.5;
 
 	// cast elem to appropriate type
 	TElem* pElem = dynamic_cast<TElem*>(elem);
@@ -250,7 +250,7 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 
 
 
-		const number helpV = (m_R*m_T)/m_F;
+		//const number helpV = (m_R*m_T)/m_F;
 		// nernst potential of potassium and sodium
 		const number potassium_nernst_eq 	= -74.1266;//helpV*(log(K_out/u(_K_,co)));
 		const number sodium_nernst_eq	 	= -63.5129;//-helpV*(log(Na_out/u(_Na_,co)));
@@ -448,8 +448,8 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 	number element_length = 0.0;
 	number pre_resistance = 0.0;
 	number volume = 0;
-	number Na_out = 140;
-	number K_out = 2.5;
+	//number Na_out = 140;
+	//number K_out = 2.5;
 
 	// cast elem to appropriate type
 	TElem* pElem = dynamic_cast<TElem*>(elem);
@@ -525,7 +525,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		number dBetaHn_dVm = 0.125/80.0 * exp((u(_VM_,co)+65.0)/80.0);
 
 		//
-		const number helpV = (m_R*m_T)/m_F;
+		//const number helpV = (m_R*m_T)/m_F;
 
 
 		// nernst potential of potassium and sodium
