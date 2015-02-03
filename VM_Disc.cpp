@@ -203,19 +203,7 @@ void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector
 		//std::cout << m_numb_funcs << " - " << m_channel.size() <<std::endl;
 		//std::cout << "defekt adding does not work" << Diam << " - "<< _VM_ << " - "<< influx << " - "<< AlloutCurrentValues[0] << " - "<< scv.volume() <<std::endl;
 	/// Writing all into defekts
-		d(_VM_, co) += scv.volume() * PI * Diam * (AlloutCurrentValues[0]-influx);
-
-		//std::cout << "Vm defekt: " << d(_VM_, co) << std::endl;
-		//std::cout << "after setting defekt" << std::endl;
-	/// Now all other defektes needed to be added
-		for (int k = 1; k < m_numb_funcs+1; k++)
-		{
-			d(k, co) += scv.volume() * PI * Diam * AlloutCurrentValues[k];
-			//std::cout << "defekt changes: " << d(k, co) << " by k " << k << " AlloutVal " << AlloutCurrentValues[k] << std::endl;
-		}
-
-		// writing potential defects
-		d(_VM_, co) += scv.volume()*PI*Diam * (allOutCurrentValues[0]-influx);
+		d(_VM_, co) += scv.volume() * PI * Diam * (allOutCurrentValues[0]-influx);
 
 		/*std::cout << "defekt 1 changes: "<< d(1, co) << std::endl;
 		std::cout << "defekt 2 changes: "<< d(2, co) << std::endl;*/
@@ -369,24 +357,11 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 			for (size_t k = 1; k < m_numb_funcs+1; k++)
 			{
-<<<<<<< .mine
-				number dd_diff_flux;
-				for (size_t sh = 0; sh < scvf.num_sh(); ++sh)
-				{
-					// scalar product with normal
-					dd_diff_flux = VecDot(scvf.global_grad(sh), scvf.normal());
-
-					// scale by cross section and diff const
-					dd_diff_flux *= m_diff_Vm[k-1] * 0.25*PI * Diam_FromTo*Diam_FromTo;
-					J(k, scvf.from(), k, sh) -= dd_diff_flux;
-					J(k, scvf.to(), k, sh) += dd_diff_flux;
-				}
-=======
 				// scale by cross section and diff const
 				d_diff_flux = grad_normal * m_diff_Vm[k-1] * 0.25*PI * diam_fromTo*diam_fromTo;
 				J(k, scvf.from(), k, sh) -= d_diff_flux;
 				J(k, scvf.to(), k, sh) += d_diff_flux;
->>>>>>> .r17487
+
 			}
 		}
 	}
