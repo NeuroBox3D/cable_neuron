@@ -277,6 +277,10 @@ class VMDisc
 
 		SmartPtr<ApproximationSpace<TDomain> > getApproxSpace();
 
+		SmartPtr<GridFunction<TDomain, TAlgebra> > getGridFct();
+
+		void setGridFct(SmartPtr<GridFunction<TDomain, TAlgebra> > GridFct);
+
 	/// Functions for using different Ions
 
 		size_t get_index(std::string s);
@@ -342,7 +346,7 @@ class VMDisc
 		SmartPtr<MultiGrid> m_mg;					//!< underlying multigrid
 		SmartPtr<DoFDistribution> m_dd;				//!< underlying surface dof distribution
 		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
-		//SmartPtr<GridFunction<TDomain, TAlgebra> > m_spGridFct;
+		SmartPtr<GridFunction<TDomain, TAlgebra> > m_spGridFct;
 
 	/// dendritic radius attachment and accessor
 		ADouble m_aDiameter;
