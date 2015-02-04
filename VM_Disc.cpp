@@ -176,7 +176,7 @@ void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector
 				&& fabs(vCornerCoords[co][2] - m_coords[i][2]) < m_influx_ac
 			   )
 			{
-				influx = m_flux_value[i];
+				influx += m_flux_value[i];
 			}
 		}
 
