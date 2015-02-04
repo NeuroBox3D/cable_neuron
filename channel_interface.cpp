@@ -218,7 +218,7 @@ void ChannelHH<TDomain, TAlgebra>::init(number time, SmartPtr<GridFunction<TDoma
 
 			number VM = m_aaVm[*iter];
 
-			//TODO: is that right? not the same as in the Nernst version!
+			// functions used by Neuron
 	        // values for m gate
 	        /*number AlphaHm = 0.1 * vtrap(-(m_aaVm[*iter]+40),10);
 	        number BetaHm =  4 * exp(-(m_aaVm[*iter]+65)/18);
@@ -310,6 +310,7 @@ void ChannelHH<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<GridFu
 
 			number VM = m_aaVm[*iter];
 
+			// functions used by neuron
 	        // values for m gate
 	        /*number AlphaHm = 0.1 * vtrap(-(VM+40),10);
 	        number BetaHm =  4 * exp(-(VM+65)/18);

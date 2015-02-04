@@ -138,6 +138,8 @@ class IChannel
 	/** During the initialization, the necessary attachments are attached to the vertices
 	 *	and their values calculated by the equilibrium state for the start membrane potential.
 	**/
+		virtual void update_values(SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct) = 0;
+
 		virtual const std::vector<number> get_diff() = 0;
 
 		virtual void set_diff(const std::vector<number>& diff) = 0;
@@ -233,6 +235,9 @@ class ChannelHH
 
 		number vtrap(number x, number y);
 
+
+		void update_gating_vert(Vertex* v);
+		virtual void update_values(SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct);
 
 		// inherited from IChannel
 		virtual const std::vector<number> get_diff();
@@ -335,7 +340,8 @@ class ChannelHHNernst
 
 
 
-
+			void update_gating_vert(Vertex* v);
+			virtual void update_values(SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct);
 
 		// inherited from IChannel
 		virtual const std::vector<number> get_diff();
