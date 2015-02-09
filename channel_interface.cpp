@@ -856,16 +856,16 @@ void ChannelHHNernst<TDomain, TAlgebra>::ionic_current(Vertex* v, std::vector<nu
 
 	const number helpV = (m_R*m_T)/m_F;
 	// nernst potential of potassium and sodium
-	//std::cout << "K: " << K << " Na: " << Na << " VM: " << VM << std::endl;
+	std::cout << "K: " << K << " Na: " << Na << " VM: " << VM << std::endl;
 
-	//std::cout << "m_Na: " << m_Na_out << " m_K_out: " <<  m_K_out << std::endl;
+	std::cout << "m_Na: " << m_Na_out << " m_K_out: " <<  m_K_out << std::endl;
 
 	number potassium_nernst_eq 	= helpV*(log(m_K_out/K));
 	number sodium_nernst_eq	 	= helpV*(log(m_Na_out/Na));
 
 
-	//std::cout << "potassium_nernst_eq: " << potassium_nernst_eq << std::endl;
-	//std::cout << "sodium_nernst_eq: " << sodium_nernst_eq << std::endl;
+	std::cout << "potassium_nernst_eq: " << potassium_nernst_eq << std::endl;
+	std::cout << "sodium_nernst_eq: " << sodium_nernst_eq << std::endl;
 
 	// single channel type fluxes
 	number potassium_part_of_flux = m_g_K * pow(NGate,4) * (VM - potassium_nernst_eq);

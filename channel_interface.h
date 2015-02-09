@@ -308,6 +308,10 @@ class ChannelHHNernst
 		number m_sodium;
 		number m_potassium;
 
+		//outer concentrations
+		number m_Na_out;
+		number m_K_out;
+
 		// params gatting
 		double m_accuracy;
 
@@ -317,7 +321,7 @@ class ChannelHHNernst
 		/// constructor
 		ChannelHHNernst(const char* functions, const char* subsets)
 		: IChannel<TDomain, TAlgebra>(functions, subsets),
-		  m_bNonRegularGrid(false), m_R(8.314), m_T(310.0), m_F(96485.0)
+		  m_bNonRegularGrid(false), m_R(8314), m_T(279.45), m_F(96485.0)
 		{
 			register_all_funcs(m_bNonRegularGrid);
 		};
@@ -388,10 +392,6 @@ class ChannelHHNernst
 		// new private values
 		size_t _Na_;
 		size_t _K_;
-
-		//outer concentrations
-		number m_Na_out;
-		number m_K_out;
 
 		// nernst const values
 		number m_R;
