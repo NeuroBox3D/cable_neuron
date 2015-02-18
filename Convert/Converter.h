@@ -26,15 +26,25 @@ public:
 
 	std::vector<std::pair<int, int> > FindBlocks(std::vector<string> Zeilen);
 
+	bool Only_Read(std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen, string s);
+	string Write_Only_Read(std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen, string s);
+
+
 	std::vector<string> GetBlock(std::vector<pair<int, int> >, std::vector<string> Zeilen, string name);
 	size_t find_beg(string beg);
-
+	size_t find_begg(string beg);
 	size_t number_(size_t pos, string s);
 	size_t pos_letter(string s);
 	string build_func_head(string s);
 	string func_head(string s);
 
 	bool pos_letterb(string s);
+
+	bool begG(string s);
+
+	string writing_starts(string s);
+
+	string Search_for_Proc(std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen, std::vector<string> name);
 
 	std::vector<string> build_proc_vars(string s);
 	std::vector<vector<string> > write_proc_block(std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen);

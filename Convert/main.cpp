@@ -25,11 +25,15 @@ if (argn == 3)
 	test.WriteStart(argv[2], Blocks, Zeilen);
 
 	std::cout << "Files wurden geschrieben" << std::endl;
+	std::cout << test.Unit_Conv("(mm)") << std::endl;
 }
 else
 {
 	std::cout << "Bitte 2 Argumente angeben, das erste Argument sollte die NModl File sein, das 2. der Dateiname fuer die Ausgabe" << std::endl;
 }
+
+
+
 return 0;
 }
 

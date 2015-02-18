@@ -10,9 +10,11 @@
 #include <iostream>
 #include <algorithm>
 #include <stdexcept>
+#include <cmath>
 
 
 
+/////////// Zu letzt fehler in kca
 
 Converter::Converter() {
 	// TODO Auto-generated constructor stub
@@ -25,10 +27,206 @@ Converter::~Converter() {
 
 double Converter::Unit_Conv(string s)
 {
-	// all units have to be in ms m mV
+	double erg = 0;
+	//needed units /c /m^2 /mV /ms
+	// existing units amper: pA, mA, A
+	// existing units volt: pV, mV, V
+	// mm2 cm2 dm2 m2 km2
+	// existing units time: ms, s,
+	// working with Siemens!!
+	// existing unigs simens: pS, mS, S
+	// existing units concentrats: mM,
+	// existing units temp: degC
+	// (um) = (micron) ????
+	// mho/cm2 mA/cm2 S/cm2
+	// 2 standing for ²
+
+
+	// In our model we have mA and mV
+	if ((s.find("V")!=s.npos) && (s.find("A")!=s.npos))
+	{
+		if ((s.find("pV")!=s.npos) || (s.find("pA")!=s.npos))
+		{
+			if (erg==0)
+				erg = 1e-9;
+			else erg *= 1e-9;
+		}
+
+		if ((s.find("nV")!=s.npos) || (s.find("nA")!=s.npos))
+		{
+			if (erg==0)
+				erg = 1e-6;
+			else erg *= 1e-6;
+		}
+
+		if ((s.find("V)")!=s.npos) || (s.find("A)")!=s.npos))
+		{
+			if (erg==0)
+				erg = 1000;
+			else erg *= 1000;
+		}
+	}
+
+	//special mho is siemens
+	// In our model we need Siemens
+	if ((s.find("S")!=s.npos))
+	{
+		if ((s.find("pS")!=s.npos))
+		{
+			if (erg==0)
+				erg = 1e12;
+			else erg *= 1e12;
+		}
+
+		if ((s.find("nS")!=s.npos))
+		{
+			if (erg==0)
+				erg = 1e9;
+			else erg *= 1e9;
+		}
+
+
+
+		if ((s.find("mS")!=s.npos))
+		{
+			if (erg==0)
+				erg = 1000;
+			else erg *= 1000;
+		}
+	}
+
+
+
+
+
+	// In our model we have m/m2/m3/m4
+	string dims[] = {"", "2", "3", "4"};
+	int dimi[] = {1, 100, 10000, 1000000};
+	int factor = 0;
+	size_t pos;
+
+	for (size_t i = 0; i<4; i++)
+	{
+		pos = s.find("m"+dims[i]);
+		if (pos!=s.npos)
+		{
+			for (size_t j = 1; j<4; j++)
+			{
+				if (s.find("m"+dims[j])!=s.npos)
+				{
+					i = j;
+				}
+			}
+			factor = i+1;
+
+			if (s.find("um"+dims[i])!=s.npos)
+			{
+				if (erg==0)
+					erg = std::pow(10, factor)*100000*dimi[i];
+				else erg *= std::pow(10, factor)*100000*dimi[i];
+			}
+
+
+			if (s.find("mm"+dims[i])!=s.npos)
+			{
+				if (erg==0)
+					erg = std::pow(10, factor)*100*dimi[i];
+				else erg *= std::pow(10, factor)*100*dimi[i];
+			}
+
+			if (s.find("cm")!=s.npos)
+			{
+				if (erg==0)
+					erg = std::pow(10, factor)*10*dimi[i];
+				else erg *= std::pow(10, factor)*10*dimi[i];
+			}
+
+			if (s.find("dm")!=s.npos)
+			{
+				if (erg==0)
+					erg = std::pow(10, factor)*dimi[i];
+				else erg *= std::pow(10, factor)*dimi[i];
+			}
+
+			if (s.find("km")!=s.npos)
+			{
+				if (erg==0)
+					erg = std::pow(0.1, factor)*0.01*(1/dimi[i]);
+				else erg *= std::pow(0.1, factor)*0.01*(1/dimi[i]);
+			}
+
+		}
+
+	}
+
+
+
+	// In our model we have ms
+
+	return erg;
+}
+
+bool Converter::Only_Read(std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen, string s)
+{
+	bool erg = false;
+
+	std::vector<string> NEURON = GetBlock(Pairs, Zeilen, "NEURON");
+	for (size_t i=0; i<NEURON.size(); i++)
+	{
+		if (NEURON[i].find("USEION " + s)!=NEURON[i].npos)
+		{
+			if (NEURON[i].find("WRITE")==NEURON[i].npos)
+			{
+				erg = true;
+			}
+		}
+	}
+
+	return erg;
+}
+
+string Converter::Write_Only_Read(std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen, string s)
+{
+	string erg = "double " + s + " = aa";
+	size_t pos;
+	size_t end;
+
+	std::vector<string> NEURON = GetBlock(Pairs, Zeilen, "NEURON");
+	for (size_t i=0; i<NEURON.size(); i++)
+	{
+		pos = NEURON[i].find("USEION");
+		if (NEURON[i].find(s)!=NEURON[i].npos)
+		{
+			end = NEURON[i].find("READ");
+			if (end!=NEURON[i].npos)
+			{
+				//aacaGate[*iter]
+				std::cout << "beg: " << pos+7 << " dur: " << end-pos+7 << "end: "<< end << std::endl;
+				erg = erg + NEURON[i].substr(pos+7, (end-(pos+7))-1)+"Gate[*iter]";
+			}
+		}
+	}
+	return (erg + "; \n");
 }
 
 
+bool Converter::begG(string s)
+{
+	//std::cout << "fehler in beg" << std::endl;
+	bool erg = false;
+	const string KeyWord[] = {"TABLE", "DEPEND", "FROM", "TO", "HOC"};
+	for ( size_t i=0 ; i<5; i++ )
+	{
+		if (s.find(KeyWord[i])!=s.npos)
+			erg = true;
+		//std::cout << "anzahl i's: " << i << std::endl;
+	}
+	//std::cout << "vor rueckgabe" << std::endl;
+	return erg;
+}
+
+
+// writing Nernst Equatation for Ions with write
 std::vector<string> Converter::equali(std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen)
 {
 	std::vector<string> out;
@@ -52,7 +250,9 @@ std::vector<string> Converter::equali(std::vector<pair<int, int> > Pairs, std::v
 			IonS = NEURON[i].substr(IonRead+5, (IonRend-(IonRead+5)));
 			std::cout << "Subion: "<< IonS << std::endl;
 			ListIonRead.push_back(IonS);
-			ListIon.push_back(IonS.substr(1, IonS.size()-1));
+			// Only if there is a WRITE in
+			if (NEURON[i].find("WRITE")!=NEURON[i].npos)
+					ListIon.push_back(IonS.substr(1, IonS.size()-1));
 		}
 	}
 
@@ -104,6 +304,7 @@ std::vector<vector<string> > Converter::write_proc_block(std::vector<pair<int, i
 		}
 	}
 
+
 	return Proc_blocks;
 }
 
@@ -141,8 +342,6 @@ std::vector<vector<string> > Converter::write_derivative_block(std::vector<pair<
 
 
 
-
-
 std::vector<string> Converter::get_local_proc_block(std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen, string name)
 {
 	std::vector<string> locals;
@@ -170,7 +369,17 @@ std::vector<string> Converter::get_local_proc_block(std::vector<pair<int, int> >
 }
 
 
+string Converter::writing_starts(string s)
+{
+	string test[] = {"UNITSOFF" ,"TABLE", "DEPEND", "FROM", "TO", "HOC, LOCAL"};
 
+	for (size_t i = 0; i<7; i++)
+	{
+		if (s.find(test[i])!=s.npos)
+			s = "";
+	}
+	return s;
+}
 
 
 
@@ -190,18 +399,15 @@ std::vector<string> Converter::writer_proc_block(std::vector<pair<int, int> > Pa
 		{
 			for (size_t j = i; j<PROCEDURE.size(); j++)
 				{
-				if (PROCEDURE[j].find("UNITSOFF")!=PROCEDURE[j].npos)
+					PROCEDURE[j] = writing_starts(PROCEDURE[j]);
+				}
+			for (size_t k = i; k<PROCEDURE.size(); k++)
 				{
-					PROCEDURE[j].replace(PROCEDURE[j].find("UNITSOFF"), 8, "");
-					for (size_t k = j; k<PROCEDURE.size(); k++)
+					if ((PROCEDURE[k].find(":")==PROCEDURE[k].npos) && (PROCEDURE[k].find("PROCEDURE")==PROCEDURE[i].npos))
 					{
-						if ((PROCEDURE[k].find(":")==PROCEDURE[k].npos) && (PROCEDURE[k].find("PROCEDURE")==PROCEDURE[i].npos))
-						{
-							fileInfo.push_back(PROCEDURE[k]);
-						}
+						fileInfo.push_back(PROCEDURE[k]);
 					}
 				}
-			}
 		}
 	}
 	return fileInfo;
@@ -278,7 +484,7 @@ size_t Converter::count_beg(string beg)
 		begi = 1;
 	}
 
-	while (beg.find(" ", begi)!=beg.npos)
+	while (beg.find(" ", begi, 1)!=beg.npos)
 	{
 		begi += 1;
 	}
@@ -303,11 +509,31 @@ size_t Converter::find_beg(string beg)
 
 }
 
+size_t Converter::find_begg(string beg)
+{
+	size_t begi1, begi2;
+	// deletes " " at the begining afterwards
+
+	begi1 = beg.find(" ");
+	if (begi1!=beg.npos)
+	{
+		begi2 = beg.find(" ", begi1+1);
+		while (begi2==begi1+1)
+		{
+			begi1 +=1;
+			begi2 = beg.find(" ", begi1+1);
+		}
+	}
+	return begi1+1;
+
+}
+
 
 size_t Converter::number_(size_t pos, string s)
 {
 	size_t counter = 0;
 	size_t begin;
+
 	begin = s.find(" ", pos);
 	while (begin !=s.npos)
 	{
@@ -368,6 +594,11 @@ std::vector<string> Converter::Openfile(string filename)
 	{
 		//std::cout << "while" << std::endl;
 	    getline(ModFile, zeile);        // Lese eine Zeile
+	    /*if (zeile.find(":")!=zeile.npos)
+	    {
+	    	std::cout << "replace happens" << std::endl;
+	    	zeile.replace(zeile.find(":"), 1,";//");
+	    }// replace : with // as comment*/
 	    zeilen.push_back(zeile);    // Zeige sie auf dem Bildschirm
 	}
 	ModFile.close();    //}
@@ -418,10 +649,13 @@ std::vector<std::pair<int, int> > Converter::FindBlocks(std::vector<string> Zeil
 std::vector<string> Converter::GetBlock(std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen, string name)
 {
 	std::vector<string> BlockName;
+	bool Verba = false;
+
 	for (size_t i=0; i<Pairs.size(); i++)
 	{
 		//std::cout << "first" << Pairs.size() << std::endl;
-		if (Zeilen[Pairs[i].first].find(name)!=Zeilen[Pairs[i].first].npos)
+		// first find of right name and second find that not outsurced
+		if ((Zeilen[Pairs[i].first].find(name)!=Zeilen[Pairs[i].first].npos) && (Zeilen[Pairs[i].first].find(":"+name)==Zeilen[Pairs[i].first].npos))
 		{
 			//std::cout << Zeilen[Pairs[i].first] << std::endl;
 			//überprüft wenn weitere klammern da sind, dass nur die letzte verwendet wird;
@@ -437,14 +671,24 @@ std::vector<string> Converter::GetBlock(std::vector<pair<int, int> > Pairs, std:
 			// schreibt zeilen raus
 			for (int j=Pairs[i].first; j<Pairs[i].second; j++)
 			{
+				if (Zeilen[j].find("VERBATIM")!=Zeilen[j].npos)
+					Verba = true;
+
+				// removes verbatim blocks
+				if (Verba==false)
+				{
 				//std::cout << counter << std::endl;
-				BlockName.push_back(Zeilen[j]);
+					BlockName.push_back(Zeilen[j]);
+				}
+				if (Zeilen[j].find("ENDVERBATIM")!=Zeilen[j].npos)
+					Verba=false;
+
 			}
 
 		}
 	}
-	std::cout << "before block" << std::endl;
-	std::cout << BlockName.size() << std::endl;
+	//std::cout << "before block" << std::endl;
+	//std::cout << BlockName.size() << std::endl;
 	return BlockName;
 }
 
@@ -478,15 +722,17 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 	  std::vector<string> FUNCTION = GetBlock(Pairs, Zeilen, "FUNCTION");
 
+	  size_t funcS, funcE;
+
 	  string func, funchead;
 	  if (FUNCTION.size() > 0)
 	  {
 		  func = build_func_head(FUNCTION[0]);
 	  	  funchead = func_head(FUNCTION[0]);
-	  }
-	  size_t funcS, funcE;
+
 	  mycppfile << func +" \n";
 	  mycppfile << "{ \n";
+	  }
 	  for (size_t i = 1; i<FUNCTION.size(); i++)
 	  {
 		  funcS = FUNCTION[i].find(funchead);
@@ -499,12 +745,21 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  }
 
 	  mycppfile << "\n \n";
+
+	  // Proceduren wie Funktionen
+
+
+
+
 	  mycppfile.close();
 
 	  ofstream myhfile;
 	  myhfile.open (filenameh);
 	  myhfile << "#ifndef " + filename + "_H_\n";
 	  myhfile << "#define " + filename + "_H_\n";
+
+	  myhfile << "#include \"channel_interface.h\" \n";
+
 	  myhfile << "#include \"lib_grid/lg_base.h\" \n";
 	  myhfile << "#include \"lib_grid/grid/grid_base_objects.h\" \n";
 	  myhfile << "\n";
@@ -577,7 +832,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		  {
 			   end = PARAMETER[i].find("(");
 			   var = PARAMETER[i].substr(0, end);
-			   myhfile << "const static " + var + "; \n";
+			   myhfile << "const static double " + var + "; \n";
 		  }
 	  }
 	  myhfile << "std::vector<number> m_diff; \n";
@@ -683,20 +938,23 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 			  std::cout << "ab: " << state << " anzahl: " << stateend-state << std::endl;
 			  addState = STATE[i].substr(state, stateend-state);
 			  //writting in hfile
-			  myhfile << "ADouble " + addState + "Gate; \n";
-			  myhfile << "Grid::AttachmentAccessor<Vertex, ADouble> aa" + addState + "Gate; \n";
+			  if (addState!="}")
+			  {
+				  myhfile << "ADouble " + addState + "Gate; \n";
+				  myhfile << "Grid::AttachmentAccessor<Vertex, ADouble> aa" + addState + "Gate; \n";
 
 /////////////////////////////////////////////////////////////////////////
 //writting of attachment inits for cpp file
 /////////////////////////////////////////////////////////////////////////
 
-			  mycppfile << "if (spGridFct->approx_space()->domain()->grid()->has_vertex_attachment(this->" + addState + "Gate)) \n";
-			  mycppfile << "UG_THROW(\"Attachment necessary (" + addState + "Gate) for Hodgkin and Huxley channel dynamics \"\n";
-			  mycppfile << "\"could not be made, since it already exists.\"); \n";
-			  mycppfile << "spGridFct->approx_space()->domain()->grid()->attach_to_vertices(this->" + addState + "Gate); \n";
-			  mycppfile << "this->aa" + addState + "Gate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGridFct->approx_space()->domain()->grid(), this->" + addState + "Gate); \n \n";
+				  mycppfile << "if (spGridFct->approx_space()->domain()->grid()->has_vertex_attachment(this->" + addState + "Gate)) \n";
+				  mycppfile << "UG_THROW(\"Attachment necessary (" + addState + "Gate) for Hodgkin and Huxley channel dynamics \"\n";
+				  mycppfile << "\"could not be made, since it already exists.\"); \n";
+				  mycppfile << "spGridFct->approx_space()->domain()->grid()->attach_to_vertices(this->" + addState + "Gate); \n";
+				  mycppfile << "this->aa" + addState + "Gate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGridFct->approx_space()->domain()->grid(), this->" + addState + "Gate); \n \n";
 
 			  state = stateend+1;
+			  }
 		  }
 		  varSt = 0;
 	  }
@@ -754,8 +1012,12 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  std::vector<string> Proc_vals, locals;
 	  string helper;
 
+	  std::vector<string> new_locals, new_local_block;
+	  std::vector<string> PROCEDURE = GetBlock(Pairs, Zeilen, "PROCEDURE");
 	  size_t begin;
 	  size_t Stats_beg = 1;
+
+
 	  if (INITIAL.size() > 1)
 	  {
 		  begin = count_beg(INITIAL[1]);
@@ -774,7 +1036,17 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 				  // write needed values
 				  for (size_t k=1; k<Proc_funcs[j].size(); k++)
 				  {
-					  mycppfile << "double " + Proc_funcs[j][k] + " = aa"+ Proc_funcs[j][k] + "Gate[*iter]; \n \n";
+					  // when only read no write read is same as use
+					  if (Only_Read(Pairs, Zeilen, Proc_funcs[j][k])==true)
+					  	  {
+						  	  mycppfile << Write_Only_Read(Pairs, Zeilen, Proc_funcs[j][k]);
+					  	  }
+					  	  else
+					  	  {
+					  		  mycppfile << "double " + Proc_funcs[j][k] + " = aa"+ Proc_funcs[j][k] + "Gate[*iter]; \n \n";
+					  		  std::cout << "else for: " << std::endl;
+					  	  }
+					  std::cout << Proc_funcs[j][k] << std::endl;
 				  }
 
 				  // write locals vals as double
@@ -791,12 +1063,133 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 				  for (size_t k=0; k<Proc_vals.size(); k++)
 				  {
-					  if ((Proc_vals[k]!="") && (Proc_vals[k]!="}"))
+					  if ((Proc_vals[k]!="") && (Proc_vals[k]!="}") && (Proc_vals[k].find("LOCAL")==Proc_vals[k].npos)
+							  && Proc_vals[k]!=" " && Proc_vals[k]!="\t" && Proc_vals[k]!="        ")
+					  {
 						  mycppfile << Proc_vals[k] + "; \n";
-
+					  }
 				  }
+
+				  bool right = false;
+
+
+				  for (size_t k=0; k<PROCEDURE.size(); k++)
+				  {
+					  if (PROCEDURE[k].find("PROCEDURE")!=PROCEDURE[k].npos)
+					  {
+						  //std::cout << "PROCEDURE " + Proc_funcs[0][0] << std::endl;
+						  for (size_t l = 0; l<Proc_funcs.size(); l++)
+						  {
+							  //std::cout << "l" << Proc_funcs.size() << std::endl;
+							  if ((Proc_funcs[j][0]!=Proc_funcs[l][0]) && (PROCEDURE[k].substr(0, PROCEDURE[k].find("("))=="PROCEDURE " + Proc_funcs[l][0]))
+							  {
+								  right = false;
+								  std::cout << "write not" << std::endl;
+							  }
+
+						  }
+
+						  //std::cout << PROCEDURE[k].substr(0, PROCEDURE[k].find("(")) << std::endl;
+						  if (PROCEDURE[k].substr(0, PROCEDURE[k].find("(")) == "PROCEDURE " + Proc_funcs[j][0])
+						  {
+							  right = true;
+							  std::cout << "write" << std::endl;
+						  }
+					  }
+
+
+
+					  if (right==true)
+					  {
+						  std::cout << "Procedure k existiert nicht" << std::endl;
+						  std::cout << PROCEDURE[k] << std::endl;
+						  std::cout << "Procedure k existiert doch bei k=" << k << std::endl;
+						  if (begG(PROCEDURE[k])==false)
+						  {
+							  if ((k>1) && (PROCEDURE[k].substr(0,1)!="}"))
+							  {
+								  //std::cout << "first print" << std::endl;
+								  if ((PROCEDURE[k]!="") && (PROCEDURE[k]!=" ") && (PROCEDURE[k]!="\t") && (PROCEDURE[k]!=" \n"))
+									  {
+									  	  if (PROCEDURE[k].find(":")!=PROCEDURE[k].npos)
+									  		  {
+
+									  		  	  if (PROCEDURE[k].find(":")!=0)
+									  		  	  PROCEDURE[k].replace(PROCEDURE[k].find(":"), 1 ,";//");
+									  		  	  else PROCEDURE[k].replace(PROCEDURE[k].find(":"), 1 ,"//");
+									  		  }
+									  	  if (PROCEDURE[k].find("\t")!=PROCEDURE[k].npos)
+									  			  PROCEDURE[k].replace(PROCEDURE[k].find("\t"), 1, "");
+									  	  if (PROCEDURE[k].find(" ")!=PROCEDURE[k].npos)
+									  			  PROCEDURE[k].replace(PROCEDURE[k].find(" "), 1, "");
+									  	  //if (PROCEDURE[k].find("(")!=PROCEDURE[k].npos)
+									  		  	  //PROCEDURE[k] = PROCEDURE[k].substr(0, PROCEDURE[k].find("("));
+				  		  				  while (PROCEDURE[k].find(" ")!=PROCEDURE[k].npos)
+				  		  						{PROCEDURE[k].replace(PROCEDURE[k].find(" "), 1, "");}
+
+									  	  for (size_t n=0; n<Proc_funcs.size(); n++)
+
+									  		  if ((PROCEDURE[k]!=Proc_funcs[n][0]) && (PROCEDURE[k].find("")!=PROCEDURE[k].npos))
+									  		  {
+									  			  if (PROCEDURE[k] + ";\n" != ";\n")
+									  			  {
+									  				  if (n==Proc_funcs.size())
+									  				  {
+									  					  mycppfile << PROCEDURE[k] + "; \n";
+									  				  }
+
+									  			  }
+
+									  		  }
+									  	  else
+									  		  { std::cout << "write else" << std::endl;
+									  		  	  for (size_t o=0 ; o<PROCEDURE.size(); o++)
+									  		  	  {
+									  		  		  if (PROCEDURE[o].find("PROCEDURE " + PROCEDURE[k])!=PROCEDURE[o].npos)
+													  {
+									  		  			  for (size_t p=o+1; p<PROCEDURE.size()-1; p++)
+									  		  			  {
+									  		  				  if (PROCEDURE[p].find("\t")!=PROCEDURE[p].npos)
+									  		  						{PROCEDURE[p].replace(PROCEDURE[p].find("\t"), 1, "");}
+
+									  		  				  if (PROCEDURE[p].find("\n")!=PROCEDURE[p].npos)
+									  		  						{PROCEDURE[p].replace(PROCEDURE[p].find("\n"), 1, "");}
+
+
+									  		  				  while (((PROCEDURE[p].find(" "))!=(PROCEDURE[p].npos)) && ((PROCEDURE[p].find(" "))<(PROCEDURE[p].find(":"))))
+									  		  						{PROCEDURE[p].replace(PROCEDURE[p].find(" "), 1, "");}
+
+														  	  if (PROCEDURE[p].find(":")!=PROCEDURE[p].npos)
+														  	  {
+														  		  if (PROCEDURE[p].find(":")!=0)
+														  			  PROCEDURE[p].replace(PROCEDURE[p].find(":"), 1 ,";//");
+														  		  else PROCEDURE[p].replace(PROCEDURE[p].find(":"), 1 ,"//");
+														  	  }
+
+									  		  				  if (PROCEDURE[p].find("")!=PROCEDURE[p].npos)
+									  		  				  {
+									  		  					  if (PROCEDURE[p] + ";\n" != ";\n")
+									  		  					  {
+									  		  						  if (PROCEDURE[p].find("//")==PROCEDURE[p].npos)
+									  		  							  mycppfile << "double " + PROCEDURE[p] +";\n";
+									  		  						  else mycppfile << PROCEDURE[p] +"\n";
+									  		  					  }
+									  		  				  }
+									  		  			  }
+													  }
+									  		  }
+									  	  }
+									  }
+							  }
+						  }
+					  }
+				  }
+
 			  }
 		  }
+
+
+
 
 		  if (i > Stats_beg)
 		  {
@@ -834,14 +1227,35 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  mycppfile << "// needed konzentration has to be set \n";
 
 	  std::vector<string> DERIVATIVE = GetBlock(Pairs, Zeilen, "DERIVATIVE");
-	  std::vector<vector <string> > Der_funcs;
+	  //std::vector<vector <string> > Der_funcs;
 
+
+	  PROCEDURE = GetBlock(Pairs, Zeilen, "PROCEDURE");
+	  Proc_funcs = write_proc_block(Pairs, Zeilen);
+
+	  std::vector<vector< string> > Der_funcs;
 	  Der_funcs = write_derivative_block(Pairs, Zeilen);
 
-	  if (DERIVATIVE.size() > 1)
+	  for (size_t i=0; i<PROCEDURE.size(); i++)
+		  {
+		    std::cout << "Procedure: " << PROCEDURE[i] << std::endl;
+		  }
+	  for (size_t i=0; i<Proc_funcs[0].size(); i++)
+		  {
+		  	  for (size_t j=0; j<Proc_funcs.size(); j++)
+		    std::cout << "Proc_funcs: " << Proc_funcs[j][i] << std::endl;
+		  }
+
+	  if (Der_funcs.size() >= 1)
 	  {
-		  begin = count_beg(DERIVATIVE[1]);
+		  for (size_t i=0; i<Der_funcs[0].size(); i++)
+		  	  {
+		  	  	  for (size_t j=0; j<Der_funcs.size(); j++)
+		  	  		  std::cout << "Proc_funcs: " << Der_funcs[j][i] << std::endl;
+		  	  }
 	  }
+
+
 	  //std::cout << "beg: " << begin << std::endl;
 	  // writting ions
 
@@ -880,40 +1294,211 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		  //std::cout << "after doppelt if" << std::endl;
 		  for (size_t j=0; j<varSt; j++)
 		  {
-			  stateend = STATE[i].find(" ", state);
-			  addState = STATE[i].substr(state, stateend-state);
-			  mycppfile << "double " + addState + " = aa" + addState + "Gate[*iter]; \n";
+			  if (addState!="}")
+			  {
+				  stateend = STATE[i].find(" ", state);
+				  addState = STATE[i].substr(state, stateend-state);
+				  mycppfile << "double " + addState + " = aa" + addState + "Gate[*iter]; \n";
 
-			  state = stateend+1;
+				  state = stateend+1;
+			  }
 		  }
 		  varSt = 0;
 	  }
 
 	  mycppfile << "\n \n \n";
 
-	  // writting needed for DERIVATIVE
-	  for (size_t i=0; i<DERIVATIVE.size(); i++)
-	  {
 
-		  for (size_t j=0; j<Der_funcs.size(); j++)
+	  std::cout << "DERIV BEGINS" << std::endl;
+	  if (DERIVATIVE.size() > 1)
 		  {
-			  begin = count_beg(DERIVATIVE[i]);
-			  if (Der_funcs[j][0] == DERIVATIVE[i].substr(begin, DERIVATIVE[i].find("(")-begin))
+			  begin = count_beg(DERIVATIVE[1]);
+		  }
+		  //std::cout << "beg: " << begin << std::endl;
+
+		  for (size_t i=0; i<DERIVATIVE.size(); i++)
+		  {
+
+			  for (size_t j=0; j<Proc_funcs.size(); j++)
 			  {
-				  Stats_beg = i;
-				  // write needed values
-				  for (size_t k=1; k<Der_funcs[j].size(); k++)
+				  begin = find_begg(DERIVATIVE[i]);
+				  // here is mistake
+				  std::cout << (DERIVATIVE[i].substr(begin, DERIVATIVE[i].find("(")-begin)) << std::endl;
+				  if (Proc_funcs[j][0] == DERIVATIVE[i].substr(begin, DERIVATIVE[i].find("(")-begin))
 				  {
-					  mycppfile << "double " + Der_funcs[j][k] + " = aa"+ Der_funcs[j][k] + "Gate[*iter]; \n \n";
+					  Stats_beg = i;
+					  // write needed values
+					  for (size_t k=1; k<Proc_funcs[j].size(); k++)
+					  {
+						  // when only read no write read is same as use
+						  if (Only_Read(Pairs, Zeilen, Proc_funcs[j][k])==true)
+						  {
+							  mycppfile << Write_Only_Read(Pairs, Zeilen, Proc_funcs[j][k]);
+						  }
+						  else
+						  {
+							  mycppfile << "double " + Proc_funcs[j][k] + " = aa"+ Proc_funcs[j][k] + "Gate[*iter]; \n \n";
+						  }
+						  std::cout << Proc_funcs[j][k] << std::endl;
+					  }
+
+					  // write locals vals as double
+					  locals = get_local_proc_block(Pairs, Zeilen, Proc_funcs[j][0]);
+
+					  for (size_t k=0; k<locals.size(); k++)
+					  {
+						  mycppfile << "double " + locals[k] + "; \n";
+					  }
+
+
+
+					  bool right = false;
+
+
+					  for (size_t k=0; k<PROCEDURE.size(); k++)
+					  {
+						  std::cout << "PROCEDURE: " << PROCEDURE[k] << std::endl;
+						  if (PROCEDURE[k].find("PROCEDURE")!=PROCEDURE[k].npos)
+						  {
+							  std::cout << "PROCEDURE: " << PROCEDURE[k] << std::endl;
+							  for (size_t l = 0; l<Der_funcs.size(); l++)
+							  {
+								  //std::cout << "l" << Proc_funcs.size() << std::endl;
+								  if ((PROCEDURE[k].substr(0, PROCEDURE[k].find("("))!="PROCEDURE " + Der_funcs[l][0]))
+								  {
+									  right = false;
+									  std::cout << "write not with: " << Der_funcs[l][0] << " and " <<  PROCEDURE[k].substr(0, PROCEDURE[k].find("(")) << std::endl;
+								  }
+
+							  }
+
+							  //std::cout << PROCEDURE[k].substr(0, PROCEDURE[k].find("(")) << std::endl;
+							  if (PROCEDURE[k].substr(0, PROCEDURE[k].find("(")) == "PROCEDURE " + Proc_funcs[j][0])
+							  {
+								  right = true;
+								  std::cout << "write" << std::endl;
+							  }
+						  }
+
+
+
+						  if (right==true)
+						  {
+							  std::cout << "Procedure k existiert nicht" << std::endl;
+							  std::cout << PROCEDURE[k] << std::endl;
+							  std::cout << "Procedure k existiert doch bei k=" << k << std::endl;
+							  if (begG(PROCEDURE[k])==false)
+							  {
+								  if ((k>1) && (PROCEDURE[k].substr(0,1)!="}"))
+								  {
+									  //std::cout << "first print" << std::endl;
+									  if ((PROCEDURE[k]!="") && (PROCEDURE[k]!=" ") && (PROCEDURE[k]!="\t") && (PROCEDURE[k]!=" \n"))
+										  {
+										  	  if (PROCEDURE[k].find(":")!=PROCEDURE[k].npos)
+										  		  {
+
+										  		  	  if (PROCEDURE[k].find(":")!=0)
+										  		  	  PROCEDURE[k].replace(PROCEDURE[k].find(":"), 1 ,";//");
+										  		  	  else PROCEDURE[k].replace(PROCEDURE[k].find(":"), 1 ,"//");
+										  		  }
+										  	  if (PROCEDURE[k].find("\t")!=PROCEDURE[k].npos)
+										  			  PROCEDURE[k].replace(PROCEDURE[k].find("\t"), 1, "");
+										  	  if (PROCEDURE[k].find(" ")!=PROCEDURE[k].npos)
+										  			  PROCEDURE[k].replace(PROCEDURE[k].find(" "), 1, "");
+										  	  /*if (PROCEDURE[k].find("(")!=PROCEDURE[k].npos)
+										  		  	  PROCEDURE[k] = PROCEDURE[k].substr(0, PROCEDURE[k].find("("));*/
+					  		  				  /*while (PROCEDURE[k].find(" ")!=PROCEDURE[k].npos)
+					  		  						{PROCEDURE[k].replace(PROCEDURE[k].find(" "), 1, "");}*/
+
+										  	  for (size_t n=0; n<Proc_funcs.size(); n++)
+										  	  {
+										  		  std::cout << "vergleich with: Proc_funcs: " << Proc_funcs[n][0] << " - " << PROCEDURE[k].substr(0, PROCEDURE[k].find("(")) << std::endl;
+										  		  if ((PROCEDURE[k].substr(0, PROCEDURE[k].find("("))!=Proc_funcs[n][0]) && (PROCEDURE[k].find("")!=PROCEDURE[k].npos))
+										  		  {
+										  			  if (PROCEDURE[k] + ";\n" != ";\n")
+										  			  {
+										  				  //if (n==Proc_funcs.size())
+										  				  	  //{
+										  				  if (PROCEDURE[k].find(";//")!=PROCEDURE[k].npos)
+										  					  PROCEDURE[k].replace(PROCEDURE[k].find(";//"), 3, "//");
+
+										  				  if ((PROCEDURE[k].find("LOCAL")==PROCEDURE[k].npos) && (PROCEDURE[k].find("UNITSOFF")==PROCEDURE[k].npos))
+										  							 mycppfile << PROCEDURE[k] + "; \n";
+										  					  //}
+
+
+										  			  }
+
+										  		  }
+										  	  else
+										  		  { std::cout << "write else unten" << std::endl;
+										  		  	  for (size_t o=0 ; o<PROCEDURE.size(); o++)
+										  		  	  {
+										  		  		  std::cout<< "for läuft" << std::endl;
+										  		  		  if (PROCEDURE[o].find(PROCEDURE[k].substr(0, PROCEDURE[k].find("(")))!=PROCEDURE[o].npos)
+														  {
+										  		  			  for (size_t p=o+1; p<PROCEDURE.size()-1; p++)
+										  		  			  {
+										  		  				  if (PROCEDURE[p].find("\t")!=PROCEDURE[p].npos)
+										  		  						{PROCEDURE[p].replace(PROCEDURE[p].find("\t"), 1, "");}
+
+										  		  				  if (PROCEDURE[p].find("\n")!=PROCEDURE[p].npos)
+										  		  						{PROCEDURE[p].replace(PROCEDURE[p].find("\n"), 1, "");}
+
+
+										  		  				  while (((PROCEDURE[p].find(" "))!=(PROCEDURE[p].npos)) && ((PROCEDURE[p].find(" "))<(PROCEDURE[p].find(":"))))
+										  		  						{PROCEDURE[p].replace(PROCEDURE[p].find(" "), 1, "");}
+
+															  	  if (PROCEDURE[p].find(":")!=PROCEDURE[p].npos)
+															  	  {
+															  		  if (PROCEDURE[p].find(":")!=0)
+															  			  PROCEDURE[p].replace(PROCEDURE[p].find(":"), 1 ,";//");
+															  		  else PROCEDURE[p].replace(PROCEDURE[p].find(":"), 1 ,"//");
+															  	  }
+
+										  		  				  if (PROCEDURE[p].find("")!=PROCEDURE[p].npos)
+										  		  				  {
+										  		  					  if ((PROCEDURE[p] + ";\n" != ";\n") && (PROCEDURE[p].find("LOCAL")==PROCEDURE[p].npos)
+										  		  							  && (PROCEDURE[p].find("PROCEDURE")==PROCEDURE[p].npos) && (PROCEDURE[p].find("}", 0, 1)==PROCEDURE[p].npos)
+																			  && (begG(PROCEDURE[p])==false))
+										  		  					  {
+
+										  		  						  if ((PROCEDURE[p].find("//")==PROCEDURE[p].npos))
+										  		  							  {
+										  		  							  std::cout << "katastrophen output" << std::endl;
+										  		  							  mycppfile << PROCEDURE[p] +";\n";
+										  		  							  }
+										  		  						  else {
+										  		  							  if (PROCEDURE[p].find("LOCAL")!=PROCEDURE[p].npos)
+																			  	  mycppfile << "double "  + PROCEDURE[p] +"\n";
+										  		  						  }
+										  		  					  }
+										  		  				  }
+										  		  			  }
+														  }
+										  		  	  }
+										  		  }
+										  	  }
+										  }
+								  }
+							  }
+						  }
+					  }
+
 				  }
 			  }
-		  }
+
+
 		  // Writting derivfuncs
-		  if ((i>1) && (i < DERIVATIVE.size()-1))
+		  std::cout << "before deriv" << std::endl;
+		  if ((i> Stats_beg) && (i < DERIVATIVE.size()-1))
 		  {
-			DERIVATIVE[i].replace(DERIVATIVE[i].find("\'"), 1, "");
-			DERIVATIVE[i].replace(DERIVATIVE[i].find("="), 1, "+=");
-			mycppfile << DERIVATIVE[i] + "*dt; \n";
+			if (DERIVATIVE[i]!="")
+			{
+				DERIVATIVE[i].replace(DERIVATIVE[i].find("\'"), 1, "");
+				DERIVATIVE[i].replace(DERIVATIVE[i].find("="), 1, "+=");
+				mycppfile << DERIVATIVE[i] + "*dt; \n";
+			}
 		  }
 
 
@@ -931,11 +1516,14 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 			  //std::cout << "after doppelt if" << std::endl;
 			  for (size_t j=0; j<varSt; j++)
 			  {
-				  stateend = STATE[i].find(" ", state);
-				  addState = STATE[i].substr(state, stateend-state);
-				  mycppfile << "aa" + addState + "Gate[*iter] = " + addState + "; \n";
+				  if (addState!="}")
+				  {
+					  stateend = STATE[i].find(" ", state);
+					  addState = STATE[i].substr(state, stateend-state);
+					  mycppfile << "aa" + addState + "Gate[*iter] = " + addState + "; \n";
 
-				  state = stateend+1;
+					  state = stateend+1;
+				  }
 			  }
 			  varSt = 0;
 		  }
@@ -964,18 +1552,21 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		  {
 			  stateend = STATE[i].find(" ", state);
 			  addState = STATE[i].substr(state, stateend-state);
-			  mycppfile << "double " + addState + " = aa" + addState + "[ver]; \n";
-			  state = stateend+1;
+			  if (addState!="}")
+			  {
+				  mycppfile << "double " + addState + " = aa" + addState + "[ver]; \n";
+				  state = stateend+1;
+			  }
 		  }
 		  varSt = 0;
 	  }
 	  // all ions
 	  for (size_t i=0; i<ListIons.size(); i++)
 	  {
-	 	  mycppfile << "double " + ListIons[i] + " = aa" + ListIons[i] + "[ver];  \n";
+	 	  mycppfile << "double " + ListIons[i] + " = aa" + ListIons[i] + "Gate[ver];  \n";
 	  }
 	  // v
-	  mycppfile << "double v = m_aav[ver]; \n";
+	  mycppfile << "double v = aavGate[ver]; \n";
 	  mycppfile << " \n";
 	  mycppfile << " \n";
 
@@ -1037,6 +1628,8 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  // first every time v
 	  outs.push_back("");
 
+	  int vm_flux_count = 0;
+
 	  mycppfile << "\n \n \n";
 	  for (size_t i=0; i<fluxes.size(); i++)
 	  {
@@ -1044,7 +1637,16 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		  if (fluxes[i]!="")
 		  {
 			  if (fluxes[i].find("i")==0)
-				  outs[0] += " + " + fluxes[i].substr(fluxes[i].find("=")+1, fluxes[i].npos -fluxes[i].find("=")+1);
+			  {
+				  if (vm_flux_count>=1)
+				  {
+					  outs[0] += " + " + fluxes[i].substr(fluxes[i].find("=")+1, fluxes[i].npos -fluxes[i].find("=")+1);
+					  vm_flux_count += 1;
+				  } else {
+					  outs[0] += fluxes[i].substr(fluxes[i].find("=")+1, fluxes[i].npos -fluxes[i].find("=")+1);
+					  vm_flux_count += 1;
+				  }
+			  }
 		  }
 	  }
 	  for (size_t i=0; i<fluxes.size(); i++)
@@ -1057,9 +1659,10 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 				  outs.push_back(fluxes[i].substr(fluxes[i].find("=")+1, fluxes[i].npos -fluxes[i].find("=")+1));
 		  }
 	  }
-	  for (size_t i=0; i<outs.size(); i++)
+	  mycppfile << "outCurrentValues.push_back(" + outs[0] + ") \n";
+	  for (size_t i=1; i<outs.size(); i++)
 	  {
-		  mycppfile << "outCurrentValues.push_back(" + outs[i] + "/m_F ) \n";
+		  mycppfile << "outCurrentValues.push_back(" + outs[i] + "/m_F ); \n";
 	  }
 	  mycppfile << "  \n";
 	  mycppfile << "}  \n";
