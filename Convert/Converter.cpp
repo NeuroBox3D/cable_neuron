@@ -62,8 +62,8 @@ double Converter::Unit_Conv(string s)
 		if ((s.find("V)")!=s.npos) || (s.find("A)")!=s.npos))
 		{
 			if (erg==0)
-				erg = 1000;
-			else erg *= 1000;
+				erg = 1e3;
+			else erg *= 1e3;
 		}
 	}
 
@@ -839,15 +839,18 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  myhfile << "\n";
 
 
-	  size_t Ion, IonEnd;
-	  string IonS;
+	  size_t Ion, IonEnd, Ns_Current, Ns_CurrentEnd;
+	  string IonS, Ns_CurrentS;
 	  std::vector<string> ListIons;
 
+	  // adding ions from neuron block with outer conz
 	  for (size_t i=0; i<NEURON.size(); i++)
 	  {
+		  // adding ions
 		  Ion = NEURON[i].find("USEION");
 		  if (Ion!=NEURON[i].npos)
 		  {
+
 			  IonEnd = NEURON[i].find(" ", Ion+7);
 			  std::cout << IonEnd << ", " << Ion << std::endl;
 			  IonS = NEURON[i].substr(Ion+7, (IonEnd-(Ion+7)));
@@ -855,8 +858,8 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 			  ListIons.push_back(IonS);
 			  //writes var for outer concentrations
 			  myhfile << "number " + IonS + "_out; \n";
-
 		  }
+
 	  }
 
 
@@ -922,6 +925,20 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  string addState;
 
 
+
+	  //Todo writting stateList with push to work overall
+	  // also inside code for nonspezific current
+	  // also Nonspezific Current handled like GatingParams but defined in Neuron-Block
+	  /*
+	   * For loop over neuron block must be written
+	   *
+	   * Ns_Current = NEURON[i].find("NONSPECIFIC_CURRENT");
+	  if (Ns_Current!=NEURON[i].npos)
+	  {
+		  Ns_CurrentEnd = NEURON[i].find(" ", Ns_Current+20);
+		  Ns_CurrentS = NEURON[i].substr(Ns_Current+20, (Ns_CurrentEnd-(Ns_Current+20)));
+		  //ListIons.push_back(IonS);
+	  }*/
 
 
 	  std::cout << STATE.size() << std::endl;
@@ -1435,8 +1452,10 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 										  		  	  for (size_t o=0 ; o<PROCEDURE.size(); o++)
 										  		  	  {
 										  		  		  std::cout<< "for läuft" << std::endl;
-										  		  		  if (PROCEDURE[o].find(PROCEDURE[k].substr(0, PROCEDURE[k].find("(")))!=PROCEDURE[o].npos)
+										  		  		  if ((PROCEDURE[o].find(PROCEDURE[k].substr(0, PROCEDURE[k].find("(")))!=PROCEDURE[o].npos)
+										  		  				  && (PROCEDURE[k].substr(0, PROCEDURE[k].find("("))==PROCEDURE[o].substr(0, PROCEDURE[o].find("("))))
 														  {
+										  		  			  std::cout << "Procedure fitting with: " << ""<< std::endl;
 										  		  			  for (size_t p=o+1; p<PROCEDURE.size()-1; p++)
 										  		  			  {
 										  		  				  if (PROCEDURE[p].find("\t")!=PROCEDURE[p].npos)
