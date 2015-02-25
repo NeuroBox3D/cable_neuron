@@ -22,6 +22,10 @@ public:
 
 	double Unit_Conv(string s);
 
+	vector<string> Remove_all(vector<string> erg);
+	string Remove_all(string erg);
+	string Remove_all_com(string erg);
+
 	std::vector<string> Openfile(string filename);
 
 	std::vector<std::pair<int, int> > FindBlocks(std::vector<string> Zeilen);
@@ -55,6 +59,8 @@ public:
 	std::vector<vector<string> > write_derivative_block(std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen);
 
 	std::vector<string> equali(std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen);
+
+	std::vector<string> GetProcEqualString(std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen, string s);
 
 	void WriteStart(string filename, std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen);
 

@@ -14,8 +14,6 @@
 
 
 
-/////////// Zu letzt fehler in kca
-
 Converter::Converter() {
 	// TODO Auto-generated constructor stub
 
@@ -166,6 +164,53 @@ double Converter::Unit_Conv(string s)
 	return erg;
 }
 
+
+std::vector<string> Converter::GetProcEqualString(std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen, string s)
+{
+	std::vector<string>erg;
+	std::vector<string>PROCEDURE = GetBlock(Pairs, Zeilen, "PROCEDURE");
+
+	size_t beg = 0;
+	size_t end = 0;
+
+	for (size_t i=0; i<PROCEDURE.size(); i++)
+	{
+		string test;
+		test = "PROCEDURE " + s;
+		//std::cout << "vergleich von " << test << "mit: " << std::endl;
+		std::cout << PROCEDURE[i] << std::endl;
+		if (PROCEDURE[i].find(test)!=PROCEDURE[i].npos)
+		{
+			beg = i;
+			std::cout << "gleich" << std::endl;
+		}
+		if ((PROCEDURE[i].find("PROCEDURE")!=PROCEDURE[i].npos) && (i!=beg))
+		{
+			end = i;
+			i = PROCEDURE.size();
+		}
+	}
+	if (end == 0)
+		end = PROCEDURE.size()-1;
+
+	std::cout << "begin: " << beg << " ende: " << end << std::endl;
+
+	//if (beg != 0)
+	//{
+		std::cout << "GetProcEqual does anything" << std::endl;
+		// Rekursion könnte hier mehrfachaufrufe von prozeduren möglich machen
+		for (size_t i=beg; i<end; i++)
+		{
+			// deletes all not needed parts
+			PROCEDURE[i] = writing_starts(PROCEDURE[i]);
+			if ((PROCEDURE[i]!="") && (PROCEDURE[i]!="\t"))
+				erg.push_back(PROCEDURE[i]);
+		}
+	//}
+
+	return erg;
+}
+
 bool Converter::Only_Read(std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen, string s)
 {
 	bool erg = false;
@@ -234,8 +279,14 @@ std::vector<string> Converter::equali(std::vector<pair<int, int> > Pairs, std::v
 
 	size_t Ion, IonRead, IonRend;
 	string IonS;
+	string PartR, PartW;
+
+	size_t R_beg, R_end;
+
+
 	std::vector<string> ListIonRead;
 	std::vector<string> ListIon;
+	std::vector<bool> version;
 
 	std::vector<string> NEURON = GetBlock(Pairs, Zeilen, "NEURON");
 
@@ -244,22 +295,60 @@ std::vector<string> Converter::equali(std::vector<pair<int, int> > Pairs, std::v
 		Ion = NEURON[i].find("USEION");
 		if (Ion!=NEURON[i].npos)
 		{
-			IonRead = NEURON[i].find("READ", Ion+7);
-			IonRend = NEURON[i].find(" ", IonRead+5);
-			std::cout << IonRend << ", " << Ion << std::endl;
-			IonS = NEURON[i].substr(IonRead+5, (IonRend-(IonRead+5)));
-			std::cout << "Subion: "<< IonS << std::endl;
-			ListIonRead.push_back(IonS);
-			// Only if there is a WRITE in
-			if (NEURON[i].find("WRITE")!=NEURON[i].npos)
-					ListIon.push_back(IonS.substr(1, IonS.size()-1));
+			// needs two different version one with "," one without ","
+			// first verion with ","
+			if (NEURON[i].find(",")!=NEURON[i].npos)
+			{
+				version.push_back(true);
+				out.push_back("0");
+				// 7 for USEION
+				PartR = NEURON[i].substr(7, NEURON[i].find(",")-7);
+				PartW = NEURON[i].substr(NEURON[i].find(",")+1, NEURON[i].npos-(NEURON[i].find(",")+1));
+				// PartR means cai = ca
+				// PartW means: ica = cao means ca_out ica changes conc out
+				// if 0 needed extra ion
+				R_beg = PartR.find("READ")+5;
+				R_end = PartR.find("READ")-1;
+				out.push_back(PartR.substr(0, R_end));
+				out.push_back("number " + PartR.substr(R_beg, PartR.npos) + " = " + PartR.substr(0, R_end) + ";");
+
+			} else // version without ","
+			{
+				version.push_back(false);
+				out.push_back("1");
+				IonRead = NEURON[i].find("READ", Ion+7);
+				IonRend = NEURON[i].find(" ", IonRead+5);
+				std::cout << IonRend << ", " << Ion << std::endl;
+				IonS = NEURON[i].substr(Ion+7, IonRead-1-(Ion+7));
+				std::cout << "Subion: "<< IonS << std::endl;
+				ListIonRead.push_back(NEURON[i].substr(IonRead+5 , IonRend-(IonRead+5)));
+				// Only if there is a WRITE in
+				if (NEURON[i].find("WRITE")!=NEURON[i].npos)
+						ListIon.push_back(IonS);
+			}
 		}
 	}
 
-	for (size_t i=0; i<ListIon.size(); i++)
-	{
-		out.push_back("number " + ListIonRead[i] + " = helpV*(log(" + ListIon[i] + "_out/" + ListIon[i] + "));");
-	}
+		for (size_t j=0; j<ListIon.size(); j++)
+		{
+			if (version[j]==false)
+			{
+			std::cout << "read ion: " + ListIonRead[j] + "List ion: " + ListIon[j] << std::endl;
+			out.push_back("number " + ListIonRead[j] + " = helpV*(log(" + ListIon[j] + "_out/" + ListIon[j] + "));");
+			}
+		}
+
+
+		for (size_t j=0; j<ListIon.size(); j++)
+		{
+			if (version[j]==true)
+			{
+			std::cout << "read ion: " + ListIonRead[j] + "List ion: " + ListIon[j] << std::endl;
+			out.push_back("number " + ListIonRead[j] + " = helpV*(log(" + ListIon[j] + "_out/" + ListIon[j] + "));");
+			}
+		}
+
+
 
 	return out;
 }
@@ -273,7 +362,7 @@ string Converter::func_head(string s)
 	startf = s.find(" ");
 	endf = s.find("(");
 	fname = s.substr(startf+1, endf-startf-1);
-
+	std::cout << "fname: " << fname << std::endl;
 	return fname;
 }
 
@@ -373,7 +462,7 @@ string Converter::writing_starts(string s)
 {
 	string test[] = {"UNITSOFF" ,"TABLE", "DEPEND", "FROM", "TO", "HOC, LOCAL"};
 
-	for (size_t i = 0; i<7; i++)
+	for (size_t i = 0; i<6; i++)
 	{
 		if (s.find(test[i])!=s.npos)
 			s = "";
@@ -388,28 +477,80 @@ std::vector<string> Converter::writer_proc_block(std::vector<pair<int, int> > Pa
 {
 	std::vector<string> fileInfo;
 	std::vector<string> vars;
+	std::vector<string> fileInfo_norm;
+	std::vector<string> fileInfo_rec;
 	size_t beg;
+	size_t recs = 0;
+
+	std::vector<vector <string> > Proc_list;
 
 	std::vector<string>  PROCEDURE = GetBlock(Pairs, Zeilen, "PROCEDURE");
 
+	// list with all proc funcs
+
+	// only [j][0] have functionnames
+	Proc_list = write_proc_block(Pairs, Zeilen);
+
 	for (size_t i = 0; i<PROCEDURE.size(); i++)
 	{
-		beg = PROCEDURE[i].find(name);
+		beg = PROCEDURE[i].find("PROCEDURE " + name);
 		if (beg!=PROCEDURE[i].npos)
 		{
 			for (size_t j = i; j<PROCEDURE.size(); j++)
 				{
 					PROCEDURE[j] = writing_starts(PROCEDURE[j]);
 				}
-			for (size_t k = i; k<PROCEDURE.size(); k++)
+
+			for (size_t k = i+1; k<PROCEDURE.size(); k++)
 				{
-					if ((PROCEDURE[k].find(":")==PROCEDURE[k].npos) && (PROCEDURE[k].find("PROCEDURE")==PROCEDURE[i].npos))
+					if (PROCEDURE[k]=="}")
+						k = PROCEDURE.size()-1;
+					bool rec = false;
+					//if again PROCEDURE action than start new this one here
+					for (size_t l=0; l<Proc_list.size(); l++)
 					{
-						fileInfo.push_back(PROCEDURE[k]);
+						if (PROCEDURE[k].find(Proc_list[l][0])!=PROCEDURE[k].npos)
+						{
+							std::cout << "zeug mal wieder: " << std::endl;
+							std::cout << PROCEDURE[k].substr(PROCEDURE[k].find("(")+1, PROCEDURE[k].find(")")-PROCEDURE[k].find("(")-1) << std::endl;
+							std::cout << Proc_list[l][1] << std::endl;
+							fileInfo.push_back(Proc_list[l][1] + " = " + PROCEDURE[k].substr(PROCEDURE[k].find("(")+1, PROCEDURE[k].find(")")-PROCEDURE[k].find("(")-1));
+							fileInfo_rec = writer_proc_block(Pairs, Zeilen, Proc_list[l][0]);
+							//fileInfo = writer_proc_block(Pairs, Zeilen, Proc_list[l][0]);
+							rec = true;
+							recs += 1;
+
+						}
+						if (rec==true)
+						{
+							// adding all out of recursion in fileInfo output
+							for (size_t l=0; l<fileInfo_rec.size(); l++)
+							{
+								fileInfo.push_back(fileInfo_rec[l]);
+							}
+						}
 					}
+
+
+
+
+					// writing everything that is not recursiv
+					if (rec==false)
+						//fileInfo.push_back(PROCEDURE[k]);
+						fileInfo_norm.push_back(PROCEDURE[k]);
+
 				}
 		}
 	}
+
+
+
+	// adding all of not recursiv
+	for (size_t l=0; l<fileInfo_norm.size(); l++)
+	{
+		fileInfo.push_back(fileInfo_norm[l]);
+	}
+
 	return fileInfo;
 }
 
@@ -451,19 +592,29 @@ string Converter::build_func_head(string s)
 	endf = s.find("(");
 	fname = s.substr(startf+1, endf-startf-1);
 	//std::cout << fname << std::endl;
-	endvars = s.find(")");
+	endvars = s.find_last_of(")");
 	//std::cout << "beg " << endf << " end " << endvars << std::endl;
-	var = s.substr(endf+1, endvars-endf-1);
-	//std::cout << var << std::endl;
+	var = s.substr(endf+1, endvars-endf);
+	// if there is also a unit del it
+	std::cout << "var: "<< var << std::endl;
 	buf = 0;
+	string buf2;
 	// writs all vars out
 	while (var.find(",", buf)!=var.npos)
 	{
 		buf1 = var.find(",", buf);
-		vars.push_back(var.substr(buf, buf1-buf));
+		buf2 = var.substr(buf, buf1-buf);
+		if (buf2.find("(")!=var.npos)
+		{
+			buf2 = var.substr(buf, buf2.find("("));
+			std::cout << "buf2: " << buf2 << std::endl;
+		}
+		vars.push_back(buf2);
 		buf = buf1+1;
 	}
-	vars.push_back(var.substr(buf, var.npos));
+	std::cout << "buf:  " << buf <<"bis: " << var.find("(", buf)-buf << std::endl;
+	buf2 = var.substr(buf, var.find("(", buf)-buf);
+	vars.push_back(buf2);
 
 	out += fname + "(";
 
@@ -472,6 +623,8 @@ string Converter::build_func_head(string s)
 		out += "double " + vars[i] + ", ";
 	}
 	out += "double " + vars[vars.size()-1] + ")";
+	if (out.find("))")!=out.npos)
+		out.replace(out.find("))"), 2, ")");
     return out;
 }
 
@@ -532,7 +685,15 @@ size_t Converter::find_begg(string beg)
 size_t Converter::number_(size_t pos, string s)
 {
 	size_t counter = 0;
-	size_t begin;
+	size_t begin, breakk;
+
+	breakk = s.find("\n");
+	while (breakk!=s.npos)
+	{
+		s.replace(breakk, 1, "");
+		breakk = s.find("\n");
+	}
+
 
 	begin = s.find(" ", pos);
 	while (begin !=s.npos)
@@ -550,11 +711,29 @@ size_t Converter::pos_letter(string s)
 {
 	vector<size_t> pos;
 	size_t erg;
+
+	size_t beg;
+	if (s.find("STATE")!=s.npos)
+	{
+		beg = s.find("STATE")+6;
+	} else
+	{
+		beg = 0;
+	}
+
 	//std::cout << "pos_letter does anything" << std::endl;
+	// little letters
 	for ( char i( 97 ); i < 122; ++i )
 	{
 		//97-122
-		if (s.find(i)!=s.npos)
+		if (s.find(i, beg)!=s.npos)
+			pos.push_back(s.find(i));
+	}
+	// big letters
+	for ( char i( 65 ); i < 90; ++i )
+	{
+		//97-122
+		if (s.find(i, beg)!=s.npos)
 			pos.push_back(s.find(i));
 	}
 
@@ -569,10 +748,29 @@ bool Converter::pos_letterb(string s)
 {
 	vector<size_t> pos;
 	std::cout << "pos_letter does anything " << s << std::endl;
+	size_t beg;
+	if (s.find("STATE")!=s.npos)
+	{
+		beg = s.find("STATE")+6;
+	} else
+	{
+		beg = 0;
+	}
+
+
+	// little letters
 	for ( char i( 97 ); i < 122; ++i )
 	{
 		//97-122
-		if (s.find(i)!=s.npos)
+		if (s.find(i, beg)!=s.npos)
+			return false;
+	}
+
+	// big letters
+	for ( char i( 65 ); i < 90; ++i )
+	{
+		//97-122
+		if (s.find(i, beg)!=s.npos)
 			return false;
 	}
 
@@ -668,6 +866,8 @@ std::vector<string> Converter::GetBlock(std::vector<pair<int, int> > Pairs, std:
 			//überspringt doppelte Pairs
 			//std:: cout << counter << " , " << Pairs[i+counter].second <<std::endl;
 
+			size_t breaks;
+
 			// schreibt zeilen raus
 			for (int j=Pairs[i].first; j<Pairs[i].second; j++)
 			{
@@ -678,6 +878,21 @@ std::vector<string> Converter::GetBlock(std::vector<pair<int, int> > Pairs, std:
 				if (Verba==false)
 				{
 				//std::cout << counter << std::endl;
+					//deletes also every \n in blocks
+					breaks = Zeilen[j].find("\n");
+					while (breaks!=Zeilen[j].npos)
+					{
+						Zeilen[j].replace(breaks, 1, "");
+						breaks = Zeilen[j].find("\n");
+					}
+
+					//deletes also every \r in blocks
+					breaks = Zeilen[j].find("\r");
+					while (breaks!=Zeilen[j].npos)
+					{
+						Zeilen[j].replace(breaks, 1, "");
+						breaks = Zeilen[j].find("\r");
+					}
 					BlockName.push_back(Zeilen[j]);
 				}
 				if (Zeilen[j].find("ENDVERBATIM")!=Zeilen[j].npos)
@@ -692,6 +907,121 @@ std::vector<string> Converter::GetBlock(std::vector<pair<int, int> > Pairs, std:
 	return BlockName;
 }
 
+string Converter::Remove_all_com(string erg)
+{
+	size_t HFile_del;
+
+	HFile_del = erg.find("\n");
+	while (HFile_del!=erg.npos)
+	{
+		erg.replace(HFile_del, 1, "");
+		HFile_del = erg.find("\n");
+	}
+
+		HFile_del = erg.find("\r");
+	while (HFile_del!=erg.npos)
+	{
+		erg.replace(HFile_del, 1, "");
+		HFile_del = erg.find("\r");
+	}
+
+	HFile_del = erg.find("\t");
+	while (HFile_del!=erg.npos)
+	{
+		erg.replace(HFile_del, 1, "");
+		HFile_del = erg.find("\t");
+	}
+
+	while (erg.substr(0 ,1)==" ")
+	{
+		erg.replace(0, 1, "");
+	}
+
+	return erg;
+
+
+}
+
+
+string Converter::Remove_all(string erg)
+{
+	size_t HFile_del;
+
+	HFile_del = erg.find(" ");
+	while (HFile_del!=erg.npos)
+	{
+		erg.replace(HFile_del, 1, "");
+		HFile_del = erg.find(" ");
+	}
+	HFile_del = erg.find("\n");
+	while (HFile_del!=erg.npos)
+	{
+		erg.replace(HFile_del, 1, "");
+		HFile_del = erg.find("\n");
+	}
+
+		HFile_del = erg.find("\r");
+	while (HFile_del!=erg.npos)
+	{
+		erg.replace(HFile_del, 1, "");
+		HFile_del = erg.find("\r");
+	}
+
+	HFile_del = erg.find("\t");
+	while (HFile_del!=erg.npos)
+	{
+		erg.replace(HFile_del, 1, "");
+		HFile_del = erg.find("\t");
+	}
+
+
+	return erg;
+
+
+}
+
+
+vector<string> Converter::Remove_all(vector<string> erg)
+{
+	  size_t HFile_del;
+	  //delete all not needed symbols out of HFile_added_Vars
+	  for (size_t i=0; i<erg.size(); i++)
+	  {
+		  // dels all " "
+		  HFile_del = erg[i].find(" ");
+		  while (HFile_del!=erg[i].npos)
+		  {
+			  erg[i].replace(HFile_del, 1, "");
+			  HFile_del = erg[i].find(" ");
+		  }
+
+		  HFile_del = erg[i].find("\n");
+		  while (HFile_del!=erg[i].npos)
+		  {
+			  erg[i].replace(HFile_del, 1, "");
+			  HFile_del = erg[i].find("\n");
+		  }
+
+		  HFile_del = erg[i].find("\r");
+		  while (HFile_del!=erg[i].npos)
+		  {
+			  erg[i].replace(HFile_del, 1, "");
+			  HFile_del = erg[i].find("\r");
+		  }
+
+		  HFile_del = erg[i].find("\t");
+		  while (HFile_del!=erg[i].npos)
+		  {
+			  erg[i].replace(HFile_del, 1, "");
+			  HFile_del = erg[i].find("\t");
+		  }
+
+
+		  std::cout<< "Hfile_vars: " << erg[i] << std::endl;
+	  }
+	  return erg;
+}
+
 
 void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen)
 {
@@ -700,6 +1030,9 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  string fnameh = filename + ".h";
 	  const char* filenamecpp = fnamecpp.c_str();
 	  const char* filenameh = fnameh.c_str();
+
+
+	  vector<string> HFile_added_Vars;
 
 
 
@@ -715,6 +1048,8 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  mycppfile << "#include \" lib_disc/spatial_disc/elem_disc/elem_disc_interface.h\" \n";
 	  mycppfile << "#include \" lib_disc/function_spaces/grid_function.h\" \n";
 	  mycppfile << "#include \" lib_disc/function_spaces/local_transfer_interface.h\" \n";
+	  mycppfile << "#include \" <cmath> \" \n";
+
 	  mycppfile << "namespace ug { \n \n \n";
 
 	  std::vector<string> mod_funcs_names;
@@ -722,32 +1057,75 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 	  std::vector<string> FUNCTION = GetBlock(Pairs, Zeilen, "FUNCTION");
 
+	  string without[] = {"if", "else"};
 	  size_t funcS, funcE;
+	  bool second_time;
 
 	  string func, funchead;
 	  if (FUNCTION.size() > 0)
 	  {
-		  func = build_func_head(FUNCTION[0]);
-	  	  funchead = func_head(FUNCTION[0]);
-
-	  mycppfile << func +" \n";
-	  mycppfile << "{ \n";
-	  }
-	  for (size_t i = 1; i<FUNCTION.size(); i++)
-	  {
-		  funcS = FUNCTION[i].find(funchead);
-		  if (funcS!=FUNCTION[i].npos)
+		  for (size_t j=0; j<FUNCTION.size(); j++)
 		  {
-			 funcE = FUNCTION[i].find(" ", funcS);
-			 FUNCTION[i].replace(funcS, funcE-funcS + 2, "return ");
-		  }
-		  mycppfile << FUNCTION[i] + "\n";
-	  }
+			  second_time = false;
+			  if (FUNCTION[j].find("FUNCTION")!=FUNCTION[j].npos)
+			  {
+				  func = build_func_head(FUNCTION[j]);
+				  funchead = func_head(FUNCTION[j]);
 
-	  mycppfile << "\n \n";
+				  mycppfile << func +" \n";
+				  mycppfile << "{ \n";
+
+				  for (size_t i = j+1; i<FUNCTION.size(); i++)
+				  {
+					  if (FUNCTION[i].find("FUNCTION")!=FUNCTION[i].npos)
+					  {
+
+						  //if (i!=j)
+							  i = FUNCTION.size()-1;
+							  second_time = true;
+
+					  }
+
+					  funcS = FUNCTION[i].find(funchead);
+					  if (funcS!=FUNCTION[i].npos)
+					  {
+						  funcE = FUNCTION[i].find(" ", funcS);
+						  FUNCTION[i].replace(funcS, funcE-funcS + 2, "return ");
+					  }
+
+					  if (FUNCTION[i].find("FUNCTION")==FUNCTION[i].npos)
+					  {
+						  if (FUNCTION[i].find("LOCAL")!=FUNCTION[i].npos)
+						  {
+							  FUNCTION[i].replace(FUNCTION[i].find("LOCAL"), 6, "double ");
+						  }
+						  if (second_time==false)
+						  {
+							  if ((FUNCTION[i].find(without[0])==FUNCTION[i].npos) && (FUNCTION[i].find(without[1])==FUNCTION[i].npos)
+								 && (string(FUNCTION[i] + "; \n").find("};")==string(FUNCTION[i] + "; \n").npos) && (FUNCTION[i]!=""))
+							  {
+								  mycppfile << FUNCTION[i] + "; \n";
+							 	  //std::cout << FUNCTION[i];
+							  }
+							  else
+							  {
+							 	  //std::cout << FUNCTION[i];
+							 	  mycppfile << FUNCTION[i] + "\n";
+							  }
+
+						  }
+					  }
+				  }
+				  //mycppfile << "} \n \n";
+
+			  }
+		  }
+
+	  	  mycppfile << "\n \n";
+	  }
 
 	  // Proceduren wie Funktionen
-
+	  std::cout << "All Functions added" << std::endl;
 
 
 
@@ -812,35 +1190,45 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  }
 
 	  // writting all globals
-	  for (size_t i = 0; i<Global_vars.size(); i++)
+	  if (Global_vars.size() > 0)
 	  {
-		  myhfile << "double " + Global_vars[i] + "; \n";
+		  for (size_t i = 0; i<Global_vars.size(); i++)
+		  {
+			  HFile_added_Vars.push_back(Global_vars[i]);
+			  myhfile << "double " + Global_vars[i] + "; \n";
+		  }
+
 	  }
 	  myhfile << "\n \n \n" ;
 
-
+	  std::cout << "Globals added!" << std::endl;
 
 	  // getting out of Params hard coded Values
 	  std::vector<string> PARAMETER = GetBlock(Pairs, Zeilen, "PARAMETER");
 	  size_t end;
 	  string var;
 
-
-	  for (size_t i=0; i<PARAMETER.size(); i++)
+	  if (PARAMETER.size() > 0)
 	  {
-		  if (PARAMETER[i].find("=")!=PARAMETER[i].npos)
+		  for (size_t i=0; i<PARAMETER.size(); i++)
 		  {
-			   end = PARAMETER[i].find("(");
-			   var = PARAMETER[i].substr(0, end);
-			   myhfile << "const static double " + var + "; \n";
+			  if (PARAMETER[i].find("=")!=PARAMETER[i].npos)
+			  {
+				  end = PARAMETER[i].find("(");
+				  var = PARAMETER[i].substr(0, end);
+				  myhfile << "const static double " + var + "; \n";
+				  HFile_added_Vars.push_back(var.substr(0, var.find("=")));
+			  }
 		  }
 	  }
 	  myhfile << "std::vector<number> m_diff; \n";
 	  myhfile << "\n";
 
 
-	  size_t Ion, IonEnd, Ns_Current, Ns_CurrentEnd;
-	  string IonS, Ns_CurrentS;
+	  std::cout << "All Parameters set" << std::endl;
+
+	  size_t Ion, IonEnd;
+	  string IonS;
 	  std::vector<string> ListIons;
 
 	  // adding ions from neuron block with outer conz
@@ -858,9 +1246,13 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 			  ListIons.push_back(IonS);
 			  //writes var for outer concentrations
 			  myhfile << "number " + IonS + "_out; \n";
+			  HFile_added_Vars.push_back(IonS + "_out");
 		  }
 
 	  }
+
+	  // delete all unneeded style-formats
+	  Remove_all(HFile_added_Vars);
 
 
 	  myhfile << "\n"; myhfile << "\n";
@@ -920,60 +1312,73 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		  mycppfile << "spGridFct->approx_space()->domain()->grid()->attach_to_vertices(this->" + IonS + "Gate); \n";
 		  mycppfile << "this->aa" + IonS + "Gate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGridFct->approx_space()->domain()->grid(), this->" + IonS + "Gate); \n \n";
 	  }
-	  size_t state, stateend;
-	  size_t varSt = 0;
+////////////////////////////////////////////////////////////////////////////////////
+//// Saving all States in one Var also writting first states into cpp and h file
+/////////////////////////////////////////////////////////////////////////////////////
+	  /*size_t Ns_Current, Ns_CurrentEnd;
+	  string Ns_CurrentS;*/
+
 	  string addState;
 
+	  // var in which all states and Non spec currents are saved
+	  std::vector<string> State_vars;
+	  size_t state, stateend;
+	  size_t varSt = 0;
 
-
-	  //Todo writting stateList with push to work overall
-	  // also inside code for nonspezific current
-	  // also Nonspezific Current handled like GatingParams but defined in Neuron-Block
-	  /*
-	   * For loop over neuron block must be written
-	   *
-	   * Ns_Current = NEURON[i].find("NONSPECIFIC_CURRENT");
-	  if (Ns_Current!=NEURON[i].npos)
+	  if (STATE.size()>0)
 	  {
-		  Ns_CurrentEnd = NEURON[i].find(" ", Ns_Current+20);
-		  Ns_CurrentS = NEURON[i].substr(Ns_Current+20, (Ns_CurrentEnd-(Ns_Current+20)));
-		  //ListIons.push_back(IonS);
-	  }*/
-
-
-	  std::cout << STATE.size() << std::endl;
-	  for (size_t i=0; i<STATE.size(); i++)
-	  {
-		  state = pos_letter(STATE[i]);
-		  if (state!=1000)
-			  if (STATE[i].find("(")==STATE[i].npos)
-				  varSt = number_(state, STATE[i]);
-		  std::cout << "after doppelt if" << std::endl;
-		  for (size_t j=0; j<varSt; j++)
+		  for (size_t i=0; i<STATE.size(); i++)
 		  {
-			  stateend = STATE[i].find(" ", state);
-			  std::cout << "ab: " << state << " anzahl: " << stateend-state << std::endl;
-			  addState = STATE[i].substr(state, stateend-state);
-			  //writting in hfile
-			  if (addState!="}")
+			  state = pos_letter(STATE[i]);
+			  if (state!=1000)
+				  if (STATE[i].find("(")==STATE[i].npos)
+					  varSt = number_(state, STATE[i]);
+			  std::cout << "after doppelt if" << std::endl;
+			  for (size_t j=0; j<varSt; j++)
 			  {
-				  myhfile << "ADouble " + addState + "Gate; \n";
-				  myhfile << "Grid::AttachmentAccessor<Vertex, ADouble> aa" + addState + "Gate; \n";
+				  stateend = STATE[i].find(" ", state);
+				  std::cout << "ab: " << state << " anzahl: " << stateend-state << std::endl;
+				  if (STATE[i].find("}")!=STATE[i].npos)
+		  			  {
+					  if (stateend-state!=STATE[i].npos-state)
+		  			  {
+						  addState = STATE[i].substr(state, stateend-state);
+		  			  }
+					  else
+					  {
+						  std::cout << "not added!!" << std::endl;
+						  addState = "";
+					  }
+		  			  }
+				  	  else
+		  			  {
+		  				addState = STATE[i].substr(state, stateend-state);
+		  			  }
 
-/////////////////////////////////////////////////////////////////////////
-//writting of attachment inits for cpp file
-/////////////////////////////////////////////////////////////////////////
+		  			  //writting in hfile
+		  			  if ((addState!="}") && (addState!="") && (addState!="\n") &&(addState!="\n}") && (addState!="}\n"))
+		  			  {
+		  				  State_vars.push_back(addState);
+		  				  myhfile << "ADouble " + addState + "Gate; \n";
+		  				  myhfile << "Grid::AttachmentAccessor<Vertex, ADouble> aa" + addState + "Gate; \n";
 
-				  mycppfile << "if (spGridFct->approx_space()->domain()->grid()->has_vertex_attachment(this->" + addState + "Gate)) \n";
-				  mycppfile << "UG_THROW(\"Attachment necessary (" + addState + "Gate) for Hodgkin and Huxley channel dynamics \"\n";
-				  mycppfile << "\"could not be made, since it already exists.\"); \n";
-				  mycppfile << "spGridFct->approx_space()->domain()->grid()->attach_to_vertices(this->" + addState + "Gate); \n";
-				  mycppfile << "this->aa" + addState + "Gate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGridFct->approx_space()->domain()->grid(), this->" + addState + "Gate); \n \n";
+		  				  //writting of attachment inits for cpp file
+		  				  mycppfile << "if (spGridFct->approx_space()->domain()->grid()->has_vertex_attachment(this->" + addState + "Gate)) \n";
+		  				  mycppfile << "UG_THROW(\"Attachment necessary (" + addState + "Gate) for Hodgkin and Huxley channel dynamics \"\n";
+		  				  mycppfile << "\"could not be made, since it already exists.\"); \n";
+		  				  mycppfile << "spGridFct->approx_space()->domain()->grid()->attach_to_vertices(this->" + addState + "Gate); \n";
+		  				  mycppfile << "this->aa" + addState + "Gate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGridFct->approx_space()->domain()->grid(), this->" + addState + "Gate); \n \n";
 
-			  state = stateend+1;
-			  }
+
+		  			  }
+		  			state = stateend+1;
+		  		  }
+		  		  //////////////////
+
+			  varSt = 0;
+
 		  }
-		  varSt = 0;
+
 	  }
 
 	  // writting VM Parts for gatting init in cpp than close and finish h-file
@@ -1035,28 +1440,30 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  size_t Stats_beg = 1;
 
 
-	  if (INITIAL.size() > 1)
+	  if (INITIAL.size() > 0)
 	  {
 		  begin = count_beg(INITIAL[1]);
 	  }
-	  //std::cout << "beg: " << begin << std::endl;
+	  std::cout << "beg: INITIAL!" << std::endl;
 
-	  for (size_t i=0; i<INITIAL.size(); i++)
+	  if (INITIAL.size() > 0)
 	  {
-
-		  for (size_t j=0; j<Proc_funcs.size(); j++)
+		  for (size_t i=0; i<INITIAL.size(); i++)
 		  {
-			  begin = count_beg(INITIAL[i]);
-			  if (Proc_funcs[j][0] == INITIAL[i].substr(begin, INITIAL[i].find("(")-begin))
+
+			  for (size_t j=0; j<Proc_funcs.size(); j++)
 			  {
-				  Stats_beg = i;
-				  // write needed values
-				  for (size_t k=1; k<Proc_funcs[j].size(); k++)
+				  begin = count_beg(INITIAL[i]);
+				  if (Proc_funcs[j][0] == INITIAL[i].substr(begin, INITIAL[i].find("(")-begin))
 				  {
-					  // when only read no write read is same as use
-					  if (Only_Read(Pairs, Zeilen, Proc_funcs[j][k])==true)
-					  	  {
-						  	  mycppfile << Write_Only_Read(Pairs, Zeilen, Proc_funcs[j][k]);
+					  Stats_beg = i;
+					  // write needed values
+					  for (size_t k=1; k<Proc_funcs[j].size(); k++)
+					  {
+						  // when only read no write read is same as use
+						  if (Only_Read(Pairs, Zeilen, Proc_funcs[j][k])==true)
+						  {
+							  mycppfile << Write_Only_Read(Pairs, Zeilen, Proc_funcs[j][k]) + ";\n";
 					  	  }
 					  	  else
 					  	  {
@@ -1064,164 +1471,119 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 					  		  std::cout << "else for: " << std::endl;
 					  	  }
 					  std::cout << Proc_funcs[j][k] << std::endl;
-				  }
-
-				  // write locals vals as double
-				  locals = get_local_proc_block(Pairs, Zeilen, Proc_funcs[j][0]);
-
-				  for (size_t k=0; k<locals.size(); k++)
-				  {
-					  mycppfile << "double " + locals[k] + "; \n";
-				  }
-
-				  Proc_vals = writer_proc_block(Pairs, Zeilen, Proc_funcs[j][0]);
-				  std::cout << Proc_vals.size() << std::endl;
-
-
-				  for (size_t k=0; k<Proc_vals.size(); k++)
-				  {
-					  if ((Proc_vals[k]!="") && (Proc_vals[k]!="}") && (Proc_vals[k].find("LOCAL")==Proc_vals[k].npos)
-							  && Proc_vals[k]!=" " && Proc_vals[k]!="\t" && Proc_vals[k]!="        ")
-					  {
-						  mycppfile << Proc_vals[k] + "; \n";
 					  }
-				  }
+					  locals = get_local_proc_block(Pairs, Zeilen, Proc_funcs[j][0]);
 
-				  bool right = false;
-
-
-				  for (size_t k=0; k<PROCEDURE.size(); k++)
-				  {
-					  if (PROCEDURE[k].find("PROCEDURE")!=PROCEDURE[k].npos)
+					  if (locals.size()>0)
 					  {
-						  //std::cout << "PROCEDURE " + Proc_funcs[0][0] << std::endl;
-						  for (size_t l = 0; l<Proc_funcs.size(); l++)
+						  for (size_t k=0; k<locals.size(); k++)
 						  {
-							  //std::cout << "l" << Proc_funcs.size() << std::endl;
-							  if ((Proc_funcs[j][0]!=Proc_funcs[l][0]) && (PROCEDURE[k].substr(0, PROCEDURE[k].find("("))=="PROCEDURE " + Proc_funcs[l][0]))
+							  size_t locals_sep;
+							  mycppfile << "double " + locals[k] + "; \n";
+							  // removes all unneeded formation-styles
+							  Remove_all(locals[k]);
+							  // locals need seperation through ","
+							  locals_sep = locals[k].find(",");
+							  if (locals_sep!=0)
 							  {
-								  right = false;
-								  std::cout << "write not" << std::endl;
+								  while (locals_sep != locals[k].npos)
+								  {
+									  HFile_added_Vars.push_back(locals[k].substr(0, locals_sep));
+									  locals[k].replace(0, locals_sep+1, "");
+									  locals_sep = locals[k].find(",");
+								  }
+								  HFile_added_Vars.push_back(locals[k].substr(0, locals_sep));
 							  }
 
-						  }
 
-						  //std::cout << PROCEDURE[k].substr(0, PROCEDURE[k].find("(")) << std::endl;
-						  if (PROCEDURE[k].substr(0, PROCEDURE[k].find("(")) == "PROCEDURE " + Proc_funcs[j][0])
-						  {
-							  right = true;
-							  std::cout << "write" << std::endl;
 						  }
 					  }
+					  std::cout << "before proc vals" << std::endl;
+					  Proc_vals = writer_proc_block(Pairs, Zeilen, Proc_funcs[j][0]);
+					  std::cout << Proc_vals.size() << std::endl;
 
-
-
-					  if (right==true)
+					  bool HFile_added;
+					  for (size_t k=0; k<Proc_vals.size(); k++)
 					  {
-						  std::cout << "Procedure k existiert nicht" << std::endl;
-						  std::cout << PROCEDURE[k] << std::endl;
-						  std::cout << "Procedure k existiert doch bei k=" << k << std::endl;
-						  if (begG(PROCEDURE[k])==false)
+						  HFile_added = false;
+						  if ((Proc_vals[k]!="") && (Proc_vals[k]!="}") && (Proc_vals[k].find("LOCAL")==Proc_vals[k].npos)
+							   && Proc_vals[k]!=" " && Proc_vals[k]!="\t" && Proc_vals[k]!="        ")
 						  {
-							  if ((k>1) && (PROCEDURE[k].substr(0,1)!="}"))
-							  {
-								  //std::cout << "first print" << std::endl;
-								  if ((PROCEDURE[k]!="") && (PROCEDURE[k]!=" ") && (PROCEDURE[k]!="\t") && (PROCEDURE[k]!=" \n"))
-									  {
-									  	  if (PROCEDURE[k].find(":")!=PROCEDURE[k].npos)
-									  		  {
+  							  for (size_t l=0; l<HFile_added_Vars.size(); l++)
+  							  {
+  								  //std::cout << "Vergleich " << Remove_all(Proc_vals[k].substr(0, Proc_vals[k].find("=")-1)) << " - " << Remove_all(HFile_added_Vars[l]) << std::endl;
+  								  if (Remove_all(Proc_vals[k].substr(0, Proc_vals[k].find("=")-1))==Remove_all(HFile_added_Vars[l]))
+  									  HFile_added = true;
+  							  }
 
-									  		  	  if (PROCEDURE[k].find(":")!=0)
-									  		  	  PROCEDURE[k].replace(PROCEDURE[k].find(":"), 1 ,";//");
-									  		  	  else PROCEDURE[k].replace(PROCEDURE[k].find(":"), 1 ,"//");
-									  		  }
-									  	  if (PROCEDURE[k].find("\t")!=PROCEDURE[k].npos)
-									  			  PROCEDURE[k].replace(PROCEDURE[k].find("\t"), 1, "");
-									  	  if (PROCEDURE[k].find(" ")!=PROCEDURE[k].npos)
-									  			  PROCEDURE[k].replace(PROCEDURE[k].find(" "), 1, "");
-									  	  //if (PROCEDURE[k].find("(")!=PROCEDURE[k].npos)
-									  		  	  //PROCEDURE[k] = PROCEDURE[k].substr(0, PROCEDURE[k].find("("));
-				  		  				  while (PROCEDURE[k].find(" ")!=PROCEDURE[k].npos)
-				  		  						{PROCEDURE[k].replace(PROCEDURE[k].find(" "), 1, "");}
+  							  string com_buf;
 
-									  	  for (size_t n=0; n<Proc_funcs.size(); n++)
+  							  // if it added in hfile write without double else with!
+  							  if (HFile_added == true)
+  							  {
+  								  //writes comments
+  								  if (Proc_vals[k].find(":")!=Proc_vals[k].npos)
+  									  Proc_vals[k].replace(Proc_vals[k].find(":"), 1, "//");
+  								  std::cout << Proc_vals[k] << std::endl;
+  								  mycppfile << Proc_vals[k] + "; \n";
 
-									  		  if ((PROCEDURE[k]!=Proc_funcs[n][0]) && (PROCEDURE[k].find("")!=PROCEDURE[k].npos))
-									  		  {
-									  			  if (PROCEDURE[k] + ";\n" != ";\n")
-									  			  {
-									  				  if (n==Proc_funcs.size())
-									  				  {
-									  					  mycppfile << PROCEDURE[k] + "; \n";
-									  				  }
+  							  } else
+  							  {
+  								// writes comments, if comment for the whole than no double is allowed
+  								if (Proc_vals[k].find(":")!=Proc_vals[k].npos)
+  								{
+  									com_buf = Proc_vals[k];
+  									com_buf = Remove_all_com(com_buf);
+  									Proc_vals[k].replace(Proc_vals[k].find(":"), 1, "//");
+  								}
+  								std::cout << "com_buf: " << com_buf << std::endl;
 
-									  			  }
+  								if (com_buf.find(":")==0)
+  								{
+  									std::cout << Proc_vals[k] << std::endl;
+  									mycppfile << Proc_vals[k] + "\n";
+  								} else
+  								{
+  									std::cout << Proc_vals[k] << std::endl;
+  									mycppfile << "double " + Proc_vals[k] + "; \n";
+  								}
+  							  }
 
-									  		  }
-									  	  else
-									  		  { std::cout << "write else" << std::endl;
-									  		  	  for (size_t o=0 ; o<PROCEDURE.size(); o++)
-									  		  	  {
-									  		  		  if (PROCEDURE[o].find("PROCEDURE " + PROCEDURE[k])!=PROCEDURE[o].npos)
-													  {
-									  		  			  for (size_t p=o+1; p<PROCEDURE.size()-1; p++)
-									  		  			  {
-									  		  				  if (PROCEDURE[p].find("\t")!=PROCEDURE[p].npos)
-									  		  						{PROCEDURE[p].replace(PROCEDURE[p].find("\t"), 1, "");}
-
-									  		  				  if (PROCEDURE[p].find("\n")!=PROCEDURE[p].npos)
-									  		  						{PROCEDURE[p].replace(PROCEDURE[p].find("\n"), 1, "");}
-
-
-									  		  				  while (((PROCEDURE[p].find(" "))!=(PROCEDURE[p].npos)) && ((PROCEDURE[p].find(" "))<(PROCEDURE[p].find(":"))))
-									  		  						{PROCEDURE[p].replace(PROCEDURE[p].find(" "), 1, "");}
-
-														  	  if (PROCEDURE[p].find(":")!=PROCEDURE[p].npos)
-														  	  {
-														  		  if (PROCEDURE[p].find(":")!=0)
-														  			  PROCEDURE[p].replace(PROCEDURE[p].find(":"), 1 ,";//");
-														  		  else PROCEDURE[p].replace(PROCEDURE[p].find(":"), 1 ,"//");
-														  	  }
-
-									  		  				  if (PROCEDURE[p].find("")!=PROCEDURE[p].npos)
-									  		  				  {
-									  		  					  if (PROCEDURE[p] + ";\n" != ";\n")
-									  		  					  {
-									  		  						  if (PROCEDURE[p].find("//")==PROCEDURE[p].npos)
-									  		  							  mycppfile << "double " + PROCEDURE[p] +";\n";
-									  		  						  else mycppfile << PROCEDURE[p] +"\n";
-									  		  					  }
-									  		  				  }
-									  		  			  }
-													  }
-									  		  }
-									  	  }
-									  }
-							  }
 						  }
 					  }
-				  }
 
+
+				  }
 			  }
-		  }
+		  }		  // write locals vals as double
+	  }
 
-
-
-
-		  if (i > Stats_beg)
+	  std::cout<< "writing end" << std::endl;
+	  for (size_t i=Stats_beg; i<INITIAL.size(); i++)
+	  {
+		  // writings at the end
+		  if (i >= Stats_beg)
 		  {
 			  size_t gleich, vorgleich;
 			  if ((INITIAL[i]!="") && (INITIAL[i]!="}"))
 			  {
+				  std::cout << "gleich Search" << std::endl;
+				  vorgleich = pos_letter(INITIAL[i]);
 				  gleich = INITIAL[i].find("=");
-			      vorgleich = count_beg(INITIAL[i])-4;
-				  mycppfile << "aa" + INITIAL[i].substr(vorgleich , gleich-vorgleich-1) + "Gate[*iter] " + INITIAL[i].substr(gleich) + "; \n";
+
+				  if (INITIAL[i].find("=")!=INITIAL[i].npos)
+				  {
+					  std::cout << "ab: " << vorgleich << "bis: " << gleich << std::endl;
+					  mycppfile << "aa" + INITIAL[i].substr(vorgleich , gleich-vorgleich-1) + "Gate[*iter] " + INITIAL[i].substr(gleich) + "; \n";
+				  } //else
+			    	  //vorgleich = beg_count(INITIAL[i]);
 			  }
 		  }
-
-
-
 	  }
+
+
+
+	  std::cout << "INIT happend" << std::endl;
 
 	  mycppfile << "}  \n";
 	  mycppfile << "}  \n";
@@ -1253,28 +1615,30 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  std::vector<vector< string> > Der_funcs;
 	  Der_funcs = write_derivative_block(Pairs, Zeilen);
 
-	  for (size_t i=0; i<PROCEDURE.size(); i++)
-		  {
-		    std::cout << "Procedure: " << PROCEDURE[i] << std::endl;
-		  }
-	  for (size_t i=0; i<Proc_funcs[0].size(); i++)
-		  {
-		  	  for (size_t j=0; j<Proc_funcs.size(); j++)
-		    std::cout << "Proc_funcs: " << Proc_funcs[j][i] << std::endl;
-		  }
 
-	  if (Der_funcs.size() >= 1)
+	  if (PROCEDURE.size()>0 && Proc_funcs.size()>0 && Der_funcs.size()>0)
 	  {
-		  for (size_t i=0; i<Der_funcs[0].size(); i++)
-		  	  {
-		  	  	  for (size_t j=0; j<Der_funcs.size(); j++)
-		  	  		  std::cout << "Proc_funcs: " << Der_funcs[j][i] << std::endl;
-		  	  }
+		  for (size_t i=0; i<PROCEDURE.size(); i++)
+			  {
+			    std::cout << "Procedure: " << PROCEDURE[i] << std::endl;
+			  }
+		  for (size_t i=0; i<Proc_funcs[0].size(); i++)
+			  {
+			  	  for (size_t j=0; j<Proc_funcs.size(); j++)
+			    std::cout << "Proc_funcs: " << Proc_funcs[j][i] << std::endl;
+			  }
+
+		  if (Der_funcs.size() >= 1)
+		  {
+			  for (size_t i=0; i<Der_funcs[0].size(); i++)
+			  	  {
+			  	  	  for (size_t j=0; j<Der_funcs.size(); j++)
+			  	  		  std::cout << "Proc_funcs: " << Der_funcs[j][i] << std::endl;
+			  	  }
+		  }
 	  }
 
 
-	  //std::cout << "beg: " << begin << std::endl;
-	  // writting ions
 
 	  mycppfile << "size_t vm = spGridFct->fct_id_by_name(\"v\");  \n";
 	  for (size_t i=0; i<ListIons.size(); i++)
@@ -1301,289 +1665,458 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  mycppfile << "}  \n \n \n";
 
 
-	  // States ever needed for deriv
-	  for (size_t i=0; i<STATE.size(); i++)
+	  // States ever needed for deriv writting out of State_vars State_vars;
+	  for (size_t i=0; i<State_vars.size(); i++)
 	  {
-		  state = pos_letter(STATE[i]);
-		  if (state!=1000)
-			  if (STATE[i].find("(")==STATE[i].npos)
-				  varSt = number_(state, STATE[i]);
-		  //std::cout << "after doppelt if" << std::endl;
-		  for (size_t j=0; j<varSt; j++)
-		  {
-			  if (addState!="}")
-			  {
-				  stateend = STATE[i].find(" ", state);
-				  addState = STATE[i].substr(state, stateend-state);
-				  mycppfile << "double " + addState + " = aa" + addState + "Gate[*iter]; \n";
-
-				  state = stateend+1;
-			  }
-		  }
-		  varSt = 0;
+		  mycppfile << "double " + State_vars[i] + " = aa" + State_vars[i] + "Gate[*iter]; \n";
 	  }
 
-	  mycppfile << "\n \n \n";
 
+
+	  //Adding v because v is very often needed and always accesible
+	  mycppfile << "double v  = aavGate[*iter]; \n";
+
+	  mycppfile << "\n \n \n";
 
 	  std::cout << "DERIV BEGINS" << std::endl;
-	  if (DERIVATIVE.size() > 1)
-		  {
-			  begin = count_beg(DERIVATIVE[1]);
-		  }
-		  //std::cout << "beg: " << begin << std::endl;
+	  if (DERIVATIVE.size() > 0)
+	  	  {
+	  		  begin = count_beg(DERIVATIVE[1]);
+	  	  }
 
-		  for (size_t i=0; i<DERIVATIVE.size(); i++)
-		  {
+	  	  if (DERIVATIVE.size() > 0)
+	  	  {
+	  		  for (size_t i=0; i<DERIVATIVE.size(); i++)
+	  		  {
 
-			  for (size_t j=0; j<Proc_funcs.size(); j++)
-			  {
-				  begin = find_begg(DERIVATIVE[i]);
-				  // here is mistake
-				  std::cout << (DERIVATIVE[i].substr(begin, DERIVATIVE[i].find("(")-begin)) << std::endl;
-				  if (Proc_funcs[j][0] == DERIVATIVE[i].substr(begin, DERIVATIVE[i].find("(")-begin))
+	  			  for (size_t j=0; j<Proc_funcs.size(); j++)
+	  			  {
+	  				  begin = 0;
+	  				  std::cout << "Vergleich: " << DERIVATIVE[i].substr(begin, DERIVATIVE[i].find("(")-begin)<< " - " << Proc_funcs[j][0] << std::endl;
+	  				  if (Proc_funcs[j][0] == Remove_all(DERIVATIVE[i].substr(begin, DERIVATIVE[i].find("(")-begin)))
+	  				  {
+	  					  Stats_beg = i;
+	  					  // write needed values
+	  					  for (size_t k=1; k<Proc_funcs[j].size(); k++)
+	  					  {
+	  						  // when only read no write read is same as use
+	  						  if (Only_Read(Pairs, Zeilen, Proc_funcs[j][k])==true)
+	  						  {
+	  							  mycppfile << Write_Only_Read(Pairs, Zeilen, Proc_funcs[j][k]) + ";\n";
+	  					  	  }
+	  					  	  else
+	  					  	  {
+	  					  		  mycppfile << "double " + Proc_funcs[j][k] + " = aa"+ Proc_funcs[j][k] + "Gate[*iter]; \n \n";
+	  					  		  std::cout << "else for: " << std::endl;
+	  					  	  }
+	  					  std::cout << Proc_funcs[j][k] << std::endl;
+	  					  }
+	  					  locals = get_local_proc_block(Pairs, Zeilen, Proc_funcs[j][0]);
+
+	  					  if (locals.size()>0)
+	  					  {
+							  for (size_t k=0; k<locals.size(); k++)
+							  {
+								  size_t locals_sep;
+								  mycppfile << "double " + locals[k] + "; \n";
+								  // removes all unneeded formation-styles
+								  Remove_all(locals[k]);
+								  // locals need seperation through ","
+								  locals_sep = locals[k].find(",");
+								  if (locals_sep!=0)
+								  {
+									  while (locals_sep != locals[k].npos)
+									  {
+										  HFile_added_Vars.push_back(locals[k].substr(0, locals_sep));
+										  locals[k].replace(0, locals_sep+1, "");
+										  locals_sep = locals[k].find(",");
+									  }
+									  HFile_added_Vars.push_back(locals[k].substr(0, locals_sep));
+								  }
+
+
+							  }
+	  					  }
+	  					  std::cout << "before proc vals" << std::endl;
+	  					  Proc_vals = writer_proc_block(Pairs, Zeilen, Proc_funcs[j][0]);
+	  					  std::cout << Proc_vals.size() << std::endl;
+
+
+	  					  bool HFile_added;
+	  					  for (size_t k=0; k<Proc_vals.size(); k++)
+	  					  {
+							  HFile_added = false;
+							  if ((Proc_vals[k]!="") && (Proc_vals[k]!="}") && (Proc_vals[k].find("LOCAL")==Proc_vals[k].npos)
+								   && Proc_vals[k]!=" " && Proc_vals[k]!="\t" && Proc_vals[k]!="        ")
+							  {
+	  							  for (size_t l=0; l<HFile_added_Vars.size(); l++)
+	  							  {
+	  								  //std::cout << "Vergleich " << Remove_all(Proc_vals[k].substr(0, Proc_vals[k].find("=")-1)) << " - " << Remove_all(HFile_added_Vars[l]) << std::endl;
+	  								  if (Remove_all(Proc_vals[k].substr(0, Proc_vals[k].find("=")-1))==Remove_all(HFile_added_Vars[l]))
+	  									  HFile_added = true;
+	  							  }
+
+	  							  string com_buf;
+
+	  							  // if it added in hfile write without double else with!
+	  							  if (HFile_added == true)
+	  							  {
+	  								  //writes comments
+	  								  if (Proc_vals[k].find(":")!=Proc_vals[k].npos)
+	  									  Proc_vals[k].replace(Proc_vals[k].find(":"), 1, "//");
+
+	  								  mycppfile << Proc_vals[k] + "; \n";
+
+	  							  } else
+	  							  {
+	  								// writes comments, if comment for the whole than no double is allowed
+	  								if (Proc_vals[k].find(":")!=Proc_vals[k].npos)
+	  								{
+	  									com_buf = Proc_vals[k];
+	  									com_buf = Remove_all_com(com_buf);
+	  									Proc_vals[k].replace(Proc_vals[k].find(":"), 1, "//");
+	  								}
+
+	  								if (com_buf.find(":")==0)
+	  								{
+	  									mycppfile << Proc_vals[k] + "\n";
+	  								} else
+	  								{
+	  									mycppfile << "double " + Proc_vals[k] + "; \n";
+	  								}
+	  							  }
+
+							  }
+	  					  }
+
+
+	  				  }
+	  			  }
+	  		  }		  // write locals vals as double
+	  	  }
+
+	  	  std::cout<< "writing end" << std::endl;
+	  	  for (size_t i=Stats_beg; i<DERIVATIVE.size(); i++)
+	  	  {
+	  		  // writings at the end
+	  		  if (i >= Stats_beg)
+	  		  {
+				  // Writting derivfuncs
+				  std::cout << "before deriv" << std::endl;
+				  if ((i> Stats_beg) && (i < DERIVATIVE.size()-1))
 				  {
-					  Stats_beg = i;
-					  // write needed values
-					  for (size_t k=1; k<Proc_funcs[j].size(); k++)
-					  {
-						  // when only read no write read is same as use
-						  if (Only_Read(Pairs, Zeilen, Proc_funcs[j][k])==true)
-						  {
-							  mycppfile << Write_Only_Read(Pairs, Zeilen, Proc_funcs[j][k]);
-						  }
-						  else
-						  {
-							  mycppfile << "double " + Proc_funcs[j][k] + " = aa"+ Proc_funcs[j][k] + "Gate[*iter]; \n \n";
-						  }
-						  std::cout << Proc_funcs[j][k] << std::endl;
-					  }
-
-					  // write locals vals as double
-					  locals = get_local_proc_block(Pairs, Zeilen, Proc_funcs[j][0]);
-
-					  for (size_t k=0; k<locals.size(); k++)
-					  {
-						  mycppfile << "double " + locals[k] + "; \n";
-					  }
-
-
-
-					  bool right = false;
-
-
-					  for (size_t k=0; k<PROCEDURE.size(); k++)
-					  {
-						  std::cout << "PROCEDURE: " << PROCEDURE[k] << std::endl;
-						  if (PROCEDURE[k].find("PROCEDURE")!=PROCEDURE[k].npos)
-						  {
-							  std::cout << "PROCEDURE: " << PROCEDURE[k] << std::endl;
-							  for (size_t l = 0; l<Der_funcs.size(); l++)
-							  {
-								  //std::cout << "l" << Proc_funcs.size() << std::endl;
-								  if ((PROCEDURE[k].substr(0, PROCEDURE[k].find("("))!="PROCEDURE " + Der_funcs[l][0]))
-								  {
-									  right = false;
-									  std::cout << "write not with: " << Der_funcs[l][0] << " and " <<  PROCEDURE[k].substr(0, PROCEDURE[k].find("(")) << std::endl;
-								  }
-
-							  }
-
-							  //std::cout << PROCEDURE[k].substr(0, PROCEDURE[k].find("(")) << std::endl;
-							  if (PROCEDURE[k].substr(0, PROCEDURE[k].find("(")) == "PROCEDURE " + Proc_funcs[j][0])
-							  {
-								  right = true;
-								  std::cout << "write" << std::endl;
-							  }
-						  }
-
-
-
-						  if (right==true)
-						  {
-							  std::cout << "Procedure k existiert nicht" << std::endl;
-							  std::cout << PROCEDURE[k] << std::endl;
-							  std::cout << "Procedure k existiert doch bei k=" << k << std::endl;
-							  if (begG(PROCEDURE[k])==false)
-							  {
-								  if ((k>1) && (PROCEDURE[k].substr(0,1)!="}"))
-								  {
-									  //std::cout << "first print" << std::endl;
-									  if ((PROCEDURE[k]!="") && (PROCEDURE[k]!=" ") && (PROCEDURE[k]!="\t") && (PROCEDURE[k]!=" \n"))
-										  {
-										  	  if (PROCEDURE[k].find(":")!=PROCEDURE[k].npos)
-										  		  {
-
-										  		  	  if (PROCEDURE[k].find(":")!=0)
-										  		  	  PROCEDURE[k].replace(PROCEDURE[k].find(":"), 1 ,";//");
-										  		  	  else PROCEDURE[k].replace(PROCEDURE[k].find(":"), 1 ,"//");
-										  		  }
-										  	  if (PROCEDURE[k].find("\t")!=PROCEDURE[k].npos)
-										  			  PROCEDURE[k].replace(PROCEDURE[k].find("\t"), 1, "");
-										  	  if (PROCEDURE[k].find(" ")!=PROCEDURE[k].npos)
-										  			  PROCEDURE[k].replace(PROCEDURE[k].find(" "), 1, "");
-										  	  /*if (PROCEDURE[k].find("(")!=PROCEDURE[k].npos)
-										  		  	  PROCEDURE[k] = PROCEDURE[k].substr(0, PROCEDURE[k].find("("));*/
-					  		  				  /*while (PROCEDURE[k].find(" ")!=PROCEDURE[k].npos)
-					  		  						{PROCEDURE[k].replace(PROCEDURE[k].find(" "), 1, "");}*/
-
-										  	  for (size_t n=0; n<Proc_funcs.size(); n++)
-										  	  {
-										  		  std::cout << "vergleich with: Proc_funcs: " << Proc_funcs[n][0] << " - " << PROCEDURE[k].substr(0, PROCEDURE[k].find("(")) << std::endl;
-										  		  if ((PROCEDURE[k].substr(0, PROCEDURE[k].find("("))!=Proc_funcs[n][0]) && (PROCEDURE[k].find("")!=PROCEDURE[k].npos))
-										  		  {
-										  			  if (PROCEDURE[k] + ";\n" != ";\n")
-										  			  {
-										  				  //if (n==Proc_funcs.size())
-										  				  	  //{
-										  				  if (PROCEDURE[k].find(";//")!=PROCEDURE[k].npos)
-										  					  PROCEDURE[k].replace(PROCEDURE[k].find(";//"), 3, "//");
-
-										  				  if ((PROCEDURE[k].find("LOCAL")==PROCEDURE[k].npos) && (PROCEDURE[k].find("UNITSOFF")==PROCEDURE[k].npos))
-										  							 mycppfile << PROCEDURE[k] + "; \n";
-										  					  //}
-
-
-										  			  }
-
-										  		  }
-										  	  else
-										  		  { std::cout << "write else unten" << std::endl;
-										  		  	  for (size_t o=0 ; o<PROCEDURE.size(); o++)
-										  		  	  {
-										  		  		  std::cout<< "for läuft" << std::endl;
-										  		  		  if ((PROCEDURE[o].find(PROCEDURE[k].substr(0, PROCEDURE[k].find("(")))!=PROCEDURE[o].npos)
-										  		  				  && (PROCEDURE[k].substr(0, PROCEDURE[k].find("("))==PROCEDURE[o].substr(0, PROCEDURE[o].find("("))))
-														  {
-										  		  			  std::cout << "Procedure fitting with: " << ""<< std::endl;
-										  		  			  for (size_t p=o+1; p<PROCEDURE.size()-1; p++)
-										  		  			  {
-										  		  				  if (PROCEDURE[p].find("\t")!=PROCEDURE[p].npos)
-										  		  						{PROCEDURE[p].replace(PROCEDURE[p].find("\t"), 1, "");}
-
-										  		  				  if (PROCEDURE[p].find("\n")!=PROCEDURE[p].npos)
-										  		  						{PROCEDURE[p].replace(PROCEDURE[p].find("\n"), 1, "");}
-
-
-										  		  				  while (((PROCEDURE[p].find(" "))!=(PROCEDURE[p].npos)) && ((PROCEDURE[p].find(" "))<(PROCEDURE[p].find(":"))))
-										  		  						{PROCEDURE[p].replace(PROCEDURE[p].find(" "), 1, "");}
-
-															  	  if (PROCEDURE[p].find(":")!=PROCEDURE[p].npos)
-															  	  {
-															  		  if (PROCEDURE[p].find(":")!=0)
-															  			  PROCEDURE[p].replace(PROCEDURE[p].find(":"), 1 ,";//");
-															  		  else PROCEDURE[p].replace(PROCEDURE[p].find(":"), 1 ,"//");
-															  	  }
-
-										  		  				  if (PROCEDURE[p].find("")!=PROCEDURE[p].npos)
-										  		  				  {
-										  		  					  if ((PROCEDURE[p] + ";\n" != ";\n") && (PROCEDURE[p].find("LOCAL")==PROCEDURE[p].npos)
-										  		  							  && (PROCEDURE[p].find("PROCEDURE")==PROCEDURE[p].npos) && (PROCEDURE[p].find("}", 0, 1)==PROCEDURE[p].npos)
-																			  && (begG(PROCEDURE[p])==false))
-										  		  					  {
-
-										  		  						  if ((PROCEDURE[p].find("//")==PROCEDURE[p].npos))
-										  		  							  {
-										  		  							  std::cout << "katastrophen output" << std::endl;
-										  		  							  mycppfile << PROCEDURE[p] +";\n";
-										  		  							  }
-										  		  						  else {
-										  		  							  if (PROCEDURE[p].find("LOCAL")!=PROCEDURE[p].npos)
-																			  	  mycppfile << "double "  + PROCEDURE[p] +"\n";
-										  		  						  }
-										  		  					  }
-										  		  				  }
-										  		  			  }
-														  }
-										  		  	  }
-										  		  }
-										  	  }
-										  }
-								  }
-							  }
-						  }
-					  }
-
+					if (DERIVATIVE[i]!="")
+					{
+						DERIVATIVE[i].replace(DERIVATIVE[i].find("\'"), 1, "");
+						DERIVATIVE[i].replace(DERIVATIVE[i].find("="), 1, "+=");
+						mycppfile << DERIVATIVE[i] + "*dt; \n";
+					}
 				  }
-			  }
+	  		  }
+	  	  }
 
-
-		  // Writting derivfuncs
-		  std::cout << "before deriv" << std::endl;
-		  if ((i> Stats_beg) && (i < DERIVATIVE.size()-1))
-		  {
-			if (DERIVATIVE[i]!="")
-			{
-				DERIVATIVE[i].replace(DERIVATIVE[i].find("\'"), 1, "");
-				DERIVATIVE[i].replace(DERIVATIVE[i].find("="), 1, "+=");
-				mycppfile << DERIVATIVE[i] + "*dt; \n";
-			}
-		  }
-
-
-	  }
 	  mycppfile << "\n \n \n";
 
 
-	  // States ever need new values
-		  for (size_t i=0; i<STATE.size(); i++)
-		  {
-			  state = pos_letter(STATE[i]);
-			  if (state!=1000)
-				  if (STATE[i].find("(")==STATE[i].npos)
-					  varSt = number_(state, STATE[i]);
-			  //std::cout << "after doppelt if" << std::endl;
-			  for (size_t j=0; j<varSt; j++)
-			  {
-				  if (addState!="}")
-				  {
-					  stateend = STATE[i].find(" ", state);
-					  addState = STATE[i].substr(state, stateend-state);
-					  mycppfile << "aa" + addState + "Gate[*iter] = " + addState + "; \n";
 
-					  state = stateend+1;
+	  std::cout << "DERIV happened" << std::endl;
+
+
+	  std::cout << "Adding kinetic funcs" << std::endl;
+
+	  string needed_proc;
+	  std::vector<string> KINETIC;
+	  KINETIC = GetBlock(Pairs, Zeilen, "KINETIC");
+	  // KINETIC used always mentioned in Breakpoint
+	  std::vector<string> BREAKPOINT = GetBlock(Pairs, Zeilen, "BREAKPOINT");
+
+	  std::vector<string> Solve_List;
+	  size_t beg_sol;
+	  // write solve List
+	  for (size_t i=0; i< BREAKPOINT.size(); i++)
+	  {
+		  beg_sol = BREAKPOINT[i].find("SOLVE");
+		  if (beg_sol != BREAKPOINT[i].npos)
+		  {
+			  needed_proc = BREAKPOINT[i-1];
+			  std::cout << "first needed proc: " << needed_proc << std::endl;
+			  Solve_List.push_back(BREAKPOINT[i].substr(beg_sol+6, BREAKPOINT[i].find("METHOD")-1-(beg_sol+6)));
+		  }
+	  }
+
+	  size_t kin_help_beg, kin_help_end;
+	  string kin_helpS;
+	  vector<string> Ausgabe, Ausgabe2;
+
+
+	  // if kinectic is defined
+	  if (KINETIC.size() >=1)
+	  {
+
+		  if (Solve_List.size()>=1)
+		  {
+			  for (size_t i=0; i<Solve_List.size(); i++)
+			  {
+				  kin_help_beg = KINETIC[0].find("KINETIC");
+				  kin_help_end = KINETIC[0].find("{");
+				  kin_helpS = KINETIC[0].substr(kin_help_beg+7, kin_help_end-1-(kin_help_beg+7));
+				  while (kin_helpS.find(" ")!=kin_helpS.npos)
+					  kin_helpS.replace(kin_helpS.find(" "), 1, "");
+				  if (kin_helpS == Solve_List[i])
+				  {
+					  /*std::cout << "da geht was" << std::endl;
+					  std::cout << kin_helpS << std::endl;
+					  std::cout << Solve_List[i] << std::endl;*/
+					  for (size_t j=0; j<KINETIC.size(); j++)
+					  {
+
+						  vector<string> varsL;
+						  string left, right, vars;
+						  size_t komma;
+						  size_t helpco, helpcc;
+						  size_t c_f_o, c_l_c;
+						  size_t arrows = KINETIC[j].find("<->");
+						  size_t KIN_length = KINETIC[j].npos;
+						  if (arrows!=KIN_length)
+						  {
+							  left = KINETIC[j].substr(0, arrows-1);
+							  right = KINETIC[j].substr(arrows+3, KIN_length-(arrows+3));
+
+							  c_f_o = right.find("(");
+							  c_l_c = right.find_last_of(")");
+
+							  vars = right.substr(c_f_o+1, c_l_c-(c_f_o+1));
+							  right = right.substr(0, c_f_o-1);
+
+							  std::cout << "left: " << left <<" right: "<< right << "vars: " << vars << std::endl;
+							  helpco = vars.find("(");
+							  helpcc = vars.find(")");
+							  // del all clips
+							  while ((helpco!=vars.npos) || (helpcc!=vars.npos))
+							  {
+								  vars.replace(helpco ,1 ,"");
+								  vars.replace(helpcc ,1 ,"");
+								  helpco = vars.find("(");
+								  helpcc = vars.find(")");
+							  }
+							  // divide vars and push in var list
+							  size_t beg = 0;
+							  komma = vars.find(",");
+							  while (komma!=vars.npos)
+							  {
+								  //std::cout << "var pushed_back: " << vars.substr(beg, komma-beg) << std::endl;
+								  varsL.push_back(vars.substr(beg, komma-beg));
+								  beg = komma+1;
+								  komma = vars.find(",", beg);
+							  }
+							  //std::cout << "var pushed_back: " << vars.substr(beg, komma-beg) << std::endl;
+							  varsL.push_back(vars.substr(beg, komma-beg));
+
+							  Ausgabe.push_back(left + "+ =  (-" +left +"*" + varsL[0] + "+" +right +"*" + varsL[1] + ")");
+							  Ausgabe.push_back(right + "+ = ("+left +"*" + varsL[0] + "+ -"+ right +"*" + varsL[1] + ")");
+
+
+
+
+						  }
+					  }
 				  }
 			  }
-			  varSt = 0;
 		  }
 
+		  //del all " " and tabs out of name
+
+		  size_t leer, tab;
+		  leer = needed_proc.find(" ");
+		  tab = needed_proc.find("\t");
+		  while (leer != needed_proc.npos)
+		  {
+			  needed_proc.replace(leer, 1, "");
+			  leer = needed_proc.find(" ");
+		  }
+
+		  while (tab != needed_proc.npos)
+		  {
+			  needed_proc.replace(tab, 1, "");
+			  tab = needed_proc.find(" ");
+		  }
+
+		  //getting procedure for needed vars
+		  size_t clip = needed_proc.find(")");
+		  needed_proc.replace(clip, 1, "");
+		  Ausgabe2 = GetProcEqualString(Pairs, Zeilen, needed_proc);
+		  for (size_t i=0; i<Ausgabe2.size(); i++)
+		  {
+			  if (Ausgabe2[i].find("PROCEDURE")==Ausgabe2[i].npos)
+				  mycppfile << Ausgabe2[i] + "; \n";
+		  }
+
+		  mycppfile << " \n \n \n";
+
+
+
+		  for (size_t i=0; i<Ausgabe.size(); i++)
+		  {
+			  // removes all " " tabs and ~
+			  leer = Ausgabe[i].find(" ");
+			  while (leer!=Ausgabe[i].npos)
+			  {
+				  Ausgabe[i].replace(leer, 1, "");
+				  leer = Ausgabe[i].find(" ");
+			  }
+			  leer = Ausgabe[i].find("~");
+			  while (leer!=Ausgabe[i].npos)
+			  {
+				  Ausgabe[i].replace(leer, 1, "");
+				  leer = Ausgabe[i].find("~");
+			  }
+			  leer = Ausgabe[i].find("\t");
+			  while (leer!=Ausgabe[i].npos)
+			  {
+				  Ausgabe[i].replace(leer, 1, "");
+				  leer = Ausgabe[i].find("\t");
+			  }
+			  mycppfile << Ausgabe[i] +"*dt; \n";
+		  }
+
+		  mycppfile << " \n \n \n";
+
+
+
+	// if there is no kinetic
+	  } else
+	  {
+		  vector<string> BProc;
+		  size_t breakS;
+		  string Proc;
+		  if (BREAKPOINT.size()>0)
+		  {
+			  for (size_t i=0; i<BREAKPOINT.size(); i++)
+			  {
+				  breakS = BREAKPOINT[i].find("SOLVE");
+				  if (breakS!=BREAKPOINT[i].npos)
+				  {
+					  Proc = BREAKPOINT[i].substr(breakS+6 ,BREAKPOINT[i].find(" ")-(breakS+6));
+					  std::cout << "PROC: " << Proc << std::endl;
+					  BProc = writer_proc_block(Pairs, Zeilen, Proc);
+				  }
+			  }
+
+
+			  //updates States for use later
+			  if (State_vars.size()>0)
+			  {
+			  	for (size_t i=0; i<State_vars.size(); i++)
+			  	{
+			  		HFile_added_Vars.push_back(State_vars[i]);
+			  	}
+			  	HFile_added_Vars.push_back("v");
+			  }
+
+
+
+
+
+			  bool HFile_added;
+			  for (size_t i=0; i<BProc.size(); i++)
+			  {
+				  HFile_added = false;
+				  if ((BProc[i]!="") && (BProc[i]!="}") && (BProc[i].find("LOCAL")==BProc[i].npos)
+				  	   && BProc[i]!=" " && BProc[i]!="\t" && BProc[i]!="        ")
+				  {
+					  for (size_t l=0; l<HFile_added_Vars.size(); l++)
+				  	  {
+						  //std::cout << "Vergleich " << Remove_all(BProc[i].substr(0, BProc[i].find("=")-1)) << " - " << Remove_all(HFile_added_Vars[l]) << std::endl;
+						  if (Remove_all(BProc[i].substr(0, BProc[i].find("=")-1))==Remove_all(HFile_added_Vars[l]))
+							  HFile_added = true;
+				  	  }
+
+				  	  string com_buf;
+
+				  	  // if it added in hfile write without double else with!
+				  	  if (HFile_added == true)
+				  	  {
+				  		  //writes comments
+				  		  if (BProc[i].find(":")!=BProc[i].npos)
+				  			  BProc[i].replace(BProc[i].find(":"), 1, "//");
+
+				  		  mycppfile << BProc[i] + "; \n";
+
+				  	  } else
+				  	  {
+				  		  // writes comments, if comment for the whole than no double is allowed
+				  		  if (BProc[i].find(":")!=BProc[i].npos)
+				  		  {
+				  			  com_buf = BProc[i];
+				  			  com_buf = Remove_all_com(com_buf);
+				  			  BProc[i].replace(BProc[i].find(":"), 1, "//");
+				  		  }
+
+				  		  if (com_buf.find(":")==0)
+				  		  {
+				  			  mycppfile << BProc[i] + "\n";
+				  		  } else
+				  		  {
+				  			  mycppfile << "double " + BProc[i] + "; \n";
+				  		  }
+				  	  }
+
+				  }
+			  }
+		  }
+
+	  }
+
+
+
+
+
+
+
+
+//updates Gattings
+	  if (State_vars.size()>0)
+	  {
+		  for (size_t i=0; i<State_vars.size(); i++)
+		  {
+			  mycppfile << "aa" + State_vars[i] + "Gate[*iter] = " + State_vars[i] + "; \n";
+		  }
+	  }
+
+
+
 	  mycppfile << " \n \n \n";
 	  mycppfile << "} \n";
 	  mycppfile << "} \n";
 	  mycppfile << "} \n";
 	  mycppfile << " \n \n \n";
 
-	  // write head of ionic flux
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+// write head of ionic flux
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
 	  mycppfile << "template<typename TDomain, typename TAlgebra> \n";
 	  mycppfile << "void " + filename + "<TDomain, TAlgebra>::ionic_current(Vertex* ver, std::vector<number>& outCurrentValues) \n";
 	  mycppfile << "{ \n \n";
 	  // all gates
 
-	  // States ever need new values
-	  for (size_t i=0; i<STATE.size(); i++)
+	  if (State_vars.size()>0)
 	  {
-		  state = pos_letter(STATE[i]);
-		  if (state!=1000)
-			  if (STATE[i].find("(")==STATE[i].npos)
-				  varSt = number_(state, STATE[i]);
-		  //std::cout << "after doppelt if" << std::endl;
-		  for (size_t j=0; j<varSt; j++)
+		  // States ever need new values
+		  	  for (size_t i=0; i<State_vars.size(); i++)
+		  	  {
+		  		  mycppfile << "double " + State_vars[i] + " = aa" + State_vars[i] + "Gate[ver]; \n";
+		  	  }
+	  }
+
+	  if (ListIons.size()>0)
+	  {
+		  // all ions
+		  for (size_t i=0; i<ListIons.size(); i++)
 		  {
-			  stateend = STATE[i].find(" ", state);
-			  addState = STATE[i].substr(state, stateend-state);
-			  if (addState!="}")
-			  {
-				  mycppfile << "double " + addState + " = aa" + addState + "[ver]; \n";
-				  state = stateend+1;
-			  }
+		 	  mycppfile << "double " + ListIons[i] + " = aa" + ListIons[i] + "Gate[ver];  \n";
 		  }
-		  varSt = 0;
 	  }
-	  // all ions
-	  for (size_t i=0; i<ListIons.size(); i++)
-	  {
-	 	  mycppfile << "double " + ListIons[i] + " = aa" + ListIons[i] + "Gate[ver];  \n";
-	  }
+
 	  // v
 	  mycppfile << "double v = aavGate[ver]; \n";
 	  mycppfile << " \n";
@@ -1591,98 +2124,220 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 	  //writes Nernst Eqs
 	  std::vector<string> eqs = equali(Pairs, Zeilen);
-	  for (size_t i=0; i<eqs.size(); i++)
+
+	  if (eqs.size()>0)
 	  {
-		  mycppfile << eqs[i] + " \n";
+		  for (size_t i=0; i<eqs.size(); i++)
+		  {
+			  // TODO write for schleife over all ions!
+			  if (eqs[i]!="1" && eqs[i]!="0" && eqs[i]!=" ca" && eqs[i]!=" na" && eqs[i]!=" k")
+				  mycppfile << eqs[i] + " \n";
+		  }
 	  }
+
 	  mycppfile << " \n \n";
 
 	  bool in = true;
+	  bool stand_BP = true;
+
 	  size_t beg;
 	  std::vector<string> fluxes;
 	  std::vector<string> B_vars;
-	  std::vector<string> BREAKPOINT = GetBlock(Pairs, Zeilen, "BREAKPOINT");
 
+
+	  std::cout << "Before Breakpoint" << std::endl;
+
+	  //decids which Breakpoint Method will be used
 	  for (size_t i=1; i<BREAKPOINT.size()-1; i++)
 	  {
-		  in = true;
-		  if (BREAKPOINT[i].find("SOLVE")!=BREAKPOINT[i].npos)
-			  in = false;
-
-		  if (in == true)
+		  if (BREAKPOINT[i].find("if")!=BREAKPOINT[i].npos)
 		  {
-			  beg = pos_letter(BREAKPOINT[i]);
-			  fluxes.push_back(BREAKPOINT[i].substr(beg, BREAKPOINT[i].npos-beg));
-		  }
-
-	  }
-	  std::cout << "fluxes size: " << fluxes.size() << std::endl;
-
-	  for (size_t i=0; i<fluxes.size(); i++)
-	  {
-		  // make list with left handed vars
-		  B_vars.push_back(fluxes[i].substr(0, fluxes[i].find("=")-1));
-		  std::cout << (B_vars[i]) << std::endl;
-	  }
-	  // check if vars on right side an write down
-	  for (size_t i=0; i<fluxes.size(); i++)
-	  {
-		  for (size_t j=0; j<B_vars.size(); j++)
-		  {
-			  beg = fluxes[i].find("=");
-			  if (fluxes[i].find(B_vars[j], beg) != fluxes[i].npos)
-			  {
-				  size_t test = fluxes[i].find(B_vars[j], beg);
-				  if (pos_letterb(fluxes[i].substr(test+B_vars[j].size(), 1))==false)
-				  {
-				  	  mycppfile << "number " + fluxes[i] + "; \n";
-				  	  fluxes[i] = "";
-				  }
-			  }
-
+			  stand_BP = false;
 		  }
 	  }
 
-	  vector<string> outs;
-	  // first every time v
-	  outs.push_back("");
+	  string non_spec_current;
+	  size_t non_spec_beg, non_spec_end;
 
-	  int vm_flux_count = 0;
-
-	  mycppfile << "\n \n \n";
-	  for (size_t i=0; i<fluxes.size(); i++)
+	  // writes Breakpoint Word for Word add out at the end
+	  if (stand_BP==false)
 	  {
-		  std::cout << "fluxes[i]: " << fluxes[i] << std::endl;
-		  if (fluxes[i]!="")
+		  //search for non spec_ionic_current
+		  for (size_t i=0; i<NEURON.size(); i++)
 		  {
-			  if (fluxes[i].find("i")==0)
+			  non_spec_beg = NEURON[i].find("NONSPECIFIC_CURRENT");
+			  if (non_spec_beg!=NEURON[i].npos)
 			  {
-				  if (vm_flux_count>=1)
-				  {
-					  outs[0] += " + " + fluxes[i].substr(fluxes[i].find("=")+1, fluxes[i].npos -fluxes[i].find("=")+1);
-					  vm_flux_count += 1;
-				  } else {
-					  outs[0] += fluxes[i].substr(fluxes[i].find("=")+1, fluxes[i].npos -fluxes[i].find("=")+1);
-					  vm_flux_count += 1;
-				  }
+				  non_spec_end = NEURON[i].find(" ", non_spec_beg+20);
+				  non_spec_current = NEURON[i].substr(non_spec_beg+20, non_spec_end-(non_spec_beg+20));
 			  }
 		  }
-	  }
-	  for (size_t i=0; i<fluxes.size(); i++)
-	  {
-		  for (size_t j=0; j<ListIons.size(); j++)
+
+		  string test;
+		  for (size_t i=1; i<BREAKPOINT.size()-1; i++)
 		  {
-			  std::cout << "List Ions" << std::endl;
-			  std::cout << "i"+ListIons[j] << std::endl;
-			  if (fluxes[i].find("i" + ListIons[j])!=fluxes[i].npos)
-				  outs.push_back(fluxes[i].substr(fluxes[i].find("=")+1, fluxes[i].npos -fluxes[i].find("=")+1));
+			  test = BREAKPOINT[i] + "; \n";
+			  if ((test.find("{;")==test.npos) && (test.find("};")==test.npos))
+			  {
+			  	  mycppfile << BREAKPOINT[i] + "; \n";
+			  }
+			  else
+			  {
+				  mycppfile << BREAKPOINT[i] + "\n";
+		 	  }
 		  }
+
+		  mycppfile << "outCurrentValues.push_back(" + non_spec_current + "); \n";
+
 	  }
-	  mycppfile << "outCurrentValues.push_back(" + outs[0] + ") \n";
-	  for (size_t i=1; i<outs.size(); i++)
+
+
+
+
+
+
+	  // writes Breakpoint if it is Standard BP
+	  if (stand_BP==true)
 	  {
-		  mycppfile << "outCurrentValues.push_back(" + outs[i] + "/m_F ); \n";
+		  for (size_t i=1; i<BREAKPOINT.size()-1; i++)
+		 	  {
+		 		  in = true;
+		 		  if (BREAKPOINT[i].find("SOLVE")!=BREAKPOINT[i].npos)
+		 			  in = false;
+
+		 		  if (in == true)
+		 		  {
+		 			  std::cout << "adding flux" << std::endl;
+		 			  beg = pos_letter(BREAKPOINT[i]);
+		 			  if (beg!=1000)
+		 				  fluxes.push_back(BREAKPOINT[i].substr(beg, BREAKPOINT[i].npos-beg));
+		 		  }
+
+		 	  }
+		 	  std::cout << "fluxes size: " << fluxes.size() << std::endl;
+
+		 	  for (size_t i=0; i<fluxes.size(); i++)
+		 	  {
+		 		  // make list with left handed vars
+		 		  B_vars.push_back(fluxes[i].substr(0, fluxes[i].find("=")-1));
+		 		  std::cout << (B_vars[i]) << std::endl;
+		 	  }
+		 	  // check if vars on right side an write down
+		 	  for (size_t i=0; i<fluxes.size(); i++)
+		 	  {
+		 		  for (size_t j=0; j<B_vars.size(); j++)
+		 		  {
+		 			  beg = fluxes[i].find("=");
+		 			  if (fluxes[i].find(B_vars[j], beg) != fluxes[i].npos)
+		 			  {
+		 				  size_t test = fluxes[i].find(B_vars[j], beg);
+		 				  if (pos_letterb(fluxes[i].substr(test+B_vars[j].size(), 1))==false)
+		 				  {
+		 				  	  mycppfile << "number " + fluxes[i] + "; \n";
+		 				  	  fluxes[i] = "";
+		 				  }
+		 			  }
+
+		 		  }
+		 	  }
+
+		 	  vector<bool> Ion_outside;
+		 	  vector<string> outs;
+		 	  // first every time v
+		 	  outs.push_back("");
+
+		 	  int vm_flux_count = 0;
+
+		 	  mycppfile << "\n \n \n";
+		 	  for (size_t i=0; i<fluxes.size(); i++)
+		 	  {
+		 		  std::cout << "fluxes[i]: " << fluxes[i] << std::endl;
+
+		 		  if (fluxes[i]!="")
+		 		  {
+		 			  if (fluxes[i].find("i")==0)
+		 			  {
+		 				  if (vm_flux_count>=1)
+		 				  {
+		 					  outs[0] += " + " + fluxes[i].substr(fluxes[i].find("=")+1, fluxes[i].npos -fluxes[i].find("=")+1);
+		 					  vm_flux_count += 1;
+		 				  } else {
+		 					  outs[0] += fluxes[i].substr(fluxes[i].find("=")+1, fluxes[i].npos -fluxes[i].find("=")+1);
+		 					  vm_flux_count += 1;
+		 				  }
+		 			  }
+		 		  }
+		 	  }
+
+		 	  for (size_t i=0; i<fluxes.size(); i++)
+		 	  {
+		 		  for (size_t j=0; j<ListIons.size(); j++)
+		 		  {
+		 			  Ion_outside.push_back(false);
+		 			  std::cout << "List Ions" << std::endl;
+		 			  std::cout << "i"+ListIons[j] << std::endl;
+		 			  // ToDo here we need infos out of equali
+		 			  string change;
+		 			  for (size_t k=0; k<eqs.size(); k++)
+		 			  {
+		 				  if (eqs[k]=="0")
+		 				  {
+		 					  size_t eqs_leer = eqs[k+1].find(" ");
+		 					  while (eqs_leer!=eqs[k+1].npos)
+		 					  {
+		 						  eqs[k+1].replace(eqs_leer, 1, "");
+		 						  eqs_leer = eqs[k+1].find(" ");
+		 						  std::cout << "eqs k+1: " << eqs[k+1] << std::endl;
+		 					  }
+		 					  if (eqs[k+1]==ListIons[j])
+		 					  {
+		 						  //setting Ion_outside true to prevent output later as push_back from ionic_current
+		 						  //cause ion is only working on outside
+		 						  Ion_outside[j]=true;
+
+		 						  size_t write, komma;
+		 						  string left, right;
+		 						  // create out of NEURON another output depending on WRITE Part!
+		 						  std::cout << "changes will happen on outer concentration" << std::endl;
+		 						  for (size_t l=0; l<NEURON.size(); l++)
+		 						  {
+		 							  if (NEURON[l].find("USEION " + eqs[k+1])!=NEURON[l].npos)
+		 							  {
+		 								 komma = NEURON[l].find(",");
+		 								 write = NEURON[l].find("WRITE");
+		 								 left = NEURON[l].substr(komma+1, write-1);
+		 								 right = NEURON[l].substr(write+6, NEURON[l].npos);
+		 								 if (fluxes[i].find(left)!=fluxes[i].npos)
+		 								 {
+		 									 mycppfile << eqs[k+1] + fluxes[i].substr(fluxes[i].find("="), fluxes[i].npos-fluxes[i].find("=")) + "; \n";
+		 								 }
+
+		 								 if (fluxes[i].find(right)!=fluxes[i].npos)
+		 								 {
+		 									 mycppfile << eqs[k+1] + "_out " + fluxes[i].substr(fluxes[i].find("="), fluxes[i].npos-fluxes[i].find("="))+ "; \n";
+		 								 }
+
+		 							  }
+		 						  }
+
+		 					  }
+		 				  }
+
+
+		 			  }
+		 			  if ((fluxes[i].find("i" + ListIons[j])!=fluxes[i].npos) && (Ion_outside[j]==false))
+		 				  outs.push_back(fluxes[i].substr(fluxes[i].find("=")+1, fluxes[i].npos -fluxes[i].find("=")+1));
+		 		  }
+		 	  }
+
+
+		 	  mycppfile << "outCurrentValues.push_back(" + outs[0] + "); \n";
+		 	  for (size_t i=1; i<outs.size(); i++)
+		 	  {
+		 		  mycppfile << "outCurrentValues.push_back(" + outs[i] + "/m_F ); \n";
+		 	  }
 	  }
+
 	  mycppfile << "  \n";
 	  mycppfile << "}  \n";
 
@@ -1697,9 +2352,9 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  myhfile << "Grid::AttachmentAccessor<Vertex, ADouble> aav; \n \n";
 	  myhfile << "//nernst const values \n";
 
-	  myhfile << "number m_R \n";
-	  myhfile << "number m_T \n";
-	  myhfile << "number m_F \n \n";
+	  myhfile << "number m_R; \n";
+	  myhfile << "number m_T; \n";
+	  myhfile << "number m_F; \n \n";
 
 	  myhfile << "/// Base type \n";
 	  myhfile << "typedef IChannel<TDomain, TAlgebra> base_type; \n";
