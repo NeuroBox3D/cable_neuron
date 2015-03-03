@@ -1,4 +1,3 @@
-
 /*
  * VM_Disc.cpp
  *
@@ -7,8 +6,8 @@
  */
 
 
-#ifndef VM_DISC_H_
-#define VM_DISC_H_
+#ifndef __UG__PLUGINS__EXPERIMENTAL__CABLE__VM_DISC_H__
+#define __UG__PLUGINS__EXPERIMENTAL__CABLE__VM_DISC_H__
 
 #include "lib_grid/lg_base.h"
 #include "lib_grid/grid/grid_base_objects.h"
@@ -46,46 +45,42 @@
 namespace ug
 {
 
+// forward declaration
+template <typename TDomain, typename TAlgebra>
+class IChannel;
+
+
 template <typename TDomain, typename TAlgebra>
 class VMDisc
 	: public IElemDisc<TDomain>
 {
-	private:
-	///	Base class type
-		typedef IElemDisc<TDomain> base_type;
-
-	///	Own type
-		typedef VMDisc<TDomain, TAlgebra> this_type;
-
-	/// Type for Gridfunction
-		typedef GridFunction<TDomain, TAlgebra> TGridFunction;
-
-	/// Type for Channels
+	public:
+		/// type for channels
 		typedef IChannel<TDomain, TAlgebra> TIChannel;
 
+		///	world dimension
+		static const int dim = IElemDisc<TDomain>::dim;
+
 	public:
-	///	World dimension
-		static const int dim = base_type::dim;
+		// indices for functions in this elemDisc
+		static const size_t _VM_ = 0;
+		static const size_t _K_  = 1;
+		static const size_t _Na_ = 2;
+		static const size_t _Ca_ = 3;
 
-		// Params dendrit
-		number m_spec_res;
-		number m_spec_cap;
+		// outer concentrations
+		const number K_out;		// mol/m^3 = mM
+		const number Na_out;	// mol/m^3 = mM
+		const number Ca_out;	// mol/m^3 = mM
 
-		// Params for HH-Fluxes
-		number m_g_K;
-		number m_g_Na;
-		number m_g_I;
+		// dendritic params
+		number m_spec_res;	// mV * ms * m / C
+		number m_spec_cap;	// C / (mV * m^2)
 
-		// reversal Pot of Sodium and Potassium
-		number m_sodium;
-		number m_potassium;
+		// diffusion coefficients
+		std::vector<number> m_diff;
 
-		// params gatting
-		double m_accuracy;
-		// list of all diffusions
-		std::vector<number> m_diff_Vm;
-
-		//lists for all influxes
+		// lists for all influxes
 		std::vector<MathVector<dim> > m_coords;
 		std::vector<number> m_flux_value;
 		std::vector<number> m_beg_flux;
@@ -94,25 +89,37 @@ class VMDisc
 		// influx ac
 		number m_influx_ac;
 
-		//list with all channels
+		// channel machanisms
 		std::vector<SmartPtr<TIChannel> > m_channel;
 
-		//funcs params
-		std::vector<std::string> m_funcs;
-		size_t m_numb_funcs;
+		// number of ions
+		static const size_t m_numb_funcs = 3;
 
 	public:
-	///	Constructor
+		///	constructor
+		// TODO: rework this!
+		// We generally only have the following functions: VM, K, Na, Ca.
+		// We should begin with generating the necessary functions in a hard-coded way
+		// and might then check whether some of them are not in fact needed.
 		VMDisc
 		(
-			const char* functions,
+			//const char* functions,
 			const char* subsets,
 			const std::vector<SmartPtr<TIChannel> >& channels,
 			SmartPtr<ApproximationSpace<TDomain> > approx
 		)
-		: IElemDisc<TDomain>(functions, subsets), m_channel(channels), m_numb_funcs(0),
-		  m_spApproxSpace(approx), m_aDiameter("diameter"),  _VM_(0)
+		: IElemDisc<TDomain>("VM, K, Na, Ca", subsets),
+		  K_out(3.3918292968), Na_out(107.796654), Ca_out(1.5),
+		  m_spec_res(1.0e6), m_spec_cap(1.0e-5),
+		  m_influx_ac(1e-9), m_channel(channels), m_aDiameter("diameter"),
+		  m_spApproxSpace(approx), m_spDD(m_spApproxSpace->dof_distribution(GridLevel::TOP)),
+		  m_bNonRegularGrid(false)
 		{
+			// set this vm disc to each of its channels
+			for (size_t i = 0; i < m_channel.size(); i++)
+				m_channel[i]->set_vm_disc(this);
+
+#if 0
 			//SmartPtr<GridFunction<TDomain, TAlgebra> > spGridPtr;
 			std::vector<std::string> allFct = m_spApproxSpace->names();
 
@@ -154,7 +161,7 @@ class VMDisc
 
 						if (new_fct_pos < diff_coeffs.size())
 						{
-							m_diff_Vm.push_back(diff_coeffs[new_fct_pos]);
+							m_diff.push_back(diff_coeffs[new_fct_pos]);
 							++new_fct_pos;
 						}
 						else
@@ -209,12 +216,11 @@ class VMDisc
 							std::cout << "pushback m_diff postion" << std::endl;
 							if (position <= neuer.size())
 							{
-								m_diff_Vm.push_back(neuer[position]);
+								m_diff.push_back(neuer[position]);
 								position +=1;
 							} else {UG_THROW("Need to set diffusion coeffizient for ion " + new_func + " with set_diff(<LuaTable>)" +
 									" if you do not need diffusion set to 0.");}
 					}
-					// TODO: else: check if diff_coefficient is consistent
 				}
 				// adding last func
 				new_func = test.substr(start);
@@ -235,7 +241,7 @@ class VMDisc
 					//std::cout << "pushback m_diff" << std::endl;
 					if (position <= neuer.size())
 					{
-						m_diff_Vm.push_back(neuer[position]);
+						m_diff.push_back(neuer[position]);
 						position +=1;
 					} else {UG_THROW("Need to set diffusion coeffizient for ion " + new_func + " with set_diff(<LuaTable>)" +
 							" if you do not need diffusion set to 0.");}
@@ -243,82 +249,85 @@ class VMDisc
 				//std::cout << "neue funktion" << new_func << std::endl;
 				*/
 			}
-
-
-		m_bNonRegularGrid = false;
-		register_all_funcs(m_bNonRegularGrid);
-
+#endif
 		}
 
-	///	Destructor
+		///	destructor
 		virtual ~VMDisc() {};
 
-	/// Functions for Standard VM and dendrit dependet settings
-		// set diameter for dendrit
+		// functions for setting params
+		/// set constant diameter for dendrites
 		void set_diameter(const number d);
 
-		// set spec_resistance
+		/// set spec_resistance
 		void set_spec_res(number val);
 
-		// set spec capa
+		/// set specific capacity
 		void set_spec_cap(number val);
 
-		// set influx ac
+		/// set diffusion coefficients
+		void set_diff_coeffs(const std::vector<number>& diff_coeffs);
+
+		/// set influx position accuracy
 		void set_influx_ac(number influx_ac);
 
-		// set influx params (Flux-value, koordinates, beginning, duration)
+		/// set influx params (flux value, coordinates, beginning, duration)
 		void set_influx(number Flux, number x, number y, number z, number beg, number dur);
 
-		//Adding function for channels
+#if 0
+		/// adding a channel
 		void add_channel(SmartPtr<IChannel<TDomain, TAlgebra> > Channel);
 
-		//Add func
+		/// add func
 		void add_func(std::string func);
 
-		SmartPtr<ApproximationSpace<TDomain> > getApproxSpace();
+#endif
+		SmartPtr<ApproximationSpace<TDomain> > approx_space();
 
-		SmartPtr<GridFunction<TDomain, TAlgebra> > getGridFct();
 
-		void setGridFct(SmartPtr<GridFunction<TDomain, TAlgebra> > GridFct);
-
-	/// Functions for using different Ions
-
+		/// determines the function index based on its name
 		size_t get_index(std::string s);
+
+		void update(number dt, ConstSmartPtr<typename TAlgebra::vector_type> uOld);
 
 
 	// inherited from IElemDisc
 	public:
-	///	prepares the loop over all elements
-	/**
-	 * This method prepares the loop over all elements. It resizes the Position
-	 * array for the corner coordinates and schedules the local ip positions
-	 * at the data imports.
-	 */
+
+		///	type of trial space for each function used
+		virtual void prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid);
+
+		///	prepares the loop over all elements
+		/**
+		 * This method prepares the loop over all elements. It resizes the Position
+		 * array for the corner coordinates and schedules the local ip positions
+		 * at the data imports.
+		 */
 		template <typename TElem, typename TFVGeom>
 		void prep_elem_loop(const ReferenceObjectID roid, const int si);
 
-	///	prepares the element for assembling
-	/**
-	 * This methods prepares an element for the assembling. The Positions of
-	 * the Element Corners are read and the Finite Volume Geometry is updated.
-	 * The global ip positions are scheduled at the data imports.
-	 */
+		///	prepares the element for assembling
+		/**
+		 * This methods prepares an element for the assembling. The Positions of
+		 * the Element Corners are read and the Finite Volume Geometry is updated.
+		 * The global ip positions are scheduled at the data imports.
+		 */
 		template <typename TElem, typename TFVGeom>
 		void prep_elem(const LocalVector& u, GridObject* elem, ReferenceObjectID id, const MathVector<dim> vCornerCoords[]);
 
-	///	finishes the loop over all elements
+		///	finishes the loop over all elements
 		template <typename TElem, typename TFVGeom>
 		void fsh_elem_loop();
 
-	///	assembles stiffness part of local defekt
+		///	assembles stiffness part of local defekt
 		template <typename TElem, typename TFVGeom>
 		void add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
-	///	assembles mass part of local defect
+		///	assembles mass part of local defect
 		template <typename TElem, typename TFVGeom>
 		void add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
-	/// assembles jacobian of stiffnes part
+		/// assembles jacobian of stiffnes part
 		template<typename TElem, typename TFVGeom>
 		void add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
@@ -326,60 +335,36 @@ class VMDisc
 		template<typename TElem, typename TFVGeom>
 		void add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
-	///	assembles the local right hand side
+		///	assembles the local right hand side
 		template<typename TElem, typename TFVGeom>
 		void add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
-	public:
-	///	type of trial space for each function used
-		virtual void prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid);
-
-	///	returns if hanging nodes are needed
-		//virtual bool use_hanging() const;
-
 	protected:
+		/// dendritic radius attachment and accessor
+		ADouble m_aDiameter;
+		Grid::AttachmentAccessor<Vertex, ADouble> m_aaDiameter;
+
+		/// approx space
+		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
+		ConstSmartPtr<DoFDistribution> m_spDD;
+
+		/// pointer to old solution	for later use in explicit assemblings
+		ConstSmartPtr<typename TAlgebra::vector_type> m_uOld;
 
 		///	current regular grid flag
 		bool m_bNonRegularGrid;
 
-		SmartPtr<TDomain> m_dom;					//!< underlying domain
-		SmartPtr<MultiGrid> m_mg;					//!< underlying multigrid
-		SmartPtr<DoFDistribution> m_dd;				//!< underlying surface dof distribution
-		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
-		SmartPtr<GridFunction<TDomain, TAlgebra> > m_spGridFct;
-
-	/// dendritic radius attachment and accessor
-		ADouble m_aDiameter;
-		Grid::AttachmentAccessor<Vertex, ADouble> m_aaDiameter;
-
-
-
-
-
 	private:
-		// VM is needed by every Channel
-		size_t _VM_;
-		size_t _Na_;
-		size_t _K_;
-
-
-
-
-
-
-
-
-
-	///	register utils
-	///	\{
+		///	register utils
+		///	\{
 		void register_all_funcs(bool bHang);
+
 		template <typename TElem, typename TFVGeom>
 		void register_func();
-	/// \}
-
+		/// \}
 };
 
 
 } // namespace ug
 
-#endif // VM_DISC_H_
+#endif // __UG__PLUGINS__EXPERIMENTAL__CABLE__VM_DISC_H__

@@ -2,29 +2,19 @@
  * channel_interface.h
  *
  *  Created on: 29.10.2014
- *      Author: mbreit
+ *      Author: ppgottmann
  */
 
-#ifndef CHANNEL_INTERFACE_H_
-#define CHANNEL_INTERFACE_H_
+#ifndef __UG__PLUGINS__EXPERIMENTAL__CABLE__CHANNEL_INTERFACE_H__
+#define __UG__PLUGINS__EXPERIMENTAL__CABLE__CHANNEL_INTERFACE_H__
 
 #include "lib_grid/lg_base.h"
 #include "lib_grid/grid/grid_base_objects.h"
 
-#include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
-#include "lib_disc/spatial_disc/disc_util/fv1_geom.h"
-#include "lib_disc/spatial_disc/disc_util/hfv1_geom.h"
-#include "lib_disc/spatial_disc/disc_util/geom_provider.h"
 #include "lib_disc/function_spaces/grid_function.h"
-#include "lib_disc/function_spaces/local_transfer_interface.h"
 #include "lib_disc/common/local_algebra.h"
 #include "lib_disc/function_spaces/grid_function.h"
 #include "lib_disc/function_spaces/interpolate.h"
-
-#include "bridge/bridge.h"
-#include "bridge/util.h"
-#include "bridge/util_domain_algebra_dependent.h"
-#include "bridge/util_domain_dependent.h"
 
 #include <vector>
 #include <stdio.h>
@@ -34,155 +24,103 @@
 #include "common/util/smart_pointer.h"
 #include "common/util/vector_util.h"
 
+#include "VM_Disc.h"
 
 
 
 namespace ug
 {
 
+// forward declaration
+template <typename TDomain, typename TAlgebra>
+class VMDisc;
+
+
 template <typename TDomain, typename TAlgebra>
 class IChannel
-	: public IElemDisc<TDomain>
 {
 	public:
-		IChannel();
-
-	private:
-	///	Base class type
-		typedef IElemDisc<TDomain> base_type;
-
-	///	Own type
-		typedef IChannel<TDomain, TAlgebra> this_type;
-
-	/// Type for Gridfunction
-		typedef GridFunction<TDomain, TAlgebra> TGridFunction;
-
-	public:
-	///	World dimension
-		static const int dim = base_type::dim;
-
-		const char* m_funcs;
-		std::vector<std::string> m_wfunc;
-
-		//params for diffusion of ions
-		std::vector<number> m_diff;
-
-
-
-	public:
-	///	Constructor
-	// TODO: - define which variables will be influenced
-	// TODO: - define which variables are needed for flux computation
+		///	constructor with comma-separated c-string
 		IChannel(const char* functions, const char* subsets)
-		 : IElemDisc<TDomain>(functions, subsets), m_funcs(functions)
-		   {
-			std::string test = m_funcs;
-			size_t end, start;
-			std::string new_func;
-			start = 0;
-			// add functions in std string for later use in VM Class
-			while (test.find(",", start) != test.npos)
+		: m_vmDisc(NULL)
+		{
+			m_vSubset = TokenizeString(subsets);
+			m_vWFct = TokenizeString(functions);
+
+			// remove white space
+			for (size_t i = 0; i < m_vSubset.size(); ++i)
+				RemoveWhitespaceFromString(m_vSubset[i]);
+			for (size_t i = 0; i < m_vWFct.size(); ++i)
+				RemoveWhitespaceFromString(m_vWFct[i]);
+
+			// if no function/subsets passed, clear functions
+			if (m_vWFct.size() == 1 && m_vWFct[0].empty()) m_vWFct.clear();
+			if (m_vSubset.size() == 1 && m_vSubset[0].empty()) m_vSubset.clear();
+
+			// if functions/subsets passed with separator, but not all tokens filled, throw error
+			for (size_t i = 0; i < m_vWFct.size(); ++i)
 			{
-				end = test.find(",", start);
-				new_func = test.substr(start, (end-start));
-				m_wfunc.push_back(new_func);
-				//std::cout << "test: " << test << "start: "<< start << "end: " << end << std::endl;
-				start = end+2;
+				if (m_vWFct.empty())
+				{
+					UG_THROW("Error while setting functions in IChannel: Passed function string lacks\n"
+							 "a function specification at position " << i << " (of " << m_vWFct.size()-1 << ")");
+				}
 			}
-			new_func = test.substr(start, (end-start));
-			m_wfunc.push_back(new_func);
+			for(size_t i = 0; i < m_vSubset.size(); ++i)
+			{
+				if (m_vSubset.empty())
+				{
+					UG_THROW("Error while setting subsets in IChannel: Passed subset string lacks\n"
+							 "a subset specification at position " << i << " (of " << m_vSubset.size()-1 << ")");
+				}
+			}
+		};
 
-			m_bNonRegularGrid = false;
-			register_all_funcs(m_bNonRegularGrid);
-		   }
+		/// constructor with vector of string
+		IChannel(const std::vector<std::string>& functions, const std::vector<std::string>& subsets)
+		: m_vmDisc(NULL)
+		{
+			m_vSubset = subsets;
+			m_vWFct = functions;
+		};
 
-	///	Destructor
+		///	destructor
 		virtual ~IChannel() {};
 
-
-
-	// inherited from IElemDisc
-	public:
-	///	prepares the loop over all elements
-	/**
-	 * This method prepares the loop over all elements. It resizes the Position
-	 * array for the corner coordinates and schedules the local ip positions
-	 * at the data imports.
-	 */
-		template <typename TElem, typename TFVGeom>
-		void prep_elem_loop(const ReferenceObjectID roid, const int si);
-
-	///	prepares the element for assembling
-	/**
-	 * This methods prepares an element for the assembling. The Positions of
-	 * the Element Corners are read and the Finite Volume Geometry is updated.
-	 * The global ip positions are scheduled at the data imports.
-	 */
-		template <typename TElem, typename TFVGeom>
-		void prep_elem(const LocalVector& u, GridObject* elem, ReferenceObjectID id, const MathVector<dim> vCornerCoords[]);
-
-	///	finishes the loop over all elements
-		template <typename TElem, typename TFVGeom>
-		void fsh_elem_loop();
-
-	///	assembles the local right hand side
-		template<typename TElem, typename TFVGeom>
-		void add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-
-
-
-
-
-
-	/// initializes the defined channel type
-	/** During the initialization, the necessary attachments are attached to the vertices
-	 *	and their values calculated by the equilibrium state for the start membrane potential.
-	**/
-		virtual void update_values(SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct) = 0;
-
-		virtual const std::vector<number> get_diff() = 0;
-
-		virtual void set_diff(const std::vector<number>& diff) = 0;
-
+		/**
+		 * @brief Initializes the defined channel type.
+		 *
+		 * During the initialization, the necessary attachments are attached to the vertices
+		 * and their values calculated by the equilibrium state for the initial membrane potential
+		 * given in the grid function passed
+		 *
+		 * @param time			initial time
+		 * @param spGridFct		initial solution (containing membrane potential and ion concentrations)
+		 */
 		virtual void init(number time, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct) = 0;
 
-	/// updates the gating parameters
-		virtual void update_gating(number newTime, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct) = 0;
+		/// updates the gating parameters
+		virtual void update_gating(number newTime, ConstSmartPtr<typename TAlgebra::vector_type> uOld) = 0;
 
-	/// provides the ionic current (mol*s^-1) at a given vertex
-		virtual void ionic_current(Vertex* v, std::vector<number>& outCurrentValues) = 0;
+		/// provides the ionic current (mol*s^-1) at a given vertex
+		virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues) = 0;
 
-	/// adding some jacobian infos at given vertex
-		virtual void Jacobi_sets(Vertex* v, std::vector<number>& outJFlux) = 0;
+		/// adding some Jacobian infos at given vertex
+		virtual void Jacobi_sets(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outJFlux) = 0;
 
-	/// adding diffusion of ions
-		//virtual void set_diff(SmartPtr<std::vector<number> > diff) = 0;
-
-	public:
-	///	type of trial space for each function used
-		virtual void prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid);
-
-	///	returns if hanging nodes are needed
-		virtual bool use_hanging() const;
+		const std::vector<std::string>& write_fcts() {return m_vWFct;}
+		void set_vm_disc(VMDisc<TDomain, TAlgebra>* vmdisc) {m_vmDisc = vmdisc;}
 
 	protected:
-		///	current regular grid flag
-		bool m_bNonRegularGrid;
+		/// functions whose defect will be written to by this channel
+		std::vector<std::string> m_vWFct;
 
-		//AdaptionSurfaceGridFunction<TDomain> m_AdaptSGF;
-		//using IElemDisc<TDomain>::dim;
+		/// vector of subsets this channel is declared on
+		// TODO: somehow transmit subset information to VMDisc (channel must only be considered on this subset!)
+		std::vector<std::string> m_vSubset;
 
-	private:
-		// VM is needed by every Channel
-		size_t _VM_;
-
-	///	register utils
-	///	\{
-		void register_all_funcs(bool bHang);
-		template <typename TElem, typename TFVGeom>
-		void register_func();
-	/// \}
-
+		/// joint VMDisc
+		VMDisc<TDomain, TAlgebra>* m_vmDisc;
 };
 
 
@@ -191,101 +129,64 @@ class ChannelHH
 	: public IChannel<TDomain, TAlgebra>
 {
 	public:
-	/// constructor
-		// Params dendrit
-		number m_spec_res;
-		number m_spec_cap;
+		using IChannel<TDomain, TAlgebra>::m_vmDisc;
 
-		// Params for HH-Fluxes
-		number m_g_K;
-		number m_g_Na;
-		number m_g_I;
+		/// @copydoc IChannel<TDomain, TAlgebra>::IChannel(const char*)
+		ChannelHH (const char* functions, const char* subsets)
+		try : IChannel<TDomain, TAlgebra>(functions, subsets),
+		m_g_K(3.6e-4), m_g_Na(1.2e-3), m_g_I(3.0e-6),
+		m_rev_pot_K(-74.1266), m_rev_pot_Na(63.5129),
+		m_accuracy(1e-12) {}
+		UG_CATCH_THROW("Error in ChannelHH initializer list.");
 
-		// reversal Pot of Sodium and Potassium
-		number m_sodium;
-		number m_potassium;
+		/// @copydoc IChannel<TDomain, TAlgebra>::IChannel(const std::vector<std::string>&)
+		ChannelHH(const std::vector<std::string>& functions, const std::vector<std::string>& subsets)
+		try : IChannel<TDomain, TAlgebra>(functions, subsets),
+		m_g_K(3.6e-4), m_g_Na(1.2e-3), m_g_I(3.0e-6),
+		m_rev_pot_K(-74.1266), m_rev_pot_Na(63.5129),
+		m_accuracy(1e-12) {}
+		UG_CATCH_THROW("Error in ChannelHH initializer list.");
 
-		std::vector<number> m_diff;
-		// params gatting
-		double m_accuracy;
-
-		IFunction<number>* m_Injection;
-
-		ChannelHH	  (	const char* functions,
-						const char* subsets
-					  )
-		: IChannel<TDomain, TAlgebra>(functions, subsets),
-		  			  m_bNonRegularGrid(false)
-		  			  {
-						register_all_funcs(m_bNonRegularGrid);
-		  			  };
-
-	/// destructor
+		/// destructor
 		virtual ~ChannelHH() {};
-
-		static const int dim = IChannel<TDomain, TAlgebra>::dim;
 
 
 	/// functions for setting some HH params
 		void set_accuracy(double ac);
 
-		void set_consts(number Na, number K, number L);
+		void set_conductivities(number Na, number K, number L);
 
 		void set_rev_pot(number R_Na, number R_K);
 
 		number vtrap(number x, number y);
 
-
-		void update_gating_vert(Vertex* v);
-		virtual void update_values(SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct);
-
 		// inherited from IChannel
-		virtual const std::vector<number> get_diff();
-		virtual void set_diff(const std::vector<number>& diff);
 		virtual void init(number time, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct);
-		virtual void update_gating(number newTime, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct);
-		virtual void ionic_current(Vertex* v, std::vector<number>& outCurrentValues);
-		virtual void Jacobi_sets(Vertex* v, std::vector<number>& outJFlux);
-
-	///	assembles the local right hand side
-		template<typename TElem, typename TFVGeom>
-		void add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-
-	protected:
-
-		bool m_bNonRegularGrid;
-
-
-		///	register utils
-		///	\{
-			void register_all_funcs(bool bHang);
-			template <typename TElem, typename TFVGeom>
-			void register_func();
-		/// \}
+		virtual void update_gating(number newTime, ConstSmartPtr<typename TAlgebra::vector_type> uOld);
+		virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues);
+		virtual void Jacobi_sets(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outJFlux);
 
 	private:
+		// membrane conductivities
+		number m_g_K;		// C / (m^2 * mV * ms)
+		number m_g_Na;		// C / (m^2 * mV * ms)
+		number m_g_I;		// C / (m^2 * mV * ms)
+
+		// reversal pot of sodium and potassium
+		number m_rev_pot_K;
+		number m_rev_pot_Na;
+
+		// params gating
+		number m_accuracy;
+
 		// one attachment per state variable
-		ADouble m_MGate;							//!< activating gating "particle"
-		ADouble m_HGate;							//!< inactivating gating "particle"
+		ADouble m_MGate;
+		ADouble m_HGate;
 		ADouble m_NGate;
-		ADouble m_Vm;								//!< membrane voltage (in mili Volt)
-		number m_rate_h;
-		number m_rate_m;
-		number m_rate_n;
 
-		Grid::AttachmentAccessor<Vertex, ADouble> m_aaMGate;	//!< accessor for activating gate
-		Grid::AttachmentAccessor<Vertex, ADouble> m_aaHGate;	//!< accessor for inactivating gate
-		Grid::AttachmentAccessor<Vertex, ADouble> m_aaNGate;	//!< accessor for inactivating gate
-		Grid::AttachmentAccessor<Vertex, ADouble> m_aaVm;		//!< accessor for membrane potential
-
-	/// Base type
-		typedef IChannel<TDomain, TAlgebra> base_type;
-
-	///	Own type
-		typedef ChannelHH<TDomain, TAlgebra> this_type;
-
-	/// GridFunction type
-		typedef GridFunction<TDomain, TAlgebra> TGridFunction;
+		Grid::AttachmentAccessor<Vertex, ADouble> m_aaMGate;
+		Grid::AttachmentAccessor<Vertex, ADouble> m_aaHGate;
+		Grid::AttachmentAccessor<Vertex, ADouble> m_aaNGate;
 };
 
 
@@ -295,125 +196,66 @@ class ChannelHHNernst
 	: public IChannel<TDomain, TAlgebra>
 {
 	public:
-		// Params dendrit
-		number m_spec_res;
-		number m_spec_cap;
+		using IChannel<TDomain, TAlgebra>::m_vmDisc;
 
-		// Params for HH-Fluxes
+		/// @copydoc IChannel<TDomain, TAlgebra>::IChannel(const char*)
+		ChannelHHNernst(const char* functions, const char* subsets)
+		try : IChannel<TDomain, TAlgebra>(functions, subsets),
+		m_g_K(3.6e-4), m_g_Na(1.2e-3), m_g_I(3.0e-6),
+		m_R(8.314), m_T(310.0), m_F(96485.0),
+		m_accuracy(1e-12) {}
+		UG_CATCH_THROW("Error in ChannelHHNernst initializer list.");
+
+
+		/// @copydoc IChannel<TDomain, TAlgebra>::IChannel(const std::vector<std::string>&)
+		ChannelHHNernst(const std::vector<std::string>& functions, const std::vector<std::string>& subsets)
+		try : IChannel<TDomain, TAlgebra>(functions, subsets),
+		m_g_K(3.6e-4), m_g_Na(1.2e-3), m_g_I(3.0e-6),
+		m_R(8.314), m_T(310.0), m_F(96485.0),
+		m_accuracy(1e-12) {}
+		UG_CATCH_THROW("Error in ChannelHHNernst initializer list.");
+
+		/// destructor
+		virtual ~ChannelHHNernst() {};
+
+		// functions for setting some HH params
+		void set_accuracy(double ac);
+
+		void set_conductivities(number Na, number K, number L);
+
+		// inherited from IChannel
+		virtual void init(number time, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct);
+		virtual void update_gating(number newTime, ConstSmartPtr<typename TAlgebra::vector_type> uOld);
+		virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues);
+		virtual void Jacobi_sets(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outJFlux);
+
+
+	private:
+		// membrane conductivities
 		number m_g_K;
 		number m_g_Na;
 		number m_g_I;
 
-		// reversal Pot of Sodium and Potassium
-		number m_sodium;
-		number m_potassium;
-
-		//outer concentrations
-		number m_Na_out;
-		number m_K_out;
-
-		// params gatting
-		double m_accuracy;
-
-		//params for diffusion of ions
-		std::vector<number> m_diff;
-
-		/// constructor
-		ChannelHHNernst(const char* functions, const char* subsets)
-		: IChannel<TDomain, TAlgebra>(functions, subsets),
-		  m_bNonRegularGrid(false), m_R(8314), m_T(279.45), m_F(96485.0)
-		{
-			register_all_funcs(m_bNonRegularGrid);
-		};
-
-	/// destructor
-		virtual ~ChannelHHNernst() {};
-
-		static const int dim = IChannel<TDomain, TAlgebra>::dim;
-
-
-	/// functions for setting some HH params
-		void set_accuracy(double ac);
-
-		void set_consts(number Na, number K, number L);
-
-		void set_nernst_consts(number R, number T, number F);
-
-		void set_out_conc(number Na, number k);
-
-
-
-
-			void update_gating_vert(Vertex* v);
-			virtual void update_values(SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct);
-
-		// inherited from IChannel
-		virtual const std::vector<number> get_diff();
-		virtual void set_diff(const std::vector<number>& diff);
-		virtual void init(number time, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct);
-		virtual void update_gating(number newTime, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct);
-		virtual void ionic_current(Vertex* v, std::vector<number>& outCurrentValues);
-		virtual void Jacobi_sets(Vertex* v, std::vector<number>& outJFlux);
-
-	///	assembles the local right hand side
-		template<typename TElem, typename TFVGeom>
-		void add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-
-	protected:
-
-		bool m_bNonRegularGrid;
-
-
-		///	register utils
-		///	\{
-			void register_all_funcs(bool bHang);
-			template <typename TElem, typename TFVGeom>
-			void register_func();
-		/// \}
-
-	private:
-		// one attachment per state variable
-		ADouble m_MGate;							//!< activating gating "particle"
-		ADouble m_HGate;							//!< inactivating gating "particle"
-		ADouble m_NGate;
-		ADouble m_Vm;								//!< membrane voltage (in mili Volt)
-		ADouble m_Na;
-		ADouble m_K;
-
-		Grid::AttachmentAccessor<Vertex, ADouble> m_aaMGate;	//!< accessor for activating gate
-		Grid::AttachmentAccessor<Vertex, ADouble> m_aaHGate;	//!< accessor for inactivating gate
-		Grid::AttachmentAccessor<Vertex, ADouble> m_aaNGate;	//!< accessor for inactivating gate
-		Grid::AttachmentAccessor<Vertex, ADouble> m_aaVm;		//!< accessor for membrane potential
-
-
-		Grid::AttachmentAccessor<Vertex, ADouble> m_aaNa;		//!< accessor for Na conz
-		Grid::AttachmentAccessor<Vertex, ADouble> m_aaK;		//!< accessor for K conz
-
-		// new private values
-		size_t _Na_;
-		size_t _K_;
-
-		// nernst const values
+		// constants in Nernst equilibrium
 		number m_R;
 		number m_T;
 		number m_F;
 
-	/// Base type
-		typedef IChannel<TDomain, TAlgebra> base_type;
+		// params gating
+		number m_accuracy;
 
-	///	Own type
-		typedef ChannelHH<TDomain, TAlgebra> this_type;
+		// one attachment per state variable
+		ADouble m_MGate;
+		ADouble m_HGate;
+		ADouble m_NGate;
 
-	/// GridFunction type
-		typedef GridFunction<TDomain, TAlgebra> TGridFunction;
+		Grid::AttachmentAccessor<Vertex, ADouble> m_aaMGate;
+		Grid::AttachmentAccessor<Vertex, ADouble> m_aaHGate;
+		Grid::AttachmentAccessor<Vertex, ADouble> m_aaNGate;
 };
-
-
-
-
 
 
 
 } // namespace ug
 
-#endif // CHANNEL_INTERFACE_H_
+#endif // __UG__PLUGINS__EXPERIMENTAL__CABLE__CHANNEL_INTERFACE_H__
