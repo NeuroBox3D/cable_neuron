@@ -2818,8 +2818,8 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  mycppfile.close();
 
 
-	  myhfile << "ADouble v; \n";
-	  myhfile << "Grid::AttachmentAccessor<Vertex, ADouble> aav; \n \n";
+	  myhfile << "ADouble vGate; \n";
+	  myhfile << "Grid::AttachmentAccessor<Vertex, ADouble> aavGate; \n \n";
 	  myhfile << "//nernst const values \n";
 
 	  myhfile << "number m_R; \n";
