@@ -20,11 +20,23 @@ public:
 	Converter();
 	virtual ~Converter();
 
-	double Unit_Conv(string s);
+	double Unit_Conv_Value(string s);
+	double Unit_Conv_All(string s);
 
+
+	// functions for removing all unused chars and comments
 	vector<string> Remove_all(vector<string> erg);
 	string Remove_all(string erg);
 	string Remove_all_com(string erg);
+
+	// gives ion name out
+	string In_NeuronUse_List(std::vector<pair<int, int> > Pairs, std::vector<string>, string s);
+
+	string Convert_Line(std::vector<string> Known_vars, string s);
+
+	// functions testing if char is letter/number
+	bool is_single_letter(char s);
+	bool is_single_number(char s);
 
 	std::vector<string> Openfile(string filename);
 

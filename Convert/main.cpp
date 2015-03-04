@@ -11,7 +11,7 @@
 
 
 int main(int argn, char* argv[]) {
-if (argn == 3)
+if (argn == 2)
 {
 	std::cout << "Programm gestartet" << std::endl;
 	Converter test = Converter();
@@ -22,14 +22,22 @@ if (argn == 3)
 	Blocks = test.FindBlocks(Zeilen);
 	std::cout << "Blocks wurden erstellt" << std::endl;
 
-	test.WriteStart(argv[2], Blocks, Zeilen);
+	string tester(argv[1]);
+
+	string file = tester.substr(0, tester.find("."));
+	file = file + "_converted_UG";
+	std::cout << file << std::endl;
+
+	test.WriteStart(file, Blocks, Zeilen);
 
 	std::cout << "Files wurden geschrieben" << std::endl;
-	std::cout << test.Unit_Conv("(mm)") << std::endl;
+	std::cout << test.Unit_Conv_Value("(mm)") << std::endl;
+	std::cout << "neues: " << std::endl;
+	std::cout << test.Unit_Conv_All("(mho/cm2)") << std::endl; // /10000
 }
 else
 {
-	std::cout << "Bitte 2 Argumente angeben, das erste Argument sollte die NModl File sein, das 2. der Dateiname fuer die Ausgabe" << std::endl;
+	std::cout << "Give only 1 Argument which should be the Nmodl-File" << std::endl;
 }
 
 
