@@ -97,7 +97,7 @@ void ChannelHH<TDomain, TAlgebra>::init(number time, SmartPtr<GridFunction<TDoma
 		for (itType iter = iterBegin; iter != iterEnd; ++iter)
 		{
 			// update Vm
-			const size_t VM_fct_ind = spGridFct->fct_id_by_name("VM");
+			const size_t VM_fct_ind = spGridFct->fct_id_by_name("v");
 
 			spGridFct->dof_indices(*iter, VM_fct_ind, multInd);
 			UG_ASSERT(multInd.size() == 1, "multi-index has size != 1");
@@ -236,13 +236,13 @@ void ChannelHH<TDomain, TAlgebra>::update_gating(number newTime, ConstSmartPtr<t
 
 
 template<typename TDomain, typename TAlgebra>
-void ChannelHH<TDomain, TAlgebra>::ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
+void ChannelHH<TDomain, TAlgebra>::ionic_current(Vertex* ver, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
 {
 	// getting attachments for vertex
-	double NGate = m_aaNGate[v];
- 	double MGate = m_aaMGate[v];
-	double HGate = m_aaHGate[v];
-	double VM 	 = vrt_values[VMDisc<TDomain,TAlgebra>::_VM_];
+	double NGate = m_aaNGate[ver];
+ 	double MGate = m_aaMGate[ver];
+	double HGate = m_aaHGate[ver];
+	double VM 	 = vrt_values[VMDisc<TDomain,TAlgebra>::_v_];
 
 	// TODO Influx values needed
 	// single channel type fluxes
@@ -443,26 +443,26 @@ void ChannelHHNernst<TDomain, TAlgebra>::update_gating(number newTime, ConstSmar
 
 
 template<typename TDomain, typename TAlgebra>
-void ChannelHHNernst<TDomain, TAlgebra>::ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
+void ChannelHHNernst<TDomain, TAlgebra>::ionic_current(Vertex* ver, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
 {
 	// getting attachments out of Vertex
-	number NGate = m_aaNGate[v];
-	number MGate = m_aaMGate[v];
-	number HGate = m_aaHGate[v];
-	number VM 	 = vrt_values[VMDisc<TDomain,TAlgebra>::_VM_];
-	number K 	 = vrt_values[VMDisc<TDomain,TAlgebra>::_K_];
-	number Na 	 = vrt_values[VMDisc<TDomain,TAlgebra>::_Na_];
+	number NGate = m_aaNGate[ver];
+	number MGate = m_aaMGate[ver];
+	number HGate = m_aaHGate[ver];
+	number v 	 = vrt_values[VMDisc<TDomain,TAlgebra>::_v_];
+	number k 	 = vrt_values[VMDisc<TDomain,TAlgebra>::_k_];
+	number na 	 = vrt_values[VMDisc<TDomain,TAlgebra>::_na_];
 
 
 	UG_ASSERT(m_vmDisc, "Channel has not been assigned a vmDisc object yet!");
 	const number helpV = 1e3*(m_R*m_T)/m_F;
-	number potassium_nernst_eq 	= helpV*(std::log(m_vmDisc->K_out/K));
-	number sodium_nernst_eq	 	= helpV*(std::log(m_vmDisc->Na_out/Na));
+	number potassium_nernst_eq 	= helpV*(std::log(m_vmDisc->k_out/k));
+	number sodium_nernst_eq	 	= helpV*(std::log(m_vmDisc->na_out/na));
 
 	// single channel ion fluxes
-	number potassium_part_of_flux = m_g_K * pow(NGate,4) * (VM - potassium_nernst_eq);
-	number sodium_part_of_flux =  m_g_Na * pow(MGate,3) * HGate * (VM - sodium_nernst_eq);
-	number leakage_part_of_flux = m_g_I * (VM - (-54.4));
+	number potassium_part_of_flux = m_g_K * pow(NGate,4) * (v - potassium_nernst_eq);
+	number sodium_part_of_flux =  m_g_Na * pow(MGate,3) * HGate * (v - sodium_nernst_eq);
+	number leakage_part_of_flux = m_g_I * (v - (-54.4));
 
 	//std::cout << "potassium_part_of_flux: " << potassium_part_of_flux << std::endl;
 	//std::cout << "sodium_part_of_flux: " << sodium_part_of_flux << std::endl;
@@ -487,13 +487,13 @@ void ChannelHHNernst<TDomain, TAlgebra>::Jacobi_sets(Vertex* v, const std::vecto
 	number NGate = m_aaNGate[v];
 	number MGate = m_aaMGate[v];
 	number HGate = m_aaHGate[v];
-	number K 	 = vrt_values[VMDisc<TDomain,TAlgebra>::_K_];
-	number Na 	 = vrt_values[VMDisc<TDomain,TAlgebra>::_Na_];
+	number k 	 = vrt_values[VMDisc<TDomain,TAlgebra>::_k_];
+	number na 	 = vrt_values[VMDisc<TDomain,TAlgebra>::_na_];
 
 	UG_ASSERT(m_vmDisc, "Channel has not been assigned a vmDisc object yet!");
 	const number helpV = (m_R*m_T)/m_F;
-	const number potassium_nernst_eq_dK 	=  helpV * (-m_vmDisc->K_out/K)*0.18; //helpV * (-K_out/pow(u(_K_,co),2));
-	const number sodium_nernst_eq_dNa		=  -helpV * (-m_vmDisc->Na_out/Na)*0.003;
+	const number potassium_nernst_eq_dK 	=  helpV * (-m_vmDisc->k_out/k)*0.18; //helpV * (-K_out/pow(u(_K_,co),2));
+	const number sodium_nernst_eq_dNa		=  -helpV * (-m_vmDisc->na_out/na)*0.003;
 
 	outJFlux.push_back(m_g_K*pow(NGate,4) + m_g_Na*pow(MGate,3)*HGate + m_g_I);
 	outJFlux.push_back(sodium_nernst_eq_dNa);

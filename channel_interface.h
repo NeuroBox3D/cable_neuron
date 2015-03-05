@@ -106,7 +106,7 @@ class IChannel
 		virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues) = 0;
 
 		/// adding some Jacobian infos at given vertex
-		virtual void Jacobi_sets(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outJFlux) = 0;
+		//virtual void Jacobi_sets(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outJFlux) = 0;
 
 		const std::vector<std::string>& write_fcts() {return m_vWFct;}
 		void set_vm_disc(VMDisc<TDomain, TAlgebra>* vmdisc) {m_vmDisc = vmdisc;}
