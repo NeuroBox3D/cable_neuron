@@ -63,19 +63,22 @@ class VMDisc
 
 	public:
 		// indices for functions in this elemDisc
-		static const size_t _VM_ = 0;
-		static const size_t _K_  = 1;
-		static const size_t _Na_ = 2;
-		static const size_t _Ca_ = 3;
+		static const size_t _v_ = 0;
+		static const size_t _k_  = 1;
+		static const size_t _na_ = 2;
+		static const size_t _ca_ = 3;
 
 		// outer concentrations
-		const number K_out;		// mol/m^3 = mM
-		const number Na_out;	// mol/m^3 = mM
-		const number Ca_out;	// mol/m^3 = mM
+		const number k_out;		// mol/m^3 = mM
+		const number na_out;	// mol/m^3 = mM
+		const number ca_out;	// mol/m^3 = mM
 
 		// dendritic params
 		number m_spec_res;	// mV * ms * m / C
 		number m_spec_cap;	// C / (mV * m^2)
+
+		// celsius
+		number celsius;
 
 		// diffusion coefficients
 		std::vector<number> m_diff;
@@ -108,8 +111,8 @@ class VMDisc
 			const std::vector<SmartPtr<TIChannel> >& channels,
 			SmartPtr<ApproximationSpace<TDomain> > approx
 		)
-		: IElemDisc<TDomain>("VM, K, Na, Ca", subsets),
-		  K_out(3.3918292968), Na_out(107.796654), Ca_out(1.5),
+		: IElemDisc<TDomain>("v, k, na, ca", subsets),
+		  k_out(3.3918292968), na_out(107.796654), ca_out(1.5),
 		  m_spec_res(1.0e6), m_spec_cap(1.0e-5),
 		  m_influx_ac(1e-9), m_channel(channels), m_aDiameter("diameter"),
 		  m_spApproxSpace(approx), m_spDD(m_spApproxSpace->dof_distribution(GridLevel::TOP)),

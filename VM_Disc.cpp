@@ -209,7 +209,7 @@ void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector
 		}
 
 		// writing potential defects
-		d(_VM_, co) += scv.volume()*PI*Diam * (allOutCurrentValues[0]-influx);
+		d(_v_, co) += scv.volume()*PI*Diam * (allOutCurrentValues[0]-influx);
 
 		// writing ion species defects
 		for (size_t k = 1; k < m_numb_funcs+1; k++)
@@ -226,7 +226,7 @@ void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector
 		// compute gradient at ip
 		VecSet(grad_c, 0.0);
 		for (size_t sh = 0; sh < scvf.num_sh(); ++sh)
-			VecScaleAppend(grad_c, u(_VM_,sh), scvf.global_grad(sh));
+			VecScaleAppend(grad_c, u(_v_,sh), scvf.global_grad(sh));
 
 		// scalar product with normal
 		number grad_normal = VecDot(grad_c, scvf.normal());
@@ -240,8 +240,8 @@ void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector
 		}
 
 		// add to local defect of VM
-		d(_VM_, scvf.from()) -= diff_flux;
-		d(_VM_, scvf.to()  ) += diff_flux;
+		d(_v_, scvf.from()) -= diff_flux;
+		d(_v_, scvf.to()  ) += diff_flux;
 
 		// diameter of axial flux cross-section
 		number diam_fromTo = std::min(m_aaDiameter[pElem->vertex(scvf.from())],
@@ -300,7 +300,7 @@ void VMDisc<TDomain, TAlgebra>::add_def_M_elem(LocalVector& d, const LocalVector
 
 
 		// potential equation time derivative
-		d(_VM_, co) += PI*diam*scv.volume()*u(_VM_, co)*spec_capacity;
+		d(_v_, co) += PI*diam*scv.volume()*u(_v_, co)*spec_capacity;
 
 		// ion species time derivative
 		for (size_t k = 1; k < m_numb_funcs+1; k++)
@@ -360,8 +360,8 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 			number d_diff_flux = grad_normal * element_length / (m_spec_res*pre_resistance);
 
 			// add flux term to local matrix
-			J(_VM_, scvf.from(), _VM_, sh) -= d_diff_flux;
-			J(_VM_, scvf.to()  , _VM_, sh) += d_diff_flux;
+			J(_v_, scvf.from(), _v_, sh) -= d_diff_flux;
+			J(_v_, scvf.to()  , _v_, sh) += d_diff_flux;
 
 			// diameter of axial flux cross-section
 			number diam_fromTo = std::min(m_aaDiameter[pElem->vertex(scvf.from())],
@@ -411,7 +411,7 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 			J(k, co, k, co) += scv.volume()*0.25*PI*Diam*Diam;
 		}
 		// potential equation
-		J(_VM_, co, _VM_, co) += PI*Diam*scv.volume()*spec_capacity;
+		J(_v_, co, _v_, co) += PI*Diam*scv.volume()*spec_capacity;
 	}
 	//std::cout << "jac m elem ends" << std::endl;
 }
@@ -473,7 +473,7 @@ void VMDisc<TDomain, TAlgebra>::prepare_setting(const std::vector<LFEID>& vLfeID
 	for (int i = 0; i < m_numb_funcs; i++)
 	{
 		if (m_funcs[i] == "VM")
-			_VM_ = m_spGridFct->fct_id_by_name(m_funcs[i]);
+			_v_ = m_spGridFct->fct_id_by_name(m_funcs[i]);
 		if (m_funcs[i] == "K")
 			_K_ = m_spGridFct->fct_id_by_name(m_funcs[i]);
 		if (m_funcs[i] == "Na")
