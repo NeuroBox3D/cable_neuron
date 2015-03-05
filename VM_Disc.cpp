@@ -21,60 +21,59 @@
 namespace ug {
 
 
-// Standard Methods for VM-Equatations
-template<typename TDomain, typename TAlgebra>
-void VMDisc<TDomain, TAlgebra>::
+template<typename TDomain>
+void VMDisc<TDomain>::
 set_diameter(const number d)
 {
-	// handle the attachment
+	// handle the attachments
 	if (m_spApproxSpace->domain()->grid()->has_vertex_attachment(m_aDiameter))
 		UG_THROW("Radius attachment necessary for Vm disc "
-				 "could not be made, since it already exists.");
+				 "could not be created, since it already exists.");
 	m_spApproxSpace->domain()->grid()->attach_to_vertices_dv(m_aDiameter, d);
 
-	m_aaDiameter = Grid::AttachmentAccessor<Vertex, ADouble>(*m_spApproxSpace->domain()->grid(), m_aDiameter);
+	m_aaDiameter = Grid::AttachmentAccessor<Vertex, ANumber>(*m_spApproxSpace->domain()->grid(), m_aDiameter);
 }
 
-template<typename TDomain, typename TAlgebra>
-void VMDisc<TDomain, TAlgebra>::
+template<typename TDomain>
+void VMDisc<TDomain>::
 set_spec_res(number val)
 {
 	m_spec_res = val;
 }
 
 
-template<typename TDomain, typename TAlgebra>
-SmartPtr<ApproximationSpace<TDomain> > VMDisc<TDomain, TAlgebra>::approx_space()
+template<typename TDomain>
+SmartPtr<ApproximationSpace<TDomain> > VMDisc<TDomain>::approx_space()
 {
 	return m_spApproxSpace;
 }
 
 
-template<typename TDomain, typename TAlgebra>
-void VMDisc<TDomain, TAlgebra>::
+template<typename TDomain>
+void VMDisc<TDomain>::
 set_influx_ac(number influx_ac)
 {
 	m_influx_ac = influx_ac;
 }
 
 
-template<typename TDomain, typename TAlgebra>
-void VMDisc<TDomain, TAlgebra>::
+template<typename TDomain>
+void VMDisc<TDomain>::
 set_spec_cap(number val)
 {
 	m_spec_cap = val;
 }
 
 
-template<typename TDomain, typename TAlgebra>
-void VMDisc<TDomain, TAlgebra>::
+template<typename TDomain>
+void VMDisc<TDomain>::
 set_diff_coeffs(const std::vector<number>& diff_coeffs)
 {
 	m_diff = diff_coeffs;
 }
 
-template<typename TDomain, typename TAlgebra>
-void VMDisc<TDomain, TAlgebra>::
+template<typename TDomain>
+void VMDisc<TDomain>::
 set_influx(number Flux, number x, number y, number z, number beg, number dur)
 {
 	m_flux_value.push_back(Flux);
@@ -90,17 +89,26 @@ set_influx(number Flux, number x, number y, number z, number beg, number dur)
 }
 
 
+#ifdef _PLUGIN_SYNAPSE_DISTRIBUTOR_ACTIVE_
+template<typename TDomain>
+void VMDisc<TDomain>::
+set_synapse_distributor(ConstSmartPtr<SynapseDistributor> sd)
+{
+	m_spSD = sd;
+}
+#endif
+
 
 #if 0
-template<typename TDomain, typename TAlgebra>
-void VMDisc<TDomain, TAlgebra>::
-add_channel(SmartPtr<IChannel<TDomain, TAlgebra> > Channel)
+template<typename TDomain>
+void VMDisc<TDomain>::
+add_channel(SmartPtr<IChannel<TDomain> > Channel)
 {
 	m_channel.push_back(Channel);
 }
 
-template<typename TDomain, typename TAlgebra>
-void VMDisc<TDomain, TAlgebra>::
+template<typename TDomain>
+void VMDisc<TDomain>::
 add_func(std::string func)
 {
 	m_funcs.push_back(func);
@@ -109,24 +117,67 @@ add_func(std::string func)
 #endif
 
 
-template<typename TDomain, typename TAlgebra>
-void VMDisc<TDomain, TAlgebra>::
-update(number dt, ConstSmartPtr<typename TAlgebra::vector_type> uOld)
+template<typename TDomain>
+void VMDisc<TDomain>::update_time(const number newTime, Edge* edge)
 {
-	// save old solution for explicit assembling later
-	m_uOld = uOld;
+	typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list;
+	vrt_list vl;
+	m_spApproxSpace->domain()->grid()->associated_elements(vl, edge);
+	for (size_t vrt = 0; vrt < vl.size(); ++vrt)
+		m_aaTime[vl[vrt]] = newTime;
+}
 
-	// update channels
-	for (size_t i = 0; i < m_channel.size(); ++i)
-		m_channel[i]->update_gating(dt, uOld);
+
+template<typename TDomain>
+void VMDisc<TDomain>::save_old_sol(const LocalVector& u, Edge* edge)
+{
+	typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list;
+	vrt_list vl;
+	m_spApproxSpace->domain()->grid()->associated_elements_sorted(vl, edge);
+	for (size_t vrt = 0; vrt < vl.size(); ++vrt)
+		for (size_t i = 0; i < m_numb_funcs+1; ++i)
+			m_aaUold[vl[vrt]][i] = u(i, vrt);
+}
+
+
+template<typename TDomain>
+void VMDisc<TDomain>::prep_timestep_elem
+(
+	const number time,
+	const LocalVector& u,
+	GridObject* elem,
+	const MathVector<dim> vCornerCoords[]
+)
+{
+	Edge* edge = dynamic_cast<Edge*>(elem);
+	if (!edge) UG_THROW("VMDisc::prep_timestep_elem() called with improper element type.");
+
+	// update old solution
+	save_old_sol(u, edge);
+
+	if (time == m_init_time)
+	{
+		// init channels
+		for (size_t i = 0; i < m_channel.size(); ++i)
+			m_channel[i]->init(u, edge);
+	}
+	else
+	{
+		// update channels
+		for (size_t i = 0; i < m_channel.size(); ++i)
+			m_channel[i]->update_gating(time, u, edge);
+	}
+
+	// update time in attachments
+	update_time(time, edge);
 }
 
 
 // Methods for Interface class
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem, typename TFVGeom>
-void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
+void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	// get finite volume geometry
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
@@ -174,9 +225,22 @@ void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector
 				&& fabs(vCornerCoords[co][2] - m_coords[i][2]) < m_influx_ac
 			   )
 			{
+				// TODO: rather interpret this value as current and add to defect here
+				//       than interpret as flux density and multiply by surface area later
 				influx += m_flux_value[i];
 			}
 		}
+
+#ifdef _PLUGIN_SYNAPSE_DISTRIBUTOR_ACTIVE_
+		// influxes from synapse distributor
+		if (m_spSD.valid())
+		{
+			// TODO: the current need not be constant
+			// It would be best to define the current strength in the distributor and get it from there!
+			if (m_spSD->has_active_synapse(pElem, co, time))
+				d(_v_, co) += 1e-14;	// 1e-14C/ms=10pA;
+		}
+#endif
 
 		// membrane transport mechanisms
 		std::vector<number> allOutCurrentValues;
@@ -192,12 +256,7 @@ void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector
 			//for (size_t j = 0; j < m_numb_funcs+1; ++j) vrt_values[j] = u(j, co); <-- NO! this would be implicit!
 			std::vector<DoFIndex> multInd;
 			for (size_t j = 0; j < m_numb_funcs+1; ++j)
-			{
-				const size_t fct_ind = m_spDD->fct_id_by_name(this->m_vFct[j].c_str());
-				m_spDD->dof_indices(pElem->vertex(co), fct_ind, multInd);
-				UG_ASSERT(multInd.size() == 1, "multi-index has size != 1");
-				vrt_values[j] = DoFRef(*m_uOld, multInd[0]);
-			}
+				vrt_values[j] = m_aaUold[pElem->vertex(co)][j];
 
 			m_channel[i]->ionic_current(pElem->vertex(co), vrt_values, outCurrentValues);
 
@@ -273,9 +332,9 @@ void VMDisc<TDomain, TAlgebra>::add_def_A_elem(LocalVector& d, const LocalVector
 	}
 }
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem, typename TFVGeom>
-void VMDisc<TDomain, TAlgebra>::add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
+void VMDisc<TDomain>::add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	// get finite volume geometry
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
@@ -308,9 +367,9 @@ void VMDisc<TDomain, TAlgebra>::add_def_M_elem(LocalVector& d, const LocalVector
 	}
 }
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem, typename TFVGeom>
-void VMDisc<TDomain, TAlgebra>::
+void VMDisc<TDomain>::
 add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	// get finite volume geometry
@@ -379,9 +438,9 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 }
 
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem, typename TFVGeom>
-void VMDisc<TDomain, TAlgebra>::
+void VMDisc<TDomain>::
 add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	//std::cout << "jac m elem starts" << std::endl;
@@ -417,18 +476,18 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 }
 
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template <typename TElem, typename TFVGeom>
-void VMDisc<TDomain, TAlgebra>::fsh_elem_loop()
+void VMDisc<TDomain>::fsh_elem_loop()
 {
 
 
 }
 
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem, typename TFVGeom>
-void VMDisc<TDomain, TAlgebra>::prep_elem(const LocalVector& u, GridObject* elem, ReferenceObjectID id, const MathVector<dim> vCornerCoords[])
+void VMDisc<TDomain>::prep_elem(const LocalVector& u, GridObject* elem, ReferenceObjectID id, const MathVector<dim> vCornerCoords[])
 {
 	// update geometry for this element
 	static TFVGeom& geo = GeomProvider<TFVGeom>::get();
@@ -440,9 +499,9 @@ void VMDisc<TDomain, TAlgebra>::prep_elem(const LocalVector& u, GridObject* elem
 }
 
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template <typename TElem, typename TFVGeom>
-void VMDisc<TDomain, TAlgebra>::prep_elem_loop(const ReferenceObjectID roid, const int si)
+void VMDisc<TDomain>::prep_elem_loop(const ReferenceObjectID roid, const int si)
 {
 
 
@@ -451,8 +510,8 @@ void VMDisc<TDomain, TAlgebra>::prep_elem_loop(const ReferenceObjectID roid, con
 
 
 
-template<typename TDomain, typename TAlgebra>
-void VMDisc<TDomain, TAlgebra>::prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid)
+template<typename TDomain>
+void VMDisc<TDomain>::prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid)
 {
 	// check number
 	if (vLfeID.size() != 4)
@@ -483,9 +542,9 @@ void VMDisc<TDomain, TAlgebra>::prepare_setting(const std::vector<LFEID>& vLfeID
 	*/
 }
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template <typename TElem, typename TFVGeom>
-void VMDisc<TDomain, TAlgebra>::add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[])
+void VMDisc<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	// nothing to do
 }
@@ -494,8 +553,8 @@ void VMDisc<TDomain, TAlgebra>::add_rhs_elem(LocalVector& d, GridObject* elem, c
 ////////////////////////////////////////////////////////////////////////////////
 // Functions for ion handling
 ////////////////////////////////////////////////////////////////////////////////
-template<typename TDomain, typename TAlgebra>
-size_t VMDisc<TDomain, TAlgebra>::get_index(std::string s)
+template<typename TDomain>
+size_t VMDisc<TDomain>::get_index(std::string s)
 {
 	return m_spApproxSpace->fct_id_by_name(s.c_str());
 }
@@ -507,21 +566,22 @@ size_t VMDisc<TDomain, TAlgebra>::get_index(std::string s)
 ////////////////////////////////////////////////////////////////////////////////
 //	register assemble functions
 ////////////////////////////////////////////////////////////////////////////////
-template<typename TDomain, typename TAlgebra>
-void VMDisc<TDomain, TAlgebra>::
+template<typename TDomain>
+void VMDisc<TDomain>::
 register_all_funcs(bool bHang)
 {
 	register_func<RegularEdge, FV1Geometry<RegularEdge, dim> >();
 }
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem, typename TFVGeom>
-void VMDisc<TDomain, TAlgebra>::
+void VMDisc<TDomain>::
 register_func()
 {
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
-	typedef VMDisc<TDomain, TAlgebra> T;
+	typedef VMDisc<TDomain> T;
 
+	this->set_prep_timestep_elem_fct(id, &T::prep_timestep_elem);
 	this->set_prep_elem_loop_fct(id, &T::template prep_elem_loop<TElem, TFVGeom>);
 	this->set_prep_elem_fct(id, &T::template prep_elem<TElem, TFVGeom>);
 	this->set_fsh_elem_loop_fct(id, &T::template fsh_elem_loop<TElem, TFVGeom>);
@@ -539,62 +599,16 @@ register_func()
 //	explicit template instantiations
 ////////////////////////////////////////////////////////////////////////////////
 
-
 #ifdef UG_DIM_1
-#ifdef UG_CPU_1
-template class VMDisc<Domain1d, CPUAlgebra>;
+	template class VMDisc<Domain1d>;
 #endif
-#ifdef UG_CPU_2
-template class VMDisc<Domain1d, CPUBlockAlgebra<2> >;
-#endif
-#ifdef UG_CPU_3
-template class VMDisc<Domain1d, CPUBlockAlgebra<3> >;
-#endif
-#ifdef UG_CPU_4
-template class VMDisc<Domain1d, CPUBlockAlgebra<4> >;
-#endif
-#ifdef UG_CPU_VAR
-template class VMDisc<Domain1d, CPUVariableBlockAlgebra >;
-#endif
-#endif
-
-
 
 #ifdef UG_DIM_2
-#ifdef UG_CPU_1
-template class VMDisc<Domain2d, CPUAlgebra>;
+	template class VMDisc<Domain2d>;
 #endif
-#ifdef UG_CPU_2
-template class VMDisc<Domain2d, CPUBlockAlgebra<2> >;
-#endif
-#ifdef UG_CPU_3
-template class VMDisc<Domain2d, CPUBlockAlgebra<3> >;
-#endif
-#ifdef UG_CPU_4
-template class VMDisc<Domain2d, CPUBlockAlgebra<4> >;
-#endif
-#ifdef UG_CPU_VAR
-template class VMDisc<Domain2d, CPUVariableBlockAlgebra >;
-#endif
-#endif
-
 
 #ifdef UG_DIM_3
-#ifdef UG_CPU_1
-template class VMDisc<Domain3d, CPUAlgebra>;
-#endif
-#ifdef UG_CPU_2
-template class VMDisc<Domain3d, CPUBlockAlgebra<2> >;
-#endif
-#ifdef UG_CPU_3
-template class VMDisc<Domain3d, CPUBlockAlgebra<3> >;
-#endif
-#ifdef UG_CPU_4
-template class VMDisc<Domain3d, CPUBlockAlgebra<4> >;
-#endif
-#ifdef UG_CPU_VAR
-template class VMDisc<Domain3d, CPUVariableBlockAlgebra >;
-#endif
+	template class VMDisc<Domain3d>;
 #endif
 
 

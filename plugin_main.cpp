@@ -32,7 +32,7 @@
 #include "ElemDiscHH_Nernst_fv1.h"
 #include "ElemDiscHH_Nernst_neuron_fv1.h"
 #include "VM_Disc.h"
-#include "hh_converted_UG.h"
+//#include "hh_converted_UG.h"
 
 // Kabel_diff includes
 //#include "kabel_diff_base.h"
@@ -74,8 +74,7 @@ static void Domain(bridge::Registry& reg, string grp)
 	string suffix = ug::bridge::GetDomainSuffix<TDomain>();
 	string tag = ug::bridge::GetDomainTag<TDomain>();
 
-//	Kabel Diff Base
-
+	// Kabel Diff Base
 	{
 		typedef ElemDiscHH_Base<TDomain> T;
 		typedef IElemDisc<TDomain> TBase;
@@ -94,7 +93,7 @@ static void Domain(bridge::Registry& reg, string grp)
 
 
 
-//	Kabel Diff FV1 with constant reversal potential of K and Na
+	// Kabel Diff FV1 with constant reversal potential of K and Na
 	{
 		typedef ElemDiscHH_FV1<TDomain> T;
 		typedef ElemDiscHH_Base<TDomain> TBase;
@@ -112,7 +111,7 @@ static void Domain(bridge::Registry& reg, string grp)
 	}
 
 
-//	Kabel Diff FV1 with dynamic calculated reversal potential of K and Na (Nernst-Equatation)
+	// Kabel Diff FV1 with dynamic calculated reversal potential of K and Na (Nernst-Equatation)
 	{
 		typedef ElemDiscHH_Nernst_FV1<TDomain> T;
 		typedef ElemDiscHH_Base<TDomain> TBase;
@@ -131,26 +130,120 @@ static void Domain(bridge::Registry& reg, string grp)
 		reg.add_class_to_group(name, "ElemDiscHH_Nernst_FV1", tag);
 	}
 
-	//	Kabel Diff FV1 with dynamic calculated reversal potential of K and Na (Nernst-Equatation)
+	// Kabel Diff FV1 with dynamic calculated reversal potential of K and Na (Nernst-Equatation)
 	// Gating functions from neuron
-		{
-			typedef ElemDiscHH_Nernst_neuron_FV1<TDomain> T;
-			typedef ElemDiscHH_Base<TDomain> TBase;
-			string name = string("ElemDiscHH_Nernst_neuron_FV1").append(suffix);
-			reg.add_class_<T, TBase >(name, grp)
-				.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >, const char*,const char*)>("Function(s)#Subset(s)")
-				.add_method("set_injection", &T::set_injection)
-				.add_method("set_diameter", &T::set_diameter)
-				.add_method("set_spec_res", &T::set_spec_res)
-				.add_method("set_consts", &T::set_consts)
-				.add_method("set_nernst_consts", &T::set_nernst_consts)
-				.add_method("set_accuracy", &T::set_accuracy)
-				.add_method("set_diff_Na", &T::set_diff_Na)
-				.add_method("set_diff_K", &T::set_diff_K)
-				.set_construct_as_smart_pointer(true);
-			reg.add_class_to_group(name, "ElemDiscHH_Nernst_neuron_FV1", tag);
-		}
+	{
+		typedef ElemDiscHH_Nernst_neuron_FV1<TDomain> T;
+		typedef ElemDiscHH_Base<TDomain> TBase;
+		string name = string("ElemDiscHH_Nernst_neuron_FV1").append(suffix);
+		reg.add_class_<T, TBase >(name, grp)
+			.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >, const char*,const char*)>("Function(s)#Subset(s)")
+			.add_method("set_injection", &T::set_injection)
+			.add_method("set_diameter", &T::set_diameter)
+			.add_method("set_spec_res", &T::set_spec_res)
+			.add_method("set_consts", &T::set_consts)
+			.add_method("set_nernst_consts", &T::set_nernst_consts)
+			.add_method("set_accuracy", &T::set_accuracy)
+			.add_method("set_diff_Na", &T::set_diff_Na)
+			.add_method("set_diff_K", &T::set_diff_K)
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ElemDiscHH_Nernst_neuron_FV1", tag);
+	}
 
+
+
+	// Channel Interface Base (virtual class)
+	{
+		typedef IChannel<TDomain> T;
+		string name = string("IChannel").append(suffix);
+		reg.add_class_<T>(name, grp);
+			//.add_method("init", &T::init)
+			//.add_method("update_gating", &T::update_gating);
+		reg.add_class_to_group(name, "IChannel", tag);
+	}
+
+
+	// Channel Interface HH
+	{
+		typedef ChannelHH<TDomain> T;
+		typedef IChannel<TDomain> TBase;
+		string name = string("ChannelHH").append(suffix);
+		reg.add_class_<T, TBase >(name, grp)
+			.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
+			.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
+			.add_method("set_conductivities", &T::set_conductivities)
+			.add_method("set_rev_pot", &T::set_rev_pot)
+			.add_method("set_accuracy", &T::set_accuracy)
+			//.add_method("ionic_current", /*static_cast<void (TBase::*) (Vertex*, std::vector<double>&)> (&T::ionic_current) /*, "","", "doing flux")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ChannelHH", tag);
+	}
+
+
+	// Channel Interface HH-with-Nernst
+	{
+		typedef ChannelHHNernst<TDomain> T;
+		typedef IChannel<TDomain> TBase;
+		string name = string("ChannelHHNernst").append(suffix);
+		reg.add_class_<T, TBase >(name, grp)
+			.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
+			.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
+			.add_method("set_conductivities", &T::set_conductivities)
+			.add_method("set_accuracy", &T::set_accuracy)
+			//.add_method("ionic_current", /*static_cast<void (TBase::*) (Vertex*, std::vector<double>&)> (*/&T::ionic_current) /*, "","", "doing flux")*/
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ChannelHHNernst", tag);
+	}
+
+#if 0
+	// Channel Interface out of NModl-File
+	{
+		//typedef VMDisc<TDomain> TVMDisc;
+		typedef hh_converted_UG<TDomain> T;
+		typedef IChannel<TDomain> TBase;
+		string name = string("hh_converted_UG").append(suffix);
+		reg.add_class_<T, TBase >(name, grp)
+			.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
+			.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
+			//.add_method("ionic_current", /*static_cast<void (TBase::*) (Vertex*, std::vector<double>&)> (*/&T::ionic_current) /*, "","", "doing flux")*/
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "hh_converted_UG", tag);
+	}
+#endif
+
+	// VM-Disc class
+	{
+		typedef IChannel<TDomain> TIChannel;
+		typedef VMDisc<TDomain> T;
+		typedef IElemDisc<TDomain> TBase;
+		string name = string("VMDisc").append(suffix);
+		reg.add_class_<T, TBase >(name, grp)
+			.template add_constructor<void (*)(const char*,
+											   const std::vector<SmartPtr<TIChannel> >&,
+											   SmartPtr<ApproximationSpace<TDomain> >)>
+				("Subset(s)#Channels#ApproxSpace#InitTime")
+			.template add_constructor<void (*)(const char*,
+											   const std::vector<SmartPtr<TIChannel> >&,
+											   SmartPtr<ApproximationSpace<TDomain> >,
+											   const number)>
+				("Subset(s)#Channels#ApproxSpace#InitTime")
+			//.add_method("create_GridFunc", &T::create_GridFunc)
+			//.add_method("getApproxSpace" , &T::getApproxSpace)
+			.add_method("set_diameter", &T::set_diameter)
+			.add_method("set_spec_res", &T::set_spec_res)
+			.add_method("set_spec_cap", &T::set_spec_cap)
+			.add_method("set_diff_coeffs", &T::set_diff_coeffs)
+			//.add_method("add_channel", &T::add_channel)
+			.add_method("set_influx", &T::set_influx)
+			.add_method("set_influx_ac", &T::set_influx_ac)
+#ifdef _PLUGIN_SYNAPSE_DISTRIBUTOR_ACTIVE_
+			.add_method("set_synapse_distributor", &T::set_synapse_distributor)
+#endif
+			//.add_method("add_func", &T::add_func)
+			//.add_method("setGridFct", &T::setGridFct)
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "VMDisc", tag);
+	}
 
 }
 
@@ -167,91 +260,6 @@ static void Domain__Algebra(bridge::Registry& reg, string grp)
 	typedef ug::GridFunction<TDomain, TAlgebra> TFct;
 
 
-	//	Channel Interface Base (virtual class)
-		{
-			typedef IChannel<TDomain, TAlgebra> T;
-			string name = string("IChannel").append(suffix);
-			reg.add_class_<T>(name, grp)
-				.add_method("init", &T::init)
-				.add_method("update_gating", &T::update_gating);
-			reg.add_class_to_group(name, "IChannel", tag);
-		}
-
-
-	//	Channel Interface HH
-		{
-			typedef ChannelHH<TDomain, TAlgebra> T;
-			typedef IChannel<TDomain, TAlgebra> TBase;
-			string name = string("ChannelHH").append(suffix);
-			reg.add_class_<T, TBase >(name, grp)
-				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
-				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
-				.add_method("set_conductivities", &T::set_conductivities)
-				.add_method("set_rev_pot", &T::set_rev_pot)
-				.add_method("set_accuracy", &T::set_accuracy)
-				//.add_method("ionic_current", /*static_cast<void (TBase::*) (Vertex*, std::vector<double>&)> (&T::ionic_current) /*, "","", "doing flux")
-				.set_construct_as_smart_pointer(true);
-			reg.add_class_to_group(name, "ChannelHH", tag);
-		}
-
-
-		//	Channel Interface HH-with-Nernst
-			{
-				typedef ChannelHHNernst<TDomain, TAlgebra> T;
-				typedef IChannel<TDomain, TAlgebra> TBase;
-				string name = string("ChannelHHNernst").append(suffix);
-				reg.add_class_<T, TBase >(name, grp)
-					.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
-					.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
-					.add_method("set_conductivities", &T::set_conductivities)
-					.add_method("set_accuracy", &T::set_accuracy)
-					//.add_method("ionic_current", /*static_cast<void (TBase::*) (Vertex*, std::vector<double>&)> (*/&T::ionic_current) /*, "","", "doing flux")*/
-					.set_construct_as_smart_pointer(true);
-				reg.add_class_to_group(name, "ChannelHHNernst", tag);
-			}
-
-
-			//	Channel Interface out of NModl-File
-			{
-				//typedef VMDisc<TDomain, TAlgebra> TVMDisc;
-				typedef hh_converted_UG<TDomain, TAlgebra> T;
-				typedef IChannel<TDomain, TAlgebra> TBase;
-				string name = string("hh_converted_UG").append(suffix);
-				reg.add_class_<T, TBase >(name, grp)
-					.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
-					.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
-					//.add_method("ionic_current", /*static_cast<void (TBase::*) (Vertex*, std::vector<double>&)> (*/&T::ionic_current) /*, "","", "doing flux")*/
-					.set_construct_as_smart_pointer(true);
-				reg.add_class_to_group(name, "hh_converted_UG", tag);
-			}
-
-
-		//	VM-Disc class
-			{
-				typedef IChannel<TDomain, TAlgebra> TIChannel;
-				typedef VMDisc<TDomain, TAlgebra> T;
-				typedef IElemDisc<TDomain> TBase;
-				string name = string("VMDisc").append(suffix);
-				reg.add_class_<T, TBase >(name, grp)
-					.template add_constructor<void (*)(const char*,
-													   const std::vector<SmartPtr<TIChannel> >&,
-													   SmartPtr<ApproximationSpace<TDomain> >)>
-						("Function(s)#Subset(s)#Channels#ApproxSpace")
-					//.add_method("create_GridFunc", &T::create_GridFunc)
-					//.add_method("getApproxSpace" , &T::getApproxSpace)
-					.add_method("set_diameter", &T::set_diameter)
-					.add_method("set_spec_res", &T::set_spec_res)
-					.add_method("set_spec_cap", &T::set_spec_cap)
-					.add_method("set_diff_coeffs", &T::set_diff_coeffs)
-					//.add_method("add_channel", &T::add_channel)
-					.add_method("set_influx", &T::set_influx)
-					.add_method("set_influx_ac", &T::set_influx_ac)
-					.add_method("update", &T::update)
-					//.add_method("add_func", &T::add_func)
-					//.add_method("setGridFct", &T::setGridFct)
-					.set_construct_as_smart_pointer(true);
-				reg.add_class_to_group(name, "VMDisc", tag);
-			}
 
 }
 

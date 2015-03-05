@@ -37,26 +37,26 @@
 
 #include "channel_interface.h"
 
-
-
-
+#ifdef _PLUGIN_SYNAPSE_DISTRIBUTOR_ACTIVE_
+	#include "../synapse_distributor/synapse_distributor.h"
+#endif
 
 
 namespace ug
 {
 
 // forward declaration
-template <typename TDomain, typename TAlgebra>
+template <typename TDomain>
 class IChannel;
 
 
-template <typename TDomain, typename TAlgebra>
+template <typename TDomain>
 class VMDisc
 	: public IElemDisc<TDomain>
 {
 	public:
 		/// type for channels
-		typedef IChannel<TDomain, TAlgebra> TIChannel;
+		typedef IChannel<TDomain> TIChannel;
 
 		///	world dimension
 		static const int dim = IElemDisc<TDomain>::dim;
@@ -109,18 +109,39 @@ class VMDisc
 			//const char* functions,
 			const char* subsets,
 			const std::vector<SmartPtr<TIChannel> >& channels,
-			SmartPtr<ApproximationSpace<TDomain> > approx
+			SmartPtr<ApproximationSpace<TDomain> > approx,
+			const number init_time = 0.0
 		)
 		: IElemDisc<TDomain>("v, k, na, ca", subsets),
 		  k_out(3.3918292968), na_out(107.796654), ca_out(1.5),
 		  m_spec_res(1.0e6), m_spec_cap(1.0e-5),
 		  m_influx_ac(1e-9), m_channel(channels), m_aDiameter("diameter"),
+#ifdef _PLUGIN_SYNAPSE_DISTRIBUTOR_ACTIVE_
+		  m_spSD(SPNULL),
+#endif
 		  m_spApproxSpace(approx), m_spDD(m_spApproxSpace->dof_distribution(GridLevel::TOP)),
-		  m_bNonRegularGrid(false)
+		  m_bNonRegularGrid(false),
+		  m_init_time(init_time)
 		{
 			// set this vm disc to each of its channels
 			for (size_t i = 0; i < m_channel.size(); i++)
-				m_channel[i]->set_vm_disc(this);
+				m_channel[i]->set_vm_disc(make_sp(this));
+
+			// create time attachment and accessor
+			if (m_spApproxSpace->domain()->grid()->has_vertex_attachment(m_aTime))
+				UG_THROW("Time attachment necessary for Vm disc "
+						 "could not be created, since it already exists.");
+			m_spApproxSpace->domain()->grid()->attach_to_vertices_dv(m_aTime, init_time);
+
+			m_aaTime = Grid::AttachmentAccessor<Vertex, ANumber>(*m_spApproxSpace->domain()->grid(), m_aTime);
+
+			// create old solution attachment and accessor
+			if (m_spApproxSpace->domain()->grid()->has_vertex_attachment(m_aUold))
+				UG_THROW("Old solution attachment necessary for Vm disc "
+						 "could not be created, since it already exists.");
+			m_spApproxSpace->domain()->grid()->attach_to_vertices(m_aUold);
+
+			m_aaUold = Grid::AttachmentAccessor<Vertex, AVector4>(*m_spApproxSpace->domain()->grid(), m_aUold);
 
 #if 0
 			//SmartPtr<GridFunction<TDomain, TAlgebra> > spGridPtr;
@@ -277,9 +298,14 @@ class VMDisc
 		/// set influx params (flux value, coordinates, beginning, duration)
 		void set_influx(number Flux, number x, number y, number z, number beg, number dur);
 
+#ifdef _PLUGIN_SYNAPSE_DISTRIBUTOR_ACTIVE_
+		/// assign a synapse distributor
+		void set_synapse_distributor(ConstSmartPtr<SynapseDistributor> sd);
+#endif
+
 #if 0
 		/// adding a channel
-		void add_channel(SmartPtr<IChannel<TDomain, TAlgebra> > Channel);
+		void add_channel(SmartPtr<IChannel<TDomain> > Channel);
 
 		/// add func
 		void add_func(std::string func);
@@ -287,18 +313,42 @@ class VMDisc
 #endif
 		SmartPtr<ApproximationSpace<TDomain> > approx_space();
 
-
+	private:
 		/// determines the function index based on its name
 		size_t get_index(std::string s);
 
-		void update(number dt, ConstSmartPtr<typename TAlgebra::vector_type> uOld);
+		/// update time in time attachments of an edge
+		void update_time(const number newTime, Edge* edge);
 
+		/// save old solution to attachments
+		void save_old_sol(const LocalVector& u, Edge* edge);
 
 	// inherited from IElemDisc
 	public:
 
 		///	type of trial space for each function used
 		virtual void prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid);
+
+		/**
+		 * @brief Prepares for time step assemblings
+		 *
+		 * This method will be called before each time step assembling process.
+		 * It can be used if any time-dependent modifications have to be made to an element
+		 * before the defects/Jacobians for the specific time step can be calculated.
+		 * This is especially useful if grid attachments have to be updated
+		 * before each time step.
+		 *
+		 * @param time	new point in time
+		 * @param u		local vector of unknowns
+		 * @param elem	the element modifications can be made for
+		 */
+		virtual void prep_timestep_elem
+		(
+			const number time,
+			const LocalVector& u,
+			GridObject* elem,
+			const MathVector<dim> vCornerCoords[]
+		);
 
 		///	prepares the loop over all elements
 		/**
@@ -342,20 +392,34 @@ class VMDisc
 		template<typename TElem, typename TFVGeom>
 		void add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
+	public:
+		/// attachment and accessor for current time in each vertex (needs to be accessible by IChannel)
+		ANumber m_aTime;
+		Grid::AttachmentAccessor<Vertex, ANumber> m_aaTime;
+
 	protected:
 		/// dendritic radius attachment and accessor
-		ADouble m_aDiameter;
-		Grid::AttachmentAccessor<Vertex, ADouble> m_aaDiameter;
+		ANumber m_aDiameter;
+		Grid::AttachmentAccessor<Vertex, ANumber> m_aaDiameter;
+
+		/// attachment and accessor for old solution in each vertex
+		AVector4 m_aUold;
+		Grid::AttachmentAccessor<Vertex, AVector4> m_aaUold;
+
+#ifdef _PLUGIN_SYNAPSE_DISTRIBUTOR_ACTIVE_
+		/// for definition of specific synaptic activity patterns
+		ConstSmartPtr<SynapseDistributor> m_spSD;
+#endif
 
 		/// approx space
 		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
 		ConstSmartPtr<DoFDistribution> m_spDD;
 
-		/// pointer to old solution	for later use in explicit assemblings
-		ConstSmartPtr<typename TAlgebra::vector_type> m_uOld;
-
 		///	current regular grid flag
 		bool m_bNonRegularGrid;
+
+		/// init time
+		number m_init_time;
 
 	private:
 		///	register utils

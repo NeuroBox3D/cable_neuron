@@ -14,16 +14,16 @@ namespace ug {
 // Methods for HH-Channel-Class
 ////////////////////////////////////////////////
 
-template<typename TDomain, typename TAlgebra>
-void ChannelHH<TDomain, TAlgebra>::
+template<typename TDomain>
+void ChannelHH<TDomain>::
 set_accuracy(number ac)
 {
 	m_accuracy = ac;
 }
 
 
-template<typename TDomain, typename TAlgebra>
-void ChannelHH<TDomain, TAlgebra>::
+template<typename TDomain>
+void ChannelHH<TDomain>::
 set_conductivities(number Na, number K, number L)
 {
 	m_g_K = K;
@@ -32,8 +32,8 @@ set_conductivities(number Na, number K, number L)
 }
 
 
-template<typename TDomain, typename TAlgebra>
-void ChannelHH<TDomain, TAlgebra>::
+template<typename TDomain>
+void ChannelHH<TDomain>::
 set_rev_pot(number R_Na, number R_K)
 {
   m_rev_pot_Na = R_Na;
@@ -41,8 +41,8 @@ set_rev_pot(number R_Na, number R_K)
 
 }
 
-template<typename TDomain, typename TAlgebra>
-number ChannelHH<TDomain, TAlgebra>::
+template<typename TDomain>
+number ChannelHH<TDomain>::
 vtrap(number x, number y)
 {
 	number vtrap;
@@ -55,194 +55,184 @@ vtrap(number x, number y)
 }
 
 
-// Methods for using gatings
-template<typename TDomain, typename TAlgebra>
-void ChannelHH<TDomain, TAlgebra>::init(number time, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct)
+template<typename TDomain>
+void ChannelHH<TDomain>::vm_disc_available()
+{
+	init_attachments();
+}
+
+
+template<typename TDomain>
+void ChannelHH<TDomain>::init_attachments()
 {
 	// attach attachments
-	if (spGridFct->approx_space()->domain()->grid()->has_vertex_attachment(this->m_MGate))
+	SmartPtr<Grid> spGrid = m_spVMDisc->approx_space()->domain()->grid();
+
+	if (spGrid->has_vertex_attachment(m_MGate))
 		UG_THROW("Attachment necessary (MGate) for Hodgkin and Huxley channel dynamics "
 				 "could not be made, since it already exists.");
-	spGridFct->approx_space()->domain()->grid()->attach_to_vertices(this->m_MGate);
+	spGrid->attach_to_vertices(m_MGate);
 
-	if (spGridFct->approx_space()->domain()->grid()->has_vertex_attachment(this->m_HGate))
+	if (spGrid->has_vertex_attachment(m_HGate))
 		UG_THROW("Attachment necessary (HGate) for Hodgkin and Huxley channel dynamics "
 				 "could not be made, since it already exists.");
-		spGridFct->approx_space()->domain()->grid()->attach_to_vertices(this->m_HGate);
+	spGrid->attach_to_vertices(m_HGate);
 
-	if (spGridFct->approx_space()->domain()->grid()->has_vertex_attachment(this->m_NGate))
+	if (spGrid->has_vertex_attachment(m_NGate))
 		UG_THROW("Attachment necessary (NGate) for Hodgkin and Huxley channel dynamics "
 				 "could not be made, since it already exists.");
-	spGridFct->approx_space()->domain()->grid()->attach_to_vertices(this->m_NGate);
+	spGrid->attach_to_vertices(m_NGate);
 
 	// create attachment accessors
-	this->m_aaMGate = Grid::AttachmentAccessor<Vertex, ANumber>(*spGridFct->domain()->grid(), this->m_MGate);
-	this->m_aaNGate = Grid::AttachmentAccessor<Vertex, ANumber>(*spGridFct->domain()->grid(), this->m_NGate);
-	this->m_aaHGate = Grid::AttachmentAccessor<Vertex, ANumber>(*spGridFct->domain()->grid(), this->m_HGate);
-
-
-	typedef typename DoFDistribution::traits<Vertex>::const_iterator itType;
-	SubsetGroup ssGrp;
-	try { ssGrp = SubsetGroup(spGridFct->domain()->subset_handler(), this->m_vSubset);}
-	UG_CATCH_THROW("Subset group creation failed.");
-
-
-	std::vector<DoFIndex> multInd;
-
-	for (std::size_t si = 0; si < ssGrp.size(); si++)
-	{
-		itType iterBegin = spGridFct->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]);
-		itType iterEnd = spGridFct->approx_space()->dof_distribution(GridLevel::TOP)->template end<Vertex>(ssGrp[si]);
-
-		for (itType iter = iterBegin; iter != iterEnd; ++iter)
-		{
-			// update Vm
-			const size_t VM_fct_ind = spGridFct->fct_id_by_name("v");
-
-			spGridFct->dof_indices(*iter, VM_fct_ind, multInd);
-			UG_ASSERT(multInd.size() == 1, "multi-index has size != 1");
-
-			number VM = DoFRef(*spGridFct, multInd[0]);
-
-			//TODO: is that right? not the same as in the Nernst version!
-	        // values for m gate
-	        /*
-	        number AlphaHm = 0.1 * vtrap(-(VM+40.0),10.0);
-	        number BetaHm =  4 * exp(-(VM+65.0)/18.0);
-
-	        // values for n gate
-	        number AlphaHn = 0.01*vtrap(-(VM+55.0),10.0);
-	        number BetaHn = 0.125*exp(-(VM+65.0)/80);
-
-	        // values for h gate
-	        number AlphaHh = 0.07 * exp(-(VM+65.0)/20.0);
-	        number BetaHh = 1.0 / (exp(-(VM+35.0)/10.0) + 1.0);
-			*/
-	        
-	        // writing Gating-Params in attachment
-			// gating param h
-			number AlphaHh = 0.07*exp(-(VM + 65.0)/20.0);
-			number BetaHh = 1.0/(exp(3.0-0.1*(VM  + 65.0))+1.0);
-
-			// gating param m
-			number AlphaHm;
-			number AlphaHm_test = exp(2.5-0.1*(VM + 65.0))-1.0;
-			if (fabs(AlphaHm_test) > m_accuracy)
-				AlphaHm = (2.5 - 0.1*(VM + 65.0)) / AlphaHm_test;
-			else
-				AlphaHm = 1.0;
-
-			number BetaHm = 4.0*exp(-(VM + 65.0)/18.0);
-
-
-			// gating param n
-			number AlphaHn;
-			number AlphaHn_test;
-			AlphaHn_test = exp(1.0-0.1*(VM + 65.0))-1.0;
-			if (fabs(AlphaHn_test) > m_accuracy)
-				AlphaHn = (0.1-0.01*(VM + 65.0)) / AlphaHn_test;
-			else
-				AlphaHn = 0.1;
-
-			number BetaHn = 0.125*exp((VM + 65.0)/80.0);
-
-			// setting initial gating params as equilibrium states
-			this->m_aaHGate[*iter] = AlphaHh / (AlphaHh + BetaHh);
-			this->m_aaMGate[*iter] = AlphaHm / (AlphaHm + BetaHm);
-			this->m_aaNGate[*iter] = AlphaHn / (AlphaHn + BetaHn);
-		}
-	}
+	m_aaMGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, m_MGate);
+	m_aaNGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, m_NGate);
+	m_aaHGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, m_HGate);
 }
 
-template<typename TDomain, typename TAlgebra>
-void ChannelHH<TDomain, TAlgebra>::update_gating(number newTime, ConstSmartPtr<typename TAlgebra::vector_type> uOld)
+
+// Methods for using gatings
+template<typename TDomain>
+void ChannelHH<TDomain>::init(const LocalVector& u, Edge* edge)
 {
-	typedef typename DoFDistribution::traits<Vertex>::const_iterator itType;
-	SubsetGroup ssGrp;
-	try { ssGrp = SubsetGroup(m_vmDisc->approx_space()->subset_handler(), this->m_vSubset);}
-	UG_CATCH_THROW("Subset group creation failed.");
-
-
-	ConstSmartPtr<DoFDistribution> dd = m_vmDisc->approx_space()->dof_distribution(GridLevel::TOP);
-	std::vector<DoFIndex> multInd;
-
-	for (std::size_t si = 0; si < ssGrp.size(); si++)
+	typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list;
+	vrt_list vl;
+	m_spVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge);
+	for (size_t k = 0; k < vl.size(); ++k)
 	{
-		itType iterBegin = dd->template begin<Vertex>(ssGrp[si]);
-		itType iterEnd = dd->template end<Vertex>(ssGrp[si]);
+		Vertex* vrt = vl[k];
 
-		for (itType iter = iterBegin; iter != iterEnd; ++iter)
-		{
-			// update Vm
-			const size_t VM_fct_ind = dd->fct_id_by_name("VM");
-			dd->dof_indices(*iter, VM_fct_ind, multInd);
-			UG_ASSERT(multInd.size() == 1, "multi-index has size != 1");
-			number VM = DoFRef(*uOld, multInd[0]);
+		// update Vm
+		number VM = u(m_spVMDisc->_v_, k);
 
-	        // values for m gate
-	        number AlphaHm = 0.1 * vtrap(-(VM+40),10);
-	        number BetaHm =  4 * exp(-(VM+65)/18);
+		//TODO: is that right? not the same as in the Nernst version!
+		// values for m gate
+		/*
+		number AlphaHm = 0.1 * vtrap(-(VM+40.0),10.0);
+		number BetaHm =  4 * exp(-(VM+65.0)/18.0);
 
-	        // values for n gate
-	        number AlphaHn = 0.01*vtrap(-(VM+55),10);
-	        number BetaHn = 0.125*exp(-(VM+65)/80);
+		// values for n gate
+		number AlphaHn = 0.01*vtrap(-(VM+55.0),10.0);
+		number BetaHn = 0.125*exp(-(VM+65.0)/80);
 
-	        // values for h gate
-	        number AlphaHh = 0.07 * exp(-(VM+65)/20.0);
-	        number BetaHh = 1.0 / (exp(-(VM+35.0)/10.0) + 1.0);
+		// values for h gate
+		number AlphaHh = 0.07 * exp(-(VM+65.0)/20.0);
+		number BetaHh = 1.0 / (exp(-(VM+35.0)/10.0) + 1.0);
+		*/
 
-			/*//set gatting Params
-			number AlphaHh = 0.07*exp(-(m_aaVm[*iter] + 65.0)/20.0);
-			number BetaHh = 1.0/(exp(3.0-0.1*(m_aaVm[*iter]  + 65.0))+1.0);
+		// writing Gating-Params in attachment
+		// gating param h
+		number AlphaHh = 0.07*exp(-(VM + 65.0)/20.0);
+		number BetaHh = 1.0/(exp(3.0-0.1*(VM  + 65.0))+1.0);
 
-			// gating param m
-			number AlphaHm;
-			number AlphaHm_test = exp(2.5-0.1*(m_aaVm[*iter] + 65.0))-1.0;
-			if (fabs(AlphaHm_test) > m_accuracy)
-				AlphaHm = (2.5 - 0.1*( m_aaVm[*iter] + 65.0)) / AlphaHm_test;
-			else
-				AlphaHm = 1.0;
+		// gating param m
+		number AlphaHm;
+		number AlphaHm_test = exp(2.5-0.1*(VM + 65.0))-1.0;
+		if (fabs(AlphaHm_test) > m_accuracy)
+			AlphaHm = (2.5 - 0.1*(VM + 65.0)) / AlphaHm_test;
+		else
+			AlphaHm = 1.0;
 
-			number BetaHm = 4.0*exp(-(m_aaVm[*iter] + 65.0)/18.0);
-
-			// gating param n
-			number AlphaHn;
-			number AlphaHn_test;
-			AlphaHn_test = exp(1.0-0.1*(m_aaVm[*iter] + 65.0))-1.0;
-			if (fabs(AlphaHn_test) > m_accuracy)
-				AlphaHn = (0.1-0.01*(m_aaVm[*iter] + 65.0)) / AlphaHn_test;
-			else
-				AlphaHn = 0.1;
-
-			number BetaHn = 0.125*exp((m_aaVm[*iter] + 65.0)/80.0);*/
-
-			// needs import later
-			number dt = 0.01;
-
-			number rate_h = ((AlphaHh/(AlphaHh+BetaHh)) - m_aaHGate[*iter]) / (1/(AlphaHh+BetaHh)) *dt;
-			number rate_m = ((AlphaHm/(AlphaHm+BetaHm)) - m_aaMGate[*iter]) / (1/(AlphaHm+BetaHm)) *dt;
-			number rate_n = ((AlphaHn/(AlphaHn+BetaHn)) - m_aaNGate[*iter]) / (1/(AlphaHn+BetaHn)) *dt;
+		number BetaHm = 4.0*exp(-(VM + 65.0)/18.0);
 
 
+		// gating param n
+		number AlphaHn;
+		number AlphaHn_test;
+		AlphaHn_test = exp(1.0-0.1*(VM + 65.0))-1.0;
+		if (fabs(AlphaHn_test) > m_accuracy)
+			AlphaHn = (0.1-0.01*(VM + 65.0)) / AlphaHn_test;
+		else
+			AlphaHn = 0.1;
 
-			m_aaHGate[*iter] += rate_h;
-			m_aaMGate[*iter] += rate_m;
-			m_aaNGate[*iter] += rate_n;
-			//std::cout << "VM: " << (m_aaVm[*iter]) << "h: "<< m_aaHGate[*iter] << "m: "<< m_aaMGate[*iter] <<  "n: "<< m_aaNGate[*iter] <<std::endl;
-			//std::cout << "Rates: " << rate_h << " , " << rate_m << " , " << rate_n << std::endl;
-		}
+		number BetaHn = 0.125*exp((VM + 65.0)/80.0);
+
+		// setting initial gating params as equilibrium states
+		this->m_aaHGate[vrt] = AlphaHh / (AlphaHh + BetaHh);
+		this->m_aaMGate[vrt] = AlphaHm / (AlphaHm + BetaHm);
+		this->m_aaNGate[vrt] = AlphaHn / (AlphaHn + BetaHn);
+	}
+}
+
+template<typename TDomain>
+void ChannelHH<TDomain>::update_gating(number newTime, const LocalVector& u, Edge* edge)
+{
+	typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list;
+	vrt_list vl;
+	m_spVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge);
+	for (size_t k = 0; k < vl.size(); ++k)
+	{
+		Vertex* vrt = vl[k];
+		number dt = newTime - m_spVMDisc->m_aaTime[vrt];
+
+		// only update vertices that are not yet updated
+		if (dt == 0.0) continue;
+
+		// update Vm
+		number VM = u(m_spVMDisc->_v_, k);
+
+
+		// values for m gate
+		number AlphaHm = 0.1 * vtrap(-(VM+40),10);
+		number BetaHm =  4 * exp(-(VM+65)/18);
+
+		// values for n gate
+		number AlphaHn = 0.01*vtrap(-(VM+55),10);
+		number BetaHn = 0.125*exp(-(VM+65)/80);
+
+		// values for h gate
+		number AlphaHh = 0.07 * exp(-(VM+65)/20.0);
+		number BetaHh = 1.0 / (exp(-(VM+35.0)/10.0) + 1.0);
+
+		/*
+		// set gating params
+		number AlphaHh = 0.07*exp(-(m_aaVm[*iter] + 65.0)/20.0);
+		number BetaHh = 1.0/(exp(3.0-0.1*(m_aaVm[*iter]  + 65.0))+1.0);
+
+		// gating param m
+		number AlphaHm;
+		number AlphaHm_test = exp(2.5-0.1*(m_aaVm[*iter] + 65.0))-1.0;
+		if (fabs(AlphaHm_test) > m_accuracy)
+			AlphaHm = (2.5 - 0.1*( m_aaVm[*iter] + 65.0)) / AlphaHm_test;
+		else
+			AlphaHm = 1.0;
+
+		number BetaHm = 4.0*exp(-(m_aaVm[*iter] + 65.0)/18.0);
+
+		// gating param n
+		number AlphaHn;
+		number AlphaHn_test;
+		AlphaHn_test = exp(1.0-0.1*(m_aaVm[*iter] + 65.0))-1.0;
+		if (fabs(AlphaHn_test) > m_accuracy)
+			AlphaHn = (0.1-0.01*(m_aaVm[*iter] + 65.0)) / AlphaHn_test;
+		else
+			AlphaHn = 0.1;
+
+		number BetaHn = 0.125*exp((m_aaVm[*iter] + 65.0)/80.0);
+		*/
+
+		number rate_h = ((AlphaHh/(AlphaHh+BetaHh)) - m_aaHGate[vrt]) / (1/(AlphaHh+BetaHh)) * dt;
+		number rate_m = ((AlphaHm/(AlphaHm+BetaHm)) - m_aaMGate[vrt]) / (1/(AlphaHm+BetaHm)) * dt;
+		number rate_n = ((AlphaHn/(AlphaHn+BetaHn)) - m_aaNGate[vrt]) / (1/(AlphaHn+BetaHn)) * dt;
+
+
+
+		m_aaHGate[vrt] += rate_h;
+		m_aaMGate[vrt] += rate_m;
+		m_aaNGate[vrt] += rate_n;
+		//std::cout << "VM: " << (m_aaVm[*iter]) << "h: "<< m_aaHGate[*iter] << "m: "<< m_aaMGate[*iter] <<  "n: "<< m_aaNGate[*iter] <<std::endl;
+		//std::cout << "Rates: " << rate_h << " , " << rate_m << " , " << rate_n << std::endl;
 	}
 }
 
 
-template<typename TDomain, typename TAlgebra>
-void ChannelHH<TDomain, TAlgebra>::ionic_current(Vertex* ver, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
+template<typename TDomain>
+void ChannelHH<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
 {
 	// getting attachments for vertex
-	double NGate = m_aaNGate[ver];
- 	double MGate = m_aaMGate[ver];
-	double HGate = m_aaHGate[ver];
-	double VM 	 = vrt_values[VMDisc<TDomain,TAlgebra>::_v_];
+	double NGate = m_aaNGate[vrt];
+ 	double MGate = m_aaMGate[vrt];
+	double HGate = m_aaHGate[vrt];
+	double VM 	 = vrt_values[VMDisc<TDomain>::_v_];
 
 	// TODO Influx values needed
 	// single channel type fluxes
@@ -255,13 +245,13 @@ void ChannelHH<TDomain, TAlgebra>::ionic_current(Vertex* ver, const std::vector<
 }
 
 
-
-template<typename TDomain, typename TAlgebra>
-void ChannelHH<TDomain, TAlgebra>::Jacobi_sets(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outJFlux)
+#if 0
+template<typename TDomain>
+void ChannelHH<TDomain>::Jacobi_sets(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outJFlux)
 {
-	double NGate = m_aaNGate[v];
-	double MGate = m_aaMGate[v];
-	double HGate = m_aaHGate[v];
+	double NGate = m_aaNGate[vrt];
+	double MGate = m_aaMGate[vrt];
+	double HGate = m_aaHGate[vrt];
 
 
 	number Jac = (m_g_K*pow(NGate,4) + m_g_Na*pow(MGate,3)*HGate + m_g_I);
@@ -269,22 +259,22 @@ void ChannelHH<TDomain, TAlgebra>::Jacobi_sets(Vertex* v, const std::vector<numb
 	outJFlux.push_back(Jac);
 
 }
-
+#endif
 
 ////////////////////////////////////////////////
 // Methods for HH-Channel-Nernst-Class
 ////////////////////////////////////////////////
 
-template<typename TDomain, typename TAlgebra>
-void ChannelHHNernst<TDomain, TAlgebra>::
+template<typename TDomain>
+void ChannelHHNernst<TDomain>::
 set_accuracy(double ac)
 {
 	m_accuracy = ac;
 }
 
 
-template<typename TDomain, typename TAlgebra>
-void ChannelHHNernst<TDomain, TAlgebra>::
+template<typename TDomain>
+void ChannelHHNernst<TDomain>::
 set_conductivities(number Na, number K, number L)
 {
 	m_g_K = K;
@@ -293,171 +283,159 @@ set_conductivities(number Na, number K, number L)
 }
 
 
-// Methods for using gatings
-template<typename TDomain, typename TAlgebra>
-void ChannelHHNernst<TDomain, TAlgebra>::init(number time, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct)
+template<typename TDomain>
+void ChannelHHNernst<TDomain>::vm_disc_available()
 {
-	//UG_LOG("init starts");
-	// attach attachments
+	init_attachments();
+}
 
-	if (spGridFct->approx_space()->domain()->grid()->has_vertex_attachment(this->m_MGate))
+
+template<typename TDomain>
+void ChannelHHNernst<TDomain>::init_attachments()
+{
+	// attach attachments
+	SmartPtr<Grid> spGrid = m_spVMDisc->approx_space()->domain()->grid();
+
+	if (spGrid->has_vertex_attachment(m_MGate))
 		UG_THROW("Attachment necessary (MGate) for Hodgkin and Huxley channel dynamics "
 				 "could not be made, since it already exists.");
-	spGridFct->approx_space()->domain()->grid()->attach_to_vertices(this->m_MGate);
+	spGrid->attach_to_vertices(m_MGate);
 
-	if (spGridFct->approx_space()->domain()->grid()->has_vertex_attachment(this->m_HGate))
+	if (spGrid->has_vertex_attachment(m_HGate))
 		UG_THROW("Attachment necessary (HGate) for Hodgkin and Huxley channel dynamics "
 				 "could not be made, since it already exists.");
-	spGridFct->approx_space()->domain()->grid()->attach_to_vertices(this->m_HGate);
+	spGrid->attach_to_vertices(m_HGate);
 
-	if (spGridFct->approx_space()->domain()->grid()->has_vertex_attachment(this->m_NGate))
+	if (spGrid->has_vertex_attachment(m_NGate))
 		UG_THROW("Attachment necessary (NGate) for Hodgkin and Huxley channel dynamics "
 				 "could not be made, since it already exists.");
-	spGridFct->approx_space()->domain()->grid()->attach_to_vertices(this->m_NGate);
+	spGrid->attach_to_vertices(m_NGate);
 
 	// create attachment accessors
-	this->m_aaMGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGridFct->approx_space()->domain()->grid(), this->m_MGate);
-	this->m_aaNGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGridFct->approx_space()->domain()->grid(), this->m_NGate);
-	this->m_aaHGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGridFct->approx_space()->domain()->grid(), this->m_HGate);
-
-	typedef typename DoFDistribution::traits<Vertex>::const_iterator itType;
-	SubsetGroup ssGrp;
-	try {ssGrp = SubsetGroup(spGridFct->domain()->subset_handler(), this->m_vSubset);}
-	UG_CATCH_THROW("Subset group creation failed.");
-
-
-	std::vector<DoFIndex> multInd;
-
-	for (std::size_t si = 0; si < ssGrp.size(); si++)
-	{
-		itType iterBegin = spGridFct->template begin<Vertex>(ssGrp[si]);
-		itType iterEnd = spGridFct->template end<Vertex>(ssGrp[si]);
-
-		for (itType iter = iterBegin; iter != iterEnd; ++iter)
-		{
-			// get Vm
-			const size_t VM_fct_ind = spGridFct->fct_id_by_name("VM");
-			spGridFct->dof_indices(*iter, VM_fct_ind, multInd);
-			UG_ASSERT(multInd.size() == 1, "multi-index has size != 1");
-			number VM = DoFRef(*spGridFct, multInd[0]);
-
-			// writing gating params in attachments
-			// gating param h
-			number AlphaHh = 0.07*exp(-(VM + 65.0)/20.0);
-			number BetaHh = 1.0/(exp(3.0-0.1*(VM + 65.0))+1.0);
-
-			// gating param m
-			number AlphaHm;
-			number AlphaHm_test = exp(2.5-0.1*(VM + 65.0))-1.0;
-			if (fabs(AlphaHm_test) > m_accuracy)
-				AlphaHm = (2.5 - 0.1*(VM + 65.0)) / AlphaHm_test;
-			else
-				AlphaHm = 1.0;
-
-			number BetaHm = 4.0*exp(-(VM + 65.0)/18.0);
-
-			// gating param n
-			number AlphaHn;
-			number AlphaHn_test;
-			AlphaHn_test = exp(1.0-0.1*(VM + 65.0))-1.0;
-			if (fabs(AlphaHn_test) > m_accuracy)
-				AlphaHn = (0.1-0.01*(VM + 65.0)) / AlphaHn_test;
-			else
-				AlphaHn = 0.1;
-
-			number BetaHn = 0.125*exp((VM + 65.0)/80.0);
-
-			// setting initial gating params as equilibrium states
-			this->m_aaHGate[*iter] = AlphaHh / (AlphaHh + BetaHh);
-			this->m_aaMGate[*iter] = AlphaHm / (AlphaHm + BetaHm);
-			this->m_aaNGate[*iter] = AlphaHn / (AlphaHn + BetaHn);
-		}
-	}
+	m_aaMGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, m_MGate);
+	m_aaNGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, m_NGate);
+	m_aaHGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, m_HGate);
 }
 
-template<typename TDomain, typename TAlgebra>
-void ChannelHHNernst<TDomain, TAlgebra>::update_gating(number newTime, ConstSmartPtr<typename TAlgebra::vector_type> uOld)
+
+
+// Methods for using gatings
+template<typename TDomain>
+void ChannelHHNernst<TDomain>::init(const LocalVector& u, Edge* edge)
 {
-	//std::cout << "update gatting start" << std::endl;
-	typedef typename DoFDistribution::traits<Vertex>::const_iterator itType;
-	SubsetGroup ssGrp;
-	try { ssGrp = SubsetGroup(m_vmDisc->approx_space()->subset_handler(), this->m_vSubset);}
-	UG_CATCH_THROW("Subset group creation failed.");
-
-	ConstSmartPtr<DoFDistribution> dd = m_vmDisc->approx_space()->dof_distribution(GridLevel::TOP);
-
-	std::vector<DoFIndex> multInd;
-
-	for (std::size_t si = 0; si < ssGrp.size(); si++)
+	typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list;
+	vrt_list vl;
+	m_spVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge);
+	for (size_t k = 0; k < vl.size(); ++k)
 	{
-		itType iterBegin = dd->template begin<Vertex>(ssGrp[si]);
-		itType iterEnd = dd->template end<Vertex>(ssGrp[si]);
+		Vertex* vrt = vl[k];
 
-		for (itType iter = iterBegin; iter != iterEnd; ++iter)
-		{
-			// get Vm
-			const size_t VM_fct_ind = dd->fct_id_by_name("VM");
-			dd->dof_indices(*iter, VM_fct_ind, multInd);
-			UG_ASSERT(multInd.size() == 1, "multi-index has size != 1");
-			number VM = DoFRef(*uOld, multInd[0]);
+		// update Vm
+		number VM = u(m_spVMDisc->_v_, k);
 
-			// set new gating states
-			// gating param h
-			number AlphaHh = 0.07*exp(-(VM + 65.0)/20.0);
-			number BetaHh = 1.0/(exp(3.0-0.1*(VM + 65.0))+1.0);
+		// writing gating params in attachments
+		// gating param h
+		number AlphaHh = 0.07*exp(-(VM + 65.0)/20.0);
+		number BetaHh = 1.0/(exp(3.0-0.1*(VM + 65.0))+1.0);
 
-			// gating param m
-			number AlphaHm;
-			number AlphaHm_test = exp(2.5-0.1*(VM + 65.0))-1.0;
-			if (fabs(AlphaHm_test) > m_accuracy)
-				AlphaHm = (2.5 - 0.1*(VM + 65.0)) / AlphaHm_test;
-			else
-				AlphaHm = 1.0;
+		// gating param m
+		number AlphaHm;
+		number AlphaHm_test = exp(2.5-0.1*(VM + 65.0))-1.0;
+		if (fabs(AlphaHm_test) > m_accuracy)
+			AlphaHm = (2.5 - 0.1*(VM + 65.0)) / AlphaHm_test;
+		else
+			AlphaHm = 1.0;
 
-			number BetaHm = 4.0*exp(-(VM + 65.0)/18.0);
+		number BetaHm = 4.0*exp(-(VM + 65.0)/18.0);
 
-			// gating param n
-			number AlphaHn;
-			number AlphaHn_test;
-			AlphaHn_test = exp(1.0-0.1*(VM + 65.0))-1.0;
-			if (fabs(AlphaHn_test) > m_accuracy)
-				AlphaHn = (0.1-0.01*(VM + 65.0)) / AlphaHn_test;
-			else
-				AlphaHn = 0.1;
+		// gating param n
+		number AlphaHn;
+		number AlphaHn_test;
+		AlphaHn_test = exp(1.0-0.1*(VM + 65.0))-1.0;
+		if (fabs(AlphaHn_test) > m_accuracy)
+			AlphaHn = (0.1-0.01*(VM + 65.0)) / AlphaHn_test;
+		else
+			AlphaHn = 0.1;
 
-			number BetaHn = 0.125*exp((VM + 65.0)/80.0);
+		number BetaHn = 0.125*exp((VM + 65.0)/80.0);
 
-			// TODO: check that this is correct!
-			number dt = newTime;
+		// setting initial gating params as equilibrium states
+		this->m_aaHGate[vrt] = AlphaHh / (AlphaHh + BetaHh);
+		this->m_aaMGate[vrt] = AlphaHm / (AlphaHm + BetaHm);
+		this->m_aaNGate[vrt] = AlphaHn / (AlphaHn + BetaHn);
+	}
+}
 
-			number rate_h = ((AlphaHh/(AlphaHh+BetaHh)) - m_aaHGate[*iter]) / (1.0/(AlphaHh+BetaHh)) * dt;
-			number rate_m = ((AlphaHm/(AlphaHm+BetaHm)) - m_aaMGate[*iter]) / (1.0/(AlphaHm+BetaHm)) * dt;
-			number rate_n = ((AlphaHn/(AlphaHn+BetaHn)) - m_aaNGate[*iter]) / (1.0/(AlphaHn+BetaHn)) * dt;
+template<typename TDomain>
+void ChannelHHNernst<TDomain>::update_gating(number newTime, const LocalVector& u, Edge* edge)
+{
+	typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list;
+	vrt_list vl;
+	m_spVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge);
+	for (size_t k = 0; k < vl.size(); ++k)
+	{
+		Vertex* vrt = vl[k];
+		number dt = newTime - m_spVMDisc->m_aaTime[vrt];
 
-			m_aaHGate[*iter] += rate_h;
-			m_aaMGate[*iter] += rate_m;
-			m_aaNGate[*iter] += rate_n;
-		}
+		// only update vertices that are not yet updated
+		if (dt == 0.0) continue;
+
+		// update Vm
+		number VM = u(m_spVMDisc->_v_, k);
+
+		// set new gating states
+		// gating param h
+		number AlphaHh = 0.07*exp(-(VM + 65.0)/20.0);
+		number BetaHh = 1.0/(exp(3.0-0.1*(VM + 65.0))+1.0);
+
+		// gating param m
+		number AlphaHm;
+		number AlphaHm_test = exp(2.5-0.1*(VM + 65.0))-1.0;
+		if (fabs(AlphaHm_test) > m_accuracy)
+			AlphaHm = (2.5 - 0.1*(VM + 65.0)) / AlphaHm_test;
+		else
+			AlphaHm = 1.0;
+
+		number BetaHm = 4.0*exp(-(VM + 65.0)/18.0);
+
+		// gating param n
+		number AlphaHn;
+		number AlphaHn_test;
+		AlphaHn_test = exp(1.0-0.1*(VM + 65.0))-1.0;
+		if (fabs(AlphaHn_test) > m_accuracy)
+			AlphaHn = (0.1-0.01*(VM + 65.0)) / AlphaHn_test;
+		else
+			AlphaHn = 0.1;
+
+		number BetaHn = 0.125*exp((VM + 65.0)/80.0);
+
+		number rate_h = ((AlphaHh/(AlphaHh+BetaHh)) - m_aaHGate[vrt]) / (1.0/(AlphaHh+BetaHh)) * dt;
+		number rate_m = ((AlphaHm/(AlphaHm+BetaHm)) - m_aaMGate[vrt]) / (1.0/(AlphaHm+BetaHm)) * dt;
+		number rate_n = ((AlphaHn/(AlphaHn+BetaHn)) - m_aaNGate[vrt]) / (1.0/(AlphaHn+BetaHn)) * dt;
+
+		m_aaHGate[vrt] += rate_h;
+		m_aaMGate[vrt] += rate_m;
+		m_aaNGate[vrt] += rate_n;
 	}
 }
 
 
-template<typename TDomain, typename TAlgebra>
-void ChannelHHNernst<TDomain, TAlgebra>::ionic_current(Vertex* ver, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
+template<typename TDomain>
+void ChannelHHNernst<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
 {
 	// getting attachments out of Vertex
-	number NGate = m_aaNGate[ver];
-	number MGate = m_aaMGate[ver];
-	number HGate = m_aaHGate[ver];
-	number v 	 = vrt_values[VMDisc<TDomain,TAlgebra>::_v_];
-	number k 	 = vrt_values[VMDisc<TDomain,TAlgebra>::_k_];
-	number na 	 = vrt_values[VMDisc<TDomain,TAlgebra>::_na_];
+	number NGate = m_aaNGate[vrt];
+	number MGate = m_aaMGate[vrt];
+	number HGate = m_aaHGate[vrt];
+	number v 	 = vrt_values[VMDisc<TDomain>::_v_];
+	number k 	 = vrt_values[VMDisc<TDomain>::_k_];
+	number na 	 = vrt_values[VMDisc<TDomain>::_na_];
 
 
-	UG_ASSERT(m_vmDisc, "Channel has not been assigned a vmDisc object yet!");
+	UG_ASSERT(m_spVMDisc, "Channel has not been assigned a vmDisc object yet!");
 	const number helpV = 1e3*(m_R*m_T)/m_F;
-	number potassium_nernst_eq 	= helpV*(std::log(m_vmDisc->k_out/k));
-	number sodium_nernst_eq	 	= helpV*(std::log(m_vmDisc->na_out/na));
+	number potassium_nernst_eq 	= helpV*(std::log(m_spVMDisc->k_out/k));
+	number sodium_nernst_eq	 	= helpV*(std::log(m_spVMDisc->na_out/na));
 
 	// single channel ion fluxes
 	number potassium_part_of_flux = m_g_K * pow(NGate,4) * (v - potassium_nernst_eq);
@@ -480,20 +458,20 @@ void ChannelHHNernst<TDomain, TAlgebra>::ionic_current(Vertex* ver, const std::v
 }
 
 
-
-template<typename TDomain, typename TAlgebra>
-void ChannelHHNernst<TDomain, TAlgebra>::Jacobi_sets(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outJFlux)
+#if 0
+template<typename TDomain>
+void ChannelHHNernst<TDomain>::Jacobi_sets(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outJFlux)
 {
-	number NGate = m_aaNGate[v];
-	number MGate = m_aaMGate[v];
-	number HGate = m_aaHGate[v];
-	number k 	 = vrt_values[VMDisc<TDomain,TAlgebra>::_k_];
-	number na 	 = vrt_values[VMDisc<TDomain,TAlgebra>::_na_];
+	number NGate = m_aaNGate[vrt];
+	number MGate = m_aaMGate[vrt];
+	number HGate = m_aaHGate[vrt];
+	number k 	 = vrt_values[VMDisc<TDomain>::_k_];
+	number na 	 = vrt_values[VMDisc<TDomain>::_na_];
 
-	UG_ASSERT(m_vmDisc, "Channel has not been assigned a vmDisc object yet!");
+	UG_ASSERT(m_spVMDisc, "Channel has not been assigned a vmDisc object yet!");
 	const number helpV = (m_R*m_T)/m_F;
-	const number potassium_nernst_eq_dK 	=  helpV * (-m_vmDisc->k_out/k)*0.18; //helpV * (-K_out/pow(u(_K_,co),2));
-	const number sodium_nernst_eq_dNa		=  -helpV * (-m_vmDisc->na_out/na)*0.003;
+	const number potassium_nernst_eq_dK 	=  helpV * (-m_spVMDisc->k_out/k)*0.18; //helpV * (-K_out/pow(u(_K_,co),2));
+	const number sodium_nernst_eq_dNa		=  -helpV * (-m_spVMDisc->na_out/na)*0.003;
 
 	outJFlux.push_back(m_g_K*pow(NGate,4) + m_g_Na*pow(MGate,3)*HGate + m_g_I);
 	outJFlux.push_back(sodium_nernst_eq_dNa);
@@ -501,101 +479,29 @@ void ChannelHHNernst<TDomain, TAlgebra>::Jacobi_sets(Vertex* v, const std::vecto
 
 	//std::cout << "outJFlux: " << outJFlux[0] << ", " << outJFlux[1] << ", " << outJFlux[2] << ", " << std::endl;
 }
-
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 //	explicit template instantiations
 ////////////////////////////////////////////////////////////////////////////////
 
-
 #ifdef UG_DIM_1
-#ifdef UG_CPU_1
-template class IChannel<Domain1d, CPUAlgebra>;
-template class ChannelHH<Domain1d, CPUAlgebra>;
-template class ChannelHHNernst<Domain1d, CPUAlgebra>;
+	template class IChannel<Domain1d>;
+	template class ChannelHH<Domain1d>;
+	template class ChannelHHNernst<Domain1d>;
 #endif
-#ifdef UG_CPU_2
-template class IChannel<Domain1d, CPUBlockAlgebra<2> >;
-template class ChannelHH<Domain1d, CPUBlockAlgebra<2> >;
-template class ChannelHHNernst<Domain1d, CPUBlockAlgebra<2> >;
-#endif
-#ifdef UG_CPU_3
-template class IChannel<Domain1d, CPUBlockAlgebra<3> >;
-template class ChannelHH<Domain1d, CPUBlockAlgebra<3> >;
-template class ChannelHHNernst<Domain1d, CPUBlockAlgebra<3> >;
-#endif
-#ifdef UG_CPU_4
-template class IChannel<Domain1d, CPUBlockAlgebra<4> >;
-template class ChannelHH<Domain1d, CPUBlockAlgebra<4> >;
-template class ChannelHHNernst<Domain1d, CPUBlockAlgebra<4> >;
-#endif
-#ifdef UG_CPU_VAR
-template class IChannel<Domain1d, CPUVariableBlockAlgebra >;
-template class ChannelHH<Domain1d, CPUVariableBlockAlgebra >;
-template class ChannelHHNernst<Domain1d, CPUVariableBlockAlgebra >;
-#endif
-#endif
-
-
 
 #ifdef UG_DIM_2
-#ifdef UG_CPU_1
-template class IChannel<Domain2d, CPUAlgebra>;
-template class ChannelHH<Domain2d, CPUAlgebra>;
-template class ChannelHHNernst<Domain2d, CPUAlgebra>;
+	template class IChannel<Domain2d>;
+	template class ChannelHH<Domain2d>;
+	template class ChannelHHNernst<Domain2d>;
 #endif
-#ifdef UG_CPU_2
-template class IChannel<Domain2d, CPUBlockAlgebra<2> >;
-template class ChannelHH<Domain2d, CPUBlockAlgebra<2> >;
-template class ChannelHHNernst<Domain2d, CPUBlockAlgebra<2> >;
-#endif
-#ifdef UG_CPU_3
-template class IChannel<Domain2d, CPUBlockAlgebra<3> >;
-template class ChannelHH<Domain2d, CPUBlockAlgebra<3> >;
-template class ChannelHHNernst<Domain2d, CPUBlockAlgebra<3> >;
-#endif
-#ifdef UG_CPU_4
-template class IChannel<Domain2d, CPUBlockAlgebra<4> >;
-template class ChannelHH<Domain2d, CPUBlockAlgebra<4> >;
-template class ChannelHHNernst<Domain2d, CPUBlockAlgebra<4> >;
-#endif
-#ifdef UG_CPU_VAR
-template class IChannel<Domain2d, CPUVariableBlockAlgebra >;
-template class ChannelHH<Domain2d, CPUVariableBlockAlgebra >;
-template class ChannelHHNernst<Domain2d, CPUVariableBlockAlgebra >;
-#endif
-#endif
-
 
 #ifdef UG_DIM_3
-#ifdef UG_CPU_1
-template class IChannel<Domain3d, CPUAlgebra>;
-template class ChannelHH<Domain3d, CPUAlgebra>;
-template class ChannelHHNernst<Domain3d, CPUAlgebra >;
-#endif
-#ifdef UG_CPU_2
-template class IChannel<Domain3d, CPUBlockAlgebra<2> >;
-template class ChannelHH<Domain3d, CPUBlockAlgebra<2> >;
-template class ChannelHHNernst<Domain3d, CPUBlockAlgebra<2> >;
-#endif
-#ifdef UG_CPU_3
-template class IChannel<Domain3d, CPUBlockAlgebra<3> >;
-template class ChannelHH<Domain3d, CPUBlockAlgebra<3> >;
-template class ChannelHHNernst<Domain3d, CPUBlockAlgebra<3> >;
-#endif
-#ifdef UG_CPU_4
-template class IChannel<Domain3d, CPUBlockAlgebra<4> >;
-template class ChannelHH<Domain3d, CPUBlockAlgebra<4> >;
-template class ChannelHHNernst<Domain3d, CPUBlockAlgebra<4> >;
-#endif
-#ifdef UG_CPU_VAR
-template class IChannel<Domain3d, CPUVariableBlockAlgebra >;
-template class ChannelHH<Domain3d, CPUVariableBlockAlgebra >;
-template class ChannelHHNernst<Domain3d, CPUVariableBlockAlgebra >;
-#endif
+	template class IChannel<Domain3d>;
+	template class ChannelHH<Domain3d>;
+	template class ChannelHHNernst<Domain3d>;
 #endif
 
 
-
-
-} /* namespace ug */
+} // namespace ug

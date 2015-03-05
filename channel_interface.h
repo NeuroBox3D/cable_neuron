@@ -32,17 +32,17 @@ namespace ug
 {
 
 // forward declaration
-template <typename TDomain, typename TAlgebra>
+template <typename TDomain>
 class VMDisc;
 
 
-template <typename TDomain, typename TAlgebra>
+template <typename TDomain>
 class IChannel
 {
 	public:
 		///	constructor with comma-separated c-string
 		IChannel(const char* functions, const char* subsets)
-		: m_vmDisc(NULL)
+		: m_spVMDisc(SPNULL)
 		{
 			m_vSubset = TokenizeString(subsets);
 			m_vWFct = TokenizeString(functions);
@@ -78,7 +78,7 @@ class IChannel
 
 		/// constructor with vector of string
 		IChannel(const std::vector<std::string>& functions, const std::vector<std::string>& subsets)
-		: m_vmDisc(NULL)
+		: m_spVMDisc(SPNULL)
 		{
 			m_vSubset = subsets;
 			m_vWFct = functions;
@@ -97,19 +97,22 @@ class IChannel
 		 * @param time			initial time
 		 * @param spGridFct		initial solution (containing membrane potential and ion concentrations)
 		 */
-		virtual void init(number time, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct) = 0;
+		virtual void init(const LocalVector& u, Edge* e) = 0;
 
 		/// updates the gating parameters
-		virtual void update_gating(number newTime, ConstSmartPtr<typename TAlgebra::vector_type> uOld) = 0;
+		virtual void update_gating(number newTime, const LocalVector& u, Edge* e) = 0;
 
 		/// provides the ionic current (mol*s^-1) at a given vertex
 		virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues) = 0;
+
+		/// called when access to the root VM disc is possible (i.e. after call to set_vm_disc)
+		virtual void vm_disc_available() {};
 
 		/// adding some Jacobian infos at given vertex
 		//virtual void Jacobi_sets(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outJFlux) = 0;
 
 		const std::vector<std::string>& write_fcts() {return m_vWFct;}
-		void set_vm_disc(VMDisc<TDomain, TAlgebra>* vmdisc) {m_vmDisc = vmdisc;}
+		void set_vm_disc(SmartPtr<VMDisc<TDomain> > vmdisc) {m_spVMDisc = vmdisc; vm_disc_available();}
 
 	protected:
 		/// functions whose defect will be written to by this channel
@@ -120,28 +123,28 @@ class IChannel
 		std::vector<std::string> m_vSubset;
 
 		/// joint VMDisc
-		VMDisc<TDomain, TAlgebra>* m_vmDisc;
+		SmartPtr<VMDisc<TDomain> > m_spVMDisc;
 };
 
 
-template <typename TDomain, typename TAlgebra>
+template <typename TDomain>
 class ChannelHH
-	: public IChannel<TDomain, TAlgebra>
+	: public IChannel<TDomain>
 {
 	public:
-		using IChannel<TDomain, TAlgebra>::m_vmDisc;
+		using IChannel<TDomain>::m_spVMDisc;
 
-		/// @copydoc IChannel<TDomain, TAlgebra>::IChannel(const char*)
-		ChannelHH (const char* functions, const char* subsets)
-		try : IChannel<TDomain, TAlgebra>(functions, subsets),
+		/// @copydoc IChannel<TDomain>::IChannel(const char*)
+		ChannelHH(const char* functions, const char* subsets)
+		try : IChannel<TDomain>(functions, subsets),
 		m_g_K(3.6e-4), m_g_Na(1.2e-3), m_g_I(3.0e-6),
 		m_rev_pot_K(-74.1266), m_rev_pot_Na(63.5129),
 		m_accuracy(1e-12) {}
 		UG_CATCH_THROW("Error in ChannelHH initializer list.");
 
-		/// @copydoc IChannel<TDomain, TAlgebra>::IChannel(const std::vector<std::string>&)
+		/// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&)
 		ChannelHH(const std::vector<std::string>& functions, const std::vector<std::string>& subsets)
-		try : IChannel<TDomain, TAlgebra>(functions, subsets),
+		try : IChannel<TDomain>(functions, subsets),
 		m_g_K(3.6e-4), m_g_Na(1.2e-3), m_g_I(3.0e-6),
 		m_rev_pot_K(-74.1266), m_rev_pot_Na(63.5129),
 		m_accuracy(1e-12) {}
@@ -149,6 +152,9 @@ class ChannelHH
 
 		/// destructor
 		virtual ~ChannelHH() {};
+
+		/// create attachments and accessors
+		void init_attachments();
 
 
 	/// functions for setting some HH params
@@ -161,10 +167,11 @@ class ChannelHH
 		number vtrap(number x, number y);
 
 		// inherited from IChannel
-		virtual void init(number time, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct);
-		virtual void update_gating(number newTime, ConstSmartPtr<typename TAlgebra::vector_type> uOld);
-		virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues);
-		virtual void Jacobi_sets(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outJFlux);
+		virtual void init(const LocalVector& u, Edge* e);
+		virtual void update_gating(number newTime, const LocalVector& u, Edge* e);
+		virtual void ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues);
+		virtual void vm_disc_available();
+		//virtual void Jacobi_sets(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outJFlux);
 
 	private:
 		// membrane conductivities
@@ -191,25 +198,25 @@ class ChannelHH
 
 
 
-template <typename TDomain, typename TAlgebra>
+template <typename TDomain>
 class ChannelHHNernst
-	: public IChannel<TDomain, TAlgebra>
+	: public IChannel<TDomain>
 {
 	public:
-		using IChannel<TDomain, TAlgebra>::m_vmDisc;
+		using IChannel<TDomain>::m_spVMDisc;
 
-		/// @copydoc IChannel<TDomain, TAlgebra>::IChannel(const char*)
+		/// @copydoc IChannel<TDomain>::IChannel(const char*)
 		ChannelHHNernst(const char* functions, const char* subsets)
-		try : IChannel<TDomain, TAlgebra>(functions, subsets),
+		try : IChannel<TDomain>(functions, subsets),
 		m_g_K(3.6e-4), m_g_Na(1.2e-3), m_g_I(3.0e-6),
 		m_R(8.314), m_T(310.0), m_F(96485.0),
 		m_accuracy(1e-12) {}
 		UG_CATCH_THROW("Error in ChannelHHNernst initializer list.");
 
 
-		/// @copydoc IChannel<TDomain, TAlgebra>::IChannel(const std::vector<std::string>&)
+		/// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&)
 		ChannelHHNernst(const std::vector<std::string>& functions, const std::vector<std::string>& subsets)
-		try : IChannel<TDomain, TAlgebra>(functions, subsets),
+		try : IChannel<TDomain>(functions, subsets),
 		m_g_K(3.6e-4), m_g_Na(1.2e-3), m_g_I(3.0e-6),
 		m_R(8.314), m_T(310.0), m_F(96485.0),
 		m_accuracy(1e-12) {}
@@ -218,16 +225,20 @@ class ChannelHHNernst
 		/// destructor
 		virtual ~ChannelHHNernst() {};
 
+		/// create attachments and accessors
+		void init_attachments();
+
 		// functions for setting some HH params
 		void set_accuracy(double ac);
 
 		void set_conductivities(number Na, number K, number L);
 
 		// inherited from IChannel
-		virtual void init(number time, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct);
-		virtual void update_gating(number newTime, ConstSmartPtr<typename TAlgebra::vector_type> uOld);
-		virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues);
-		virtual void Jacobi_sets(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outJFlux);
+		virtual void init(const LocalVector& u, Edge* e);
+		virtual void update_gating(number newTime, const LocalVector& u, Edge* e);
+		virtual void ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues);
+		virtual void vm_disc_available();
+		//virtual void Jacobi_sets(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outJFlux);
 
 
 	private:
