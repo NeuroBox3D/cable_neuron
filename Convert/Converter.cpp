@@ -398,7 +398,7 @@ bool Converter::begG(string s)
 std::vector<string> Converter::equali(std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen)
 {
 	std::vector<string> out;
-	out.push_back("const number helpV = (m_R*m_T)/m_F;");
+	out.push_back("const number helpV = 1e3*(m_R*m_T)/m_F;");
 
 	size_t Ion, IonRead, IonRend;
 	string IonS;
@@ -457,7 +457,7 @@ std::vector<string> Converter::equali(std::vector<pair<int, int> > Pairs, std::v
 			if (version[j]==false)
 			{
 			std::cout << "read ion: " + ListIonRead[j] + "List ion: " + ListIon[j] << std::endl;
-			out.push_back("number " + ListIonRead[j] + " = helpV*(log(" + ListIon[j] + "_out/" + ListIon[j] + "));");
+			out.push_back("number " + ListIonRead[j] + " = helpV*(log(m_spVMDisc->" + ListIon[j] + "_out/" + ListIon[j] + "));");
 			}
 		}
 
@@ -467,7 +467,7 @@ std::vector<string> Converter::equali(std::vector<pair<int, int> > Pairs, std::v
 			if (version[j]==true)
 			{
 			std::cout << "read ion: " + ListIonRead[j] + "List ion: " + ListIon[j] << std::endl;
-			out.push_back("number " + ListIonRead[j] + " = helpV*(log(" + ListIon[j] + "_out/" + ListIon[j] + "));");
+			out.push_back("number " + ListIonRead[j] + " = helpV*(log(m_spVmDisc->" + ListIon[j] + "_out/" + ListIon[j] + "));");
 			}
 		}
 
@@ -1319,8 +1319,12 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 				  funchead = func_head(FUNCTION[j]);
 				  func_hfile.push_back(func);
 
-
-				  mycppfile << "template<typename TDomain, typename TAlgebra> \n";
+				  // writing needed templates in function!
+				  string left = func.substr(0, func.find("::"));
+				  string right = func.substr(func.find("::")+2, func.npos-(func.find("::")+2));
+				  func = left + "<TDomain>::" + right;
+				  mycppfile << "template<typename TDomain> \n";
+				  // Todo template params in head benötigt
 				  mycppfile << func +" \n";
 				  mycppfile << "{ \n";
 
@@ -1371,13 +1375,18 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 			  }
 		  }
 
-	  	  mycppfile << "\n \n";
+	  	  mycppfile << "\n \n \n";
 	  }
 
 	  // Proceduren wie Funktionen
 	  std::cout << "All Functions added" << std::endl;
 
-
+	  mycppfile << "// adding function which always inits_attachments \n";
+	  mycppfile << "template<typename TDomain> \n";
+	  mycppfile << "void "+filename+"<TDomain>::vm_disc_available()  \n";
+	  mycppfile << "{  \n";
+	  mycppfile << "	init_attachments();  \n";
+	  mycppfile << "}  \n \n \n \n";
 
 	  mycppfile.close();
 
@@ -1413,16 +1422,24 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  myhfile << "#include \"common/util/vector_util.h\" \n";
 	  myhfile << "\n";
 
+	  myhfile << "#include \"VM_Disc.h\" \n \n";
+
 	  myhfile << "#include <vector> \n";
 	  myhfile << "#include <stdio.h> \n";
 	  myhfile << "#include \"bindings/lua/lua_user_data.h\" \n";
 
-	  myhfile << "namespace ug { \n";
-	  myhfile << "template <typename TDomain, typename TAlgebra> \n";
+	  myhfile << "namespace ug { \n \n";
+	  myhfile << "// forward declaration \n";
+	  myhfile << "template <typename TDomain> \n";
+	  myhfile << "class VMDisc; \n \n";
+
+	  myhfile << "template <typename TDomain> \n";
 	  myhfile << "class " + filename + "\n";
-	  myhfile << "    : public IChannel<TDomain, TAlgebra> \n";
+	  myhfile << "    : public IChannel<TDomain> \n";
 	  myhfile << "{ \n";
-	  myhfile << "    public: \n \n \n";
+	  myhfile << "    public: \n ";
+	  myhfile << "using IChannel <TDomain>::m_spVMDisc; \n \n";
+
 
 	  // finde die spezifischen Parameter
 	  // out of neuron only GLOBALS needed
@@ -1445,7 +1462,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		  for (size_t i = 0; i<Global_vars.size(); i++)
 		  {
 			  HFile_added_Vars.push_back(Global_vars[i]);
-			  myhfile << "double " + Global_vars[i] + "; \n";
+			  //myhfile << "double " + Global_vars[i] + "; \n";
 		  }
 
 	  }
@@ -1459,6 +1476,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  string var, UnitS;
 	  double Unit;
 
+	  std::vector<string> Params_Unit;
 
 	  // setting all parameters and converting units
 	  std::cout << "Setting Parameters and converting in needed Units" << std::endl;
@@ -1478,7 +1496,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 					  Unit = Unit_Conv_All(PARAMETER[i].substr(end, endUnit));
 				  }
 				  Units << Unit;
-				  myhfile << "number " + var + "*" + Units.str() + "; \n";
+				  Params_Unit.push_back(var + "*" + Units.str());
 				  HFile_added_Vars.push_back(var.substr(0, var.find("=")));
 			  }
 		  }
@@ -1513,15 +1531,6 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 	  }
 
-	  //writes var for outer concentrations hardcoded
-	  myhfile << "number na_out; \n";
-	  myhfile << "number k_out; \n";
-	  myhfile << "number ca_out; \n \n";
-
-
-	  //writes var vor temprature
-	  myhfile << "number celsius; \n \n";
-
 
 	  // delete all unneeded style-formats
 	  Remove_all(HFile_added_Vars);
@@ -1534,16 +1543,46 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 	  myhfile << "\n"; myhfile << "\n";
 
-	  myhfile << "/// constructor \n \n";
+	  myhfile << "/// @copydoc IChannel<TDomain>::IChannel(cont char*) \n";
 	  myhfile << filename + "(const char* functions, const char* subsets) \n";
-	  myhfile << ": IChannel<TDomain, TAlgebra>(functions, subsets), \n";
-	  myhfile << "m_bNonRegularGrid(false), m_R(8314), m_T(279.45), m_F(96485.0) \n";
-	  myhfile << "{ \n";
-	  myhfile << "register_all_funcs(m_bNonRegularGrid); \n";
-	  myhfile << "}; \n \n";
+	  myhfile << "try : IChannel<TDomain>(functions, subsets), \n";
+	  myhfile << "m_R(8.314), m_T(310.0), m_F(96485.0), \n";
+	  /// adding all standard vals of Parameters
+	  size_t gleich;
+	  string add;
+	  for (size_t i=0; i<Params_Unit.size(); i++)
+	  {
+		  gleich = Params_Unit[i].find("=");
+		  add = Params_Unit[i].substr(0, gleich) + "(" + Params_Unit[i].substr(gleich+1) + ")";
+		  if (i+1<Params_Unit.size())
+			  add = add + ", \n";
+		  else
+			  add = add + " {} \n";
+		  myhfile << add;
+	  }
+	  myhfile << "UG_CATCH_THROW(\"Error in "+ filename + " initializer list. \") \n \n \n";
+
+	  myhfile << "/// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&) \n";
+	  myhfile << filename + "(const std::vector<std::string>& functions, const std::vector<std::string>& subsets) \n";
+	  myhfile << "try : IChannel<TDomain>(functions, subsets), \n";
+	  myhfile << "m_R(8.314), m_T(310.0), m_F(96485.0), \n";
+	  /// adding all standard vals of Parameters
+	  size_t gleich1;
+	  string add1;
+	  for (size_t i=0; i<Params_Unit.size(); i++)
+	  {
+	  	gleich1 = Params_Unit[i].find("=");
+	  	add1 = Params_Unit[i].substr(0, gleich1) + "(" + Params_Unit[i].substr(gleich1+1) + ")";
+	  	if (i+1<Params_Unit.size())
+	  		add1 = add1 + ", \n";
+	  	else
+	  		add1 = add1 + " {} \n";
+	  	myhfile << add1;
+	  }
+	  myhfile << "UG_CATCH_THROW(\"Error in "+ filename + " initializer list. \") \n";
 
 	  myhfile << "/// destructor \n \n";
-	  myhfile << "virtual ~"+ filename + "{}; \n";
+	  myhfile << "virtual ~"+ filename + "() {}; \n";
 
 	  string name;
 
@@ -1558,19 +1597,17 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 
 	  /// adding functions of IChannel
+	  myhfile << "/// create attachments and accessors \n";
+	  myhfile << "void init_attachments(); \n";
 	  myhfile << "// inherited from IChannel \n \n";
-	  myhfile << "virtual void init(number time, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct); \n";
-	  myhfile << "virtual void update_gating(number newTime, SmartPtr<GridFunction<TDomain, TAlgebra> > sgGridFct); \n";
-	  myhfile << "virtual void ionic_current(Vertex* v, std::vector<number>& outCurrentValues); \n";
-	  myhfile << "/// assembles the local right hand side \n \n";
-	  myhfile << "template<typename TElem, typename TFVGeom> \n";
-	  myhfile << "void add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[]); \n";
+	  myhfile << "virtual void init(const LocalVector& u, Edge* e); \n";
+	  myhfile << "virtual void update_gating(number newTime, const LocalVector& u, Edge* e); \n";
+	  myhfile << "virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues); \n";
+	  myhfile << "virtual void vm_disc_available(); \n";
 	  myhfile << "\n \n";
 	  myhfile << "protected: \n";
-	  myhfile << "bool m_bNonRegularGrid; \n \n";
-	  myhfile << "void register_all_funcs(bool bHang); \n";
-	  myhfile << "template <typename TElem, typename TFVGeom> \n";
-	  myhfile << "void register_func(); \n \n \n";
+
+	  //myhfile << "void register_func(); \n \n \n";
 	  myhfile << "private: \n \n";
 	  // Neuron-lines with use ion
 
@@ -1580,27 +1617,14 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 
 
+	  // creating init Attachments
 	  mycppfile.open (filenamecpp, std::ios::app);
-	  mycppfile << " // Init Method for using gatings \n";
-	  mycppfile << "template<typename TDomain, typename TAlgebra> \n";
-	  mycppfile << "void " + filename + "<TDomain, TAlgebra>::init(number time, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct) \n";
+	  mycppfile << " // creating Method for attachments \n";
+	  mycppfile << "template<typename TDomain> \n";
+	  mycppfile << "void " + filename + "<TDomain>::init_attachments() \n";
 	  mycppfile << "{ \n";
-	  mycppfile << "// attach attachments \n \n";
+	  mycppfile << "SmartPtr<Grid> spGrid = m_spVMDisc->approx_space()->domain()->grid(); \n";
 
-
-
-	  for (size_t i=0; i<ListIons.size(); i++)
-	  {
-		  IonS = ListIons[i];
-		  myhfile << "ADouble " + IonS + "Gate; \n";
-		  myhfile << "Grid::AttachmentAccessor<Vertex, ADouble> aa" + IonS + "Gate; \n";
-
-		  mycppfile << "if (spGridFct->approx_space()->domain()->grid()->has_vertex_attachment(this->" + IonS + "Gate)) \n";
-		  mycppfile << "UG_THROW(\"Attachment necessary (" + IonS + "Gate) for Hodgkin and Huxley channel dynamics \"\n";
-		  mycppfile << "\"could not be made, since it already exists.\"); \n";
-		  mycppfile << "spGridFct->approx_space()->domain()->grid()->attach_to_vertices(this->" + IonS + "Gate); \n";
-		  mycppfile << "this->aa" + IonS + "Gate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGridFct->approx_space()->domain()->grid(), this->" + IonS + "Gate); \n \n";
-	  }
 ////////////////////////////////////////////////////////////////////////////////////
 //// Saving all States in one Var also writting first states into cpp and h file
 /////////////////////////////////////////////////////////////////////////////////////
@@ -1664,12 +1688,11 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		  				  myhfile << "Grid::AttachmentAccessor<Vertex, ADouble> aa" + addState + "Gate; \n";
 
 		  				  //writting of attachment inits for cpp file
-		  				  mycppfile << "if (spGridFct->approx_space()->domain()->grid()->has_vertex_attachment(this->" + addState + "Gate)) \n";
-		  				  mycppfile << "UG_THROW(\"Attachment necessary (" + addState + "Gate) for Hodgkin and Huxley channel dynamics \"\n";
+		  				  mycppfile << "if (spGrid->has_vertex_attachment(this->" + addState + "Gate)) \n";
+		  				  mycppfile << "UG_THROW(\"Attachment necessary (" + addState + "Gate) for " +filename+" channel dynamics \"\n";
 		  				  mycppfile << "\"could not be made, since it already exists.\"); \n";
-		  				  mycppfile << "spGridFct->approx_space()->domain()->grid()->attach_to_vertices(this->" + addState + "Gate); \n";
-		  				  mycppfile << "this->aa" + addState + "Gate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGridFct->approx_space()->domain()->grid(), this->" + addState + "Gate); \n \n";
-
+		  				  mycppfile << "spGrid->attach_to_vertices(this->" + addState + "Gate); \n";
+		  				  mycppfile << "this->aa" + addState + "Gate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->" + addState + "Gate); \n \n";
 
 		  			  }
 
@@ -1683,53 +1706,32 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		  }
 
 	  }
+	  mycppfile << "} \n \n \n \n";
 
-	  // writting VM Parts for gatting init in cpp than close and finish h-file
-	  mycppfile << "if (spGridFct->approx_space()->domain()->grid()->has_vertex_attachment(this->vGate)) \n";
-	  mycppfile << "UG_THROW(\"Attachment necessary (vGate) for Hodgkin and Huxley channel dynamics \"\n";
-	  mycppfile << "\"could not be made, since it already exists.\"); \n";
-	  mycppfile << "spGridFct->approx_space()->domain()->grid()->attach_to_vertices(this->vGate); \n";
-	  mycppfile << "this->aavGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGridFct->approx_space()->domain()->grid(), this->vGate); \n \n";
 
-	  // for every IonS (UseIon)+ v DoFIndex needed
-	  mycppfile << "// creates multiindeces \n";
+
+	  // Method for initialization of States with values read out of Initial
+	  mycppfile << " // Init Method for using gatings \n";
+	  mycppfile << "template<typename TDomain> \n";
+	  mycppfile << "void " + filename + "<TDomain>::init(const LocalVector& u, Edge* edge) \n";
+	  mycppfile << "{ \n";
+	  mycppfile << "//get celsius \n";
+	  mycppfile << "number celsius = m_spVMDisc->celsius; \n";
+	  mycppfile << "// make preparing vor getting values of every edge \n";
+	  mycppfile << "typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; \n";
+	  mycppfile << "vrt_list vl; \n";
+	  mycppfile << "m_spVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge); \n \n \n";
+	  mycppfile << "//over all edges \n";
+	  mycppfile << "for (size_t l = 0; l< vl.size(); l++) \n";
+	  mycppfile << "{ \n";
+	  mycppfile << "\t Vertex* vrt = vl[l]; \n \n \n";
+	  mycppfile << "number v = u(m_spVMDisc->_v_, l); \n";
+
 	  for (size_t i=0; i<ListIons.size(); i++)
 	  {
-		  mycppfile << "std::vector<DoFIndex> multInd" + ListIons[i] +"; \n";
-	  }
-	  mycppfile << "std::vector<DoFIndex> multIndv; \n \n";
-
-
-	  // write begin of interations over elements
-	  mycppfile << "typedef typename DoFDistribution::traits<Vertex>::const_iterator itType;  \n";
-	  mycppfile << "SubsetGroup ssGrp;  \n";
-	  mycppfile << "try { ssGrp = SubsetGroup(spGridFct->domain()->subset_handler(), this->m_vSubset);}  \n";
-	  mycppfile << "UG_CATCH_THROW(\"Subset group creation failed.\"); \n  \n";
-	  mycppfile << "for (std::size_t si = 0; si < ssGrp.size(); si++)  \n";
-	  mycppfile << "{  \n";
-	  mycppfile << "itType iterBegin = spGridFct->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]);  \n";
-	  mycppfile << "itType iterEnd = spGridFct->approx_space()->dof_distribution(GridLevel::TOP)->template end<Vertex>(ssGrp[si]); \n  \n";
-	  mycppfile << "for (itType iter = iterBegin; iter != iterEnd; ++iter)  \n";
-	  mycppfile << "{  \n \n";
-	  mycppfile << "size_t vm = spGridFct->fct_id_by_name(\"v\");  \n";
-	  for (size_t i=0; i<ListIons.size(); i++)
-	  {
-		  mycppfile << "size_t " + ListIons[i] +" = spGridFct->fct_id_by_name(\"" + ListIons[i] + "\"); \n";
+		  mycppfile << "number " + ListIons[i] +" = u(m_spVMDisc->_"+ ListIons[i] +"_, l); \n";
 	  }
 	  mycppfile << "\n \n";
-	  for (size_t i=0; i<ListIons.size(); i++)
-	  {
-		  mycppfile << "spGridFct->dof_indices(*iter, " + ListIons[i] + ", multInd" + ListIons[i] + "); \n";
-	  }
-	  mycppfile << "spGridFct->dof_indices(*iter, vm, multIndv);  \n \n ";
-	  mycppfile << "for (size_t i=0; i<multIndv.size(); i++)  \n";
-	  mycppfile << "{  \n";
-	  mycppfile << "aavGate[*iter] = DoFRef(*spGridFct, multIndv[i]);  \n";
-	  for (size_t i=0; i<ListIons.size(); i++)
-	  {
-	  mycppfile << "aa" + ListIons[i] + "Gate[*iter] = DoFRef(*spGridFct, multInd" + ListIons[i] + "[i]);  \n";
-	  }
-	  mycppfile << "}  \n \n \n";
 
 	  // Reading functional info for states
 	  std::vector<string> INITIAL = GetBlock(Pairs, Zeilen, "INITIAL");
@@ -1774,7 +1776,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 					  		  string GatingName = In_NeuronUse_List(Pairs, Zeilen, Proc_funcs[j][k]);
 					  		  if (GatingName!="")
 					  		  {
-					  			  mycppfile << "double " + Proc_funcs[j][k] + " = aa"+ GatingName + "Gate[*iter]; \n \n";
+					  			  mycppfile << "double " + Proc_funcs[j][k] + " = aa"+ GatingName + "Gate[vrt]; \n \n";
 					  			  std::cout << "else for: " << std::endl;
 					  		  }
 					  	  }
@@ -1893,7 +1895,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 					  {
 						  if (Remove_all(INITIAL[i].substr(vorgleich , gleich-vorgleich))==Remove_all(State_vars[j]))
 						  {
-							  mycppfile << "aa" + Remove_all(INITIAL[i].substr(vorgleich , gleich-vorgleich)) + "Gate[*iter] " + INITIAL[i].substr(gleich) + "; \n";
+							  mycppfile << "aa" + Remove_all(INITIAL[i].substr(vorgleich , gleich-vorgleich)) + "Gate[vrt] " + INITIAL[i].substr(gleich) + "; \n";
 							  written = true;
 						  }
 					  }
@@ -1912,35 +1914,29 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  std::cout << "INIT happend" << std::endl;
 
 	  mycppfile << "}  \n";
-	  mycppfile << "}  \n";
 	  mycppfile << "}  \n \n \n \n";
 
-	  mycppfile << "template<typename TDomain, typename TAlgebra> \n";
-	  mycppfile << "void " + filename + "<TDomain, TAlgebra>::update_gating(number newTime, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct) \n";
+	  mycppfile << "template<typename TDomain> \n";
+	  mycppfile << "void " + filename + "<TDomain>::update_gating(number newTime, const LocalVector& u, Edge* edge) \n";
 	  mycppfile << "{ \n";
+	  mycppfile << "number celsius = m_spVMDisc->celsius; \n \n";
 
-	  // for every IonS (UseIon)+ v DoFIndex needed
-	  mycppfile << "// creates multiindeces \n";
+	  mycppfile << "// make preparing vor getting values of every edge \n";
+	  mycppfile << "typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; \n";
+	  mycppfile << "vrt_list vl; \n";
+	  mycppfile << "m_spVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge); \n \n \n";
+	  mycppfile << "//over all edges \n";
+	  mycppfile << "for (size_t l = 0; l< vl.size(); l++) \n";
+	  mycppfile << "{ \n";
+	  mycppfile << "\t Vertex* vrt = vl[l]; \n \n \n";
+	  mycppfile << "number dt = newTime - m_spVMDisc->m_aaTime[vrt]; \n";
+	  mycppfile << "number v = u(m_spVMDisc->_v_, l); \n";
+
 	  for (size_t i=0; i<ListIons.size(); i++)
 	  {
-		  mycppfile << "std::vector<DoFIndex> multInd" + ListIons[i] +"; \n";
+		  mycppfile << "number " + ListIons[i] +" = u(m_spVMDisc->_"+ ListIons[i] +"_, l); \n";
 	  }
-	  mycppfile << "std::vector<DoFIndex> multIndv; \n \n";
-
-
-
-	  mycppfile << "typedef typename DoFDistribution::traits<Vertex>::const_iterator itType; \n";
-	  mycppfile << "SubsetGroup ssGrp; \n";
-	  mycppfile << "try { ssGrp = SubsetGroup(spGridFct->domain()->subset_handler(), this->m_vSubset);} \n";
-	  mycppfile << "UG_CATCH_THROW(\"Subset group creation failed.\"); \n \n";
-	  mycppfile << "for (std::size_t si = 0; si < ssGrp.size(); si++) \n";
-	  mycppfile << "{ \n \n";
-	  mycppfile << "itType iterBegin = spGridFct->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]);  \n";
-	  mycppfile << "itType iterEnd = spGridFct->approx_space()->dof_distribution(GridLevel::TOP)->template end<Vertex>(ssGrp[si]); \n \n";
-	  mycppfile << "for (itType iter = iterBegin; iter != iterEnd; ++iter) \n";
-	  mycppfile << "{ \n \n";
-	  mycppfile << "Vertex* vrt = *iter; \n";
-	  mycppfile << "// needed konzentration has to be set \n";
+	  mycppfile << "\n \n";
 
 	  std::vector<string> DERIVATIVE = GetBlock(Pairs, Zeilen, "DERIVATIVE");
 	  //std::vector<vector <string> > Der_funcs;
@@ -1977,35 +1973,11 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 
 
-	  mycppfile << "size_t vm = spGridFct->fct_id_by_name(\"v\");  \n";
-	  for (size_t i=0; i<ListIons.size(); i++)
-	  {
-		  mycppfile << "size_t " + ListIons[i] +" = spGridFct->fct_id_by_name(\"" + ListIons[i] + "\"); \n";
-	  }
-
-	  mycppfile << "\n \n";
-
-	  for (size_t i=0; i<ListIons.size(); i++)
-	  {
-		  mycppfile << "spGridFct->dof_indices(*iter, " + ListIons[i] + ", multInd" + ListIons[i] + "); \n";
-	  }
-
-	  mycppfile << "spGridFct->dof_indices(*iter, vm, multIndv);  \n \n ";
-	  mycppfile << "for (size_t i=0; i<multIndv.size(); i++)  \n";
-	  mycppfile << "{  \n";
-	  mycppfile << "aavGate[*iter] = DoFRef(*spGridFct, multIndv[i]);  \n";
-
-	  for (size_t i=0; i<ListIons.size(); i++)
-	  {
-	 	  mycppfile << "aa" + ListIons[i] + "Gate[*iter] = DoFRef(*spGridFct, multInd" + ListIons[i] + "[i]);  \n";
-	  }
-	  mycppfile << "}  \n \n \n";
-
 
 	  // States ever needed for deriv writting out of State_vars State_vars;
 	  for (size_t i=0; i<State_vars.size(); i++)
 	  {
-		  mycppfile << "double " + State_vars[i] + " = aa" + State_vars[i] + "Gate[*iter]; \n";
+		  mycppfile << "double " + State_vars[i] + " = aa" + State_vars[i] + "Gate[vrt]; \n";
 		  HFile_added_Vars_Deriv.push_back(Remove_all(State_vars[i]));
 	  }
 
@@ -2048,7 +2020,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 						  		  string GatingName = In_NeuronUse_List(Pairs, Zeilen, Proc_funcs[j][k]);
 						  		  if (GatingName!="")
 						  		  {
-						  			  mycppfile << "double " + Proc_funcs[j][k] + " = aa"+ GatingName + "Gate[*iter]; \n \n";
+						  			  mycppfile << "double " + Proc_funcs[j][k] + " = aa"+ GatingName + "Gate[vrt]; \n \n";
 						  			  std::cout << "else for: " << std::endl;
 						  		  }
 	  					  	  }
@@ -2459,7 +2431,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  {
 		  for (size_t i=0; i<State_vars.size(); i++)
 		  {
-			  mycppfile << "aa" + State_vars[i] + "Gate[*iter] = " + State_vars[i] + "; \n";
+			  mycppfile << "aa" + State_vars[i] + "Gate[vrt] = " + State_vars[i] + "; \n";
 		  }
 	  }
 
@@ -2468,14 +2440,13 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  mycppfile << " \n \n \n";
 	  mycppfile << "} \n";
 	  mycppfile << "} \n";
-	  mycppfile << "} \n";
 	  mycppfile << " \n \n \n";
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 // write head of ionic flux
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-	  mycppfile << "template<typename TDomain, typename TAlgebra> \n";
-	  mycppfile << "void " + filename + "<TDomain, TAlgebra>::ionic_current(Vertex* ver, std::vector<number>& outCurrentValues) \n";
+	  mycppfile << "template<typename TDomain> \n";
+	  mycppfile << "void " + filename + "<TDomain>::ionic_current(Vertex* ver, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues) \n";
 	  mycppfile << "{ \n \n";
 	  // all gates
 
@@ -2484,7 +2455,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		  // States ever need new values
 		  	  for (size_t i=0; i<State_vars.size(); i++)
 		  	  {
-		  		  mycppfile << "double " + State_vars[i] + " = aa" + State_vars[i] + "Gate[ver]; \n";
+		  		  mycppfile << "number " + State_vars[i] + " = aa" + State_vars[i] + "Gate[ver]; \n";
 		  	  }
 	  }
 
@@ -2493,12 +2464,12 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		  // all ions
 		  for (size_t i=0; i<ListIons.size(); i++)
 		  {
-		 	  mycppfile << "double " + ListIons[i] + " = aa" + ListIons[i] + "Gate[ver];  \n";
+		 	  mycppfile << "number " + ListIons[i] + " = vrt_values[VMDisc<TDomain>::_" + ListIons[i] + "_]; \n";
 		  }
 	  }
 
-	  // v
-	  mycppfile << "double v = aavGate[ver]; \n";
+	  // v needed every time
+	  mycppfile << "number v =  vrt_values[VMDisc<TDomain>::_v_]; \n";
 	  mycppfile << " \n";
 	  mycppfile << " \n";
 
@@ -2694,7 +2665,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 		 								 if (fluxes[i].find(right)!=fluxes[i].npos)
 		 								 {
-		 									 mycppfile << "number " + eqs[k+1] + "o = " + eqs[k+1] + "_out; \n";
+		 									 mycppfile << "number " + eqs[k+1] + "o = m_spVMDisc->" + eqs[k+1] + "_out; \n";
 		 									 mycppfile << "\n \n \n";
 		 								 }
 
@@ -2719,31 +2690,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		 	  }
 	  }
 
-	  mycppfile << "  \n \n \n";
-
-	  // add registry entrys
-	  mycppfile << "// Registry entrys for UG4 using in Lua-Script \n" ;
-	  mycppfile << "template<typename TDomain, typename TAlgebra> \n";
-	  mycppfile << "void "+filename +"<TDomain, TAlgebra>:: \n";
-	  mycppfile << "register_all_funcs(bool bHang) \n";
-	  mycppfile << "{ \n";
-	  mycppfile << "	register_func<RegularEdge, FV1Geometry<RegularEdge, dim> >(); \n";
-	  mycppfile << "} \n \n \n";
-
-	  mycppfile << "template<typename TDomain, typename TAlgebra>\n" ;
-	  mycppfile << "template<typename TElem, typename TFVGeom>\n" ;
-	  mycppfile << "void "+filename+"<TDomain, TAlgebra>::\n" ;
-	  mycppfile << "register_func()\n" ;
-	  mycppfile << "{\n" ;
-	  mycppfile << "	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;\n" ;
-	  mycppfile << "	typedef this_type T;\n \n" ;
-
-	  mycppfile << "	//this->set_prep_elem_loop_fct(id, &T::template prep_elem_loop<TElem, TFVGeom>);\n" ;
-	  mycppfile << "	//this->set_prep_elem_fct(id, &T::template prep_elem<TElem, TFVGeom>);\n" ;
-	  mycppfile << "	//this->set_fsh_elem_loop_fct(id, &T::template fsh_elem_loop<TElem, TFVGeom>);\n" ;
-	  mycppfile << "	//this->set_add_rhs_elem_fct(id, &T::template add_rhs_elem<TElem, TFVGeom>);\n" ;
-
-	  mycppfile << "} \n \n \n";
+	  mycppfile << " } \n \n \n";
 
 
 
@@ -2752,60 +2699,16 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  mycppfile << "//////////////////////////////////////////////////////////////////////////////// \n";
 
 	  mycppfile << "#ifdef UG_DIM_1 \n";
-	  mycppfile << "#ifdef UG_CPU_1 \n";
-	  mycppfile << "template class "+filename+"<Domain1d, CPUAlgebra>; \n";
-	  mycppfile << "#endif \n";
-	  mycppfile << "#ifdef UG_CPU_2 \n";
-	  mycppfile << "template class "+filename+"<Domain1d, CPUBlockAlgebra<2> >; \n";
-	  mycppfile << "#endif \n";
-	  mycppfile << "#ifdef UG_CPU_3 \n";
-	  mycppfile << "template class "+filename+"<Domain1d, CPUBlockAlgebra<3> >; \n";
-	  mycppfile << "#endif \n";
-	  mycppfile << "#ifdef UG_CPU_4 \n";
-	  mycppfile << "template class "+filename+"<Domain1d, CPUBlockAlgebra<4> >; \n";
-	  mycppfile << "#endif \n";
-	  mycppfile << "#ifdef UG_CPU_VAR \n";
-	  mycppfile << "template class "+filename+"<Domain1d, CPUVariableBlockAlgebra >; \n";
-	  mycppfile << "#endif \n";
+	  mycppfile << "template class "+filename+"<Domain1d>; \n";
 	  mycppfile << "#endif \n \n \n";
 
-
-
 	  mycppfile << "#ifdef UG_DIM_2 \n";
-	  mycppfile << "#ifdef UG_CPU_1 \n";
-	  mycppfile << "template class "+filename+"<Domain2d, CPUAlgebra>; \n";
-	  mycppfile << "#endif \n";
-	  mycppfile << "#ifdef UG_CPU_2 \n";
-	  mycppfile << "template class "+filename+"<Domain2d, CPUBlockAlgebra<2> >; \n";
-	  mycppfile << "#endif \n";
-	  mycppfile << "#ifdef UG_CPU_3 \n";
-	  mycppfile << "template class "+filename+"<Domain2d, CPUBlockAlgebra<3> >; \n";
-	  mycppfile << "#endif \n";
-	  mycppfile << "#ifdef UG_CPU_4 \n";
-	  mycppfile << "template class "+filename+"<Domain2d, CPUBlockAlgebra<4> >; \n";
-	  mycppfile << "#endif \n";
-	  mycppfile << "#ifdef UG_CPU_VAR \n";
-	  mycppfile << "template class "+filename+"<Domain2d, CPUVariableBlockAlgebra >; \n";
-	  mycppfile << "#endif \n";
+	  mycppfile << "template class "+filename+"<Domain2d>; \n";
 	  mycppfile << "#endif \n \n \n";
 
 
 	  mycppfile << "#ifdef UG_DIM_3 \n";
-	  mycppfile << "#ifdef UG_CPU_1 \n";
-	  mycppfile << "template class "+filename+"<Domain3d, CPUAlgebra>; \n";
-	  mycppfile << "#endif \n";
-	  mycppfile << "#ifdef UG_CPU_2 \n";
-	  mycppfile << "template class "+filename+"<Domain3d, CPUBlockAlgebra<2> >; \n";
-	  mycppfile << "#endif \n";
-	  mycppfile << "#ifdef UG_CPU_3 \n";
-	  mycppfile << "template class "+filename+"<Domain3d, CPUBlockAlgebra<3> >; \n";
-	  mycppfile << "#endif \n";
-	  mycppfile << "#ifdef UG_CPU_4 \n";
-	  mycppfile << "template class "+filename+"<Domain3d, CPUBlockAlgebra<4> >; \n";
-	  mycppfile << "#endif \n";
-	  mycppfile << "#ifdef UG_CPU_VAR \n";
-	  mycppfile << "template class "+filename+"<Domain3d, CPUVariableBlockAlgebra >; \n";
-	  mycppfile << "#endif \n";
+	  mycppfile << "template class "+filename+"<Domain3d>; \n";
 	  mycppfile << "#endif \n \n \n";
 
 
@@ -2818,20 +2721,28 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  mycppfile.close();
 
 
-	  myhfile << "ADouble vGate; \n";
-	  myhfile << "Grid::AttachmentAccessor<Vertex, ADouble> aavGate; \n \n";
-	  myhfile << "//nernst const values \n";
 
-	  myhfile << "number m_R; \n";
-	  myhfile << "number m_T; \n";
-	  myhfile << "number m_F; \n \n";
+	  if (Global_vars.size() > 0)
+	  {
+		  for (size_t i = 0; i<Global_vars.size(); i++)
+		  {
+			  //HFile_added_Vars.push_back(Global_vars[i]);
+			  myhfile << "number " + Global_vars[i] + "; \n";
+		  }
 
-	  myhfile << "/// Base type \n";
-	  myhfile << "typedef IChannel<TDomain, TAlgebra> base_type; \n";
-	  myhfile << "///	Own type \n";
-	  myhfile << "typedef ChannelHH<TDomain, TAlgebra> this_type; \n";
-	  myhfile << "/// GridFunction type \n";
-	  myhfile << "typedef GridFunction<TDomain, TAlgebra> TGridFunction; \n \n";
+	  }
+
+	  if (Params_Unit.size() >0)
+	  {
+		  for (size_t i = 0; i<Params_Unit.size(); i++)
+		  {
+			  //HFile_added_Vars.push_back(Global_vars[i]);
+			  myhfile << "number " + Params_Unit[i].substr(0, Params_Unit[i].find("=")) + "; \n";
+		  }
+	  }
+
+	  myhfile << "number m_R, m_T, m_F; \n";
+
 
 	  myhfile << "}; \n \n";
 
