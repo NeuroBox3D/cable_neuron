@@ -32,7 +32,7 @@
 #include "ElemDiscHH_Nernst_fv1.h"
 #include "ElemDiscHH_Nernst_neuron_fv1.h"
 #include "VM_Disc.h"
-//#include "hh_converted_UG.h"
+#include "hh_converted_UG.h"
 
 // Kabel_diff includes
 //#include "kabel_diff_base.h"
@@ -177,6 +177,22 @@ static void Domain(bridge::Registry& reg, string grp)
 			//.add_method("ionic_current", /*static_cast<void (TBase::*) (Vertex*, std::vector<double>&)> (&T::ionic_current) /*, "","", "doing flux")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ChannelHH", tag);
+	}
+
+	// Channel Interface hh_converted_UG
+	{
+		typedef hh_converted_UG<TDomain> T;
+		typedef IChannel<TDomain> TBase;
+		string name = string("hh_converted_UG").append(suffix);
+		reg.add_class_<T, TBase >(name, grp)
+			.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
+			.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
+			//.add_method("set_conductivities", &T::set_conductivities)
+			//.add_method("set_rev_pot", &T::set_rev_pot)
+			//.add_method("set_accuracy", &T::set_accuracy)
+			//.add_method("ionic_current", /*static_cast<void (TBase::*) (Vertex*, std::vector<double>&)> (&T::ionic_current) /*, "","", "doing flux")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "hh_converted_UG", tag);
 	}
 
 

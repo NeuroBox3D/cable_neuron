@@ -1,6 +1,5 @@
 #ifndef hh_converted_UG_H_
 #define hh_converted_UG_H_
-
 #include "channel_interface.h" 
 #include "lib_grid/lg_base.h" 
 #include "lib_grid/grid/grid_base_objects.h" 
@@ -23,22 +22,23 @@
 #include "common/util/smart_pointer.h" 
 #include "common/util/vector_util.h" 
 
-#include "VM_Disc.h"
-#include <vector>
+#include "VM_Disc.h" 
+ 
+#include <vector> 
 #include <stdio.h> 
 #include "bindings/lua/lua_user_data.h" 
 namespace ug { 
  
 // forward declaration 
-template <typename TDomain, typename TAlgebra> 
+template <typename TDomain> 
 class VMDisc; 
  
-template <typename TDomain, typename TAlgebra> 
+template <typename TDomain> 
 class hh_converted_UG
-    : public IChannel<TDomain, TAlgebra> 
+    : public IChannel<TDomain> 
 { 
     public: 
- using IChannel <TDomain, TAlgebra>::m_vmDisc; 
+ using IChannel <TDomain>::m_spVMDisc; 
  
 
  
@@ -46,62 +46,60 @@ class hh_converted_UG
 
 
 
-/// @copydoc IChannel<TDomain, TAlgebra>::IChannel(cont char*) 
+/// @copydoc IChannel<TDomain>::IChannel(cont char*) 
 hh_converted_UG(const char* functions, const char* subsets) 
-try : IChannel<TDomain, TAlgebra>(functions, subsets),
-m_R(8.314), m_T(310.0), m_F(96485.0), 
-        gnabar ( .12 *0.01),
-        gkbar ( .036 *0.01),
-        gl ( .0003 *0.01),
-        el ( -54.3 *1) {}
-UG_CATCH_THROW("Error in hh_converted_UG initializer list. ")
+try : IChannel<TDomain>(functions, subsets), 
+m_R(8.314), m_T(279.45), m_F(96485.0),
+        gnabar ( .12 *0.01), 
+        gkbar ( .036 *0.01), 
+        gl ( .0003 *0.01), 
+        el ( -54.3 *1) {} 
+UG_CATCH_THROW("Error in hh_converted_UG initializer list. ") 
  
  
-/// @copydoc IChannel<TDomain, TAlgebra>::IChannel(const std::vector<std::string>&) 
+/// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&) 
 hh_converted_UG(const std::vector<std::string>& functions, const std::vector<std::string>& subsets) 
-try : IChannel<TDomain, TAlgebra>(functions, subsets),
-m_R(8.314), m_T(310.0), m_F(96485.0), 
-        gnabar ( .12 *0.01),
-        gkbar ( .036 *0.01),
-        gl ( .0003 *0.01),
-        el ( -54.3 *1) {}
-UG_CATCH_THROW("Error in hh_converted_UG initializer list. ")
+try : IChannel<TDomain>(functions, subsets), 
+m_R(8.314), m_T(279.45), m_F(96485.0),
+        gnabar ( .12 *0.01), 
+        gkbar ( .036 *0.01), 
+        gl ( .0003 *0.01), 
+        el ( -54.3 *1) {} 
+UG_CATCH_THROW("Error in hh_converted_UG initializer list. ") 
 /// destructor 
  
 virtual ~hh_converted_UG() {}; 
 double vtrap(double x, double y);
+/// create attachments and accessors 
+void init_attachments(); 
 // inherited from IChannel 
  
-virtual void init(number time, SmartPtr<GridFunction<TDomain, TAlgebra> > spGridFct); 
-virtual void update_gating(number dt, ConstSmartPtr<typename TAlgebra::vector_type> uOld);
+virtual void init(const LocalVector& u, Edge* e); 
+virtual void update_gating(number newTime, const LocalVector& u, Edge* e); 
 virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues); 
-/// assembles the local right hand side 
- 
+virtual void vm_disc_available(); 
 
  
 protected: 
-void register_func(); 
+private: 
  
- 
-private:
-
-ADouble mGate;
-Grid::AttachmentAccessor<Vertex, ADouble> aamGate;
-ADouble hGate;
-Grid::AttachmentAccessor<Vertex, ADouble> aahGate;
-ADouble nGate;
-Grid::AttachmentAccessor<Vertex, ADouble> aanGate;
-number ntau;
-number minf;
-number  hinf;
-number  ninf;
-number  mtau;
-number  htau;
-number         gnabar ;
-number         gkbar ;
-number         gl ;
-number         el ;
-number m_R, m_T, m_F;
+ADouble mGate; 
+Grid::AttachmentAccessor<Vertex, ADouble> aamGate; 
+ADouble hGate; 
+Grid::AttachmentAccessor<Vertex, ADouble> aahGate; 
+ADouble nGate; 
+Grid::AttachmentAccessor<Vertex, ADouble> aanGate; 
+number ntau; 
+number minf; 
+number  hinf; 
+number  ninf; 
+number  mtau; 
+number  htau; 
+number         gnabar ; 
+number         gkbar ; 
+number         gl ; 
+number         el ; 
+number m_R, m_T, m_F; 
 }; 
  
 } // namespace ug 

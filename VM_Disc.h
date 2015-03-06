@@ -113,7 +113,7 @@ class VMDisc
 			const number init_time = 0.0
 		)
 		: IElemDisc<TDomain>("v, k, na, ca", subsets),
-		  k_out(3.3918292968), na_out(107.796654), ca_out(1.5),
+		  k_out(2.5), na_out(140.0), ca_out(1.5),
 		  m_spec_res(1.0e6), m_spec_cap(1.0e-5),
 		  m_influx_ac(1e-9), m_channel(channels), m_aDiameter("diameter"),
 #ifdef _PLUGIN_SYNAPSE_DISTRIBUTOR_ACTIVE_
