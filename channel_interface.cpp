@@ -66,7 +66,7 @@ template<typename TDomain>
 void ChannelHH<TDomain>::init_attachments()
 {
 	// attach attachments
-	SmartPtr<Grid> spGrid = m_spVMDisc->approx_space()->domain()->grid();
+	SmartPtr<Grid> spGrid = m_pVMDisc->approx_space()->domain()->grid();
 
 	if (spGrid->has_vertex_attachment(m_MGate))
 		UG_THROW("Attachment necessary (MGate) for Hodgkin and Huxley channel dynamics "
@@ -96,13 +96,13 @@ void ChannelHH<TDomain>::init(const LocalVector& u, Edge* edge)
 {
 	typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list;
 	vrt_list vl;
-	m_spVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge);
+	m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge);
 	for (size_t k = 0; k < vl.size(); ++k)
 	{
 		Vertex* vrt = vl[k];
 
 		// update Vm
-		number VM = u(m_spVMDisc->_v_, k);
+		number VM = u(m_pVMDisc->_v_, k);
 
 		//TODO: is that right? not the same as in the Nernst version!
 		// values for m gate
@@ -158,17 +158,17 @@ void ChannelHH<TDomain>::update_gating(number newTime, const LocalVector& u, Edg
 {
 	typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list;
 	vrt_list vl;
-	m_spVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge);
+	m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge);
 	for (size_t k = 0; k < vl.size(); ++k)
 	{
 		Vertex* vrt = vl[k];
-		number dt = newTime - m_spVMDisc->m_aaTime[vrt];
+		number dt = newTime - m_pVMDisc->m_aaTime[vrt];
 
 		// only update vertices that are not yet updated
 		if (dt == 0.0) continue;
 
 		// update Vm
-		number VM = u(m_spVMDisc->_v_, k);
+		number VM = u(m_pVMDisc->_v_, k);
 
 
 		// values for m gate
@@ -294,7 +294,7 @@ template<typename TDomain>
 void ChannelHHNernst<TDomain>::init_attachments()
 {
 	// attach attachments
-	SmartPtr<Grid> spGrid = m_spVMDisc->approx_space()->domain()->grid();
+	SmartPtr<Grid> spGrid = m_pVMDisc->approx_space()->domain()->grid();
 
 	if (spGrid->has_vertex_attachment(m_MGate))
 		UG_THROW("Attachment necessary (MGate) for Hodgkin and Huxley channel dynamics "
@@ -325,13 +325,13 @@ void ChannelHHNernst<TDomain>::init(const LocalVector& u, Edge* edge)
 {
 	typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list;
 	vrt_list vl;
-	m_spVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge);
+	m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge);
 	for (size_t k = 0; k < vl.size(); ++k)
 	{
 		Vertex* vrt = vl[k];
 
 		// update Vm
-		number VM = u(m_spVMDisc->_v_, k);
+		number VM = u(m_pVMDisc->_v_, k);
 
 		// writing gating params in attachments
 		// gating param h
@@ -371,17 +371,17 @@ void ChannelHHNernst<TDomain>::update_gating(number newTime, const LocalVector& 
 {
 	typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list;
 	vrt_list vl;
-	m_spVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge);
+	m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge);
 	for (size_t k = 0; k < vl.size(); ++k)
 	{
 		Vertex* vrt = vl[k];
-		number dt = newTime - m_spVMDisc->m_aaTime[vrt];
+		number dt = newTime - m_pVMDisc->m_aaTime[vrt];
 
 		// only update vertices that are not yet updated
 		if (dt == 0.0) continue;
 
 		// update Vm
-		number VM = u(m_spVMDisc->_v_, k);
+		number VM = u(m_pVMDisc->_v_, k);
 
 		// set new gating states
 		// gating param h
@@ -431,11 +431,10 @@ void ChannelHHNernst<TDomain>::ionic_current(Vertex* vrt, const std::vector<numb
 	number k 	 = vrt_values[VMDisc<TDomain>::_k_];
 	number na 	 = vrt_values[VMDisc<TDomain>::_na_];
 
-
-	UG_ASSERT(m_spVMDisc, "Channel has not been assigned a vmDisc object yet!");
+	UG_ASSERT(m_pVMDisc.valid(), "Channel has not been assigned a vmDisc object yet!");
 	const number helpV = 1e3*(m_R*m_T)/m_F;
-	number potassium_nernst_eq 	= helpV*(std::log(m_spVMDisc->k_out/k));
-	number sodium_nernst_eq	 	= helpV*(std::log(m_spVMDisc->na_out/na));
+	number potassium_nernst_eq 	= helpV*(std::log(m_pVMDisc->k_out/k));
+	number sodium_nernst_eq	 	= helpV*(std::log(m_pVMDisc->na_out/na));
 
 	// single channel ion fluxes
 	number potassium_part_of_flux = m_g_K * pow(NGate,4) * (v - potassium_nernst_eq);
@@ -468,10 +467,10 @@ void ChannelHHNernst<TDomain>::Jacobi_sets(Vertex* vrt, const std::vector<number
 	number k 	 = vrt_values[VMDisc<TDomain>::_k_];
 	number na 	 = vrt_values[VMDisc<TDomain>::_na_];
 
-	UG_ASSERT(m_spVMDisc, "Channel has not been assigned a vmDisc object yet!");
+	UG_ASSERT(m_pVMDisc, "Channel has not been assigned a vmDisc object yet!");
 	const number helpV = (m_R*m_T)/m_F;
-	const number potassium_nernst_eq_dK 	=  helpV * (-m_spVMDisc->k_out/k)*0.18; //helpV * (-K_out/pow(u(_K_,co),2));
-	const number sodium_nernst_eq_dNa		=  -helpV * (-m_spVMDisc->na_out/na)*0.003;
+	const number potassium_nernst_eq_dK 	=  helpV * (-m_pVMDisc->k_out/k)*0.18; //helpV * (-K_out/pow(u(_K_,co),2));
+	const number sodium_nernst_eq_dNa		=  -helpV * (-m_pVMDisc->na_out/na)*0.003;
 
 	outJFlux.push_back(m_g_K*pow(NGate,4) + m_g_Na*pow(MGate,3)*HGate + m_g_I);
 	outJFlux.push_back(sodium_nernst_eq_dNa);

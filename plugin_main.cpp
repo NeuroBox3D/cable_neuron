@@ -32,7 +32,7 @@
 #include "ElemDiscHH_Nernst_fv1.h"
 #include "ElemDiscHH_Nernst_neuron_fv1.h"
 #include "VM_Disc.h"
-#include "hh_converted_UG.h"
+//#include "hh_converted_UG.h"
 
 // Kabel_diff includes
 //#include "kabel_diff_base.h"
@@ -179,6 +179,7 @@ static void Domain(bridge::Registry& reg, string grp)
 		reg.add_class_to_group(name, "ChannelHH", tag);
 	}
 
+#if 0
 	// Channel Interface hh_converted_UG
 	{
 		typedef hh_converted_UG<TDomain> T;
@@ -194,7 +195,7 @@ static void Domain(bridge::Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "hh_converted_UG", tag);
 	}
-
+#endif
 
 	// Channel Interface HH-with-Nernst
 	{
@@ -211,22 +212,6 @@ static void Domain(bridge::Registry& reg, string grp)
 		reg.add_class_to_group(name, "ChannelHHNernst", tag);
 	}
 
-#if 0
-	// Channel Interface out of NModl-File
-	{
-		//typedef VMDisc<TDomain> TVMDisc;
-		typedef hh_converted_UG<TDomain> T;
-		typedef IChannel<TDomain> TBase;
-		string name = string("hh_converted_UG").append(suffix);
-		reg.add_class_<T, TBase >(name, grp)
-			.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
-			.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
-			//.add_method("ionic_current", /*static_cast<void (TBase::*) (Vertex*, std::vector<double>&)> (*/&T::ionic_current) /*, "","", "doing flux")*/
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "hh_converted_UG", tag);
-	}
-#endif
-
 	// VM-Disc class
 	{
 		typedef IChannel<TDomain> TIChannel;
@@ -235,24 +220,22 @@ static void Domain(bridge::Registry& reg, string grp)
 		string name = string("VMDisc").append(suffix);
 		reg.add_class_<T, TBase >(name, grp)
 			.template add_constructor<void (*)(const char*,
-											   const std::vector<SmartPtr<TIChannel> >&,
 											   SmartPtr<ApproximationSpace<TDomain> >)>
-				("Subset(s)#Channels#ApproxSpace#InitTime")
+				("Subset(s)#ApproxSpace")
 			.template add_constructor<void (*)(const char*,
-											   const std::vector<SmartPtr<TIChannel> >&,
 											   SmartPtr<ApproximationSpace<TDomain> >,
 											   const number)>
-				("Subset(s)#Channels#ApproxSpace#InitTime")
+				("Subset(s)#ApproxSpace#InitTime")
 			//.add_method("create_GridFunc", &T::create_GridFunc)
 			//.add_method("getApproxSpace" , &T::getApproxSpace)
 			.add_method("set_diameter", &T::set_diameter)
 			.add_method("set_spec_res", &T::set_spec_res)
 			.add_method("set_spec_cap", &T::set_spec_cap)
 			.add_method("set_diff_coeffs", &T::set_diff_coeffs)
-			//.add_method("add_channel", &T::add_channel)
+			.add_method("add_channel", &T::add_channel)
 			.add_method("set_influx", &T::set_influx)
 			.add_method("set_influx_ac", &T::set_influx_ac)
-#ifdef _PLUGIN_SYNAPSE_DISTRIBUTOR_ACTIVE_
+#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ACTIVE
 			.add_method("set_synapse_distributor", &T::set_synapse_distributor)
 #endif
 			//.add_method("add_func", &T::add_func)

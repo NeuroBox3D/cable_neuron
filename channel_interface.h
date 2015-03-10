@@ -42,7 +42,7 @@ class IChannel
 	public:
 		///	constructor with comma-separated c-string
 		IChannel(const char* functions, const char* subsets)
-		: m_spVMDisc(SPNULL)
+		: m_pVMDisc(NULL)
 		{
 			m_vSubset = TokenizeString(subsets);
 			m_vWFct = TokenizeString(functions);
@@ -78,7 +78,7 @@ class IChannel
 
 		/// constructor with vector of string
 		IChannel(const std::vector<std::string>& functions, const std::vector<std::string>& subsets)
-		: m_spVMDisc(SPNULL)
+		: m_pVMDisc(NULL)
 		{
 			m_vSubset = subsets;
 			m_vWFct = functions;
@@ -112,7 +112,7 @@ class IChannel
 		//virtual void Jacobi_sets(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outJFlux) = 0;
 
 		const std::vector<std::string>& write_fcts() {return m_vWFct;}
-		void set_vm_disc(SmartPtr<VMDisc<TDomain> > vmdisc) {m_spVMDisc = vmdisc; vm_disc_available();}
+		void set_vm_disc(VMDisc<TDomain>*  vmdisc) {m_pVMDisc = vmdisc; vm_disc_available();}
 
 	protected:
 		/// functions whose defect will be written to by this channel
@@ -123,7 +123,7 @@ class IChannel
 		std::vector<std::string> m_vSubset;
 
 		/// joint VMDisc
-		SmartPtr<VMDisc<TDomain> > m_spVMDisc;
+		VMDisc<TDomain>* m_pVMDisc;
 };
 
 
@@ -132,7 +132,7 @@ class ChannelHH
 	: public IChannel<TDomain>
 {
 	public:
-		using IChannel<TDomain>::m_spVMDisc;
+		using IChannel<TDomain>::m_pVMDisc;
 
 		/// @copydoc IChannel<TDomain>::IChannel(const char*)
 		ChannelHH(const char* functions, const char* subsets)
@@ -203,7 +203,7 @@ class ChannelHHNernst
 	: public IChannel<TDomain>
 {
 	public:
-		using IChannel<TDomain>::m_spVMDisc;
+		using IChannel<TDomain>::m_pVMDisc;
 
 		/// @copydoc IChannel<TDomain>::IChannel(const char*)
 		ChannelHHNernst(const char* functions, const char* subsets)

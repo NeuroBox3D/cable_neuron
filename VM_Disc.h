@@ -37,7 +37,7 @@
 
 #include "channel_interface.h"
 
-#ifdef _PLUGIN_SYNAPSE_DISTRIBUTOR_ACTIVE_
+#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ACTIVE
 	#include "../synapse_distributor/synapse_distributor.h"
 #endif
 
@@ -108,24 +108,25 @@ class VMDisc
 		(
 			//const char* functions,
 			const char* subsets,
-			const std::vector<SmartPtr<TIChannel> >& channels,
 			SmartPtr<ApproximationSpace<TDomain> > approx,
 			const number init_time = 0.0
 		)
 		: IElemDisc<TDomain>("v, k, na, ca", subsets),
 		  k_out(2.5), na_out(140.0), ca_out(1.5),
-		  m_spec_res(1.0e6), m_spec_cap(1.0e-5),
-		  m_influx_ac(1e-9), m_channel(channels), m_aDiameter("diameter"),
-#ifdef _PLUGIN_SYNAPSE_DISTRIBUTOR_ACTIVE_
+		  m_spec_res(1.0e6), m_spec_cap(1.0e-5), celsius(37.0),
+		  m_influx_ac(1e-9), m_aDiameter("diameter"),
+#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ACTIVE
 		  m_spSD(SPNULL),
 #endif
 		  m_spApproxSpace(approx), m_spDD(m_spApproxSpace->dof_distribution(GridLevel::TOP)),
 		  m_bNonRegularGrid(false),
 		  m_init_time(init_time)
 		{
-			// set this vm disc to each of its channels
-			for (size_t i = 0; i < m_channel.size(); i++)
-				m_channel[i]->set_vm_disc(make_sp(this));
+			// set diff constants
+			m_diff.resize(3);
+			m_diff[0] = 1.0e-12;
+			m_diff[1] = 1.0e-12;
+			m_diff[2] = 2.2e-13;
 
 			// create time attachment and accessor
 			if (m_spApproxSpace->domain()->grid()->has_vertex_attachment(m_aTime))
@@ -298,18 +299,16 @@ class VMDisc
 		/// set influx params (flux value, coordinates, beginning, duration)
 		void set_influx(number Flux, number x, number y, number z, number beg, number dur);
 
-#ifdef _PLUGIN_SYNAPSE_DISTRIBUTOR_ACTIVE_
+#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ACTIVE
 		/// assign a synapse distributor
 		void set_synapse_distributor(ConstSmartPtr<SynapseDistributor> sd);
 #endif
 
-#if 0
 		/// adding a channel
 		void add_channel(SmartPtr<IChannel<TDomain> > Channel);
-
+#if 0
 		/// add func
 		void add_func(std::string func);
-
 #endif
 		SmartPtr<ApproximationSpace<TDomain> > approx_space();
 
@@ -406,7 +405,7 @@ class VMDisc
 		AVector4 m_aUold;
 		Grid::AttachmentAccessor<Vertex, AVector4> m_aaUold;
 
-#ifdef _PLUGIN_SYNAPSE_DISTRIBUTOR_ACTIVE_
+#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ACTIVE
 		/// for definition of specific synaptic activity patterns
 		ConstSmartPtr<SynapseDistributor> m_spSD;
 #endif

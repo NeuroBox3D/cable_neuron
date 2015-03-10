@@ -89,7 +89,7 @@ set_influx(number Flux, number x, number y, number z, number beg, number dur)
 }
 
 
-#ifdef _PLUGIN_SYNAPSE_DISTRIBUTOR_ACTIVE_
+#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ACTIVE
 template<typename TDomain>
 void VMDisc<TDomain>::
 set_synapse_distributor(ConstSmartPtr<SynapseDistributor> sd)
@@ -99,14 +99,18 @@ set_synapse_distributor(ConstSmartPtr<SynapseDistributor> sd)
 #endif
 
 
-#if 0
+
 template<typename TDomain>
 void VMDisc<TDomain>::
 add_channel(SmartPtr<IChannel<TDomain> > Channel)
 {
 	m_channel.push_back(Channel);
+
+	// set this vm disc to the newly added channel
+	Channel->set_vm_disc(this);
 }
 
+#if 0
 template<typename TDomain>
 void VMDisc<TDomain>::
 add_func(std::string func)
@@ -231,14 +235,14 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 			}
 		}
 
-#ifdef _PLUGIN_SYNAPSE_DISTRIBUTOR_ACTIVE_
+#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ACTIVE
 		// influxes from synapse distributor
 		if (m_spSD.valid())
 		{
 			// TODO: the current need not be constant
 			// It would be best to define the current strength in the distributor and get it from there!
 			if (m_spSD->has_active_synapse(pElem, co, time))
-				d(_v_, co) += 1e-14;	// 1e-14C/ms=10pA;
+				d(_v_, co) += -1e-14;	// 1e-14C/ms=10pA;
 		}
 #endif
 
@@ -269,10 +273,10 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 
 		// writing potential defects
 		d(_v_, co) += scv.volume()*PI*Diam * (allOutCurrentValues[0]-influx);
-
 		// writing ion species defects
 		for (size_t k = 1; k < m_numb_funcs+1; k++)
 			d(k, co) += scv.volume()*PI*Diam * allOutCurrentValues[k];
+
 	}
 
 	// diffusive parts
@@ -328,7 +332,6 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 			d(k, scvf.from()) -= diff_flux;
 			d(k, scvf.to()  ) += diff_flux;
 		}
-
 	}
 }
 
