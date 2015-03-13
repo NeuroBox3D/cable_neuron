@@ -32,7 +32,7 @@
 #include "ElemDiscHH_Nernst_fv1.h"
 #include "ElemDiscHH_Nernst_neuron_fv1.h"
 #include "VM_Disc.h"
-//#include "hh_converted_UG.h"
+#include "hh_converted_UG.h"
 
 // Kabel_diff includes
 //#include "kabel_diff_base.h"
@@ -179,7 +179,7 @@ static void Domain(bridge::Registry& reg, string grp)
 		reg.add_class_to_group(name, "ChannelHH", tag);
 	}
 
-#if 0
+
 	// Channel Interface hh_converted_UG
 	{
 		typedef hh_converted_UG<TDomain> T;
@@ -195,7 +195,7 @@ static void Domain(bridge::Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "hh_converted_UG", tag);
 	}
-#endif
+
 
 	// Channel Interface HH-with-Nernst
 	{
