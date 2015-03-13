@@ -104,9 +104,8 @@ void ChannelHH<TDomain>::init(const LocalVector& u, Edge* edge)
 		// update Vm
 		number VM = u(m_pVMDisc->_v_, k);
 
-		//TODO: is that right? not the same as in the Nernst version!
 		// values for m gate
-		/*
+
 		number AlphaHm = 0.1 * vtrap(-(VM+40.0),10.0);
 		number BetaHm =  4 * exp(-(VM+65.0)/18.0);
 
@@ -117,8 +116,8 @@ void ChannelHH<TDomain>::init(const LocalVector& u, Edge* edge)
 		// values for h gate
 		number AlphaHh = 0.07 * exp(-(VM+65.0)/20.0);
 		number BetaHh = 1.0 / (exp(-(VM+35.0)/10.0) + 1.0);
-		*/
 
+		/*
 		// writing Gating-Params in attachment
 		// gating param h
 		number AlphaHh = 0.07*exp(-(VM + 65.0)/20.0);
@@ -145,6 +144,7 @@ void ChannelHH<TDomain>::init(const LocalVector& u, Edge* edge)
 			AlphaHn = 0.1;
 
 		number BetaHn = 0.125*exp((VM + 65.0)/80.0);
+		*/
 
 		// setting initial gating params as equilibrium states
 		this->m_aaHGate[vrt] = AlphaHh / (AlphaHh + BetaHh);
@@ -208,13 +208,11 @@ void ChannelHH<TDomain>::update_gating(number newTime, const LocalVector& u, Edg
 			AlphaHn = 0.1;
 
 		number BetaHn = 0.125*exp((m_aaVm[*iter] + 65.0)/80.0);
-		*/
+		 */
 
-		number rate_h = ((AlphaHh/(AlphaHh+BetaHh)) - m_aaHGate[vrt]) / (1/(AlphaHh+BetaHh)) * dt;
-		number rate_m = ((AlphaHm/(AlphaHm+BetaHm)) - m_aaMGate[vrt]) / (1/(AlphaHm+BetaHm)) * dt;
-		number rate_n = ((AlphaHn/(AlphaHn+BetaHn)) - m_aaNGate[vrt]) / (1/(AlphaHn+BetaHn)) * dt;
-
-
+		number rate_h = ((AlphaHh/(AlphaHh+BetaHh)) - m_aaHGate[vrt]) / (1.0/(AlphaHh+BetaHh)) * dt;
+		number rate_m = ((AlphaHm/(AlphaHm+BetaHm)) - m_aaMGate[vrt]) / (1.0/(AlphaHm+BetaHm)) * dt;
+		number rate_n = ((AlphaHn/(AlphaHn+BetaHn)) - m_aaNGate[vrt]) / (1.0/(AlphaHn+BetaHn)) * dt;
 
 		m_aaHGate[vrt] += rate_h;
 		m_aaMGate[vrt] += rate_m;

@@ -18,7 +18,7 @@ set(SOURCES	ElemDiscHH_base.cpp
 			ElemDiscHH_Nernst_fv1.cpp
 			ElemDiscHH_Nernst_neuron_fv1.cpp
 			channel_interface.cpp
-			#hh_converted_UG.cpp
+			hh_converted_standard_UG.cpp
 			VM_Disc.cpp
 			plugin_main.cpp
 

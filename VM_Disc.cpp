@@ -224,14 +224,12 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 			std::cout << "abs erg: " << ((fabs((vCornerCoords[0][2] - m_coords[i][2])))) << std::endl;*/
 			// Time depending vars
 			if (m_beg_flux[i] <= time && m_dur_flux[i] + m_beg_flux[i] >= time
-				&& fabs(vCornerCoords[co][0] - m_coords[i][0]) < m_influx_ac
-				&& fabs(vCornerCoords[co][1] - m_coords[i][1]) < m_influx_ac
-				&& fabs(vCornerCoords[co][2] - m_coords[i][2]) < m_influx_ac
+				&& fabs(0.5*(vCornerCoords[co][0]+vCornerCoords[(co+1)%2][0]) - m_coords[i][0]) < m_influx_ac
+				&& fabs(0.5*(vCornerCoords[co][1]+vCornerCoords[(co+1)%2][1]) - m_coords[i][1]) < m_influx_ac
+				&& fabs(0.5*(vCornerCoords[co][2]+vCornerCoords[(co+1)%2][2]) - m_coords[i][2]) < m_influx_ac
 			   )
 			{
-				// TODO: rather interpret this value as current and add to defect here
-				//       than interpret as flux density and multiply by surface area later
-				influx += m_flux_value[i];
+				d(_v_, co) += -m_flux_value[i];
 			}
 		}
 
