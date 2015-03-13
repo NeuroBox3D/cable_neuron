@@ -25,6 +25,167 @@ Converter::~Converter() {
 	// TODO Auto-generated destructor stub
 }
 
+
+// Giving back all needed Nernst-Potentials
+std::vector<string> Converter::Find_all_Eqs(std::vector<string> Neuron)
+{
+	std::vector<string> Erg;
+	std::vector<string> Read  = Find_all_read(Neuron);
+	std::vector<string> Write = Find_all_write(Neuron);
+
+	for (size_t i=0; i<Read.size(); i++)
+	{
+		string test_e = Remove_all(Read[i]);
+		if (test_e[0]=='e')
+		{
+			Erg.push_back(Read[i]);
+		}
+	}
+
+	for (size_t i=0; i<Write.size(); i++)
+	{
+		string test_e = Remove_all(Write[i]);
+		if (test_e[0]=='e')
+		{
+			Erg.push_back(Write[i]);
+		}
+	}
+
+	return Erg;
+}
+
+// Tests if a Ion name also is a gatting name and gives back GatingName of Ion
+// here working with complete string out of DERIV - Block
+string Converter::ProofSGatingGating(string s, std::vector<string> SGating)
+{
+	string Gating_Name;
+	string erg = "";
+	string left, right;
+	size_t rBegin;
+	// IF there is any = else all marked as right side
+	if (s.find("=")!=s.npos)
+	{
+		left = s.substr(0, s.find("=")-1);
+		right = s.substr(s.find("=")+1, s.npos-(s.find("=")+1));
+	}
+	else
+	{
+		left = "";
+		right = s;
+	}
+
+	// left side easy to work like cause only one var
+	for (size_t i=0; i<SGating.size(); i++)
+	{
+		if (Remove_all(left) + "S"== SGating[i])
+			left = Remove_all(left) + "S";
+	}
+
+	//std::cout << "after first for" << std::endl;
+	// handling right side
+	string buf_right = right;
+	for (size_t i=0; i<SGating.size(); i++)
+	{
+		Gating_Name = SGating[i].substr(0, SGating[i].size()-1);
+		rBegin = right.find(Gating_Name);
+		while (rBegin!=right.npos)
+		{
+			if (is_single_letter(right[rBegin+Gating_Name.size()]) == false && is_single_number(right[rBegin+Gating_Name.size()]) == false)
+			{
+				right = right.replace(rBegin, Gating_Name.size(), SGating[i]);
+				rBegin = right.find(Gating_Name, rBegin+1);
+			}
+			else
+			{
+				rBegin = right.find(Gating_Name, rBegin+1);
+			}
+		}
+	}
+	erg = left + " += " + right;
+
+	return erg;
+}
+
+
+// Tests if a Ion name also is a gatting name and gives Back gattingAtachment of Gating with Ion name
+// Here only working with the var itself
+string Converter::ProofSGatingInit(string s, std::vector<string> SGating)
+{
+	string erg = Remove_all(s);
+
+
+	for (size_t i=0; i<SGating.size(); i++)
+	{
+		//std::cout << "ProofSGating: " << erg << " vs " << SGating[i] << std::endl;
+		if (erg + "S"== SGating[i])
+			erg = "aa" + erg + "SGate[vrt]";
+	}
+
+
+	return erg;
+}
+
+//giving back all vars which will be changed throug new Channel-Interface
+std::vector<string> Converter::Find_all_write(std::vector<string> Neuron)
+{
+	std::vector<string> result;
+	string all_writes;
+	size_t komma, begin;
+
+	for (size_t i=0; i<Neuron.size(); i++)
+	{
+		if (Neuron[i].find("USEION")!=Neuron[i].npos)
+		{
+			if (Neuron[i].find("WRITE")!=Neuron[i].npos)
+			{
+				all_writes = Neuron[i].substr(Neuron[i].find("WRITE")+6, Neuron[i].npos-(Neuron[i].find("WRITE")+6));
+				komma = all_writes.find(",");
+				begin = 0;
+				while (komma!=all_writes.npos)
+				{
+					result.push_back(Remove_all(all_writes.substr(begin, komma)));
+					begin = komma;
+					komma = all_writes.find(",", begin+1);
+				}
+				result.push_back(Remove_all(all_writes.substr(begin, komma)));
+			}
+		}
+	}
+
+	return result;
+}
+
+// giving back all information which is read from Neuron
+std::vector<string> Converter::Find_all_read(std::vector<string> Neuron)
+{
+	std::vector<string> result;
+	string all_reads;
+	size_t komma, begin;
+
+	for (size_t i=0; i<Neuron.size(); i++)
+	{
+		if (Neuron[i].find("USEION")!=Neuron[i].npos)
+		{
+			if (Neuron[i].find("READ")!=Neuron[i].npos)
+			{
+				all_reads = Neuron[i].substr(Neuron[i].find("READ")+5, Neuron[i].find("WRITE")-1-(Neuron[i].find("READ")+5));
+				komma = all_reads.find(",");
+				begin = 0;
+				while (komma!=all_reads.npos)
+				{
+					result.push_back(Remove_all(all_reads.substr(begin, komma)));
+					// +1 neede for ","
+					begin = komma+1;
+					komma = all_reads.find(",", begin+1);
+				}
+				result.push_back(Remove_all(all_reads.substr(begin, komma)));
+			}
+		}
+	}
+
+	return result;
+}
+
 double Converter::Unit_Conv_All(string s)
 {
 	double erg = 1;
@@ -32,11 +193,11 @@ double Converter::Unit_Conv_All(string s)
 	double above, below;
 
 	break_dash = s.find("/");
-	std::cout << "break dash: " << break_dash << std::endl;
+	//std::cout << "break dash: " << break_dash << std::endl;
 	if (break_dash!=s.npos)
 	{
-		std::cout << "above string: " << s.substr(0, break_dash) <<std::endl;
-		std::cout << "below string: " << s.substr(break_dash+1, s.npos) <<std::endl;
+		//std::cout << "above string: " << s.substr(0, break_dash) <<std::endl;
+		//std::cout << "below string: " << s.substr(break_dash+1, s.npos) <<std::endl;
 		above = Unit_Conv_Value(s.substr(0, break_dash));
 		below = Unit_Conv_Value(s.substr(break_dash+1, s.npos));
 		erg = (above/below);
@@ -45,8 +206,8 @@ double Converter::Unit_Conv_All(string s)
 	{
 		erg = Unit_Conv_Value(s);
 	}
-	std::cout << "above: " << above << std::endl;
-	std::cout << "below: " << below << std::endl;
+	//std::cout << "above: " << above << std::endl;
+	//std::cout << "below: " << below << std::endl;
 
 
 
@@ -60,7 +221,7 @@ double Converter::Unit_Conv_Value(string s)
 	//needed units /c /m^2 /mV /ms
 	// existing units amper: pA, mA, A
 	// existing units volt: pV, mV, V
-	// mm2 cm2 dm2 m2 km2
+	// um2 mm2 cm2 dm2 m2 km2
 	// existing units time: ms, s,
 	// working with Siemens!!
 	// existing unigs simens: pS, mS, S
@@ -114,7 +275,7 @@ double Converter::Unit_Conv_Value(string s)
 		{
 			if (erg==0)
 				erg = 1e15;
-			else erg *= 1e16;
+			else erg *= 1e15;
 			onlyS = false;
 		}
 
@@ -216,7 +377,7 @@ double Converter::Unit_Conv_Value(string s)
 }
 
 
-
+//Gives Ion back which is in kontakt with string s for example if s = ena than erg = na
 string Converter::In_NeuronUse_List(std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen, string s)
 {
 	string erg ="";
@@ -256,6 +417,7 @@ string Converter::In_NeuronUse_List(std::vector<pair<int, int> > Pairs, std::vec
 
 }
 
+// tests if single char is a letter
 bool Converter::is_single_letter(char s)
 {
 	// little letters
@@ -276,6 +438,7 @@ bool Converter::is_single_letter(char s)
 	return false;
 }
 
+// test if single char is a number
 bool Converter::is_single_number(char s)
 {
 	bool erg = false;
@@ -300,12 +463,12 @@ std::vector<string> Converter::GetProcEqualString(std::vector<pair<int, int> > P
 	{
 		string test;
 		test = "PROCEDURE " + s;
-		//std::cout << "vergleich von " << test << "mit: " << std::endl;
-		std::cout << PROCEDURE[i] << std::endl;
+		////std::cout << "vergleich von " << test << "mit: " << std::endl;
+		//std::cout << PROCEDURE[i] << std::endl;
 		if (PROCEDURE[i].find(test)!=PROCEDURE[i].npos)
 		{
 			beg = i;
-			std::cout << "gleich" << std::endl;
+			//std::cout << "gleich" << std::endl;
 		}
 		if ((PROCEDURE[i].find("PROCEDURE")!=PROCEDURE[i].npos) && (i!=beg))
 		{
@@ -316,11 +479,11 @@ std::vector<string> Converter::GetProcEqualString(std::vector<pair<int, int> > P
 	if (end == 0)
 		end = PROCEDURE.size()-1;
 
-	std::cout << "begin: " << beg << " ende: " << end << std::endl;
+	//std::cout << "begin: " << beg << " ende: " << end << std::endl;
 
 	//if (beg != 0)
 	//{
-		std::cout << "GetProcEqual does anything" << std::endl;
+		//std::cout << "GetProcEqual does anything" << std::endl;
 		// Rekursion könnte hier mehrfachaufrufe von prozeduren möglich machen
 		for (size_t i=beg; i<end; i++)
 		{
@@ -369,7 +532,7 @@ string Converter::Write_Only_Read(std::vector<pair<int, int> > Pairs, std::vecto
 			if (end!=NEURON[i].npos)
 			{
 				//aacaGate[*iter]
-				std::cout << "beg: " << pos+7 << " dur: " << end-pos+7 << "end: "<< end << std::endl;
+				//std::cout << "beg: " << pos+7 << " dur: " << end-pos+7 << "end: "<< end << std::endl;
 				erg = erg + NEURON[i].substr(pos+7, (end-(pos+7))-1)+"Gate[*iter]";
 			}
 		}
@@ -380,7 +543,7 @@ string Converter::Write_Only_Read(std::vector<pair<int, int> > Pairs, std::vecto
 
 bool Converter::begG(string s)
 {
-	//std::cout << "fehler in beg" << std::endl;
+	////std::cout << "fehler in beg" << std::endl;
 	bool erg = false;
 	const string KeyWord[] = {"TABLE", "DEPEND", "FROM", "TO", "HOC"};
 	for ( size_t i=0 ; i<5; i++ )
@@ -441,13 +604,13 @@ std::vector<string> Converter::equali(std::vector<pair<int, int> > Pairs, std::v
 				out.push_back("1");
 				IonRead = NEURON[i].find("READ", Ion+7);
 				IonRend = NEURON[i].find(" ", IonRead+5);
-				std::cout << IonRend << ", " << Ion << std::endl;
+				//std::cout << IonRend << ", " << Ion << std::endl;
 				IonS = NEURON[i].substr(Ion+7, IonRead-1-(Ion+7));
-				std::cout << "Subion: "<< IonS << std::endl;
+				//std::cout << "Subion: "<< IonS << std::endl;
 				ListIonRead.push_back(NEURON[i].substr(IonRead+5 , IonRend-(IonRead+5)));
 				// Only if there is a WRITE in
 				if (NEURON[i].find("WRITE")!=NEURON[i].npos)
-						ListIon.push_back(IonS);
+					ListIon.push_back(IonS);
 			}
 		}
 	}
@@ -456,8 +619,8 @@ std::vector<string> Converter::equali(std::vector<pair<int, int> > Pairs, std::v
 		{
 			if (version[j]==false)
 			{
-			std::cout << "read ion: " + ListIonRead[j] + "List ion: " + ListIon[j] << std::endl;
-			out.push_back("number " + ListIonRead[j] + " = helpV*(log(m_spVMDisc->" + ListIon[j] + "_out/" + ListIon[j] + "));");
+			//std::cout << "read ion: " + ListIonRead[j] + "List ion: " + ListIon[j] << std::endl;
+			out.push_back("number " + ListIonRead[j] + " = helpV*(log(m_pVMDisc->" + ListIon[j] + "_out/" + ListIon[j] + "));");
 			}
 		}
 
@@ -466,8 +629,8 @@ std::vector<string> Converter::equali(std::vector<pair<int, int> > Pairs, std::v
 		{
 			if (version[j]==true)
 			{
-			std::cout << "read ion: " + ListIonRead[j] + "List ion: " + ListIon[j] << std::endl;
-			out.push_back("number " + ListIonRead[j] + " = helpV*(log(m_spVmDisc->" + ListIon[j] + "_out/" + ListIon[j] + "));");
+			//std::cout << "read ion: " + ListIonRead[j] + "List ion: " + ListIon[j] << std::endl;
+			out.push_back("number " + ListIonRead[j] + " = helpV*(log(m_pVMDisc->" + ListIon[j] + "_out/" + ListIon[j] + "));");
 			}
 		}
 
@@ -476,7 +639,7 @@ std::vector<string> Converter::equali(std::vector<pair<int, int> > Pairs, std::v
 	return out;
 }
 
-
+// making out of complete function head only function name
 string Converter::func_head(string s)
 {
 	string fname;
@@ -485,10 +648,11 @@ string Converter::func_head(string s)
 	startf = s.find(" ");
 	endf = s.find("(");
 	fname = s.substr(startf+1, endf-startf-1);
-	std::cout << "fname: " << fname << std::endl;
+	//std::cout << "fname: " << fname << std::endl;
 	return fname;
 }
 
+// Writing heads an vars of all Procedures which where opend in Procedure-Block
 std::vector<vector<string> > Converter::write_proc_block(std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen)
 {
 	std::vector<vector <string> > Proc_blocks;
@@ -520,7 +684,8 @@ std::vector<vector<string> > Converter::write_proc_block(std::vector<pair<int, i
 	return Proc_blocks;
 }
 
-
+// Unit change not really needed but could be better with
+// Writing heads an vars of all Procedures which where opend in Derivative-Block
 std::vector<vector<string> > Converter::write_derivative_block(std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen)
 {
 	std::vector<vector <string> > Proc_blocks;
@@ -553,7 +718,7 @@ std::vector<vector<string> > Converter::write_derivative_block(std::vector<pair<
 
 
 
-
+// giving back all local vars in a Procedure-block
 std::vector<string> Converter::get_local_proc_block(std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen, string name)
 {
 	std::vector<string> locals;
@@ -581,6 +746,7 @@ std::vector<string> Converter::get_local_proc_block(std::vector<pair<int, int> >
 }
 
 
+// search for different vars which not needed
 string Converter::writing_starts(string s)
 {
 	string test[] = {"UNITSOFF" ,"TABLE", "DEPEND", "FROM", "TO", "HOC, LOCAL"};
@@ -595,7 +761,7 @@ string Converter::writing_starts(string s)
 
 
 
-
+// Very import function which is recursive
 std::vector<string> Converter::writer_proc_block(std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen, string name)
 {
 	std::vector<string> fileInfo;
@@ -608,8 +774,6 @@ std::vector<string> Converter::writer_proc_block(std::vector<pair<int, int> > Pa
 
 	std::vector<string>  PROCEDURE = GetBlock(Pairs, Zeilen, "PROCEDURE");
 
-	// list with all proc funcs
-
 	// only [j][0] have functionnames
 	Proc_list = write_proc_block(Pairs, Zeilen);
 
@@ -620,6 +784,7 @@ std::vector<string> Converter::writer_proc_block(std::vector<pair<int, int> > Pa
 		{
 			for (size_t j = i; j<PROCEDURE.size(); j++)
 				{
+					// search for first line to write
 					PROCEDURE[j] = writing_starts(PROCEDURE[j]);
 				}
 
@@ -633,9 +798,9 @@ std::vector<string> Converter::writer_proc_block(std::vector<pair<int, int> > Pa
 					{
 						if (PROCEDURE[k].find(Proc_list[l][0])!=PROCEDURE[k].npos)
 						{
-							std::cout << "zeug mal wieder: " << std::endl;
-							std::cout << PROCEDURE[k].substr(PROCEDURE[k].find("(")+1, PROCEDURE[k].find(")")-PROCEDURE[k].find("(")-1) << std::endl;
-							std::cout << Proc_list[l][1] << std::endl;
+							////std::cout << "zeug mal wieder: " << std::endl;
+							////std::cout << PROCEDURE[k].substr(PROCEDURE[k].find("(")+1, PROCEDURE[k].find(")")-PROCEDURE[k].find("(")-1) << std::endl;
+							////std::cout << Proc_list[l][1] << std::endl;
 							fileInfo.push_back(Proc_list[l][1] + " = " + PROCEDURE[k].substr(PROCEDURE[k].find("(")+1, PROCEDURE[k].find(")")-PROCEDURE[k].find("(")-1));
 							fileInfo_rec.push_back(writer_proc_block(Pairs, Zeilen, Proc_list[l][0]));
 							//fileInfo = writer_proc_block(Pairs, Zeilen, Proc_list[l][0]);
@@ -644,9 +809,6 @@ std::vector<string> Converter::writer_proc_block(std::vector<pair<int, int> > Pa
 						}
 
 					}
-
-
-
 
 					// writing everything that is not recursiv
 					if (rec==false)
@@ -692,7 +854,8 @@ std::vector<string> Converter::writer_proc_block(std::vector<pair<int, int> > Pa
 }
 
 
-
+//searching for all Vars in a Procedure call
+//with given PROCEDURE string
 std::vector<string> Converter::build_proc_vars(string s)
 {
 	string fname, var;
@@ -701,11 +864,11 @@ std::vector<string> Converter::build_proc_vars(string s)
 	startf = s.find(" ");
 	endf = s.find("(");
 	fname = s.substr(startf+1, endf-startf-1);
-	//std::cout << fname << std::endl;
+	////std::cout << fname << std::endl;
 	endvars = s.find_last_of(")");
-	//std::cout << "beg " << endf << " end " << endvars << std::endl;
+	////std::cout << "beg " << endf << " end " << endvars << std::endl;
 	var = s.substr(endf+1, endvars-endf-1);
-	//std::cout << var << std::endl;
+	////std::cout << var << std::endl;
 	buf = 0;
 	// writs all vars out
 	vars.push_back(fname.substr(count_beg(fname), fname.npos-count_beg(fname)));
@@ -719,6 +882,7 @@ std::vector<string> Converter::build_proc_vars(string s)
 	return vars;
 }
 
+//function Build func head out of complete string
 string Converter::build_func_head(string s)
 {
 	string out = "double " + m_class_name + "::";
@@ -728,12 +892,12 @@ string Converter::build_func_head(string s)
 	startf = s.find(" ");
 	endf = s.find("(");
 	fname = s.substr(startf+1, endf-startf-1);
-	//std::cout << fname << std::endl;
+	////std::cout << fname << std::endl;
 	endvars = s.find_last_of(")");
-	//std::cout << "beg " << endf << " end " << endvars << std::endl;
+	////std::cout << "beg " << endf << " end " << endvars << std::endl;
 	var = s.substr(endf+1, endvars-endf);
 	// if there is also a unit del it
-	std::cout << "var: "<< var << std::endl;
+	//std::cout << "var: "<< var << std::endl;
 	buf = 0;
 	string buf2;
 	// writs all vars out
@@ -744,12 +908,12 @@ string Converter::build_func_head(string s)
 		if (buf2.find("(")!=var.npos)
 		{
 			buf2 = var.substr(buf, buf2.find("("));
-			std::cout << "buf2: " << buf2 << std::endl;
+			//std::cout << "buf2: " << buf2 << std::endl;
 		}
 		vars.push_back(buf2);
 		buf = buf1+1;
 	}
-	std::cout << "buf:  " << buf <<"bis: " << var.find("(", buf)-buf << std::endl;
+	//std::cout << "buf:  " << buf <<"bis: " << var.find("(", buf)-buf << std::endl;
 	buf2 = var.substr(buf, var.find("(", buf)-buf);
 	vars.push_back(buf2);
 
@@ -847,7 +1011,7 @@ size_t Converter::number_(size_t pos, string s)
 	return counter;
 }
 
-
+//giving position of a letter
 size_t Converter::pos_letter(string s)
 {
 	vector<size_t> pos;
@@ -862,7 +1026,7 @@ size_t Converter::pos_letter(string s)
 		beg = 0;
 	}
 
-	//std::cout << "pos_letter does anything" << std::endl;
+	////std::cout << "pos_letter does anything" << std::endl;
 	// little letters
 	for ( char i( 97 ); i < 122; ++i )
 	{
@@ -885,10 +1049,11 @@ size_t Converter::pos_letter(string s)
 	return erg;
 }
 
+//checks if there is a next letter
 bool Converter::pos_letterb(string s)
 {
 	vector<size_t> pos;
-	std::cout << "pos_letter does anything " << s << std::endl;
+	//std::cout << "pos_letter does anything " << s << std::endl;
 	size_t beg;
 	if (s.find("STATE")!=s.npos)
 	{
@@ -919,6 +1084,7 @@ bool Converter::pos_letterb(string s)
 }
 
 
+// ließt einzelne NModl-File ein
 std::vector<string> Converter::Openfile(string filename)
 {
 
@@ -931,11 +1097,11 @@ std::vector<string> Converter::Openfile(string filename)
 	string zeile;
 		while (!ModFile.eof())          // Solange noch Daten vorliegen
 	{
-		//std::cout << "while" << std::endl;
+		////std::cout << "while" << std::endl;
 	    getline(ModFile, zeile);        // Lese eine Zeile
 	    /*if (zeile.find(":")!=zeile.npos)
 	    {
-	    	std::cout << "replace happens" << std::endl;
+	    	//std::cout << "replace happens" << std::endl;
 	    	zeile.replace(zeile.find(":"), 1,";//");
 	    }// replace : with // as comment*/
 	    zeilen.push_back(zeile);    // Zeige sie auf dem Bildschirm
@@ -945,10 +1111,11 @@ std::vector<string> Converter::Openfile(string filename)
 	    //std::cerr << "Exception opening/reading/closing file\n";
 	  //}
 
-	std::cout << "einlesen erfolgreich" << std::endl;
+	//std::cout << "einlesen erfolgreich" << std::endl;
 	return zeilen;
 }
 
+//Defining all single Blocks without Block-Name Information
 std::vector<std::pair<int, int> > Converter::FindBlocks(std::vector<string> Zeilen)
 {
 	std::vector<std::pair<int, int> > Blocks;
@@ -984,7 +1151,7 @@ std::vector<std::pair<int, int> > Converter::FindBlocks(std::vector<string> Zeil
 
 }
 
-
+// Writing needed Block out of Nmodl-file
 std::vector<string> Converter::GetBlock(std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen, string name)
 {
 	std::vector<string> BlockName;
@@ -992,16 +1159,16 @@ std::vector<string> Converter::GetBlock(std::vector<pair<int, int> > Pairs, std:
 
 	for (size_t i=0; i<Pairs.size(); i++)
 	{
-		//std::cout << "first" << Pairs.size() << std::endl;
+		////std::cout << "first" << Pairs.size() << std::endl;
 		// first find of right name and second find that not outsurced
 		if ((Zeilen[Pairs[i].first].find(name)!=Zeilen[Pairs[i].first].npos) && (Zeilen[Pairs[i].first].find(":"+name)==Zeilen[Pairs[i].first].npos))
 		{
-			//std::cout << Zeilen[Pairs[i].first] << std::endl;
+			////std::cout << Zeilen[Pairs[i].first] << std::endl;
 			//überprüft wenn weitere klammern da sind, dass nur die letzte verwendet wird;
 
 			while (Pairs[i].first == Pairs[i+1].first)
 			{
-				//std::cout << "in whhile by i: " << i << std::endl;
+				////std::cout << "in whhile by i: " << i << std::endl;
 				i = i+1;
 			}
 			//überspringt doppelte Pairs
@@ -1015,10 +1182,10 @@ std::vector<string> Converter::GetBlock(std::vector<pair<int, int> > Pairs, std:
 				if (Zeilen[j].find("VERBATIM")!=Zeilen[j].npos)
 					Verba = true;
 
-				// removes verbatim blocks
+		// removes verbatim blocks
 				if (Verba==false)
 				{
-				//std::cout << counter << std::endl;
+				////std::cout << counter << std::endl;
 					//deletes also every \n in blocks
 					breaks = Zeilen[j].find("\n");
 					while (breaks!=Zeilen[j].npos)
@@ -1035,7 +1202,7 @@ std::vector<string> Converter::GetBlock(std::vector<pair<int, int> > Pairs, std:
 						breaks = Zeilen[j].find("\r");
 					}
 
-					// convertes "^" to pow
+		// Part convertes all "^" to pow
 					string left, right;
 					string zeile, new_zeile, zeile_without;
 					string orginal;
@@ -1043,23 +1210,23 @@ std::vector<string> Converter::GetBlock(std::vector<pair<int, int> > Pairs, std:
 					breaks = zeile_without.find("^");
 					while (breaks!=zeile_without.npos)
 					{
-						std::cout << "^ gefunden" << std::endl;
+						//std::cout << "^ gefunden" << std::endl;
 						// writes into left every part of one number
 						left = "";
 
-						std::cout << "breaks: " << breaks << std::endl;
+						//std::cout << "breaks: " << breaks << std::endl;
 						for (size_t k=breaks-1; k>1; k--)
 						{
 							//sleep(10);
-							std::cout<< "k schleife with k: " << k << std::endl;
-							std::cout << zeile_without[k] << std::endl;
+							//std::cout<< "k schleife with k: " << k << std::endl;
+							//std::cout << zeile_without[k] << std::endl;
 							if ((is_single_number(zeile_without[k])==true) || (is_single_letter(zeile_without[k])==true))
 							{
 								left = left + zeile_without[k];
 							}
 							else
 								{
-								std::cout << "in else" << std::endl;
+								//std::cout << "in else" << std::endl;
 								k = 1; //break for for
 								}
 						}
@@ -1098,7 +1265,7 @@ std::vector<string> Converter::GetBlock(std::vector<pair<int, int> > Pairs, std:
 							// if the problem have to be solved without clips
 							if (clips == false)
 							{
-								std::cout << "in clip false" << std::endl;
+								//std::cout << "in clip false" << std::endl;
 								// do only one times change length and k
 								if (change == false)
 								{
@@ -1120,23 +1287,23 @@ std::vector<string> Converter::GetBlock(std::vector<pair<int, int> > Pairs, std:
 
 
 
-						std::cout << right << std::endl;
-						std::cout << left << std::endl;
-						//std::cout << "zeile: " << zeile << std::endl;
+						//std::cout << right << std::endl;
+						//std::cout << left << std::endl;
+						////std::cout << "zeile: " << zeile << std::endl;
 						new_zeile = zeile_without.replace(zeile_without.find(right), right.size(), "");
-						std::cout << "new_zeile1: " << new_zeile << std::endl;
+						//std::cout << "new_zeile1: " << new_zeile << std::endl;
 						new_zeile = new_zeile.replace(new_zeile.find(left), left.size(), "");
-						std::cout << "new_zeile2: " << new_zeile << std::endl;
+						//std::cout << "new_zeile2: " << new_zeile << std::endl;
 						new_zeile = new_zeile.replace(new_zeile.find("^"), 1, " pow(" + left + " , " + right + ")");
-						std::cout << "new_zeile3: " << new_zeile << std::endl;
-						//std::cout << "while schleife geht net mit Zeilen[j] = " << Zeilen[j] << std::endl;
+						//std::cout << "new_zeile3: " << new_zeile << std::endl;
+						////std::cout << "while schleife geht net mit Zeilen[j] = " << Zeilen[j] << std::endl;
 
 						Zeilen[j] = new_zeile;
 						breaks = Zeilen[j].find("^");
-						//std::cout << "breaks " << breaks << std::endl;
+						////std::cout << "breaks " << breaks << std::endl;
 						//end of converting action
 					}
-
+					// writting formatted Zeile in Blockname
 					BlockName.push_back(Zeilen[j]);
 				}
 				if (Zeilen[j].find("ENDVERBATIM")!=Zeilen[j].npos)
@@ -1146,11 +1313,12 @@ std::vector<string> Converter::GetBlock(std::vector<pair<int, int> > Pairs, std:
 
 		}
 	}
-	//std::cout << "before block" << std::endl;
-	//std::cout << BlockName.size() << std::endl;
+	////std::cout << "before block" << std::endl;
+	////std::cout << BlockName.size() << std::endl;
 	return BlockName;
 }
 
+// removes all comments out of a string giving back new string
 string Converter::Remove_all_com(string erg)
 {
 	size_t HFile_del;
@@ -1187,6 +1355,8 @@ string Converter::Remove_all_com(string erg)
 }
 
 
+
+// Function which removes all " " out of a string giving back new string
 string Converter::Remove_all(string erg)
 {
 	size_t HFile_del;
@@ -1224,7 +1394,7 @@ string Converter::Remove_all(string erg)
 
 }
 
-
+// Function which removes all " " out of a vector<string> giving back new vector<string>
 vector<string> Converter::Remove_all(vector<string> erg)
 {
 	  size_t HFile_del;
@@ -1261,13 +1431,21 @@ vector<string> Converter::Remove_all(vector<string> erg)
 		  }
 
 
-		  std::cout<< "Hfile_vars: " << erg[i] << std::endl;
+		  //std::cout<< "Hfile_vars: " << erg[i] << std::endl;
 	  }
 	  return erg;
 }
 
 
-void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen)
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Main Function which writes H File and Cpp File
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen, bool force)
 {
 	  // defines filenames as const char*
 	  string fnamecpp = filename + ".cpp";
@@ -1286,7 +1464,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  // open cpp file + writing init head
 	  ofstream mycppfile;
 	  mycppfile.open (filenamecpp);
-	  std::cout << "write begins" << std::endl;
+	  //std::cout << "write begins" << std::endl;
 	  mycppfile << "#include \"" + filename +".h\"	\n";
 	  mycppfile << "#include \"lib_grid/lg_base.h\" \n";
 	  mycppfile << "#include \"lib_disc/spatial_disc/elem_disc/elem_disc_interface.h\" \n";
@@ -1359,11 +1537,11 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 								 && Remove_all(FUNCTION[i])!="}")
 							  {
 								  mycppfile << FUNCTION[i] + "; \n";
-							 	  //std::cout << FUNCTION[i];
+							 	  ////std::cout << FUNCTION[i];
 							  }
 							  else
 							  {
-							 	  //std::cout << FUNCTION[i];
+							 	  ////std::cout << FUNCTION[i];
 							 	  mycppfile << FUNCTION[i] + "\n";
 							  }
 
@@ -1379,7 +1557,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  }
 
 	  // Proceduren wie Funktionen
-	  std::cout << "All Functions added" << std::endl;
+	  //std::cout << "All Functions added" << std::endl;
 
 	  mycppfile << "// adding function which always inits_attachments \n";
 	  mycppfile << "template<typename TDomain> \n";
@@ -1438,7 +1616,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  myhfile << "    : public IChannel<TDomain> \n";
 	  myhfile << "{ \n";
 	  myhfile << "    public: \n ";
-	  myhfile << "using IChannel <TDomain>::m_spVMDisc; \n \n";
+	  myhfile << "using IChannel <TDomain>::m_pVMDisc; \n \n";
 
 
 	  // finde die spezifischen Parameter
@@ -1446,6 +1624,26 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  std::vector<string> NEURON = GetBlock(Pairs, Zeilen, "NEURON");
 	  size_t Global;
 	  std::vector<string> Global_vars;
+	  // allreadings and all writings needed later!
+	  std::vector<string> writes_Ions = Find_all_write(NEURON);
+	  std::vector<string> read_Ions = Find_all_read(NEURON);
+
+	  /*
+	  //std::cout << "Find_all_write and Find all read testing area: " << std::endl;
+	  for (size_t i=0; i<writes_Ions.size(); i++)
+	  {
+		  //std::cout << "writer: " << writes_Ions[i] << std::endl;
+	  }
+
+	  for (size_t i=0; i<read_Ions.size(); i++)
+	  {
+		  //std::cout << "reader: " << read_Ions[i] << std::endl;
+	  }*/
+
+
+	  // get all vars which nernst equalis is used later on
+	  std::vector<string> All_Eqs = Find_all_Eqs(NEURON);
+
 	  // Globals out of Neuron
 	  for (size_t i = 0; i<NEURON.size(); i++)
 	  {
@@ -1459,7 +1657,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  // writting all globals
 	  if (Global_vars.size() > 0)
 	  {
-		  for (size_t i = 0; i<Global_vars.size(); i++)
+		  for (size_t i = 0; i<Global_vars.size()-1; i++)
 		  {
 			  HFile_added_Vars.push_back(Global_vars[i]);
 			  //myhfile << "double " + Global_vars[i] + "; \n";
@@ -1468,7 +1666,14 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  }
 	  myhfile << "\n \n \n" ;
 
-	  std::cout << "Globals added!" << std::endl;
+	  //std::cout << "Globals added!" << std::endl;
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+// Writing out all hard-coded Parameters and change in needed Unit
+//////////////////////////////////////////////////////////////////////////////////////////////
+
 
 	  // getting out of Params hard coded Values
 	  std::vector<string> PARAMETER = GetBlock(Pairs, Zeilen, "PARAMETER");
@@ -1477,9 +1682,12 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  double Unit;
 
 	  std::vector<string> Params_Unit;
+	  // Vector with all setted Params
+	  // this list is needed for example if ena has a hard coded value
+	  std::vector<string> Parameter;
 
 	  // setting all parameters and converting units
-	  std::cout << "Setting Parameters and converting in needed Units" << std::endl;
+	  //std::cout << "Setting Parameters and converting in needed Units" << std::endl;
 	  if (PARAMETER.size() > 0)
 	  {
 		  for (size_t i=0; i<PARAMETER.size(); i++)
@@ -1490,6 +1698,17 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 			  {
 				  end = PARAMETER[i].find("(");
 				  endUnit = PARAMETER[i].find(")");
+
+				  // no clips but comment add the end
+				  if (endUnit==PARAMETER[i].npos && end==PARAMETER[i].npos)
+				  {
+					  if (PARAMETER[i].find(":")!=PARAMETER[i].npos)
+					  {
+						  PARAMETER[i] = PARAMETER[i].substr(0, PARAMETER[i].find(":")-1);
+					  }
+					  Unit = 1;
+				  }
+
 				  var = PARAMETER[i].substr(0, end);
 				  if (end!= PARAMETER[i].npos && endUnit!= PARAMETER[i].npos)
 				  {
@@ -1498,6 +1717,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 				  Units << Unit;
 				  Params_Unit.push_back(var + "*" + Units.str());
 				  HFile_added_Vars.push_back(var.substr(0, var.find("=")));
+				  Parameter.push_back(var.substr(0, var.find("=")));
 			  }
 		  }
 	  }
@@ -1505,7 +1725,11 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  myhfile << "\n";
 
 
-	  std::cout << "All Parameters set" << std::endl;
+	  //std::cout << "All Parameters set" << std::endl;
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+// Writing all
+//////////////////////////////////////////////////////////////////////////////////////////////
 
 	  size_t Ion, IonEnd;
 	  string IonS;
@@ -1520,9 +1744,9 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		  {
 
 			  IonEnd = NEURON[i].find(" ", Ion+7);
-			  std::cout << IonEnd << ", " << Ion << std::endl;
+			  //std::cout << IonEnd << ", " << Ion << std::endl;
 			  IonS = NEURON[i].substr(Ion+7, (IonEnd-(Ion+7)));
-			  std::cout << "Subion: "<<IonS << std::endl;
+			  //std::cout << "Subion: "<<IonS << std::endl;
 			  ListIons.push_back(IonS);
 			  //writes var for outer concentrations
 			  //myhfile << "number " + IonS + "_out; \n";
@@ -1546,7 +1770,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  myhfile << "/// @copydoc IChannel<TDomain>::IChannel(cont char*) \n";
 	  myhfile << filename + "(const char* functions, const char* subsets) \n";
 	  myhfile << "try : IChannel<TDomain>(functions, subsets), \n";
-	  myhfile << "m_R(8.314), m_T(310.0), m_F(96485.0), \n";
+	  myhfile << "m_R(8.314), m_T(279.45), m_F(96485.0), \n";
 	  /// adding all standard vals of Parameters
 	  size_t gleich;
 	  string add;
@@ -1565,7 +1789,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  myhfile << "/// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&) \n";
 	  myhfile << filename + "(const std::vector<std::string>& functions, const std::vector<std::string>& subsets) \n";
 	  myhfile << "try : IChannel<TDomain>(functions, subsets), \n";
-	  myhfile << "m_R(8.314), m_T(310.0), m_F(96485.0), \n";
+	  myhfile << "m_R(8.314), m_T(279.45), m_F(96485.0), \n";
 	  /// adding all standard vals of Parameters
 	  size_t gleich1;
 	  string add1;
@@ -1590,7 +1814,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  for (size_t i=0; i<func_hfile.size() ; i++)
 	  {
 		  name = func_hfile[i].substr(func_hfile[i].find(filename), func_hfile[i].find("::")-func_hfile[i].find(filename)+2);
-		  std::cout << "name: " << name << std::endl;
+		  //std::cout << "name: " << name << std::endl;
 		  func_hfile[i].replace(func_hfile[i].find(name), name.size(), "");
 		  myhfile << func_hfile[i] + "; \n";
 	  }
@@ -1611,10 +1835,16 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  myhfile << "private: \n \n";
 	  // Neuron-lines with use ion
 
+
+
+
+
+
+
 	  std::vector<string> STATE = GetBlock(Pairs, Zeilen, "STATE");
 
-
-
+	  // needed var for Gating params having same value of used Ion
+	  std::vector<string> SGating;
 
 
 	  // creating init Attachments
@@ -1623,7 +1853,9 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  mycppfile << "template<typename TDomain> \n";
 	  mycppfile << "void " + filename + "<TDomain>::init_attachments() \n";
 	  mycppfile << "{ \n";
-	  mycppfile << "SmartPtr<Grid> spGrid = m_spVMDisc->approx_space()->domain()->grid(); \n";
+	  mycppfile << "// inits temperatur from kalvin to celsius and some other typical neuron values\n";
+	  mycppfile << "m_pVMDisc->celsius = m_T - 273; \n \n \n";
+	  mycppfile << "SmartPtr<Grid> spGrid = m_pVMDisc->approx_space()->domain()->grid(); \n";
 
 ////////////////////////////////////////////////////////////////////////////////////
 //// Saving all States in one Var also writting first states into cpp and h file
@@ -1637,6 +1869,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  std::vector<string> State_vars;
 	  size_t state, stateend, komm_beg;
 	  size_t varSt = 0;
+	  bool clip = false;
 	 // size_t tabs;
 
 	  if (STATE.size()>0)
@@ -1645,15 +1878,27 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		  {
 			  state = pos_letter(STATE[i]);
 			  if (state!=1000)
+			  {
 				  if (STATE[i].find("(")==STATE[i].npos)
+				  {
 					  varSt = number_(state, STATE[i]);
-			  std::cout << "after doppelt if" << std::endl;
+				  }
+				  else
+				  {
+					  varSt = 1;
+					  clip=true;
+				  }
+			  }
+			  ////std::cout << "after doppelt if" << std::endl;
 			  for (size_t j=0; j<varSt; j++)
 			  {
-				  std::cout << "in state " << std::endl;
+				  ////std::cout << "in state " << std::endl;
 				  komm_beg = STATE[i].find(":");
 				  stateend = STATE[i].find(" ", state);
-				  std::cout << "ab: " << state << " anzahl: " << stateend-state << std::endl;
+				  if (clip==true)
+					  stateend = STATE[i].find("(", state);
+				  clip = false;
+				  ////std::cout << "ab: " << state << " anzahl: " << stateend-state << std::endl;
 				  if (stateend==komm_beg+1)
 				  {
 					  stateend -= 1;
@@ -1669,20 +1914,29 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 						  }
 						  else
 						  {
-							  std::cout << "not added!!" << std::endl;
+							  ////std::cout << "not added!!" << std::endl;
 							  addState = "";
 						  }
 		  			  }
 					  else
 		  			  {
-						  std::cout << "vergleich: " << stateend << " - "<<komm_beg << std::endl;
+						  ////std::cout << "vergleich: " << stateend << " - "<<komm_beg << std::endl;
 						  addState = Remove_all(STATE[i].substr(state, stateend-state));
 		  			  }
-
 
 		  			  //writting in hfile
 		  			  if ((addState!="}") && (addState!="") && (addState!="\n") &&(addState!="\n}") && (addState!="}\n"))
 		  			  {
+		  				// If State is already in Ion List we need another name for State
+		  				// doing this by adding "S"
+		  				  for (size_t k=0; k<ListIons.size(); k++)
+		  				  {
+		  					  if (Remove_all(addState)==Remove_all(ListIons[k]))
+		  					  {
+		  						  addState = addState+"S";
+		  						  SGating.push_back(addState);
+		  					  }
+		  				  }
 		  				  State_vars.push_back(addState);
 		  				  myhfile << "ADouble " + addState + "Gate; \n";
 		  				  myhfile << "Grid::AttachmentAccessor<Vertex, ADouble> aa" + addState + "Gate; \n";
@@ -1716,22 +1970,26 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  mycppfile << "void " + filename + "<TDomain>::init(const LocalVector& u, Edge* edge) \n";
 	  mycppfile << "{ \n";
 	  mycppfile << "//get celsius \n";
-	  mycppfile << "number celsius = m_spVMDisc->celsius; \n";
+	  mycppfile << "number celsius = m_pVMDisc->celsius; \n";
 	  mycppfile << "// make preparing vor getting values of every edge \n";
 	  mycppfile << "typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; \n";
 	  mycppfile << "vrt_list vl; \n";
-	  mycppfile << "m_spVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge); \n \n \n";
+	  mycppfile << "m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge); \n \n \n";
 	  mycppfile << "//over all edges \n";
 	  mycppfile << "for (size_t l = 0; l< vl.size(); l++) \n";
 	  mycppfile << "{ \n";
 	  mycppfile << "\t Vertex* vrt = vl[l]; \n \n \n";
-	  mycppfile << "number v = u(m_spVMDisc->_v_, l); \n";
+	  mycppfile << "number v = u(m_pVMDisc->_v_, l); \n";
 
+	  // TODO we only need read ions in right context
 	  for (size_t i=0; i<ListIons.size(); i++)
 	  {
-		  mycppfile << "number " + ListIons[i] +" = u(m_spVMDisc->_"+ ListIons[i] +"_, l); \n";
+		  mycppfile << "number " + ListIons[i] +" = u(m_pVMDisc->_"+ ListIons[i] +"_, l); \n";
 	  }
 	  mycppfile << "\n \n";
+
+
+	  std::cout << "Start working on Initial-Block" << std::endl;
 
 	  // Reading functional info for states
 	  std::vector<string> INITIAL = GetBlock(Pairs, Zeilen, "INITIAL");
@@ -1749,7 +2007,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  {
 		  begin = count_beg(INITIAL[1]);
 	  }
-	  std::cout << "beg: INITIAL!" << std::endl;
+	  ////std::cout << "beg: INITIAL!" << std::endl;
 
 	  if (INITIAL.size() > 0)
 	  {
@@ -1776,11 +2034,11 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 					  		  string GatingName = In_NeuronUse_List(Pairs, Zeilen, Proc_funcs[j][k]);
 					  		  if (GatingName!="")
 					  		  {
-					  			  mycppfile << "double " + Proc_funcs[j][k] + " = aa"+ GatingName + "Gate[vrt]; \n \n";
-					  			  std::cout << "else for: " << std::endl;
+					  			  mycppfile << "double " + Remove_all(Proc_funcs[j][k]) + " = aa"+ GatingName + "Gate[vrt]; \n \n";
+					  			  ////std::cout << "else for: " << std::endl;
 					  		  }
 					  	  }
-					  std::cout << Proc_funcs[j][k] << std::endl;
+					  ////std::cout << Proc_funcs[j][k] << std::endl;
 					  }
 					  locals = get_local_proc_block(Pairs, Zeilen, Proc_funcs[j][0]);
 
@@ -1808,9 +2066,9 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 						  }
 					  }
-					  std::cout << "before proc vals" << std::endl;
+					  ////std::cout << "before proc vals" << std::endl;
 					  Proc_vals = writer_proc_block(Pairs, Zeilen, Proc_funcs[j][0]);
-					  std::cout << Proc_vals.size() << std::endl;
+					  ////std::cout << Proc_vals.size() << std::endl;
 
 					  bool HFile_added;
 					  for (size_t k=0; k<Proc_vals.size(); k++)
@@ -1821,7 +2079,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 						  {
   							  for (size_t l=0; l<HFile_added_Vars_Init.size(); l++)
   							  {
-  								  //std::cout << "Vergleich " << Remove_all(Proc_vals[k].substr(0, Proc_vals[k].find("=")-1)) << " - " << Remove_all(HFile_added_Vars[l]) << std::endl;
+  								  ////std::cout << "Vergleich " << Remove_all(Proc_vals[k].substr(0, Proc_vals[k].find("=")-1)) << " - " << Remove_all(HFile_added_Vars[l]) << std::endl;
   								  if (Remove_all(Proc_vals[k].substr(0, Proc_vals[k].find("=")))==Remove_all(HFile_added_Vars_Init[l]))
   									  HFile_added = true;
   							  }
@@ -1834,7 +2092,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
   								  //writes comments
   								  if (Proc_vals[k].find(":")!=Proc_vals[k].npos)
   									  Proc_vals[k].replace(Proc_vals[k].find(":"), 1, "//");
-  								  std::cout << Proc_vals[k] << std::endl;
+  								  ////std::cout << Proc_vals[k] << std::endl;
   								  mycppfile << Proc_vals[k] + "; \n";
 
   							  } else
@@ -1846,17 +2104,18 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
   									com_buf = Remove_all_com(com_buf);
   									Proc_vals[k].replace(Proc_vals[k].find(":"), 1, "//");
   								}
-  								std::cout << "com_buf: " << com_buf << std::endl;
+  								////std::cout << "com_buf: " << com_buf << std::endl;
 
   								if (com_buf.find(":")==0)
   								{
-  									std::cout << Proc_vals[k] << std::endl;
+  									////std::cout << Proc_vals[k] << std::endl;
   									mycppfile << Proc_vals[k] + "\n";
   								} else
   								{
-  									std::cout << Proc_vals[k] << std::endl;
+  									////std::cout << Proc_vals[k] << std::endl;
   									if (Remove_all(Proc_vals[k])!="")
   										mycppfile << "double " + Proc_vals[k] + "; \n";
+
   									// perhaps needed and also needed in deriv
   									// if var used a second time it does not need double at beginning
   									//HFile_added_Vars_Init.push_back(Remove_all(Proc_vals))
@@ -1873,7 +2132,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		  }		  // write locals vals as double
 	  }
 
-	  std::cout<< "writing end" << std::endl;
+	  ////std::cout<< "writing end" << std::endl;
 	  for (size_t i=Stats_beg; i<INITIAL.size(); i++)
 	  {
 		  // writings at the end
@@ -1882,26 +2141,38 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 			  size_t gleich, vorgleich;
 			  if ((INITIAL[i]!="") && (INITIAL[i]!="}"))
 			  {
-				  std::cout << "gleich Search" << std::endl;
+				  ////std::cout << "gleich Search" << std::endl;
 				  vorgleich = pos_letter(INITIAL[i]);
 				  gleich = INITIAL[i].find("=");
 
 				  if (INITIAL[i].find("=")!=INITIAL[i].npos)
 				  {
-					  std::cout << "ab: " << vorgleich << "bis: " << gleich << std::endl;
+					  ////std::cout << "ab: " << vorgleich << "bis: " << gleich << std::endl;
 					  // needed if they are in gatting list use as gatting else write without gatting
 					  bool written = false;
 					  for (size_t j=0; j< State_vars.size(); j++)
 					  {
 						  if (Remove_all(INITIAL[i].substr(vorgleich , gleich-vorgleich))==Remove_all(State_vars[j]))
 						  {
-							  mycppfile << "aa" + Remove_all(INITIAL[i].substr(vorgleich , gleich-vorgleich)) + "Gate[vrt] " + INITIAL[i].substr(gleich) + "; \n";
+							  mycppfile << "aa" + Remove_all(INITIAL[i].substr(vorgleich, gleich-vorgleich)) + "Gate[vrt] " + INITIAL[i].substr(gleich) + "; \n";
 							  written = true;
 						  }
 					  }
 					  {
 						  if (written==false)
+						  {
+							  if (INITIAL[i].find("=")!=INITIAL[i].npos)
+							  {
+								  string left = INITIAL[i].substr(0, INITIAL[i].find("=")-1);
+								  string right = INITIAL[i].substr(INITIAL[i].find("=")+1, INITIAL[i].npos-(INITIAL[i].find("=")+1));
+								  mycppfile << ProofSGatingInit(left, SGating) + " = " + right + "; \n";
+							  }
+
+							  else
+							  {
 							  mycppfile << INITIAL[i] + "; \n";
+							  }
+						  }
 					  }
 				  } //else
 			    	  //vorgleich = beg_count(INITIAL[i]);
@@ -1909,32 +2180,39 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		  }
 	  }
 
-
-
-	  std::cout << "INIT happend" << std::endl;
-
 	  mycppfile << "}  \n";
 	  mycppfile << "}  \n \n \n \n";
+
+	  std::cout << "Initial block written" << std::endl;
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Starts writting update_gating function
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+	  std::cout << "Start writting update_gating function" << std::endl;
 
 	  mycppfile << "template<typename TDomain> \n";
 	  mycppfile << "void " + filename + "<TDomain>::update_gating(number newTime, const LocalVector& u, Edge* edge) \n";
 	  mycppfile << "{ \n";
-	  mycppfile << "number celsius = m_spVMDisc->celsius; \n \n";
+	  mycppfile << "number celsius = m_pVMDisc->celsius; \n \n";
 
 	  mycppfile << "// make preparing vor getting values of every edge \n";
 	  mycppfile << "typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; \n";
 	  mycppfile << "vrt_list vl; \n";
-	  mycppfile << "m_spVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge); \n \n \n";
+	  mycppfile << "m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge); \n \n \n";
 	  mycppfile << "//over all edges \n";
 	  mycppfile << "for (size_t l = 0; l< vl.size(); l++) \n";
 	  mycppfile << "{ \n";
 	  mycppfile << "\t Vertex* vrt = vl[l]; \n \n \n";
-	  mycppfile << "number dt = newTime - m_spVMDisc->m_aaTime[vrt]; \n";
-	  mycppfile << "number v = u(m_spVMDisc->_v_, l); \n";
+	  mycppfile << "number dt = newTime - m_pVMDisc->m_aaTime[vrt]; \n";
+	  mycppfile << "number v = u(m_pVMDisc->_v_, l); \n";
 
 	  for (size_t i=0; i<ListIons.size(); i++)
 	  {
-		  mycppfile << "number " + ListIons[i] +" = u(m_spVMDisc->_"+ ListIons[i] +"_, l); \n";
+		  mycppfile << "number " + ListIons[i] +" = u(m_pVMDisc->_"+ ListIons[i] +"_, l); \n";
 	  }
 	  mycppfile << "\n \n";
 
@@ -1953,12 +2231,14 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  {
 		  for (size_t i=0; i<PROCEDURE.size(); i++)
 			  {
-			    std::cout << "Procedure: " << PROCEDURE[i] << std::endl;
+			    //std::cout << "Procedure: " << PROCEDURE[i] << std::endl;
 			  }
 		  for (size_t i=0; i<Proc_funcs[0].size(); i++)
 			  {
 			  	  for (size_t j=0; j<Proc_funcs.size(); j++)
-			    std::cout << "Proc_funcs: " << Proc_funcs[j][i] << std::endl;
+			  	  {
+			    //std::cout << "Proc_funcs: " << Proc_funcs[j][i] << std::endl;
+			  	  }
 			  }
 
 		  if (Der_funcs.size() >= 1)
@@ -1966,7 +2246,9 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 			  for (size_t i=0; i<Der_funcs[0].size(); i++)
 			  	  {
 			  	  	  for (size_t j=0; j<Der_funcs.size(); j++)
-			  	  		  std::cout << "Proc_funcs: " << Der_funcs[j][i] << std::endl;
+			  	  	  {
+			  	  		  //std::cout << "Proc_funcs: " << Der_funcs[j][i] << std::endl;
+			  	  	  }
 			  	  }
 		  }
 	  }
@@ -1988,7 +2270,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 	  mycppfile << "\n \n \n";
 
-	  std::cout << "DERIV BEGINS" << std::endl;
+	  std::cout << "Working on Derivative-Block starts" << std::endl;
 	  if (DERIVATIVE.size() > 0)
 	  	  {
 	  		  begin = count_beg(DERIVATIVE[1]);
@@ -2002,7 +2284,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  			  for (size_t j=0; j<Proc_funcs.size(); j++)
 	  			  {
 	  				  begin = 0;
-	  				  std::cout << "Vergleich: " << DERIVATIVE[i].substr(begin, DERIVATIVE[i].find("(")-begin)<< " - " << Proc_funcs[j][0] << std::endl;
+	  				  ////std::cout << "Vergleich: " << DERIVATIVE[i].substr(begin, DERIVATIVE[i].find("(")-begin)<< " - " << Proc_funcs[j][0] << std::endl;
 	  				  if (Proc_funcs[j][0] == Remove_all(DERIVATIVE[i].substr(begin, DERIVATIVE[i].find("(")-begin)))
 	  				  {
 	  					  Stats_beg = i;
@@ -2021,10 +2303,10 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 						  		  if (GatingName!="")
 						  		  {
 						  			  mycppfile << "double " + Proc_funcs[j][k] + " = aa"+ GatingName + "Gate[vrt]; \n \n";
-						  			  std::cout << "else for: " << std::endl;
+						  			  ////std::cout << "else for: " << std::endl;
 						  		  }
 	  					  	  }
-	  					  std::cout << Proc_funcs[j][k] << std::endl;
+	  					  ////std::cout << Proc_funcs[j][k] << std::endl;
 	  					  }
 	  					  locals = get_local_proc_block(Pairs, Zeilen, Proc_funcs[j][0]);
 
@@ -2053,9 +2335,9 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 							  }
 	  					  }
-	  					  std::cout << "before proc vals" << std::endl;
+	  					  //std::cout << "before proc vals" << std::endl;
 	  					  Proc_vals = writer_proc_block(Pairs, Zeilen, Proc_funcs[j][0]);
-	  					  std::cout << Proc_vals.size() << std::endl;
+	  					  //std::cout << Proc_vals.size() << std::endl;
 
 
 	  					  bool HFile_added;
@@ -2067,7 +2349,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 							  {
 	  							  for (size_t l=0; l<HFile_added_Vars_Deriv.size(); l++)
 	  							  {
-	  								  std::cout << "Vergleich " << Remove_all(Proc_vals[k].substr(0, Proc_vals[k].find("=")-1)) << " - " << Remove_all(HFile_added_Vars_Deriv[l]) << std::endl;
+	  								  //std::cout << "Vergleich " << Remove_all(Proc_vals[k].substr(0, Proc_vals[k].find("=")-1)) << " - " << Remove_all(HFile_added_Vars_Deriv[l]) << std::endl;
 	  								  if (Remove_all(Proc_vals[k].substr(0, Proc_vals[k].find("=")))==Remove_all(HFile_added_Vars_Deriv[l]))
 	  									  HFile_added = true;
 	  							  }
@@ -2098,7 +2380,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  									mycppfile << Proc_vals[k] + "\n";
 	  								} else
 	  								{
-	  									std::cout<< Proc_vals[k] << std::endl;
+	  									//std::cout<< Proc_vals[k] << std::endl;
 	  									if (Remove_all(Proc_vals[k])!="")
 	  										mycppfile << "double " + Proc_vals[k] + "; \n";
 	  								}
@@ -2113,14 +2395,14 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  		  }		  // write locals vals as double
 	  	  }
 
-	  	  std::cout<< "writing end" << std::endl;
+	  	  //std::cout<< "writing end" << std::endl;
 	  	  for (size_t i=Stats_beg; i<DERIVATIVE.size(); i++)
 	  	  {
 	  		  // writings at the end
 	  		  if (i >= Stats_beg)
 	  		  {
 				  // Writting derivfuncs
-				  std::cout << "before deriv" << std::endl;
+				  //std::cout << "before deriv" << std::endl;
 				  if ((i> Stats_beg) && (i < DERIVATIVE.size()-1))
 				  {
 					if (DERIVATIVE[i]!="")
@@ -2130,15 +2412,17 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 							DERIVATIVE[i].replace(DERIVATIVE[i].find("\'"), 1, "");
 							DERIVATIVE[i].replace(DERIVATIVE[i].find("="), 1, "+=");
 							DERIVATIVE[i] = DERIVATIVE[i] + "*dt";
+							DERIVATIVE[i] = ProofSGatingGating(DERIVATIVE[i], SGating);
+							// if that var is a Gating and Ion at same time
 						}
 
 						bool used = false;
-						std::cout << "before added Vars" << std::endl;
+						//std::cout << "before added Vars" << std::endl;
 						for (size_t j = 0; j<HFile_added_Vars_Deriv.size(); j++)
 						{
 							if (DERIVATIVE[i].find("=")!=DERIVATIVE[i].npos)
 							{
-								std::cout << "in derivv find =" << std::endl;
+								//std::cout << "in derivv find =" << std::endl;
 								if (Remove_all(DERIVATIVE[i].substr(0, DERIVATIVE[i].find("=")-1))==Remove_all(HFile_added_Vars_Deriv[j]))
 									used = true;
 							}
@@ -2149,7 +2433,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 						if (used==false)
 						{
-							std::cout << "in used false" << std::endl;
+							//std::cout << "in used false" << std::endl;
 							if (Remove_all(DERIVATIVE[i])!="")
 								mycppfile << "double " + DERIVATIVE[i] + "; \n";
 						}
@@ -2166,10 +2450,10 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 
 
-	  std::cout << "DERIV happened" << std::endl;
+	  std::cout << "Derivate-Block is written" << std::endl;
 
 
-	  std::cout << "Adding kinetic funcs" << std::endl;
+	  std::cout << "Start working on kinetic functions" << std::endl;
 
 	  string needed_proc;
 	  std::vector<string> KINETIC;
@@ -2186,7 +2470,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		  if (beg_sol != BREAKPOINT[i].npos)
 		  {
 			  needed_proc = BREAKPOINT[i-1];
-			  std::cout << "first needed proc: " << needed_proc << std::endl;
+			  //std::cout << "first needed proc: " << needed_proc << std::endl;
 			  Solve_List.push_back(BREAKPOINT[i].substr(beg_sol+6, BREAKPOINT[i].find("METHOD")-1-(beg_sol+6)));
 		  }
 	  }
@@ -2235,7 +2519,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 							  vars = right.substr(c_f_o+1, c_l_c-(c_f_o+1));
 							  right = right.substr(0, c_f_o-1);
 
-							  std::cout << "left: " << left <<" right: "<< right << "vars: " << vars << std::endl;
+							  //std::cout << "left: " << left <<" right: "<< right << "vars: " << vars << std::endl;
 							  helpco = vars.find("(");
 							  helpcc = vars.find(")");
 							  // del all clips
@@ -2333,7 +2617,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 		  mycppfile << " \n \n \n";
 
-
+		  std::cout<< "Working on Kinetic block finished" << std::endl;
 
 	// if there is no kinetic
 	  } else
@@ -2349,7 +2633,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 				  if (breakS!=BREAKPOINT[i].npos)
 				  {
 					  Proc = BREAKPOINT[i].substr(breakS+6 ,BREAKPOINT[i].find(" ")-(breakS+6));
-					  std::cout << "PROC: " << Proc << std::endl;
+					  //std::cout << "PROC: " << Proc << std::endl;
 					  BProc = writer_proc_block(Pairs, Zeilen, Proc);
 				  }
 			  }
@@ -2442,9 +2726,17 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  mycppfile << "} \n";
 	  mycppfile << " \n \n \n";
 
+
+
+	  std::cout << "update_gating Function is written" << std::endl;
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 // write head of ionic flux
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	  std::cout << "Start writting Ionic_current function"<< std::endl;
+
+
 	  mycppfile << "template<typename TDomain> \n";
 	  mycppfile << "void " + filename + "<TDomain>::ionic_current(Vertex* ver, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues) \n";
 	  mycppfile << "{ \n \n";
@@ -2476,17 +2768,62 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  //writes Nernst Eqs
 	  std::vector<string> eqs = equali(Pairs, Zeilen);
 
+	  //var vor latest use
+	  std::vector<string> comp_outs;
+	  string comp_outs_left, comp_outs_right;
+
+	  std::cout << "Start preparing Nernst-Equations" << std::endl;
+
 	  if (eqs.size()>0)
 	  {
 		  for (size_t i=0; i<eqs.size(); i++)
 		  {
+			  bool is_comp_out = false;
 			  // TODO write for schleife over all ions!
-			  if (eqs[i]!="1" && eqs[i]!="0" && eqs[i]!=" ca" && eqs[i]!=" na" && eqs[i]!=" k")
-				  mycppfile << eqs[i] + " \n";
+			  if (eqs[i]!="1" && eqs[i]!="0" && Remove_all(eqs[i])!="ca" && Remove_all(eqs[i])!="na" && Remove_all(eqs[i])!="k")
+			  {
+				  //std::cout << eqs[i] + " \n" << std::endl;
+				  // other handle if it is ica, ik or ina which means outflux
+				  if (eqs[i].find("=")!=eqs[i].npos)
+				  {
+					  comp_outs_right = eqs[i].substr(eqs[i].find("=")+1, eqs[i].npos - (eqs[i].find("=")+1));
+					  comp_outs_left = eqs[i].substr(0, eqs[i].find("=")-1);
+					  if ((comp_outs_left.find("ica")!=comp_outs_left.npos)
+					  ||  (comp_outs_left.find("ina")!=comp_outs_left.npos)
+					  ||  (comp_outs_left.find("ik")!= comp_outs_left.npos))
+					  {
+						  comp_outs_left = comp_outs_left.replace(comp_outs_left.find("number"), 6,"");
+						  comp_outs_left = Remove_all(comp_outs_left);
+						  comp_outs_right = ProofSGatingGating(comp_outs_right, SGating);
+						  comp_outs_right = comp_outs_right.replace(comp_outs_right.find(";"), 1, "");
+						  comp_outs_right = comp_outs_right.replace(comp_outs_right.find("+="), 2, "=");
+						  comp_outs.push_back(comp_outs_left +  comp_outs_right);
+						  is_comp_out = true;
+					  }
+				  }
+
+				  bool rev_pot_is_setted = false;
+				  // if values in eqs setted before in NModl file do not calculate Nernstequatation of this param
+				  for (size_t j=0; j<Parameter.size(); j++)
+				  {
+
+					  string verg = eqs[i].substr(0, eqs[i].find("=")-1);
+					  verg = verg.replace(verg.find("number"), 6, "");
+					  //std::cout << "Vergleich: " << Remove_all(verg) << " vs " << Remove_all(Parameter[j]) << std::endl;
+					  if (Remove_all(verg) == Remove_all(Parameter[j]))
+						  rev_pot_is_setted = true;
+				  }
+
+				  if (is_comp_out == false && rev_pot_is_setted == false)
+					  mycppfile << eqs[i] + " \n";
+			  }
 		  }
 	  }
 
 	  mycppfile << " \n \n";
+
+	  std::cout << "Nernst-Equations prepared" << std::endl;
+
 
 	  bool in = true;
 	  bool stand_BP = true;
@@ -2496,7 +2833,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  std::vector<string> B_vars;
 
 
-	  std::cout << "Before Breakpoint" << std::endl;
+	  std::cout << "Working on Breakpoint-Block" << std::endl;
 
 	  //decids which Breakpoint Method will be used
 	  for (size_t i=1; i<BREAKPOINT.size()-1; i++)
@@ -2558,20 +2895,20 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 		 		  if (in == true)
 		 		  {
-		 			  std::cout << "adding flux" << std::endl;
+		 			  //std::cout << "adding flux" << std::endl;
 		 			  beg = pos_letter(BREAKPOINT[i]);
 		 			  if (beg!=1000)
 		 				  fluxes.push_back(BREAKPOINT[i].substr(beg, BREAKPOINT[i].npos-beg));
 		 		  }
 
 		 	  }
-		 	  std::cout << "fluxes size: " << fluxes.size() << std::endl;
+		 	  std::cout << "Breakpoint-Block Infos written in fluxes" << std::endl;
 
 		 	  for (size_t i=0; i<fluxes.size(); i++)
 		 	  {
 		 		  // make list with left handed vars
 		 		  B_vars.push_back(fluxes[i].substr(0, fluxes[i].find("=")-1));
-		 		  std::cout << (B_vars[i]) << std::endl;
+		 		  //std::cout << (B_vars[i]) << std::endl;
 		 	  }
 		 	  // check if vars on right side an write down
 		 	  for (size_t i=0; i<fluxes.size(); i++)
@@ -2584,6 +2921,8 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		 				  size_t test = fluxes[i].find(B_vars[j], beg);
 		 				  if (pos_letterb(fluxes[i].substr(test+B_vars[j].size(), 1))==false)
 		 				  {
+		 					  //hier??
+		 					  //std::cout << "number " + fluxes[i] + "; \n" << std::endl;
 		 				  	  mycppfile << "number " + fluxes[i] + "; \n";
 		 				  	  fluxes[i] = "";
 		 				  }
@@ -2594,15 +2933,23 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 		 	  vector<bool> Ion_outside;
 		 	  vector<string> outs;
+		 	  vector<string> outsHelp;
 		 	  // first every time v
 		 	  outs.push_back("");
 
 		 	  int vm_flux_count = 0;
 
 		 	  mycppfile << "\n \n \n";
+
+			  //// adding writen comp_outs to file
+			  for (size_t i = 0; i<comp_outs.size(); i++)
+			  {
+				  fluxes.push_back(comp_outs[i]);
+			  }
+
 		 	  for (size_t i=0; i<fluxes.size(); i++)
 		 	  {
-		 		  std::cout << "fluxes[i]: " << fluxes[i] << std::endl;
+		 		  //std::cout << "fluxes[i]: " << fluxes[i] << std::endl;
 
 		 		  if (fluxes[i]!="")
 		 		  {
@@ -2620,15 +2967,18 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		 		  }
 		 	  }
 
+
+
+
 		 	  for (size_t i=0; i<fluxes.size(); i++)
 		 	  {
 		 		  for (size_t j=0; j<ListIons.size(); j++)
 		 		  {
 		 			  Ion_outside.push_back(false);
-		 			  std::cout << "List Ions" << std::endl;
-		 			  std::cout << "i"+ListIons[j] << std::endl;
-		 			  // ToDo here we need infos out of equali
+		 			  //std::cout << "List Ions" << std::endl;
+		 			  //std::cout << "i"+ListIons[j] << std::endl;
 		 			  string change;
+		 			  // Here we are ousing infos out of equality
 		 			  for (size_t k=0; k<eqs.size(); k++)
 		 			  {
 		 				  if (eqs[k]=="0")
@@ -2638,7 +2988,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		 					  {
 		 						  eqs[k+1].replace(eqs_leer, 1, "");
 		 						  eqs_leer = eqs[k+1].find(" ");
-		 						  std::cout << "eqs k+1: " << eqs[k+1] << std::endl;
+		 						  //std::cout << "eqs k+1: " << eqs[k+1] << std::endl;
 		 					  }
 		 					  if (eqs[k+1]==ListIons[j])
 		 					  {
@@ -2649,7 +2999,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		 						  size_t write, komma;
 		 						  string left, right;
 		 						  // create out of NEURON another output depending on WRITE Part!
-		 						  //std::cout << "changes will happen on outer concentration" << std::endl;
+		 						  ////std::cout << "changes will happen on outer concentration" << std::endl;
 		 						  for (size_t l=0; l<NEURON.size(); l++)
 		 						  {
 		 							  if (NEURON[l].find("USEION " + eqs[k+1])!=NEURON[l].npos)
@@ -2660,12 +3010,13 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		 								 right = NEURON[l].substr(write+6, NEURON[l].npos);
 		 								 if (fluxes[i].find(left)!=fluxes[i].npos)
 		 								 {
+		 									 //std::cout << eqs[k+1] + fluxes[i].substr(fluxes[i].find("="), fluxes[i].npos-fluxes[i].find("=")) + "; \n" << std::endl;
 		 									 mycppfile << eqs[k+1] + fluxes[i].substr(fluxes[i].find("="), fluxes[i].npos-fluxes[i].find("=")) + "; \n";
 		 								 }
 
 		 								 if (fluxes[i].find(right)!=fluxes[i].npos)
 		 								 {
-		 									 mycppfile << "number " + eqs[k+1] + "o = m_spVMDisc->" + eqs[k+1] + "_out; \n";
+		 									 mycppfile << "number " + eqs[k+1] + "o = m_pVMDisc->" + eqs[k+1] + "_out; \n";
 		 									 mycppfile << "\n \n \n";
 		 								 }
 
@@ -2677,22 +3028,59 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 
 		 			  }
-		 			  if ((fluxes[i].find("i" + ListIons[j])!=fluxes[i].npos))
+		 			  // adding always in outs
+		 			  if ((fluxes[i].find("i"+ListIons[j])!=fluxes[i].npos))
+		 			  {
 		 				  outs.push_back(fluxes[i].substr(fluxes[i].find("=")+1, fluxes[i].npos -fluxes[i].find("=")+1));
+		 				  outsHelp.push_back(ListIons[j]);
+		 			  }
 		 		  }
 		 	  }
+
+
+
 
 
 		 	  mycppfile << "outCurrentValues.push_back(" + outs[0] + "); \n";
 		 	  for (size_t i=1; i<outs.size(); i++)
 		 	  {
-		 		  mycppfile << "outCurrentValues.push_back(" + outs[i] + "/m_F ); \n";
+		 		  bool optional = false;
+		 		  for (size_t j=0; j<writes_Ions.size(); j++)
+		 		  {
+		 			 // additional functionality added
+		 			 //std::cout << Remove_all(writes_Ions[j]) << " vs " << Remove_all(outsHelp[i-1]+"i") << std::endl;
+		 			 if (Remove_all(writes_Ions[j])==Remove_all(outsHelp[i-1]+"i"))
+		 			 	 optional = true;
+		 		  }
+
+		 		  // write m_F only if there is a equilirium used!
+		 		 bool m_F_needed = false;
+		 		 for (size_t j=0; j<All_Eqs.size(); j++)
+		 		 {
+		 			 // if Nernst Pot used we need to add /m_F
+		 			 if (outs[i].find(Remove_all(All_Eqs[j]))!=outs[i].npos)
+		 				 m_F_needed = true;
+		 		 }
+		 		 //std::cout << "whats in outs: " << outs[i] << " ahh thats in it" << std::endl;
+
+		 		 //std::cout << "optional: " << optional << " force " << force << std::endl;
+		 		 if (m_F_needed==true && (optional==true || force == true))
+		 			 mycppfile << "outCurrentValues.push_back(" + outs[i] + "/m_F ); \n";
+
+		 		 if (m_F_needed==false && (optional==true || force == true))
+				 {
+		 			 mycppfile << "outCurrentValues.push_back(" + outs[i] + " ); \n";
+				 }
 		 	  }
 	  }
+
+	  std::cout << "Ionic_current Function is written" << std::endl;
 
 	  mycppfile << " } \n \n \n";
 
 
+
+	  std::cout << "Writing template class instantation and global Vars" << std::endl;
 
 	  mycppfile << "//////////////////////////////////////////////////////////////////////////////// \n";
 	  mycppfile << "//	explicit template instantiations \n";
@@ -2732,12 +3120,23 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 	  }
 
+
 	  if (Params_Unit.size() >0)
 	  {
 		  for (size_t i = 0; i<Params_Unit.size(); i++)
 		  {
-			  //HFile_added_Vars.push_back(Global_vars[i]);
-			  myhfile << "number " + Params_Unit[i].substr(0, Params_Unit[i].find("=")) + "; \n";
+			  bool is_written = false;
+			  //checking that no global which is also Parameter is written twice in h-file!
+			  for (size_t j=0; j<Global_vars.size(); j++)
+			  {
+				  //std::cout << "write vergleich: " << Remove_all(Params_Unit[i].substr(0, Params_Unit[i].find("="))) << " vs "<<Remove_all(Global_vars[j]) << std::endl;
+				  if (Remove_all(Params_Unit[i].substr(0, Params_Unit[i].find("=")))==Remove_all(Global_vars[j]))
+					  is_written = true;
+			  }
+			  if (is_written == false)
+			  {
+				  myhfile << "number " + Params_Unit[i].substr(0, Params_Unit[i].find("=")) + "; \n";
+			  }
 		  }
 	  }
 

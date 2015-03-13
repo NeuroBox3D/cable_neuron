@@ -7,11 +7,12 @@
 
 #include "Converter.h"
 #include <iostream>
+#include <stdexcept>
 
 
 
 int main(int argn, char* argv[]) {
-if (argn == 2)
+if (argn == 3)
 {
 	std::cout << "Programm gestartet" << std::endl;
 	Converter test = Converter();
@@ -23,21 +24,43 @@ if (argn == 2)
 	std::cout << "Blocks wurden erstellt" << std::endl;
 
 	string tester(argv[1]);
+	string forceS(argv[2]);
+	string added;
+	bool test1;
+	if (forceS=="false")
+	{
+		test1 = false;
+		added = "standard";
+	}
+	if (forceS=="true")
+	{
+		test1 = true;
+		added = "allNernst";
+	}
 
-	string file = tester.substr(0, tester.find("."));
-	file = file + "_converted_UG";
-	std::cout << file << std::endl;
+	if (forceS=="false" || forceS=="true")
+	{
 
-	test.WriteStart(file, Blocks, Zeilen);
+		string file = tester.substr(0, tester.find("."));
+		file = file + "_converted_" + added + "_UG";
+		std::cout << file << std::endl;
 
-	std::cout << "Files wurden geschrieben" << std::endl;
+		test.WriteStart(file, Blocks, Zeilen, test1);
+
+	/*std::cout << "Files wurden geschrieben" << std::endl;
 	std::cout << test.Unit_Conv_Value("(mm)") << std::endl;
 	std::cout << "neues: " << std::endl;
-	std::cout << test.Unit_Conv_All("(mho/cm2)") << std::endl; // /10000
+	std::cout << test.Unit_Conv_All("(pS/um2)") << std::endl; // /10000*/
+
+	} else
+	{
+		std::cout << "second Argument has to be false/true" << std::endl;
+	}
+
 }
 else
 {
-	std::cout << "Give only 1 Argument which should be the Nmodl-File" << std::endl;
+	std::cout << "First Argument should be the Nmodl-File, second argument true or false" << std::endl;
 }
 
 

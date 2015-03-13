@@ -20,9 +20,19 @@ public:
 	Converter();
 	virtual ~Converter();
 
+	// Unit Convert functions
 	double Unit_Conv_Value(string s);
 	double Unit_Conv_All(string s);
 
+	// Proofs if string is Gating string and give Gating-name for that var
+	// Different versions for init and update_gating are needed
+	string ProofSGatingInit(string s, std::vector<string> SGating);
+	string ProofSGatingGating(string s, std::vector<string> SGating);
+
+	// finding READ and WRITE values behind USEION
+	std::vector<string> Find_all_read(std::vector<string> Neuron);
+	std::vector<string> Find_all_write(std::vector<string> Neuron);
+	std::vector<string> Find_all_Eqs(std::vector<string> Neuron);
 
 	// functions for removing all unused chars and comments
 	vector<string> Remove_all(vector<string> erg);
@@ -32,49 +42,78 @@ public:
 	// gives ion name out
 	string In_NeuronUse_List(std::vector<pair<int, int> > Pairs, std::vector<string>, string s);
 
-	string Convert_Line(std::vector<string> Known_vars, string s);
 
+/////////////////////////////////////////////////////////////////////////////////
+	// Different Search/Find/Decide Functions
+/////////////////////////////////////////////////////////////////////////////////
 	// functions testing if char is letter/number
 	bool is_single_letter(char s);
 	bool is_single_number(char s);
 
-	std::vector<string> Openfile(string filename);
+	// testing functions
+	bool pos_letterb(string s);
+	bool begG(string s);
 
-	std::vector<std::pair<int, int> > FindBlocks(std::vector<string> Zeilen);
-
-	bool Only_Read(std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen, string s);
-	string Write_Only_Read(std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen, string s);
-
-
-	std::vector<string> GetBlock(std::vector<pair<int, int> >, std::vector<string> Zeilen, string name);
+	// some different Search Beginnings
 	size_t find_beg(string beg);
 	size_t find_begg(string beg);
 	size_t number_(size_t pos, string s);
 	size_t pos_letter(string s);
+	size_t count_beg(string beg);
+	string writing_starts(string s);
+
+/////////////////////////////////////////////////////////////////////////////////
+	// Opensfile-Functions
+/////////////////////////////////////////////////////////////////////////////////
+
+	// Open mod file
+	std::vector<string> Openfile(string filename);
+
+	// Find all Blocks of NModl-File
+	std::vector<std::pair<int, int> > FindBlocks(std::vector<string> Zeilen);
+
+	// Get Blocks like "NEURON"-Block form openend NModl-File
+	std::vector<string> GetBlock(std::vector<pair<int, int> >, std::vector<string> Zeilen, string name);
+
+
+	//testing if on ion is only read needed
+	bool Only_Read(std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen, string s);
+	//writing the only_read Part of ion
+	string Write_Only_Read(std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen, string s);
+
+
+
+
+
+	//building Function heads
 	string build_func_head(string s);
 	string func_head(string s);
 
-	bool pos_letterb(string s);
 
-	bool begG(string s);
 
-	string writing_starts(string s);
 
+
+	// Search some needed Procedure out of "PROCEDURE" Block
 	string Search_for_Proc(std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen, std::vector<string> name);
 
+	// Building Vars out of Procfunctionhead
 	std::vector<string> build_proc_vars(string s);
 	std::vector<vector<string> > write_proc_block(std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen);
-	size_t count_beg(string beg);
-	std::vector<string> writer_proc_block(std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen, string name);
 
+	std::vector<string> writer_proc_block(std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen, string name);
 	std::vector<string> get_local_proc_block(std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen, string name);
+
+
 	std::vector<vector<string> > write_derivative_block(std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen);
 
-	std::vector<string> equali(std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen);
 
+
+	std::vector<string> equali(std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen);
 	std::vector<string> GetProcEqualString(std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen, string s);
 
-	void WriteStart(string filename, std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen);
+
+/// Main Function using all stuff
+	void WriteStart(string filename, std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen, bool force);
 
 
 
