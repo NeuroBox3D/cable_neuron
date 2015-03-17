@@ -228,32 +228,38 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		pre_resistance += scv.volume() / (0.25*PI*Diam*Diam);
 
 
+
+
         // values for m gate
         number AlphaHm = 0.1 * vtrap(-(u(_VM_,co)+40.0),10);
         number BetaHm =  4 * exp(-(u(_VM_,co)+65)/18.0);
+        number sumABHm = 4.5*(AlphaHm+BetaHm);
 
         // values for h gate
         number AlphaHh = 0.07 * exp(-(u(_VM_,co)+65.0)/20.0);
         number BetaHh = 1.0 / (exp(-(u(_VM_,co)+35.0)/10.0) + 1.0);
+        number sumABHh = 4.5*(AlphaHh+BetaHh);
+
 
         // values for n gate
         number AlphaHn = 0.01*vtrap(-(u(_VM_,co)+55), 10);
         number BetaHn = 0.125*exp(-(u(_VM_,co)+65)/80);
+        number sumABHn = 4.5*(AlphaHn+BetaHn);
 
 
 
 
-		number rate_h = -((AlphaHh * (1.0-u(_h_,co))) - BetaHh * u(_h_,co));
-		number rate_m = -((AlphaHm * (1.0-u(_m_,co))) - BetaHm * u(_m_,co));
-		number rate_n = -((AlphaHn * (1.0-u(_n_,co))) - BetaHn * u(_n_,co));
+		number rate_h = -4.5*((AlphaHh * (1.0-u(_h_,co))) - BetaHh * u(_h_,co));
+		number rate_m = -4.5*((AlphaHm * (1.0-u(_m_,co))) - BetaHm * u(_m_,co));
+		number rate_n = -4.5*((AlphaHn * (1.0-u(_n_,co))) - BetaHn * u(_n_,co));
 
 
 
 
 		//const number helpV = (m_R*m_T)/m_F;
 		// nernst potential of potassium and sodium
-		const number potassium_nernst_eq 	= -74.1266;//helpV*(log(K_out/u(_K_,co)));
-		const number sodium_nernst_eq	 	= -63.5129;//-helpV*(log(Na_out/u(_Na_,co)));
+		const number potassium_nernst_eq 	= -77.76406;//helpV*(log(K_out/u(_K_,co)));
+		const number sodium_nernst_eq	 	= -66.62952;//-helpV*(log(Na_out/u(_Na_,co)));
 
 		/*std::cout << m_R << m_T << m_F << std::endl;
 		std::cout << helpV << std::endl;
@@ -527,10 +533,9 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		//
 		//const number helpV = (m_R*m_T)/m_F;
 
-
 		// nernst potential of potassium and sodium
-		const number potassium_nernst_eq 	= -74.1266;//helpV*(log(K_out/u(_K_,co)));
-		const number sodium_nernst_eq	 	= -63.5129;//-helpV*(log(Na_out/u(_Na_,co)));
+		const number potassium_nernst_eq 	= -77.76406;//helpV*(log(K_out/u(_K_,co)));
+		const number sodium_nernst_eq	 	= -66.62952;//-helpV*(log(Na_out/u(_Na_,co)));
 
 		// derivatives of nernst equas // choosen with grapher
 		//const number potassium_nernst_eq_dK 	=  helpV * (-K_out/u(_K_,co))*0.18; //helpV * (-K_out/pow(u(_K_,co),2));
@@ -564,9 +569,9 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		J(_VM_, co, _Na_,co) += scv.volume()*PI*Diam * m_g_Na * pow(u(_m_,co),3) * u(_h_,co) * sodium_nernst_eq_dNa;*/
 
 		// derivatives of channel states
-		J(_h_, co, _h_, co) += AlphaHh + BetaHh;
-		J(_m_, co, _m_, co) += AlphaHm + BetaHm;
-		J(_n_, co, _n_, co) += AlphaHn + BetaHn;
+		J(_h_, co, _h_, co) += 4.5*(AlphaHh + BetaHh);
+		J(_m_, co, _m_, co) += 4.5*(AlphaHm + BetaHm);
+		J(_n_, co, _n_, co) += 4.5*(AlphaHn + BetaHn);
 		J(_h_, co, _VM_, co) += -((dAlphaHh_dVm * (1.0-u(_h_,co))) - dBetaHh_dVm * u(_h_,co));
 		J(_m_, co, _VM_, co) += -((dAlphaHm_dVm * (1.0-u(_m_,co))) - dBetaHm_dVm * u(_m_,co));
 		J(_n_, co, _VM_, co) += -((dAlphaHn_dVm * (1.0-u(_n_,co))) - dBetaHn_dVm * u(_n_,co));

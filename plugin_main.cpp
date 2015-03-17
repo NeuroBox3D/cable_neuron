@@ -249,24 +249,6 @@ static void Domain(bridge::Registry& reg, string grp)
 }; // end Functionality
 
 
-template <typename TDomain, typename TAlgebra>
-static void Domain__Algebra(bridge::Registry& reg, string grp)
-{
-	//static const int dim = TDomain::dim;
-	string suffix = ug::bridge::GetDomainAlgebraSuffix<TDomain, TAlgebra>();
-	string tag = ug::bridge::GetDomainAlgebraTag<TDomain, TAlgebra>();
-
-	typedef ug::GridFunction<TDomain, TAlgebra> TFct;
-
-
-
-}
-
-
-
-
-
-
 
 template <typename TDomain> static void
 Register_Domain(bridge::Registry& reg, string grp)
@@ -276,36 +258,6 @@ Register_Domain(bridge::Registry& reg, string grp)
 
 
 }
-
-template <typename TAlgebra>
-	static bool Register__Algebra(bridge::Registry& reg, std::string parentGroup)
-	{
-	//	get group string
-		std::string grp = parentGroup; grp.append("/Discretization");
-
-		try
-		{
-
-	#ifdef UG_DIM_1
-			Domain__Algebra<Domain1d, TAlgebra>(reg, grp);
-	#endif
-	#ifdef UG_DIM_2
-			Domain__Algebra<Domain2d, TAlgebra>(reg, grp);
-	#endif
-	#ifdef UG_DIM_3
-			Domain__Algebra<Domain3d, TAlgebra>(reg, grp);
-	#endif
-
-		}
-		catch(bridge::UGRegistryError& ex)
-		{
-			UG_LOG("### ERROR in Register__Algebra_DoFDistribution: "
-					"Registration failed (using name " << ex.name << ").\n");
-			return false;
-		}
-
-		return true;
-	}
 
 
 
@@ -326,23 +278,6 @@ InitUGPlugin_HH_Kabelnew(ug::bridge::Registry* reg, std::string parentGroup)
 		//RegisterDimensionDependent<Functionality>(*reg,grp);
 		//RegisterDomainDependent<Functionality>(*reg,grp);
 	typedef Functionality Functionality;
-	bool bReturn = true;
-
-#ifdef UG_CPU_1
-	bReturn &= Register__Algebra<CPUAlgebra>(*reg, grpHH);
-#endif
-#ifdef UG_CPU_2
-	bReturn &= Register__Algebra<CPUBlockAlgebra<2> >(*reg, grpHH);
-#endif
-#ifdef UG_CPU_3
-	bReturn &= Register__Algebra<CPUBlockAlgebra<3> >(*reg, grpHH);
-#endif
-#ifdef UG_CPU_4
-	bReturn &= Register__Algebra<CPUBlockAlgebra<4> >(*reg, grpHH);
-#endif
-#ifdef UG_CPU_VAR
-	bReturn &= Register__Algebra<CPUVariableBlockAlgebra >(*reg, grpHH);
-#endif
 
 	try
 	{
@@ -363,23 +298,6 @@ InitUGPlugin_HH_Kabelnew(ug::bridge::Registry* reg, std::string parentGroup)
 		#endif
 	}
 	UG_REGISTRY_CATCH_THROW(grpHH);
-
-	/*try {
-		#ifdef UG_DIM_1
-			bridge::RegisterDomain1dDependent<Functionality>(*reg, grpHH);
-		#endif
-
-		#ifdef UG_DIM_2
-			bridge::RegisterDomain2dDependent<Functionality>(*reg, grpHH);
-		#endif
-
-		#ifdef UG_DIM_3
-			bridge::RegisterDomain3dDependent<Functionality>(*reg, grpHH);
-		#endif
-
-	}*/
-
-
 
 
 

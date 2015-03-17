@@ -1,4 +1,4 @@
-#include "hh_converted_UG.h"	
+#include "hh_converted_standard_UG.h"	
 #include "lib_grid/lg_base.h" 
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h" 
 #include "lib_disc/function_spaces/grid_function.h" 
@@ -8,54 +8,49 @@ namespace ug {
  
  
 template<typename TDomain> 
-double hh_converted_UG<TDomain>::vtrap(double x, double y)
+double hh_converted_standard_UG<TDomain>::vtrap(double x, double y)
 { 
         if (fabs(x/y) < 1e-6) {
                 return  y*(1 - x/y/2); 
         }else{
                 return  x/(exp(x/y) - 1); 
-	}
+        }
 }
 
  
  
 // adding function which always inits_attachments 
 template<typename TDomain> 
-void hh_converted_UG<TDomain>::vm_disc_available()  
+void hh_converted_standard_UG<TDomain>::vm_disc_available()  
 {  
 	init_attachments();  
-
 }  
  
  
  
  // creating Method for attachments 
 template<typename TDomain> 
-void hh_converted_UG<TDomain>::init_attachments() 
+void hh_converted_standard_UG<TDomain>::init_attachments() 
 { 
-
-
-
 // inits temperatur from kalvin to celsius and some other typical neuron values
 m_pVMDisc->celsius = m_T - 273; 
  
  
 SmartPtr<Grid> spGrid = m_pVMDisc->approx_space()->domain()->grid(); 
-
 if (spGrid->has_vertex_attachment(this->mGate)) 
-UG_THROW("Attachment necessary (mGate) for hh_converted_UG channel dynamics "
+UG_THROW("Attachment necessary (mGate) for hh_converted_standard_UG channel dynamics "
 "could not be made, since it already exists."); 
 spGrid->attach_to_vertices(this->mGate); 
 this->aamGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->mGate); 
  
 if (spGrid->has_vertex_attachment(this->hGate)) 
-UG_THROW("Attachment necessary (hGate) for hh_converted_UG channel dynamics "
+UG_THROW("Attachment necessary (hGate) for hh_converted_standard_UG channel dynamics "
 "could not be made, since it already exists."); 
 spGrid->attach_to_vertices(this->hGate); 
 this->aahGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->hGate); 
  
 if (spGrid->has_vertex_attachment(this->nGate)) 
-UG_THROW("Attachment necessary (nGate) for hh_converted_UG channel dynamics "
+UG_THROW("Attachment necessary (nGate) for hh_converted_standard_UG channel dynamics "
 "could not be made, since it already exists."); 
 spGrid->attach_to_vertices(this->nGate); 
 this->aanGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->nGate); 
@@ -66,28 +61,25 @@ this->aanGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->nGate);
  
  // Init Method for using gatings 
 template<typename TDomain> 
-void hh_converted_UG<TDomain>::init(const LocalVector& u, Edge* edge) 
+void hh_converted_standard_UG<TDomain>::init(const LocalVector& u, Edge* edge) 
 { 
 //get celsius 
-number celsius = m_pVMDisc->celsius;
-
+number celsius = m_pVMDisc->celsius; 
 // make preparing vor getting values of every edge 
 typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; 
 vrt_list vl; 
-
-m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge);
-
+m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge); 
+ 
  
 //over all edges 
 for (size_t l = 0; l< vl.size(); l++) 
 { 
 	 Vertex* vrt = vl[l]; 
  
-
-number v = u(m_pVMDisc->_v_, l);
-number na = u(m_pVMDisc->_na_, l);
-number k = u(m_pVMDisc->_k_, l);
-
+ 
+number v = u(m_pVMDisc->_v_, l); 
+number na = u(m_pVMDisc->_na_, l); 
+number k = u(m_pVMDisc->_k_, l); 
 
  
 double           alpha, beta, sum, q10; 
@@ -120,43 +112,40 @@ aanGate[vrt] = ninf;
  
  
 template<typename TDomain> 
-void hh_converted_UG<TDomain>::update_gating(number newTime, const LocalVector& u, Edge* edge) 
+void hh_converted_standard_UG<TDomain>::update_gating(number newTime, const LocalVector& u, Edge* edge) 
 { 
-
-number celsius = m_pVMDisc->celsius;
-
+number celsius = m_pVMDisc->celsius; 
  
 // make preparing vor getting values of every edge 
 typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; 
 vrt_list vl; 
-
-m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge);
-
+m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge); 
  
  
+//std::cout << "celsius: " << celsius <<std::endl;
+
 //over all edges 
 for (size_t l = 0; l< vl.size(); l++) 
 { 
 	 Vertex* vrt = vl[l]; 
-
+ 
  
 number dt = newTime - m_pVMDisc->m_aaTime[vrt]; 
 number v = u(m_pVMDisc->_v_, l); 
 number na = u(m_pVMDisc->_na_, l); 
 number k = u(m_pVMDisc->_k_, l); 
 
-
  
 double m = aamGate[vrt]; 
 double h = aahGate[vrt]; 
 double n = aanGate[vrt]; 
 
-//std::cout << "celsius update gatting: " << celsius << std::endl;
  
  
 double           alpha, beta, sum, q10; 
                       //Call once from HOC to initialize inf at resting v.
 q10= pow(3 , ((celsius-6.3)/10)); 
+//std::cout << "q10: " << q10 << std::endl;
                 //"m" sodium activation system
         alpha = .1 * vtrap(-(v+40),10); 
         beta =  4 * exp(-(v+65)/18); 
@@ -175,11 +164,9 @@ q10= pow(3 , ((celsius-6.3)/10));
 	sum = alpha + beta; 
         ntau = 1/(q10*sum); 
         ninf = alpha/sum; 
-
-        m +=  (minf-m)/mtau*dt;
-        h += (hinf-h)/htau*dt;
-        n += (ninf-n)/ntau*dt;
-
+        m  +=   (minf-m)/mtau*dt; 
+        h  +=  (hinf-h)/htau*dt; 
+        n  +=  (ninf-n)/ntau*dt; 
 
  
  
@@ -195,7 +182,7 @@ aanGate[vrt] = n;
  
  
 template<typename TDomain> 
-void hh_converted_UG<TDomain>::ionic_current(Vertex* ver, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues) 
+void hh_converted_standard_UG<TDomain>::ionic_current(Vertex* ver, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues) 
 { 
  
 number m = aamGate[ver]; 
@@ -206,12 +193,12 @@ number k = vrt_values[VMDisc<TDomain>::_k_];
 number v =  vrt_values[VMDisc<TDomain>::_v_]; 
  
  
-
-const number helpV = 1e3*(m_R*m_T)/m_F;
-number ena = helpV*(log(m_pVMDisc->na_out/na));
-number ek = helpV*(log(m_pVMDisc->k_out/k));
-
+const number helpV = 1e3*(m_R*m_T)/m_F; 
+number ena = helpV*(log(m_pVMDisc->na_out/na)); 
+number ek = helpV*(log(m_pVMDisc->k_out/k)); 
  
+
+//std::cout << "ena: " << ena << " ek: " << ek << std::endl;
  
 number gna = gnabar*m*m*m*h; 
 number gk = gkbar*n*n*n*n; 
@@ -219,8 +206,6 @@ number gk = gkbar*n*n*n*n;
  
  
 outCurrentValues.push_back( gna*(v - ena) +  gk*(v - ek)       +  gl*(v - el)); 
-//outCurrentValues.push_back( gna*(v - ena)/m_F );
-//outCurrentValues.push_back( gk*(v - ek)      /m_F );
  } 
  
  
@@ -228,17 +213,17 @@ outCurrentValues.push_back( gna*(v - ena) +  gk*(v - ek)       +  gl*(v - el));
 //	explicit template instantiations 
 //////////////////////////////////////////////////////////////////////////////// 
 #ifdef UG_DIM_1 
-template class hh_converted_UG<Domain1d>; 
+template class hh_converted_standard_UG<Domain1d>; 
 #endif 
  
  
 #ifdef UG_DIM_2 
-template class hh_converted_UG<Domain2d>; 
+template class hh_converted_standard_UG<Domain2d>; 
 #endif 
  
  
 #ifdef UG_DIM_3 
-template class hh_converted_UG<Domain3d>; 
+template class hh_converted_standard_UG<Domain3d>; 
 #endif 
  
  

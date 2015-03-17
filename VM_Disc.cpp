@@ -168,8 +168,10 @@ void VMDisc<TDomain>::prep_timestep_elem
 	else
 	{
 		// update channels
+		//std::cout << "update" << std::endl;
 		for (size_t i = 0; i < m_channel.size(); ++i)
 			m_channel[i]->update_gating(time, u, edge);
+
 	}
 
 	// update time in attachments
@@ -230,6 +232,11 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 			   )
 			{
 				d(_v_, co) += -m_flux_value[i];
+				if (co==1)
+				{
+					d(_v_, 0)*=(element_length/2)*PI*m_aaDiameter[pElem->vertex(0)];
+					d(_v_, 1)*=(element_length/2)*PI*m_aaDiameter[pElem->vertex(1)];
+				}
 			}
 		}
 

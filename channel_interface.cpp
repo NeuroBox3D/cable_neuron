@@ -174,14 +174,17 @@ void ChannelHH<TDomain>::update_gating(number newTime, const LocalVector& u, Edg
 		// values for m gate
 		number AlphaHm = 0.1 * vtrap(-(VM+40),10);
 		number BetaHm =  4 * exp(-(VM+65)/18);
+		number sumABHm = 4.5*(AlphaHm+BetaHm);
 
 		// values for n gate
 		number AlphaHn = 0.01*vtrap(-(VM+55),10);
 		number BetaHn = 0.125*exp(-(VM+65)/80);
+		number sumABHn = 4.5*(AlphaHn+BetaHn);
 
 		// values for h gate
 		number AlphaHh = 0.07 * exp(-(VM+65)/20.0);
 		number BetaHh = 1.0 / (exp(-(VM+35.0)/10.0) + 1.0);
+		number sumABHh = 4.5*(AlphaHh+BetaHh);
 
 		/*
 		// set gating params
@@ -210,9 +213,9 @@ void ChannelHH<TDomain>::update_gating(number newTime, const LocalVector& u, Edg
 		number BetaHn = 0.125*exp((m_aaVm[*iter] + 65.0)/80.0);
 		 */
 
-		number rate_h = ((AlphaHh/(AlphaHh+BetaHh)) - m_aaHGate[vrt]) / (1.0/(AlphaHh+BetaHh)) * dt;
-		number rate_m = ((AlphaHm/(AlphaHm+BetaHm)) - m_aaMGate[vrt]) / (1.0/(AlphaHm+BetaHm)) * dt;
-		number rate_n = ((AlphaHn/(AlphaHn+BetaHn)) - m_aaNGate[vrt]) / (1.0/(AlphaHn+BetaHn)) * dt;
+		number rate_h = ((AlphaHh/((AlphaHh+BetaHh))) - m_aaHGate[vrt]) / (1.0/sumABHh) * dt;
+		number rate_m = ((AlphaHm/((AlphaHm+BetaHm))) - m_aaMGate[vrt]) / (1.0/sumABHm) * dt;
+		number rate_n = ((AlphaHn/((AlphaHn+BetaHn))) - m_aaNGate[vrt]) / (1.0/sumABHn) * dt;
 
 		m_aaHGate[vrt] += rate_h;
 		m_aaMGate[vrt] += rate_m;
