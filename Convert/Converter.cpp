@@ -1770,7 +1770,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  myhfile << "/// @copydoc IChannel<TDomain>::IChannel(cont char*) \n";
 	  myhfile << filename + "(const char* functions, const char* subsets) \n";
 	  myhfile << "try : IChannel<TDomain>(functions, subsets), \n";
-	  myhfile << "m_R(8.314), m_T(279.45), m_F(96485.0), \n";
+	  myhfile << "m_R(8.314), m_T(293.0), m_F(96485.0), \n";
 	  /// adding all standard vals of Parameters
 	  size_t gleich;
 	  string add;
@@ -1789,7 +1789,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  myhfile << "/// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&) \n";
 	  myhfile << filename + "(const std::vector<std::string>& functions, const std::vector<std::string>& subsets) \n";
 	  myhfile << "try : IChannel<TDomain>(functions, subsets), \n";
-	  myhfile << "m_R(8.314), m_T(279.45), m_F(96485.0), \n";
+	  myhfile << "m_R(8.314), m_T(293.0), m_F(96485.0), \n";
 	  /// adding all standard vals of Parameters
 	  size_t gleich1;
 	  string add1;
@@ -3110,12 +3110,34 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 
 
+
+
+
 	  if (Global_vars.size() > 0)
 	  {
+		  // check for twice entrys
+		  for (size_t i = 0; i<Global_vars.size(); i++)
+		  {
+			  int count = 0;
+			  for (size_t j = 0; j<Global_vars.size(); j++)
+			  {
+				  if (Remove_all(Global_vars[i])==Remove_all(Global_vars[j]))
+				  {
+					  count +=1;
+					  if (count >= 2)
+						  Global_vars[j] = "";
+				  }
+			  }
+		  }
+
+
+
+
 		  for (size_t i = 0; i<Global_vars.size(); i++)
 		  {
 			  //HFile_added_Vars.push_back(Global_vars[i]);
-			  myhfile << "number " + Global_vars[i] + "; \n";
+			  if (Global_vars[i]!="")
+					  myhfile << "number " + Global_vars[i] + "; \n";
 		  }
 
 	  }
