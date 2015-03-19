@@ -32,11 +32,11 @@
 #include "ElemDiscHH_Nernst_fv1.h"
 #include "ElemDiscHH_Nernst_neuron_fv1.h"
 #include "VM_Disc.h"
-#include "hh_converted_standard_UG.h"
+// needed to add
+#include "hh_converted_UG.h"
+#include "passive_converted_standard_UG.h"
 
-// Kabel_diff includes
-//#include "kabel_diff_base.h"
-//#include "kabel_diff_fe.h"
+
 
 #include <iostream>
 #include <string>
@@ -180,23 +180,6 @@ static void Domain(bridge::Registry& reg, string grp)
 	}
 
 
-	// Channel Interface hh_converted_UG
-	{
-		typedef hh_converted_standard_UG<TDomain> T;
-		typedef IChannel<TDomain> TBase;
-		string name = string("hh_UG").append(suffix);
-		reg.add_class_<T, TBase >(name, grp)
-			.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
-			.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
-			//.add_method("set_conductivities", &T::set_conductivities)
-			//.add_method("set_rev_pot", &T::set_rev_pot)
-			//.add_method("set_accuracy", &T::set_accuracy)
-			//.add_method("ionic_current", /*static_cast<void (TBase::*) (Vertex*, std::vector<double>&)> (&T::ionic_current) /*, "","", "doing flux")
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "hh_UG", tag);
-	}
-
-
 	// Channel Interface HH-with-Nernst
 	{
 		typedef ChannelHHNernst<TDomain> T;
@@ -244,9 +227,29 @@ static void Domain(bridge::Registry& reg, string grp)
 		reg.add_class_to_group(name, "VMDisc", tag);
 	}
 
+#include "Convert/Debug/channels.cpp"
+
 }
 
 }; // end Functionality
+
+
+template <typename TDomain, typename TAlgebra>
+static void Domain__Algebra(bridge::Registry& reg, string grp)
+{
+	//static const int dim = TDomain::dim;
+	string suffix = ug::bridge::GetDomainAlgebraSuffix<TDomain, TAlgebra>();
+	string tag = ug::bridge::GetDomainAlgebraTag<TDomain, TAlgebra>();
+
+	typedef ug::GridFunction<TDomain, TAlgebra> TFct;
+
+
+
+}
+
+
+
+
 
 
 
@@ -258,6 +261,36 @@ Register_Domain(bridge::Registry& reg, string grp)
 
 
 }
+
+template <typename TAlgebra>
+	static bool Register__Algebra(bridge::Registry& reg, std::string parentGroup)
+	{
+	//	get group string
+		std::string grp = parentGroup; grp.append("/Discretization");
+
+		try
+		{
+
+	#ifdef UG_DIM_1
+			Domain__Algebra<Domain1d, TAlgebra>(reg, grp);
+	#endif
+	#ifdef UG_DIM_2
+			Domain__Algebra<Domain2d, TAlgebra>(reg, grp);
+	#endif
+	#ifdef UG_DIM_3
+			Domain__Algebra<Domain3d, TAlgebra>(reg, grp);
+	#endif
+
+		}
+		catch(bridge::UGRegistryError& ex)
+		{
+			UG_LOG("### ERROR in Register__Algebra_DoFDistribution: "
+					"Registration failed (using name " << ex.name << ").\n");
+			return false;
+		}
+
+		return true;
+	}
 
 
 
@@ -278,6 +311,23 @@ InitUGPlugin_HH_Kabelnew(ug::bridge::Registry* reg, std::string parentGroup)
 		//RegisterDimensionDependent<Functionality>(*reg,grp);
 		//RegisterDomainDependent<Functionality>(*reg,grp);
 	typedef Functionality Functionality;
+	bool bReturn = true;
+
+#ifdef UG_CPU_1
+	bReturn &= Register__Algebra<CPUAlgebra>(*reg, grpHH);
+#endif
+#ifdef UG_CPU_2
+	bReturn &= Register__Algebra<CPUBlockAlgebra<2> >(*reg, grpHH);
+#endif
+#ifdef UG_CPU_3
+	bReturn &= Register__Algebra<CPUBlockAlgebra<3> >(*reg, grpHH);
+#endif
+#ifdef UG_CPU_4
+	bReturn &= Register__Algebra<CPUBlockAlgebra<4> >(*reg, grpHH);
+#endif
+#ifdef UG_CPU_VAR
+	bReturn &= Register__Algebra<CPUVariableBlockAlgebra >(*reg, grpHH);
+#endif
 
 	try
 	{
@@ -298,6 +348,8 @@ InitUGPlugin_HH_Kabelnew(ug::bridge::Registry* reg, std::string parentGroup)
 		#endif
 	}
 	UG_REGISTRY_CATCH_THROW(grpHH);
+
+
 
 
 
