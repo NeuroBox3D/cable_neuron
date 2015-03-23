@@ -314,7 +314,7 @@ double Converter::Unit_Conv_Value(string s)
 	// In our model we have m/m2/m3/m4
 	string dims[] = {"", "2", "3", "4"};
 	int dimi[] = {1, 100, 10000, 1000000};
-	int factor = 0;
+	double factor = 0.0;
 	size_t pos;
 
 	for (size_t i = 0; i<4; i++)
@@ -329,7 +329,7 @@ double Converter::Unit_Conv_Value(string s)
 					i = j;
 				}
 			}
-			factor = i+1;
+			factor = i+1.0;
 
 			if (s.find("um"+dims[i])!=s.npos)
 			{
@@ -3251,11 +3251,15 @@ std::vector<string> Converter::WriteChannelFile(string Ch_Name, string filename)
 			 size_t name_beg, name_end;
 			 name_beg = Includes[i].find("#include \"") + 10;
 			 name_end = Includes[i].find(".") + 1;
-			 mysourcefile << Includes[i].substr(name_beg, name_end-name_beg) + ".cpp \n";
+			 mysourcefile << Includes[i].substr(name_beg, name_end-name_beg-1) + ".cpp \n";
 		 }
 	 }
 	 myincludefile.close();
 	 mysourcefile.close();
  }
 
+void Converter::WriteInPlugin(string SourceFile, string DestFile)
+{
 
+
+}
