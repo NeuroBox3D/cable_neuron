@@ -3176,6 +3176,16 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  myhfile.close();
 }
 
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+// Part which is needed for including in UG4 directly
+////////////////////////////////////////////////////////////////////////////////////////
+
+
 std::vector<string> Converter::WriteChannelFile(string Ch_Name, string filename)
 {
 
@@ -3192,7 +3202,7 @@ std::vector<string> Converter::WriteChannelFile(string Ch_Name, string filename)
 		if (include!=ChannelFile[i].npos)
 		{
 			needed_files.push_back(ChannelFile[i].substr(0, ChannelFile[i].npos));
-			if (ChannelFile[i].find("Ch_Name", include)!=ChannelFile[i].npos)
+			if (ChannelFile[i].find(Ch_Name, include)!=ChannelFile[i].npos)
 			{
 				write_channel = false;
 			}
@@ -3251,7 +3261,7 @@ std::vector<string> Converter::WriteChannelFile(string Ch_Name, string filename)
 			 size_t name_beg, name_end;
 			 name_beg = Includes[i].find("#include \"") + 10;
 			 name_end = Includes[i].find(".") + 1;
-			 mysourcefile << Includes[i].substr(name_beg, name_end-name_beg-1) + ".cpp \n";
+			 mysourcefile << Includes[i].substr(name_beg, name_end-name_beg) + ".cpp \n";
 		 }
 	 }
 	 myincludefile.close();
@@ -3260,6 +3270,51 @@ std::vector<string> Converter::WriteChannelFile(string Ch_Name, string filename)
 
 void Converter::WriteInPlugin(string SourceFile, string DestFile)
 {
+	 std::vector<string> SourceFileV = Openfile(SourceFile);
+
+	 std::vector<string> DestFileV = Openfile(DestFile);
+
+	 const char* DestFilechar = DestFile.c_str();
+	 ofstream myDestFile;
+	 myDestFile.open(DestFilechar, std::ios::trunc);
+
+	 size_t Zeile;
+
+	 // deletes any sources already written
+	 for (size_t i=0; i<DestFileV.size(); i++)
+	 {
+		 for (size_t j=0; j<SourceFileV.size(); j++)
+		 {
+			 if (DestFileV[i].find(SourceFileV[j])!=DestFileV[i].npos)
+				 SourceFileV[j] = "";
+		 }
+
+	 }
 
 
+	 //finds line for beginning add sources
+	 for (size_t i = 0; i<DestFileV.size(); i++)
+	 {
+		 if (DestFileV[i].find("set(SOURCES")!=DestFileV[i].npos)
+			 Zeile = i;
+	 }
+
+	 // adding sourcefiles at right line
+	 for (size_t i = 0; i<DestFileV.size(); i++)
+	 {
+		 if (i != Zeile)
+		 {
+			 myDestFile << DestFileV[i] +"\n";
+		 } else
+		 {
+			 myDestFile << DestFileV[i] +"\n";
+			 for (size_t j=0; j<SourceFileV.size(); j++)
+			 {
+				 if (SourceFileV[j]!="")
+				 {
+					 myDestFile <<  "Convert/Debug/" + SourceFileV[j] +"\n";
+				 }
+			 }
+	 	 }
+	 }
 }

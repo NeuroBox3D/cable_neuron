@@ -72,6 +72,7 @@ public:
 	// writes file for later including in plugin main
 	std::vector<string> WriteChannelFile(string Ch_Name, string filename);
 	void WriteInclude_List(std::vector<string> Includes, string filename, string sources);
+	void WriteInPlugin(string SourceFile, string DestFile);
 
 
 	// Find all Blocks of NModl-File

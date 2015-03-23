@@ -114,7 +114,7 @@ UNITSOFF
         ninf = alpha/sum
 }
  
-FUNCTION vtrap(x,y,z,d) {  :Traps for 0 in denominator of rate eqns.
+FUNCTION vtrap(x,y) {  :Traps for 0 in denominator of rate eqns.
         if (fabs(x/y) < 1e-6) {
                 vtrap = y*(1 - x/y/2)
         }else{
