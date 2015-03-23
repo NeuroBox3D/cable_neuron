@@ -188,7 +188,12 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 	// get finite volume geometry
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
+	// get subset handler
+	MGSubsetHandler& ssh = *m_spApproxSpace->domain()->subset_handler();
+
+
 	// some helper vars
+	number element_length2 = 0.0;
 	number element_length = 0.0;
 	number pre_resistance = 0.0;
 
@@ -210,6 +215,8 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 
 		// add length of scv to element length
 		element_length += scv.volume();
+
+		element_length2 += scv.volume()/2;
 
 		// add "pre_resistance" parts
 		pre_resistance += scv.volume() / (0.25*PI*Diam*Diam);
@@ -234,8 +241,8 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 				d(_v_, co) += -m_flux_value[i];
 				if (co==1)
 				{
-					d(_v_, 0)*=(element_length/2)*PI*m_aaDiameter[pElem->vertex(0)];
-					d(_v_, 1)*=(element_length/2)*PI*m_aaDiameter[pElem->vertex(1)];
+					d(_v_, 0)*=(element_length2)*PI*m_aaDiameter[pElem->vertex(0)];
+					d(_v_, 1)*=(element_length2)*PI*m_aaDiameter[pElem->vertex(1)];
 				}
 			}
 		}
@@ -258,22 +265,34 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 
 		for (size_t i = 0; i < m_channel.size(); i++)
 		{
-			std::vector<number> outCurrentValues;
+			// if channel working on right subset
+			const std::vector<std::string> Subsets = m_channel[i]->write_subsets();
+			for (size_t j = 0; j<Subsets.size(); j++)
+			{
+				// getting subset of vertex
+				size_t indexVert = ssh.get_subset_index(pElem->vertex(co));
+				std::string SName = ssh.get_subset_name(indexVert);
+				// if channel works on provided subset
+				if (Subsets[j]==SName)
+				{
+					std::vector<number> outCurrentValues;
 
-			// values we are getting from ionic_flux function in channels
-			std::vector<number> vrt_values(m_numb_funcs+1);
-			//for (size_t j = 0; j < m_numb_funcs+1; ++j) vrt_values[j] = u(j, co); <-- NO! this would be implicit!
-			std::vector<DoFIndex> multInd;
-			for (size_t j = 0; j < m_numb_funcs+1; ++j)
-				vrt_values[j] = m_aaUold[pElem->vertex(co)][j];
+					// values we are getting from ionic_flux function in channels
+					std::vector<number> vrt_values(m_numb_funcs+1);
+					//for (size_t j = 0; j < m_numb_funcs+1; ++j) vrt_values[j] = u(j, co); <-- NO! this would be implicit!
+					std::vector<DoFIndex> multInd;
+					for (size_t j = 0; j < m_numb_funcs+1; ++j)
+						vrt_values[j] = m_aaUold[pElem->vertex(co)][j];
 
-			m_channel[i]->ionic_current(pElem->vertex(co), vrt_values, outCurrentValues);
+					m_channel[i]->ionic_current(pElem->vertex(co), vrt_values, outCurrentValues);
 
-			const std::vector<std::string>& functions = m_channel[i]->write_fcts();
+					const std::vector<std::string>& functions = m_channel[i]->write_fcts();
 
-			// adding defect for every ion species involved
-			for (size_t j = 0; j < outCurrentValues.size(); j++)
-				allOutCurrentValues[get_index(functions[j])] += (outCurrentValues[j]);
+					// adding defect for every ion species involved
+					for (size_t k = 0; k < outCurrentValues.size(); k++)
+						allOutCurrentValues[get_index(functions[k])] += (outCurrentValues[k]);
+				}
+			}
 		}
 
 		// writing potential defects

@@ -112,6 +112,7 @@ class IChannel
 		//virtual void Jacobi_sets(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outJFlux) = 0;
 
 		const std::vector<std::string>& write_fcts() {return m_vWFct;}
+		const std::vector<std::string>& write_subsets() {return m_vSubset;}
 		void set_vm_disc(VMDisc<TDomain>*  vmdisc) {m_pVMDisc = vmdisc; vm_disc_available();}
 
 	protected:
