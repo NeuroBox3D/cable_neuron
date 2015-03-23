@@ -14,7 +14,9 @@
 #include <unistd.h>
 #include <sstream>
 
-
+//Todo add setter for generator
+// closer loook to unit conv
+// perhaps java interface for converter
 
 Converter::Converter() {
 	// TODO Auto-generated constructor stub
@@ -3173,4 +3175,87 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 	  myhfile.close();
 }
+
+std::vector<string> Converter::WriteChannelFile(string Ch_Name, string filename)
+{
+
+	std::vector<string> needed_files;
+
+	// writting in Vector channel infos
+	bool write_channel = true;
+	std::vector<string> ChannelFile = Openfile(filename);
+
+	// checks if converted channel already existing
+	for (size_t i=0; i<ChannelFile.size(); i++)
+	{
+		size_t include = ChannelFile[i].find("#include");
+		if (include!=ChannelFile[i].npos)
+		{
+			needed_files.push_back(ChannelFile[i].substr(0, ChannelFile[i].npos));
+			if (ChannelFile[i].find("Ch_Name", include)!=ChannelFile[i].npos)
+			{
+				write_channel = false;
+			}
+
+		}
+	}
+
+
+	const char* filenamechar = filename.c_str();
+	ofstream mychannelfile;
+	// if not existing write channel in file
+	if (write_channel == true)
+	{
+		mychannelfile.open (filenamechar, std::ios::app);
+		mychannelfile << "#include \"" + Ch_Name + ".h\" \n \n \n";
+		mychannelfile << "{ \n";
+		mychannelfile << "\t typedef " + Ch_Name + "<TDomain> T; \n";
+		mychannelfile << "\t typedef IChannel<TDomain> TBase; \n";
+		mychannelfile << "\t string name = string(\""+ Ch_Name + "\").append(suffix); \n";
+		mychannelfile << "\t reg.add_class_<T, TBase >(name, grp) \n";
+		mychannelfile << "\t \t .template add_constructor<void (*)(const char*, const char*)>(\"Function(s)#Subset(s)\") \n";
+		mychannelfile << "\t \t .template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>(\"Function(s)#Subset(s)\") \n";
+		mychannelfile << "\t \t .set_construct_as_smart_pointer(true); \n";
+		mychannelfile << "\t reg.add_class_to_group(name, \"" + Ch_Name + "\", tag); \n";
+		mychannelfile << "} \n \n \n";
+	}
+	mychannelfile.close();
+	return needed_files;
+}
+
+ void Converter::WriteInclude_List(std::vector<string> Includes, string filename, string sources)
+ {
+	 std::vector<string> IncludeFile = Openfile(filename);
+
+	 const char* filenamechar = filename.c_str();
+	 ofstream myincludefile;
+	 myincludefile.open(filenamechar, std::ios::app);
+
+	 const char* sourceschar = sources.c_str();
+	 ofstream mysourcefile;
+	 mysourcefile.open(sourceschar, std::ios::app);
+
+	 for (size_t i=0; i<Includes.size(); i++)
+	 {
+		 bool write = true;
+		 for (size_t j=0; j<IncludeFile.size(); j++)
+		 {
+			 if (IncludeFile[j]==Includes[i])
+				 write = false;
+		 }
+		 if (write==true)
+		 {
+			 // writting include file
+			 myincludefile << Includes[i] + "\n";
+			 // writting channel sources
+			 size_t name_beg, name_end;
+			 name_beg = Includes[i].find("#include \"") + 10;
+			 name_end = Includes[i].find(".") + 1;
+			 mysourcefile << Includes[i].substr(name_beg, name_end-name_beg) + ".cpp \n";
+		 }
+	 }
+	 myincludefile.close();
+	 mysourcefile.close();
+ }
+
 

@@ -69,6 +69,11 @@ public:
 	// Open mod file
 	std::vector<string> Openfile(string filename);
 
+	// writes file for later including in plugin main
+	std::vector<string> WriteChannelFile(string Ch_Name, string filename);
+	void WriteInclude_List(std::vector<string> Includes, string filename, string sources);
+
+
 	// Find all Blocks of NModl-File
 	std::vector<std::pair<int, int> > FindBlocks(std::vector<string> Zeilen);
 

@@ -47,10 +47,17 @@ if (argn == 3)
 
 		test.WriteStart(file, Blocks, Zeilen, test1);
 
-	/*std::cout << "Files wurden geschrieben" << std::endl;
-	std::cout << test.Unit_Conv_Value("(mm)") << std::endl;
-	std::cout << "neues: " << std::endl;
-	std::cout << test.Unit_Conv_All("(pS/um2)") << std::endl; // /10000*/
+		std::cout << "Channel file written" << std::endl;
+
+		std::vector<string> needed_files;
+		needed_files = test.WriteChannelFile(file, "channels.cpp");
+
+		std::cout << "Channel file written" << std::endl;
+
+		test.WriteInclude_List(needed_files, "includefile.cpp", "channel_sources");
+
+		std::cout << "Files wurden geschrieben" << std::endl;
+
 
 	} else
 	{
