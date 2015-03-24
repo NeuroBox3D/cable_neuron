@@ -218,8 +218,9 @@ static void Domain(bridge::Registry& reg, string grp)
 			.add_method("add_channel", &T::add_channel)
 			.add_method("set_influx", &T::set_influx)
 			.add_method("set_influx_ac", &T::set_influx_ac)
-#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ACTIVE
-			.add_method("set_synapse_distributor", &T::set_synapse_distributor)
+#ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
+			.add_method("set_synapse_provider_factory", &T::set_synapse_provider_factory)
+			.add_method("set_provider_type", &T::set_provider_type)
 #endif
 			//.add_method("add_func", &T::add_func)
 			//.add_method("setGridFct", &T::setGridFct)

@@ -37,8 +37,8 @@
 
 #include "channel_interface.h"
 
-#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ACTIVE
-	#include "../synapse_distributor/synapse_distributor.h"
+#ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
+	#include "../synapse_provider/synape_provider.h"
 #endif
 
 
@@ -115,8 +115,9 @@ class VMDisc
 		  k_out(2.5), na_out(140.0), ca_out(1.5),
 		  m_spec_res(1.0e6), m_spec_cap(1.0e-5), celsius(37.0),
 		  m_influx_ac(1e-9), m_aDiameter("diameter"),
-#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ACTIVE
-		  m_spSD(SPNULL),
+#ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
+		  m_spSPF(SPNULL),
+		  m_spSP(SPNULL),
 #endif
 		  m_spApproxSpace(approx), m_spDD(m_spApproxSpace->dof_distribution(GridLevel::TOP)),
 		  m_bNonRegularGrid(false),

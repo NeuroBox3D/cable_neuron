@@ -89,12 +89,19 @@ set_influx(number Flux, number x, number y, number z, number beg, number dur)
 }
 
 
-#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ACTIVE
+#ifdef PLUGIN_SYNAPSE_PROVIDER_ACTIVATED
 template<typename TDomain>
 void VMDisc<TDomain>::
-set_synapse_distributor(ConstSmartPtr<SynapseDistributor> sd)
+set_synapse_provider_factory(ConstSmartPtr<SynapseProviderFactory<TDomain> > spf) {
 {
-	m_spSD = sd;
+	m_spSPF = spf;
+}
+
+
+template<typename TDomain>
+void VMDisc<TDomain>::
+set_provider_type(const std::string& providerName) {
+	m_spSP = m_spSPF.get()->get()->Create(providerName);
 }
 #endif
 
@@ -247,14 +254,13 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 			}
 		}
 
-#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ACTIVE
-		// influxes from synapse distributor
-		if (m_spSD.valid())
+#ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
+		// influxes from synapse provider
+		if (m_spSPF.valid())
 		{
-			// TODO: the current need not be constant
-			// It would be best to define the current strength in the distributor and get it from there!
-			if (m_spSD->has_active_synapse(pElem, co, time))
-				d(_v_, co) += -1e-14;	// 1e-14C/ms=10pA;
+			// ... and assemble to defect
+			if (m_spSP->synapse_at_location(pElem, co, time, current))
+				d(_v_, co) += current;
 		}
 #endif
 

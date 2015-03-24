@@ -37,8 +37,8 @@
 
 #include "channel_interface.h"
 
-#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ACTIVE
-	#include "../synapse_distributor/synapse_distributor.h"
+#ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
+	#include "../synapse_provider/synapse_provider.h"
 #endif
 
 
@@ -405,9 +405,9 @@ class VMDisc
 		AVector4 m_aUold;
 		Grid::AttachmentAccessor<Vertex, AVector4> m_aaUold;
 
-#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ACTIVE
-		/// for definition of specific synaptic activity patterns
-		ConstSmartPtr<SynapseDistributor> m_spSD;
+#ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
+		ConstSmartPtr<SynapseProviderFactory<TDomain> > m_spSPF;
+		ConstSmartPtr<ISynapseProvider<TDomain> > m_spSP;
 #endif
 
 		/// approx space
