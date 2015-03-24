@@ -33,9 +33,9 @@
 #include "ElemDiscHH_Nernst_neuron_fv1.h"
 #include "VM_Disc.h"
 // needed to add
-#include "hh_converted_UG.h"
-#include "passive_converted_standard_UG.h"
-
+//#include "hh_converted_UG.h"
+//#include "passive_converted_standard_UG.h"
+#include "Convert/Debug/includefile.cpp"
 
 
 #include <iostream>
