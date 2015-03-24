@@ -2508,6 +2508,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 						  size_t komma;
 						  size_t helpco, helpcc;
 						  size_t c_f_o, c_l_c;
+						  size_t equa = KINETIC[j].find("=");
 						  size_t arrows = KINETIC[j].find("<->");
 						  size_t KIN_length = KINETIC[j].npos;
 						  if (arrows!=KIN_length)
@@ -2551,6 +2552,15 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 
 
+						  } else
+						// if for example some vars getting set before using kinectics
+						  {
+							  if (equa!=KIN_length)
+							  {
+								  if (KINETIC[j].find("CONSERVE")==KINETIC[j].npos)
+									  mycppfile << "double " + KINETIC[j] + ";\n";
+							  }
+
 						  }
 					  }
 				  }
@@ -2592,7 +2602,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		  mycppfile << " \n \n \n";
 
 
-
+		  // writting Outputs
 		  for (size_t i=0; i<Ausgabe.size(); i++)
 		  {
 			  // removes all " " tabs and ~
@@ -3297,6 +3307,14 @@ void Converter::WriteInPlugin(string SourceFile, string DestFile)
 	 {
 		 if (DestFileV[i].find("set(SOURCES")!=DestFileV[i].npos)
 			 Zeile = i;
+	 }
+
+	 // del all double ..
+	 for (size_t i=0; i<SourceFileV.size(); i++)
+	 {
+		 size_t pointpoint = SourceFileV[i].find("..");
+	 	 if (pointpoint!=SourceFileV[i].npos)
+	 		 SourceFileV[i].replace(pointpoint, 1, "");
 	 }
 
 	 // adding sourcefiles at right line

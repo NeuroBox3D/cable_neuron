@@ -1,9 +1,0 @@
-cad				= unbekannter fehler steht fast nix drinne
-caL3d				= kleiner fehler cao sollte auch ca_out sein in ionic_flux
-CaT				= laeuft dt muss noch hinzugefuegt werden (bei allen diesem types)
-h				= sieht ordentlich aus (v Gate Problem)
-hh				= laeuft
-HH2				= tadj ploetzlich gating (nur in init)
-kca				= cai ploetzlich gating (nur in init)
-NMDA_Mg, NMDA_Mg_T		= komplette nonsens (irgendwas mit kommentaren stimmt hier noch nicht!)  
-release_BMK, release_exp	= Gating fehler und andere  
