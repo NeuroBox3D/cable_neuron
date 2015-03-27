@@ -75,6 +75,12 @@ virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std
 virtual void vm_disc_available(); 
 
  
+double getg(); 
+double gete(); 
+void setg(double val); 
+void sete(double val); 
+
+ 
 protected: 
 private: 
  

@@ -51,6 +51,7 @@ kca_converted_standard_UG(const char* functions, const char* subsets)
 try : IChannel<TDomain>(functions, subsets), 
 m_R(8.314), m_T(293.0), m_F(96485.0), 
 	gbar ( 10   	*1e+06), 
+cai ( 0), 
 	caix ( 1	*1), 
 	Ra   ( 0.01	*1), 
 	Rb   ( 0.02	*1), 
@@ -66,6 +67,7 @@ kca_converted_standard_UG(const std::vector<std::string>& functions, const std::
 try : IChannel<TDomain>(functions, subsets), 
 m_R(8.314), m_T(293.0), m_F(96485.0), 
 	gbar ( 10   	*1e+06), 
+cai ( 0), 
 	caix ( 1	*1), 
 	Ra   ( 0.01	*1), 
 	Rb   ( 0.02	*1), 
@@ -87,6 +89,26 @@ virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std
 virtual void vm_disc_available(); 
 
  
+double getgbar(); 
+double getcai(); 
+double getcaix(); 
+double getRa(); 
+double getRb(); 
+double gettemp(); 
+double getq10(); 
+double getvmin(); 
+double getvmax(); 
+void setgbar(double val); 
+void setcai(double val); 
+void setcaix(double val); 
+void setRa(double val); 
+void setRb(double val); 
+void settemp(double val); 
+void setq10(double val); 
+void setvmin(double val); 
+void setvmax(double val); 
+
+ 
 protected: 
 private: 
  
@@ -94,10 +116,11 @@ ADouble nGate;
 Grid::AttachmentAccessor<Vertex, ADouble> aanGate; 
 number vmax; 
 number q10; 
-number  temp; 
-number  tadj; 
-number  vmin; 
+number temp; 
+number tadj; 
+number vmin; 
 number 	gbar ; 
+number cai ; 
 number 	caix ; 
 number 	Ra   ; 
 number 	Rb   ; 

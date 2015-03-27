@@ -82,7 +82,8 @@ m_R(8.314), m_T(293.0), m_F(96485.0),
 	Rd1Mg		( 2.1e-3	*1), 
 	Rr1Mg		( 0.87e-3	*1), 
 	Rd2Mg		( 0.26e-3	*1), 
-	Rr2Mg		( 0.42e-3	*1) {} 
+	Rr2Mg		( 0.42e-3	*1), 
+C (0) {} 
 UG_CATCH_THROW("Error in NMDA_Mg_converted_standard_UG initializer list. ") 
  
  
@@ -122,7 +123,8 @@ m_R(8.314), m_T(293.0), m_F(96485.0),
 	Rd1Mg		( 2.1e-3	*1), 
 	Rr1Mg		( 0.87e-3	*1), 
 	Rd2Mg		( 0.26e-3	*1), 
-	Rr2Mg		( 0.42e-3	*1) {} 
+	Rr2Mg		( 0.42e-3	*1), 
+C (0) {} 
 UG_CATCH_THROW("Error in NMDA_Mg_converted_standard_UG initializer list. ") 
 /// destructor 
  
@@ -135,6 +137,76 @@ virtual void init(const LocalVector& u, Edge* e);
 virtual void update_gating(number newTime, const LocalVector& u, Edge* e); 
 virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues); 
 virtual void vm_disc_available(); 
+
+ 
+double getErev(); 
+double getgmax(); 
+double getmg(); 
+double getvmin(); 
+double getvmax(); 
+double getvalence(); 
+double getmemb_fraction(); 
+double getRb(); 
+double getRu(); 
+double getRo(); 
+double getRc(); 
+double getRd1(); 
+double getRr1(); 
+double getRd2(); 
+double getRr2(); 
+double getRmb(); 
+double getRmu(); 
+double getRmc1b(); 
+double getRmc1u(); 
+double getRmc2b(); 
+double getRmc2u(); 
+double getRmd1b(); 
+double getRmd1u(); 
+double getRmd2b(); 
+double getRmd2u(); 
+double getRbMg(); 
+double getRuMg(); 
+double getRoMg(); 
+double getRcMg(); 
+double getRd1Mg(); 
+double getRr1Mg(); 
+double getRd2Mg(); 
+double getRr2Mg(); 
+double getC(); 
+void setErev(double val); 
+void setgmax(double val); 
+void setmg(double val); 
+void setvmin(double val); 
+void setvmax(double val); 
+void setvalence(double val); 
+void setmemb_fraction(double val); 
+void setRb(double val); 
+void setRu(double val); 
+void setRo(double val); 
+void setRc(double val); 
+void setRd1(double val); 
+void setRr1(double val); 
+void setRd2(double val); 
+void setRr2(double val); 
+void setRmb(double val); 
+void setRmu(double val); 
+void setRmc1b(double val); 
+void setRmc1u(double val); 
+void setRmc2b(double val); 
+void setRmc2u(double val); 
+void setRmd1b(double val); 
+void setRmd1u(double val); 
+void setRmd2b(double val); 
+void setRmd2u(double val); 
+void setRbMg(double val); 
+void setRuMg(double val); 
+void setRoMg(double val); 
+void setRcMg(double val); 
+void setRd1Mg(double val); 
+void setRr1Mg(double val); 
+void setRd2Mg(double val); 
+void setRr2Mg(double val); 
+void setC(double val); 
 
  
 protected: 
@@ -162,8 +234,8 @@ ADouble OMgGate;
 Grid::AttachmentAccessor<Vertex, ADouble> aaOMgGate; 
 number memb_fraction; 
 number vmin; 
-number  vmax; 
-number  valence; 
+number vmax; 
+number valence; 
 number 	Erev	; 
 number 	gmax	; 
 number 	mg	; 
@@ -193,6 +265,7 @@ number 	Rd1Mg		;
 number 	Rr1Mg		; 
 number 	Rd2Mg		; 
 number 	Rr2Mg		; 
+number C ; 
 number m_R, m_T, m_F; 
 }; 
  

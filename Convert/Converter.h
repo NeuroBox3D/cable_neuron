@@ -69,6 +69,8 @@ public:
 	// Open mod file
 	std::vector<string> Openfile(string filename);
 
+	std::vector<string> GetFuncTable(std::vector<string> Zeilen);
+
 	// writes file for later including in plugin main
 	std::vector<string> WriteChannelFile(string Ch_Name, string filename);
 	void WriteInclude_List(std::vector<string> Includes, string filename, string sources);
@@ -96,7 +98,14 @@ public:
 	string func_head(string s);
 
 
+	//functions for writting setters and getters for one var
+	// Usage first line setter for h-file
+	// second and following lines for cpp-file line for line
+	std::vector<string> buildgetter(string var, string class_name);
+	std::vector<string> buildsetter(string var, string class_name);
 
+
+	std::vector<string> if_handling(size_t begin, std::vector<string> Unit);
 
 
 	// Search some needed Procedure out of "PROCEDURE" Block

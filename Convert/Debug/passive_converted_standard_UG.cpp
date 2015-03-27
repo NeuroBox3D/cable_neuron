@@ -16,6 +16,26 @@ void passive_converted_standard_UG<TDomain>::vm_disc_available()
  
  
  
+template<typename TDomain> 
+double passive_converted_standard_UG<TDomain>::getg() 
+{ 
+return g; 
+} 
+template<typename TDomain> 
+double passive_converted_standard_UG<TDomain>::gete() 
+{ 
+return e; 
+} 
+template<typename TDomain> 
+void passive_converted_standard_UG<TDomain>::setg(double val) 
+{ 
+g = val; 
+} 
+template<typename TDomain> 
+void passive_converted_standard_UG<TDomain>::sete(double val) 
+{ 
+e = val; 
+} 
  // creating Method for attachments 
 template<typename TDomain> 
 void passive_converted_standard_UG<TDomain>::init_attachments() 
@@ -33,8 +53,9 @@ SmartPtr<Grid> spGrid = m_pVMDisc->approx_space()->domain()->grid();
 template<typename TDomain> 
 void passive_converted_standard_UG<TDomain>::init(const LocalVector& u, Edge* edge) 
 { 
-//get celsius 
+//get celsius and time 
 number celsius = m_pVMDisc->celsius; 
+number dt = m_pVMDisc->time(); 
 // make preparing vor getting values of every edge 
 typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; 
 vrt_list vl; 
@@ -42,12 +63,12 @@ m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge
  
  
 //over all edges 
-for (size_t l = 0; l< vl.size(); l++) 
+for (size_t size_l = 0; size_l< vl.size(); size_l++) 
 { 
-	 Vertex* vrt = vl[l]; 
+	 Vertex* vrt = vl[size_l]; 
  
  
-number v = u(m_pVMDisc->_v_, l); 
+number v = u(m_pVMDisc->_v_, size_l); 
 
  
 }  
@@ -59,21 +80,21 @@ template<typename TDomain>
 void passive_converted_standard_UG<TDomain>::update_gating(number newTime, const LocalVector& u, Edge* edge) 
 { 
 number celsius = m_pVMDisc->celsius; 
- 
-// make preparing vor getting values of every edge 
+ number FARADAY = m_F; 
+ // make preparing vor getting values of every edge 
 typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; 
 vrt_list vl; 
 m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge); 
  
  
 //over all edges 
-for (size_t l = 0; l< vl.size(); l++) 
+for (size_t size_l = 0; size_l< vl.size(); size_l++) 
 { 
-	 Vertex* vrt = vl[l]; 
+	 Vertex* vrt = vl[size_l]; 
  
  
 number dt = newTime - m_pVMDisc->m_aaTime[vrt]; 
-number v = u(m_pVMDisc->_v_, l); 
+number v = u(m_pVMDisc->_v_, size_l); 
 
  
 

@@ -29,6 +29,106 @@ void h_converted_standard_UG<TDomain>::vm_disc_available()
  
  
  
+template<typename TDomain> 
+double h_converted_standard_UG<TDomain>::getehd() 
+{ 
+return ehd; 
+} 
+template<typename TDomain> 
+double h_converted_standard_UG<TDomain>::getghdbar() 
+{ 
+return ghdbar; 
+} 
+template<typename TDomain> 
+double h_converted_standard_UG<TDomain>::getvhalfl() 
+{ 
+return vhalfl; 
+} 
+template<typename TDomain> 
+double h_converted_standard_UG<TDomain>::getkl() 
+{ 
+return kl; 
+} 
+template<typename TDomain> 
+double h_converted_standard_UG<TDomain>::getvhalft() 
+{ 
+return vhalft; 
+} 
+template<typename TDomain> 
+double h_converted_standard_UG<TDomain>::geta0t() 
+{ 
+return a0t; 
+} 
+template<typename TDomain> 
+double h_converted_standard_UG<TDomain>::getzetat() 
+{ 
+return zetat; 
+} 
+template<typename TDomain> 
+double h_converted_standard_UG<TDomain>::getgmt() 
+{ 
+return gmt; 
+} 
+template<typename TDomain> 
+double h_converted_standard_UG<TDomain>::getq10() 
+{ 
+return q10; 
+} 
+template<typename TDomain> 
+double h_converted_standard_UG<TDomain>::getqtl() 
+{ 
+return qtl; 
+} 
+template<typename TDomain> 
+void h_converted_standard_UG<TDomain>::setehd(double val) 
+{ 
+ehd = val; 
+} 
+template<typename TDomain> 
+void h_converted_standard_UG<TDomain>::setghdbar(double val) 
+{ 
+ghdbar = val; 
+} 
+template<typename TDomain> 
+void h_converted_standard_UG<TDomain>::setvhalfl(double val) 
+{ 
+vhalfl = val; 
+} 
+template<typename TDomain> 
+void h_converted_standard_UG<TDomain>::setkl(double val) 
+{ 
+kl = val; 
+} 
+template<typename TDomain> 
+void h_converted_standard_UG<TDomain>::setvhalft(double val) 
+{ 
+vhalft = val; 
+} 
+template<typename TDomain> 
+void h_converted_standard_UG<TDomain>::seta0t(double val) 
+{ 
+a0t = val; 
+} 
+template<typename TDomain> 
+void h_converted_standard_UG<TDomain>::setzetat(double val) 
+{ 
+zetat = val; 
+} 
+template<typename TDomain> 
+void h_converted_standard_UG<TDomain>::setgmt(double val) 
+{ 
+gmt = val; 
+} 
+template<typename TDomain> 
+void h_converted_standard_UG<TDomain>::setq10(double val) 
+{ 
+q10 = val; 
+} 
+template<typename TDomain> 
+void h_converted_standard_UG<TDomain>::setqtl(double val) 
+{ 
+qtl = val; 
+} 
  // creating Method for attachments 
 template<typename TDomain> 
 void h_converted_standard_UG<TDomain>::init_attachments() 
@@ -52,8 +152,9 @@ this->aalGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->lGate);
 template<typename TDomain> 
 void h_converted_standard_UG<TDomain>::init(const LocalVector& u, Edge* edge) 
 { 
-//get celsius 
+//get celsius and time 
 number celsius = m_pVMDisc->celsius; 
+number dt = m_pVMDisc->time(); 
 // make preparing vor getting values of every edge 
 typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; 
 vrt_list vl; 
@@ -61,19 +162,19 @@ m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge
  
  
 //over all edges 
-for (size_t l = 0; l< vl.size(); l++) 
+for (size_t size_l = 0; size_l< vl.size(); size_l++) 
 { 
-	 Vertex* vrt = vl[l]; 
+	 Vertex* vrt = vl[size_l]; 
  
  
-number v = u(m_pVMDisc->_v_, l); 
+number v = u(m_pVMDisc->_v_, size_l); 
 
  
 double          a,qt; 
 qt= pow(q10 , ((celsius-33)/10)); 
         a = alpt(v); 
         linf = 1/(1 + exp(-(v-vhalfl)/kl)); 
-//       linf = 1/(1+ alpl(v))
+;//       linf = 1/(1+ alpl(v))
 double         taul = bett(v)/(qtl*qt*a0t*(1+a)); 
 aalGate[vrt] =linf; 
 }  
@@ -85,21 +186,21 @@ template<typename TDomain>
 void h_converted_standard_UG<TDomain>::update_gating(number newTime, const LocalVector& u, Edge* edge) 
 { 
 number celsius = m_pVMDisc->celsius; 
- 
-// make preparing vor getting values of every edge 
+ number FARADAY = m_F; 
+ // make preparing vor getting values of every edge 
 typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; 
 vrt_list vl; 
 m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge); 
  
  
 //over all edges 
-for (size_t l = 0; l< vl.size(); l++) 
+for (size_t size_l = 0; size_l< vl.size(); size_l++) 
 { 
-	 Vertex* vrt = vl[l]; 
+	 Vertex* vrt = vl[size_l]; 
  
  
 number dt = newTime - m_pVMDisc->m_aaTime[vrt]; 
-number v = u(m_pVMDisc->_v_, l); 
+number v = u(m_pVMDisc->_v_, size_l); 
 
  
 double l = aalGate[vrt]; 

@@ -80,6 +80,16 @@ virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std
 virtual void vm_disc_available(); 
 
  
+double getgnabar(); 
+double getgkbar(); 
+double getgl(); 
+double getel(); 
+void setgnabar(double val); 
+void setgkbar(double val); 
+void setgl(double val); 
+void setel(double val); 
+
+ 
 protected: 
 private: 
  
@@ -91,10 +101,10 @@ ADouble nGate;
 Grid::AttachmentAccessor<Vertex, ADouble> aanGate; 
 number ntau; 
 number minf; 
-number  hinf; 
-number  ninf; 
-number  mtau; 
-number  htau; 
+number hinf; 
+number ninf; 
+number mtau; 
+number htau; 
 number         gnabar ; 
 number         gkbar ; 
 number         gl ; 

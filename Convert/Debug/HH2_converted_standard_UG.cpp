@@ -37,6 +37,66 @@ void HH2_converted_standard_UG<TDomain>::vm_disc_available()
  
  
  
+template<typename TDomain> 
+double HH2_converted_standard_UG<TDomain>::getgnabar() 
+{ 
+return gnabar; 
+} 
+template<typename TDomain> 
+double HH2_converted_standard_UG<TDomain>::getgkbar() 
+{ 
+return gkbar; 
+} 
+template<typename TDomain> 
+double HH2_converted_standard_UG<TDomain>::getena() 
+{ 
+return ena; 
+} 
+template<typename TDomain> 
+double HH2_converted_standard_UG<TDomain>::getek() 
+{ 
+return ek; 
+} 
+template<typename TDomain> 
+double HH2_converted_standard_UG<TDomain>::getcelsius() 
+{ 
+return celsius; 
+} 
+template<typename TDomain> 
+double HH2_converted_standard_UG<TDomain>::getvtraub() 
+{ 
+return vtraub; 
+} 
+template<typename TDomain> 
+void HH2_converted_standard_UG<TDomain>::setgnabar(double val) 
+{ 
+gnabar = val; 
+} 
+template<typename TDomain> 
+void HH2_converted_standard_UG<TDomain>::setgkbar(double val) 
+{ 
+gkbar = val; 
+} 
+template<typename TDomain> 
+void HH2_converted_standard_UG<TDomain>::setena(double val) 
+{ 
+ena = val; 
+} 
+template<typename TDomain> 
+void HH2_converted_standard_UG<TDomain>::setek(double val) 
+{ 
+ek = val; 
+} 
+template<typename TDomain> 
+void HH2_converted_standard_UG<TDomain>::setcelsius(double val) 
+{ 
+celsius = val; 
+} 
+template<typename TDomain> 
+void HH2_converted_standard_UG<TDomain>::setvtraub(double val) 
+{ 
+vtraub = val; 
+} 
  // creating Method for attachments 
 template<typename TDomain> 
 void HH2_converted_standard_UG<TDomain>::init_attachments() 
@@ -72,8 +132,9 @@ this->aanGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->nGate);
 template<typename TDomain> 
 void HH2_converted_standard_UG<TDomain>::init(const LocalVector& u, Edge* edge) 
 { 
-//get celsius 
+//get celsius and time 
 number celsius = m_pVMDisc->celsius; 
+number dt = m_pVMDisc->time(); 
 // make preparing vor getting values of every edge 
 typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; 
 vrt_list vl; 
@@ -81,17 +142,17 @@ m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge
  
  
 //over all edges 
-for (size_t l = 0; l< vl.size(); l++) 
+for (size_t size_l = 0; size_l< vl.size(); size_l++) 
 { 
-	 Vertex* vrt = vl[l]; 
+	 Vertex* vrt = vl[size_l]; 
  
  
-number v = u(m_pVMDisc->_v_, l); 
-number na = u(m_pVMDisc->_na_, l); 
-number k = u(m_pVMDisc->_k_, l); 
+number v = u(m_pVMDisc->_v_, size_l); 
+number na = u(m_pVMDisc->_na_, size_l); 
+number k = u(m_pVMDisc->_k_, size_l); 
 
  
-tad =  pow(3.0 , ((celsius-36)/10)); 
+tadj =  pow(3.0 , ((celsius-36)/10)); 
 aamGate[vrt] = 0; 
 aahGate[vrt] = 0; 
 aanGate[vrt] = 0; 
@@ -104,23 +165,23 @@ template<typename TDomain>
 void HH2_converted_standard_UG<TDomain>::update_gating(number newTime, const LocalVector& u, Edge* edge) 
 { 
 number celsius = m_pVMDisc->celsius; 
- 
-// make preparing vor getting values of every edge 
+ number FARADAY = m_F; 
+ // make preparing vor getting values of every edge 
 typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; 
 vrt_list vl; 
 m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge); 
  
  
 //over all edges 
-for (size_t l = 0; l< vl.size(); l++) 
+for (size_t size_l = 0; size_l< vl.size(); size_l++) 
 { 
-	 Vertex* vrt = vl[l]; 
+	 Vertex* vrt = vl[size_l]; 
  
  
 number dt = newTime - m_pVMDisc->m_aaTime[vrt]; 
-number v = u(m_pVMDisc->_v_, l); 
-number na = u(m_pVMDisc->_na_, l); 
-number k = u(m_pVMDisc->_k_, l); 
+number v = u(m_pVMDisc->_v_, size_l); 
+number na = u(m_pVMDisc->_na_, size_l); 
+number k = u(m_pVMDisc->_k_, size_l); 
 
  
 double m = aamGate[vrt]; 
@@ -133,20 +194,20 @@ double n = aanGate[vrt];
  
  
 v = v; 
-double 	v2 = v - vtraub // convert to traub convention; 
+double 	v2 = v - vtraub ;// convert to traub convention; 
 //       a = 0.32 * (13-v2) / ( Exp((13-v2)/4) - 1)
 double 	a = 0.32 * vtrap(13-v2, 4); 
 //       b = 0.28 * (v2-40) / ( Exp((v2-40)/5) - 1)
 double 	b = 0.28 * vtrap(v2-40, 5); 
 double 	tau_m = 1 / (a + b) / tadj; 
 double 	m_inf = a / (a + b); 
-double 	a = 0.128 * Exp((17-v2)/18); 
-double 	b = 4 / ( 1 + Exp((40-v2)/5) ); 
+	a = 0.128 * Exp((17-v2)/18); 
+	b = 4 / ( 1 + Exp((40-v2)/5) ); 
 double 	tau_h = 1 / (a + b) / tadj; 
 double 	h_inf = a / (a + b); 
 //       a = 0.032 * (15-v2) / ( Exp((15-v2)/5) - 1)
-double 	a = 0.032 * vtrap(15-v2, 5); 
-double 	b = 0.5 * Exp((10-v2)/40); 
+	a = 0.032 * vtrap(15-v2, 5); 
+	b = 0.5 * Exp((10-v2)/40); 
 double 	tau_n = 1 / (a + b) / tadj; 
 double 	n_inf = a / (a + b); 
 double 	m_exp = 1 - Exp(-dt/tau_m); 

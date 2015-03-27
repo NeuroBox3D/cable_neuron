@@ -28,6 +28,46 @@ void hh_converted_standard_UG<TDomain>::vm_disc_available()
  
  
  
+template<typename TDomain> 
+double hh_converted_standard_UG<TDomain>::getgnabar() 
+{ 
+return gnabar; 
+} 
+template<typename TDomain> 
+double hh_converted_standard_UG<TDomain>::getgkbar() 
+{ 
+return gkbar; 
+} 
+template<typename TDomain> 
+double hh_converted_standard_UG<TDomain>::getgl() 
+{ 
+return gl; 
+} 
+template<typename TDomain> 
+double hh_converted_standard_UG<TDomain>::getel() 
+{ 
+return el; 
+} 
+template<typename TDomain> 
+void hh_converted_standard_UG<TDomain>::setgnabar(double val) 
+{ 
+gnabar = val; 
+} 
+template<typename TDomain> 
+void hh_converted_standard_UG<TDomain>::setgkbar(double val) 
+{ 
+gkbar = val; 
+} 
+template<typename TDomain> 
+void hh_converted_standard_UG<TDomain>::setgl(double val) 
+{ 
+gl = val; 
+} 
+template<typename TDomain> 
+void hh_converted_standard_UG<TDomain>::setel(double val) 
+{ 
+el = val; 
+} 
  // creating Method for attachments 
 template<typename TDomain> 
 void hh_converted_standard_UG<TDomain>::init_attachments() 
@@ -63,8 +103,9 @@ this->aanGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->nGate);
 template<typename TDomain> 
 void hh_converted_standard_UG<TDomain>::init(const LocalVector& u, Edge* edge) 
 { 
-//get celsius 
+//get celsius and time 
 number celsius = m_pVMDisc->celsius; 
+number dt = m_pVMDisc->time(); 
 // make preparing vor getting values of every edge 
 typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; 
 vrt_list vl; 
@@ -72,32 +113,32 @@ m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge
  
  
 //over all edges 
-for (size_t l = 0; l< vl.size(); l++) 
+for (size_t size_l = 0; size_l< vl.size(); size_l++) 
 { 
-	 Vertex* vrt = vl[l]; 
+	 Vertex* vrt = vl[size_l]; 
  
  
-number v = u(m_pVMDisc->_v_, l); 
-number na = u(m_pVMDisc->_na_, l); 
-number k = u(m_pVMDisc->_k_, l); 
+number v = u(m_pVMDisc->_v_, size_l); 
+number na = u(m_pVMDisc->_na_, size_l); 
+number k = u(m_pVMDisc->_k_, size_l); 
 
  
 double           alpha, beta, sum, q10; 
-                      //Call once from HOC to initialize inf at resting v.
+                      ;//Call once from HOC to initialize inf at resting v.
 q10= pow(3 , ((celsius-6.3)/10)); 
-                //"m" sodium activation system
+                ;//"m" sodium activation system
         alpha = .1 * vtrap(-(v+40),10); 
         beta =  4 * exp(-(v+65)/18); 
         sum = alpha + beta; 
 	mtau = 1/(q10*sum); 
         minf = alpha/sum; 
-                //"h" sodium inactivation system
+                ;//"h" sodium inactivation system
         alpha = .07 * exp(-(v+65)/20); 
         beta = 1 / (exp(-(v+35)/10) + 1); 
         sum = alpha + beta; 
 	htau = 1/(q10*sum); 
         hinf = alpha/sum; 
-                //"n" potassium activation system
+                ;//"n" potassium activation system
         alpha = .01*vtrap(-(v+55),10) ; 
         beta = .125*exp(-(v+65)/80); 
 	sum = alpha + beta; 
@@ -115,23 +156,23 @@ template<typename TDomain>
 void hh_converted_standard_UG<TDomain>::update_gating(number newTime, const LocalVector& u, Edge* edge) 
 { 
 number celsius = m_pVMDisc->celsius; 
- 
-// make preparing vor getting values of every edge 
+ number FARADAY = m_F; 
+ // make preparing vor getting values of every edge 
 typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; 
 vrt_list vl; 
 m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge); 
  
  
 //over all edges 
-for (size_t l = 0; l< vl.size(); l++) 
+for (size_t size_l = 0; size_l< vl.size(); size_l++) 
 { 
-	 Vertex* vrt = vl[l]; 
+	 Vertex* vrt = vl[size_l]; 
  
  
 number dt = newTime - m_pVMDisc->m_aaTime[vrt]; 
-number v = u(m_pVMDisc->_v_, l); 
-number na = u(m_pVMDisc->_na_, l); 
-number k = u(m_pVMDisc->_k_, l); 
+number v = u(m_pVMDisc->_v_, size_l); 
+number na = u(m_pVMDisc->_na_, size_l); 
+number k = u(m_pVMDisc->_k_, size_l); 
 
  
 double m = aamGate[vrt]; 

@@ -106,6 +106,42 @@ virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std
 virtual void vm_disc_available(); 
 
  
+double getgbar(); 
+double getvshift(); 
+double gettha(); 
+double getqa(); 
+double getRa(); 
+double getRb(); 
+double getthi1(); 
+double getthi2(); 
+double getqi(); 
+double getthinf(); 
+double getqinf(); 
+double getRg(); 
+double getRd(); 
+double gettemp(); 
+double getq10(); 
+double getvmin(); 
+double getvmax(); 
+void setgbar(double val); 
+void setvshift(double val); 
+void settha(double val); 
+void setqa(double val); 
+void setRa(double val); 
+void setRb(double val); 
+void setthi1(double val); 
+void setthi2(double val); 
+void setqi(double val); 
+void setthinf(double val); 
+void setqinf(double val); 
+void setRg(double val); 
+void setRd(double val); 
+void settemp(double val); 
+void setq10(double val); 
+void setvmin(double val); 
+void setvmax(double val); 
+
+ 
 protected: 
 private: 
  
@@ -115,10 +151,10 @@ ADouble hGate;
 Grid::AttachmentAccessor<Vertex, ADouble> aahGate; 
 number vshift; 
 number q10; 
-number  temp; 
-number  tadj; 
-number  vmin; 
-number  vmax; 
+number temp; 
+number tadj; 
+number vmin; 
+number vmax; 
 number 	gbar ; 
 number 	tha  ; 
 number 	qa   ; 

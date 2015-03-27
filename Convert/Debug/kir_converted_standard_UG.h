@@ -71,6 +71,7 @@ UG_CATCH_THROW("Error in kir_converted_standard_UG initializer list. ")
 /// destructor 
  
 virtual ~kir_converted_standard_UG() {}; 
+double taumkir(double v);
 /// create attachments and accessors 
 void init_attachments(); 
 // inherited from IChannel 
@@ -79,6 +80,18 @@ virtual void init(const LocalVector& u, Edge* e);
 virtual void update_gating(number newTime, const LocalVector& u, Edge* e); 
 virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues); 
 virtual void vm_disc_available(); 
+
+ 
+double getgkbar(); 
+double getmvhalf(); 
+double getmslope(); 
+double getmshift(); 
+double getqfact(); 
+void setgkbar(double val); 
+void setmvhalf(double val); 
+void setmslope(double val); 
+void setmshift(double val); 
+void setqfact(double val); 
 
  
 protected: 

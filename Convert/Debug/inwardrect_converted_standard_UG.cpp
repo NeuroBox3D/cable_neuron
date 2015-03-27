@@ -16,6 +16,96 @@ void inwardrect_converted_standard_UG<TDomain>::vm_disc_available()
  
  
  
+template<typename TDomain> 
+double inwardrect_converted_standard_UG<TDomain>::getgbar() 
+{ 
+return gbar; 
+} 
+template<typename TDomain> 
+double inwardrect_converted_standard_UG<TDomain>::gettha() 
+{ 
+return tha; 
+} 
+template<typename TDomain> 
+double inwardrect_converted_standard_UG<TDomain>::getqa() 
+{ 
+return qa; 
+} 
+template<typename TDomain> 
+double inwardrect_converted_standard_UG<TDomain>::getRa() 
+{ 
+return Ra; 
+} 
+template<typename TDomain> 
+double inwardrect_converted_standard_UG<TDomain>::getRb() 
+{ 
+return Rb; 
+} 
+template<typename TDomain> 
+double inwardrect_converted_standard_UG<TDomain>::gettemp() 
+{ 
+return temp; 
+} 
+template<typename TDomain> 
+double inwardrect_converted_standard_UG<TDomain>::getq10() 
+{ 
+return q10; 
+} 
+template<typename TDomain> 
+double inwardrect_converted_standard_UG<TDomain>::getvmin() 
+{ 
+return vmin; 
+} 
+template<typename TDomain> 
+double inwardrect_converted_standard_UG<TDomain>::getvmax() 
+{ 
+return vmax; 
+} 
+template<typename TDomain> 
+void inwardrect_converted_standard_UG<TDomain>::setgbar(double val) 
+{ 
+gbar = val; 
+} 
+template<typename TDomain> 
+void inwardrect_converted_standard_UG<TDomain>::settha(double val) 
+{ 
+tha = val; 
+} 
+template<typename TDomain> 
+void inwardrect_converted_standard_UG<TDomain>::setqa(double val) 
+{ 
+qa = val; 
+} 
+template<typename TDomain> 
+void inwardrect_converted_standard_UG<TDomain>::setRa(double val) 
+{ 
+Ra = val; 
+} 
+template<typename TDomain> 
+void inwardrect_converted_standard_UG<TDomain>::setRb(double val) 
+{ 
+Rb = val; 
+} 
+template<typename TDomain> 
+void inwardrect_converted_standard_UG<TDomain>::settemp(double val) 
+{ 
+temp = val; 
+} 
+template<typename TDomain> 
+void inwardrect_converted_standard_UG<TDomain>::setq10(double val) 
+{ 
+q10 = val; 
+} 
+template<typename TDomain> 
+void inwardrect_converted_standard_UG<TDomain>::setvmin(double val) 
+{ 
+vmin = val; 
+} 
+template<typename TDomain> 
+void inwardrect_converted_standard_UG<TDomain>::setvmax(double val) 
+{ 
+vmax = val; 
+} 
  // creating Method for attachments 
 template<typename TDomain> 
 void inwardrect_converted_standard_UG<TDomain>::init_attachments() 
@@ -39,8 +129,9 @@ this->aanGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->nGate);
 template<typename TDomain> 
 void inwardrect_converted_standard_UG<TDomain>::init(const LocalVector& u, Edge* edge) 
 { 
-//get celsius 
+//get celsius and time 
 number celsius = m_pVMDisc->celsius; 
+number dt = m_pVMDisc->time(); 
 // make preparing vor getting values of every edge 
 typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; 
 vrt_list vl; 
@@ -48,23 +139,23 @@ m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge
  
  
 //over all edges 
-for (size_t l = 0; l< vl.size(); l++) 
+for (size_t size_l = 0; size_l< vl.size(); size_l++) 
 { 
-	 Vertex* vrt = vl[l]; 
+	 Vertex* vrt = vl[size_l]; 
  
  
-number v = u(m_pVMDisc->_v_, l); 
-number k = u(m_pVMDisc->_k_, l); 
+number v = u(m_pVMDisc->_v_, size_l); 
+number k = u(m_pVMDisc->_k_, size_l); 
 
  
 double          tinc; 
-double v = v; 
-                      //Call once from HOC to initialize inf at resting v.
+v = v; 
+                      ;//Call once from HOC to initialize inf at resting v.
 double         b = Ra * (v - tha) / (1 - exp(-(v - tha)/qa)); 
 double         a = -Rb * (v - tha) / (1 - exp((v - tha)/qa)); 
 double         ntau = 1/(a+b); 
 double 	ninf = a*ntau; 
-                      //Call once from HOC to initialize inf at resting v.
+                      ;//Call once from HOC to initialize inf at resting v.
 tadj= pow(q10 , ((celsius-temp)/10)); 
         tinc = -dt * tadj; 
 double         nexp = 1 - exp(tinc/ntau); 
@@ -78,22 +169,22 @@ template<typename TDomain>
 void inwardrect_converted_standard_UG<TDomain>::update_gating(number newTime, const LocalVector& u, Edge* edge) 
 { 
 number celsius = m_pVMDisc->celsius; 
- 
-// make preparing vor getting values of every edge 
+ number FARADAY = m_F; 
+ // make preparing vor getting values of every edge 
 typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; 
 vrt_list vl; 
 m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge); 
  
  
 //over all edges 
-for (size_t l = 0; l< vl.size(); l++) 
+for (size_t size_l = 0; size_l< vl.size(); size_l++) 
 { 
-	 Vertex* vrt = vl[l]; 
+	 Vertex* vrt = vl[size_l]; 
  
  
 number dt = newTime - m_pVMDisc->m_aaTime[vrt]; 
-number v = u(m_pVMDisc->_v_, l); 
-number k = u(m_pVMDisc->_k_, l); 
+number v = u(m_pVMDisc->_v_, size_l); 
+number k = u(m_pVMDisc->_k_, size_l); 
 
  
 double n = aanGate[vrt]; 
@@ -139,6 +230,7 @@ number ek = helpV*(log(m_pVMDisc->k_out/k));
 
  
  
+number gk = tadj*gbar*n; 
 outCurrentValues.push_back( (1e-4) * gk * (v - ek)); 
  } 
  

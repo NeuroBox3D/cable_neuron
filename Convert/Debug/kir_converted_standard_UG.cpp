@@ -7,6 +7,12 @@
 namespace ug { 
  
  
+template<typename TDomain> 
+double kir_converted_standard_UG<TDomain>::taumkir(double v)
+{  
+return v; 
+} 
+ 
 // adding function which always inits_attachments 
 template<typename TDomain> 
 void kir_converted_standard_UG<TDomain>::vm_disc_available()  
@@ -16,6 +22,56 @@ void kir_converted_standard_UG<TDomain>::vm_disc_available()
  
  
  
+template<typename TDomain> 
+double kir_converted_standard_UG<TDomain>::getgkbar() 
+{ 
+return gkbar; 
+} 
+template<typename TDomain> 
+double kir_converted_standard_UG<TDomain>::getmvhalf() 
+{ 
+return mvhalf; 
+} 
+template<typename TDomain> 
+double kir_converted_standard_UG<TDomain>::getmslope() 
+{ 
+return mslope; 
+} 
+template<typename TDomain> 
+double kir_converted_standard_UG<TDomain>::getmshift() 
+{ 
+return mshift; 
+} 
+template<typename TDomain> 
+double kir_converted_standard_UG<TDomain>::getqfact() 
+{ 
+return qfact; 
+} 
+template<typename TDomain> 
+void kir_converted_standard_UG<TDomain>::setgkbar(double val) 
+{ 
+gkbar = val; 
+} 
+template<typename TDomain> 
+void kir_converted_standard_UG<TDomain>::setmvhalf(double val) 
+{ 
+mvhalf = val; 
+} 
+template<typename TDomain> 
+void kir_converted_standard_UG<TDomain>::setmslope(double val) 
+{ 
+mslope = val; 
+} 
+template<typename TDomain> 
+void kir_converted_standard_UG<TDomain>::setmshift(double val) 
+{ 
+mshift = val; 
+} 
+template<typename TDomain> 
+void kir_converted_standard_UG<TDomain>::setqfact(double val) 
+{ 
+qfact = val; 
+} 
  // creating Method for attachments 
 template<typename TDomain> 
 void kir_converted_standard_UG<TDomain>::init_attachments() 
@@ -39,8 +95,9 @@ this->aamGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->mGate);
 template<typename TDomain> 
 void kir_converted_standard_UG<TDomain>::init(const LocalVector& u, Edge* edge) 
 { 
-//get celsius 
+//get celsius and time 
 number celsius = m_pVMDisc->celsius; 
+number dt = m_pVMDisc->time(); 
 // make preparing vor getting values of every edge 
 typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; 
 vrt_list vl; 
@@ -48,13 +105,13 @@ m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge
  
  
 //over all edges 
-for (size_t l = 0; l< vl.size(); l++) 
+for (size_t size_l = 0; size_l< vl.size(); size_l++) 
 { 
-	 Vertex* vrt = vl[l]; 
+	 Vertex* vrt = vl[size_l]; 
  
  
-number v = u(m_pVMDisc->_v_, l); 
-number k = u(m_pVMDisc->_k_, l); 
+number v = u(m_pVMDisc->_v_, size_l); 
+number k = u(m_pVMDisc->_k_, size_l); 
 
  
 double 			minf = 1  /  ( 1 + exp( (v - mvhalf + mshift) / mslope) ); 
@@ -68,22 +125,22 @@ template<typename TDomain>
 void kir_converted_standard_UG<TDomain>::update_gating(number newTime, const LocalVector& u, Edge* edge) 
 { 
 number celsius = m_pVMDisc->celsius; 
- 
-// make preparing vor getting values of every edge 
+ number FARADAY = m_F; 
+ // make preparing vor getting values of every edge 
 typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; 
 vrt_list vl; 
 m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge); 
  
  
 //over all edges 
-for (size_t l = 0; l< vl.size(); l++) 
+for (size_t size_l = 0; size_l< vl.size(); size_l++) 
 { 
-	 Vertex* vrt = vl[l]; 
+	 Vertex* vrt = vl[size_l]; 
  
  
 number dt = newTime - m_pVMDisc->m_aaTime[vrt]; 
-number v = u(m_pVMDisc->_v_, l); 
-number k = u(m_pVMDisc->_k_, l); 
+number v = u(m_pVMDisc->_v_, size_l); 
+number k = u(m_pVMDisc->_k_, size_l); 
 
  
 double m = aamGate[vrt]; 

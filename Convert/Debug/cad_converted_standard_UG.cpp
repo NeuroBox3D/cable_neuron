@@ -16,6 +16,46 @@ void cad_converted_standard_UG<TDomain>::vm_disc_available()
  
  
  
+template<typename TDomain> 
+double cad_converted_standard_UG<TDomain>::getdepth() 
+{ 
+return depth; 
+} 
+template<typename TDomain> 
+double cad_converted_standard_UG<TDomain>::gettaur() 
+{ 
+return taur; 
+} 
+template<typename TDomain> 
+double cad_converted_standard_UG<TDomain>::getcainf() 
+{ 
+return cainf; 
+} 
+template<typename TDomain> 
+double cad_converted_standard_UG<TDomain>::getcai() 
+{ 
+return cai; 
+} 
+template<typename TDomain> 
+void cad_converted_standard_UG<TDomain>::setdepth(double val) 
+{ 
+depth = val; 
+} 
+template<typename TDomain> 
+void cad_converted_standard_UG<TDomain>::settaur(double val) 
+{ 
+taur = val; 
+} 
+template<typename TDomain> 
+void cad_converted_standard_UG<TDomain>::setcainf(double val) 
+{ 
+cainf = val; 
+} 
+template<typename TDomain> 
+void cad_converted_standard_UG<TDomain>::setcai(double val) 
+{ 
+cai = val; 
+} 
  // creating Method for attachments 
 template<typename TDomain> 
 void cad_converted_standard_UG<TDomain>::init_attachments() 
@@ -39,8 +79,9 @@ this->aacaSGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->caSGa
 template<typename TDomain> 
 void cad_converted_standard_UG<TDomain>::init(const LocalVector& u, Edge* edge) 
 { 
-//get celsius 
+//get celsius and time 
 number celsius = m_pVMDisc->celsius; 
+number dt = m_pVMDisc->time(); 
 // make preparing vor getting values of every edge 
 typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; 
 vrt_list vl; 
@@ -48,13 +89,13 @@ m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge
  
  
 //over all edges 
-for (size_t l = 0; l< vl.size(); l++) 
+for (size_t size_l = 0; size_l< vl.size(); size_l++) 
 { 
-	 Vertex* vrt = vl[l]; 
+	 Vertex* vrt = vl[size_l]; 
  
  
-number v = u(m_pVMDisc->_v_, l); 
-number ca = u(m_pVMDisc->_ca_, l); 
+number v = u(m_pVMDisc->_v_, size_l); 
+number ca = u(m_pVMDisc->_ca_, size_l); 
 
  
 aacaSGate[vrt] =  cainf; 
@@ -68,32 +109,35 @@ template<typename TDomain>
 void cad_converted_standard_UG<TDomain>::update_gating(number newTime, const LocalVector& u, Edge* edge) 
 { 
 number celsius = m_pVMDisc->celsius; 
- 
-// make preparing vor getting values of every edge 
+ number FARADAY = m_F; 
+ // make preparing vor getting values of every edge 
 typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; 
 vrt_list vl; 
 m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge); 
  
  
 //over all edges 
-for (size_t l = 0; l< vl.size(); l++) 
+for (size_t size_l = 0; size_l< vl.size(); size_l++) 
 { 
-	 Vertex* vrt = vl[l]; 
+	 Vertex* vrt = vl[size_l]; 
  
  
 number dt = newTime - m_pVMDisc->m_aaTime[vrt]; 
-number v = u(m_pVMDisc->_v_, l); 
-number ca = u(m_pVMDisc->_ca_, l); 
+number v = u(m_pVMDisc->_v_, size_l); 
+number ca = u(m_pVMDisc->_ca_, size_l); 
 
  
 double caS = aacaSGate[vrt]; 
-
+double ica = 0;
  
  
 double 	drive_channel =  - (10000) * ica / (2 * FARADAY * depth); 
-	if (drive_channel <= 0.) { drive_channel = 0. }	: cannot pump inward; 
+if (drive_channel <= 0.)
+{ 
+ drive_channel = 0. ; 
+} 
 caS +=  drive_channel + (cainf-caS)/taur*dt; 
-double 	cai = ca; 
+	cai = ca; 
 
  
  

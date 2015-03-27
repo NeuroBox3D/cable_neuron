@@ -50,6 +50,7 @@ class h_converted_standard_UG
 h_converted_standard_UG(const char* functions, const char* subsets) 
 try : IChannel<TDomain>(functions, subsets), 
 m_R(8.314), m_T(293.0), m_F(96485.0), 
+ehd ( 0), 
     ghdbar(.0001 *1e-05), 
     vhalfl(-81   *1), 
     kl(-8*1), 
@@ -66,6 +67,7 @@ UG_CATCH_THROW("Error in h_converted_standard_UG initializer list. ")
 h_converted_standard_UG(const std::vector<std::string>& functions, const std::vector<std::string>& subsets) 
 try : IChannel<TDomain>(functions, subsets), 
 m_R(8.314), m_T(293.0), m_F(96485.0), 
+ehd ( 0), 
     ghdbar(.0001 *1e-05), 
     vhalfl(-81   *1), 
     kl(-8*1), 
@@ -91,14 +93,36 @@ virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std
 virtual void vm_disc_available(); 
 
  
+double getehd(); 
+double getghdbar(); 
+double getvhalfl(); 
+double getkl(); 
+double getvhalft(); 
+double geta0t(); 
+double getzetat(); 
+double getgmt(); 
+double getq10(); 
+double getqtl(); 
+void setehd(double val); 
+void setghdbar(double val); 
+void setvhalfl(double val); 
+void setkl(double val); 
+void setvhalft(double val); 
+void seta0t(double val); 
+void setzetat(double val); 
+void setgmt(double val); 
+void setq10(double val); 
+void setqtl(double val); 
+
+ 
 protected: 
 private: 
  
 ADouble lGate; 
 Grid::AttachmentAccessor<Vertex, ADouble> aalGate; 
-number linf,taul; 
-number linf; 
 number taul; 
+number linf; 
+number ehd ; 
 number     ghdbar; 
 number     vhalfl; 
 number     kl; 

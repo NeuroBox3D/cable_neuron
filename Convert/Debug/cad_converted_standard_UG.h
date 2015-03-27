@@ -52,7 +52,8 @@ try : IChannel<TDomain>(functions, subsets),
 m_R(8.314), m_T(293.0), m_F(96485.0), 
 	depth	( .1	*1e+06), 
 	taur	( 200	*1), 
-	cainf	( 100e-6*1) {} 
+	cainf	( 100e-6*1), 
+cai ( 0) {} 
 UG_CATCH_THROW("Error in cad_converted_standard_UG initializer list. ") 
  
  
@@ -62,7 +63,8 @@ try : IChannel<TDomain>(functions, subsets),
 m_R(8.314), m_T(293.0), m_F(96485.0), 
 	depth	( .1	*1e+06), 
 	taur	( 200	*1), 
-	cainf	( 100e-6*1) {} 
+	cainf	( 100e-6*1), 
+cai ( 0) {} 
 UG_CATCH_THROW("Error in cad_converted_standard_UG initializer list. ") 
 /// destructor 
  
@@ -77,15 +79,25 @@ virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std
 virtual void vm_disc_available(); 
 
  
+double getdepth(); 
+double gettaur(); 
+double getcainf(); 
+double getcai(); 
+void setdepth(double val); 
+void settaur(double val); 
+void setcainf(double val); 
+void setcai(double val); 
+
+ 
 protected: 
 private: 
  
 ADouble caSGate; 
 Grid::AttachmentAccessor<Vertex, ADouble> aacaSGate; 
-number depth,cainf,taur; 
+number taur; 
 number depth; 
 number cainf; 
-number taur; 
+number cai ; 
 number m_R, m_T, m_F; 
 }; 
  

@@ -53,6 +53,7 @@ m_R(8.314), m_T(293.0), m_F(96485.0),
 	gbar ( 0.0008 *1e-05), 
 	vshift ( 0	*1), 
 	cao  ( 2.5	*1), 
+cai ( 0), 
 	vmin ( -120	*1), 
 	vmax ( 100	*1), 
 	v12m(50         	*1), 
@@ -79,6 +80,7 @@ m_R(8.314), m_T(293.0), m_F(96485.0),
 	gbar ( 0.0008 *1e-05), 
 	vshift ( 0	*1), 
 	cao  ( 2.5	*1), 
+cai ( 0), 
 	vmin ( -120	*1), 
 	vmax ( 100	*1), 
 	v12m(50         	*1), 
@@ -109,6 +111,48 @@ virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std
 virtual void vm_disc_available(); 
 
  
+double getgbar(); 
+double getvshift(); 
+double getcao(); 
+double getcai(); 
+double getvmin(); 
+double getvmax(); 
+double getv12m(); 
+double getv12h(); 
+double getvwm(); 
+double getvwh(); 
+double getam(); 
+double getah(); 
+double getvm1(); 
+double getvm2(); 
+double getvh1(); 
+double getvh2(); 
+double getwm1(); 
+double getwm2(); 
+double getwh1(); 
+double getwh2(); 
+void setgbar(double val); 
+void setvshift(double val); 
+void setcao(double val); 
+void setcai(double val); 
+void setvmin(double val); 
+void setvmax(double val); 
+void setv12m(double val); 
+void setv12h(double val); 
+void setvwm(double val); 
+void setvwh(double val); 
+void setam(double val); 
+void setah(double val); 
+void setvm1(double val); 
+void setvm2(double val); 
+void setvh1(double val); 
+void setvh2(double val); 
+void setwm1(double val); 
+void setwm2(double val); 
+void setwh1(double val); 
+void setwh2(double val); 
+
+ 
 protected: 
 private: 
  
@@ -117,24 +161,25 @@ Grid::AttachmentAccessor<Vertex, ADouble> aamGate;
 ADouble hGate; 
 Grid::AttachmentAccessor<Vertex, ADouble> aahGate; 
 number wh2; 
-number  vshift; 
+number vshift; 
 number vmin; 
 number vmax; 
-number  v12m; 
-number  v12h; 
-number  vwm; 
-number  vwh; 
-number  am; 
-number  ah; 
-number  vm1; 
-number  vm2; 
-number  vh1; 
-number  vh2; 
-number  wm1; 
-number  wm2; 
-number  wh1; 
+number v12m; 
+number v12h; 
+number vwm; 
+number vwh; 
+number am; 
+number ah; 
+number vm1; 
+number vm2; 
+number vh1; 
+number vh2; 
+number wm1; 
+number wm2; 
+number wh1; 
 number 	gbar ; 
 number 	cao  ; 
+number cai ; 
 number m_R, m_T, m_F; 
 }; 
  
