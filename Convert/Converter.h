@@ -33,6 +33,7 @@ public:
 	std::vector<string> Find_all_read(std::vector<string> Neuron);
 	std::vector<string> Find_all_write(std::vector<string> Neuron);
 	std::vector<string> Find_all_Eqs(std::vector<string> Neuron);
+	std::vector<string> Read_i_value(std::vector<string> Neuron);
 
 	// functions for removing all unused chars and comments
 	vector<string> Remove_all(vector<string> erg);

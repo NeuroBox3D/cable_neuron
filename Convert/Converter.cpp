@@ -27,6 +27,45 @@ Converter::~Converter() {
 	// TODO Auto-generated destructor stub
 }
 
+// Some channels need flux informations about ions this is here setted
+std::vector<string> Converter::Read_i_value(std::vector<string> Neuron)
+{
+	std::vector<string> erg;
+	//getting all read values
+	std::vector<string> All_reads = Find_all_read(Neuron);
+	All_reads = Remove_all(All_reads);
+	bool written = false;
+	for (size_t i=0; i<All_reads.size(); i++)
+	{
+		if (All_reads[i]=="ica")
+		{
+			erg.push_back("number ica = m_pVMDisc->get_flux_ca(); \n");
+			written = true;
+		}
+		if (All_reads[i]=="ik")
+		{
+			erg.push_back("number ik = m_pVMDisc->get_flux_k(); \n");
+			written = true;
+		}
+		if (All_reads[i]=="ina")
+		{
+			erg.push_back("number ina = m_pVMDisc->get_flux_na(); \n");
+			written = true;
+		}
+		if (All_reads[i]=="i")
+		{
+			erg.push_back("number i = m_pVMDisc->get_flux_v(); \n");
+			written = true;
+		}
+	}
+	if (written == false)
+		erg.push_back("");
+
+	return erg;
+}
+
+
+
 std::vector<string> Converter::if_handling(size_t begin, std::vector<string> Unit)
 {
 	std::vector<string> erg;
@@ -373,6 +412,10 @@ std::vector<string> Converter::Find_all_read(std::vector<string> Neuron)
 			}
 		}
 	}
+	/*for (size_t i=0; i<result.size() ;i++)
+	{
+		std::cout << "result: " <<result[i] << std::endl;
+	}*/
 
 	return result;
 }
@@ -1493,7 +1536,19 @@ std::vector<string> Converter::GetBlock(std::vector<pair<int, int> > Pairs, std:
 						breaks = Zeilen[j].find("^");
 						////std::cout << "breaks " << breaks << std::endl;
 						//end of converting action
+
 					}
+
+		////////////// deletes line with "at_time()"
+					if (Zeilen[j].find("at_time")!=Zeilen[j].npos)
+					{
+						Zeilen[j] = "";
+					}
+
+
+
+
+
 					// writting formatted Zeile in Blockname
 					BlockName.push_back(Zeilen[j]);
 				}
@@ -2404,6 +2459,8 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  }
 	  mycppfile << "} \n \n \n \n";
 
+	  //get information if anyion_flux is needed
+	  std::vector<string> Ion_fluxes = Read_i_value(NEURON);
 
 
 	  // Method for initialization of States with values read out of Initial
@@ -2411,9 +2468,20 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  mycppfile << "template<typename TDomain> \n";
 	  mycppfile << "void " + filename + "<TDomain>::init(const LocalVector& u, Edge* edge) \n";
 	  mycppfile << "{ \n";
-	  mycppfile << "//get celsius and time \n";
+	  mycppfile << "//get celsius and time\n";
 	  mycppfile << "number celsius = m_pVMDisc->celsius; \n";
 	  mycppfile << "number dt = m_pVMDisc->time(); \n";
+
+	  if (Ion_fluxes[0]!="")
+	  {
+		  for (size_t i = 0; i<Ion_fluxes.size(); i++)
+		  {
+			  mycppfile << Ion_fluxes[i];
+		  }
+
+	  }
+
+
 	  mycppfile << "// make preparing vor getting values of every edge \n";
 	  mycppfile << "typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; \n";
 	  mycppfile << "vrt_list vl; \n";
@@ -2684,6 +2752,15 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  mycppfile << "{ \n";
 	  mycppfile << "number celsius = m_pVMDisc->celsius; \n ";
 	  mycppfile << "number FARADAY = m_F; \n ";
+
+	  if (Ion_fluxes[0]!="")
+	  {
+		  for (size_t i = 0; i<Ion_fluxes.size(); i++)
+		  {
+			  mycppfile << Ion_fluxes[i];
+		  }
+
+	  }
 
 	  mycppfile << "// make preparing vor getting values of every edge \n";
 	  mycppfile << "typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; \n";
@@ -3275,8 +3352,18 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  mycppfile << "template<typename TDomain> \n";
 	  mycppfile << "void " + filename + "<TDomain>::ionic_current(Vertex* ver, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues) \n";
 	  mycppfile << "{ \n \n";
-	  // all gates
 
+	  // writing needed fluxes if any needed
+	  if (Ion_fluxes[0]!="")
+	  {
+		  for (size_t i = 0; i<Ion_fluxes.size(); i++)
+		  {
+			  mycppfile << Ion_fluxes[i];
+		  }
+	  }
+
+
+	  // all gates
 	  if (State_vars.size()>0)
 	  {
 		  // States ever need new values
@@ -3299,6 +3386,8 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  mycppfile << "number v =  vrt_values[VMDisc<TDomain>::_v_]; \n";
 	  mycppfile << " \n";
 	  mycppfile << " \n";
+	  // adding current time as t
+	  mycppfile << "number t = m_pVMDisc->time(); \n \n \n";
 
 	  //writes Nernst Eqs
 	  std::vector<string> eqs = equali(Pairs, Zeilen);
@@ -3835,7 +3924,7 @@ std::vector<string> Converter::WriteChannelFile(string Ch_Name, string filename)
 			 // writting channel sources
 			 size_t name_beg, name_end;
 			 name_beg = Includes[i].find("#include \"") + 10;
-			 name_end = Includes[i].find(".") + 1;
+			 name_end = Includes[i].find(".");
 			 mysourcefile << Includes[i].substr(name_beg, name_end-name_beg) + ".cpp \n";
 		 }
 	 }

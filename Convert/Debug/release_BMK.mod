@@ -38,7 +38,8 @@ PARAMETER {
 	amp (mM)
 }
 
-ASSIGNED { T (mM)
+ASSIGNED { 
+T (mM)
 }
 
 
