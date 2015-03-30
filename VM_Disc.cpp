@@ -22,6 +22,33 @@ namespace ug {
 
 
 template<typename TDomain>
+double VMDisc<TDomain>::
+get_flux_v()
+{
+	return m_v;
+}
+
+template<typename TDomain>
+double VMDisc<TDomain>::
+get_flux_ca()
+{
+	return m_ca;
+}
+
+template<typename TDomain>
+double VMDisc<TDomain>::
+get_flux_na()
+{
+	return m_na;
+}
+
+template<typename TDomain>
+double VMDisc<TDomain>::
+get_flux_k()
+{
+	return m_k;
+}
+template<typename TDomain>
 void VMDisc<TDomain>::
 set_diameter(const number d)
 {
@@ -303,9 +330,21 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 
 		// writing potential defects
 		d(_v_, co) += scv.volume()*PI*Diam * (allOutCurrentValues[0]-influx);
-		// writing ion species defects
+		m_v = allOutCurrentValues[0];
+		// writing ion species defects TODO is this really working??
 		for (size_t k = 1; k < m_numb_funcs+1; k++)
+		{
 			d(k, co) += scv.volume()*PI*Diam * allOutCurrentValues[k];
+			/*static const size_t _k_  = 1;
+			static const size_t _na_ = 2;
+			static const size_t _ca_ = 3;*/
+			if (k==1)
+				m_k = allOutCurrentValues[k];
+			if (k==2)
+				m_na = allOutCurrentValues[k];
+			if (k==3)
+				m_ca = allOutCurrentValues[k];
+		}
 
 	}
 

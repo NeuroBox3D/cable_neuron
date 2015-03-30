@@ -73,6 +73,8 @@ class VMDisc
 		const number na_out;	// mol/m^3 = mM
 		const number ca_out;	// mol/m^3 = mM
 
+		double m_v, m_na, m_k, m_ca;
+
 		// dendritic params
 		number m_spec_res;	// mV * ms * m / C
 		number m_spec_cap;	// C / (mV * m^2)
@@ -114,7 +116,7 @@ class VMDisc
 		: IElemDisc<TDomain>("v, k, na, ca", subsets),
 		  k_out(2.5), na_out(140.0), ca_out(1.5),
 		  m_spec_res(1.0e6), m_spec_cap(1.0e-5), celsius(37.0),
-		  m_influx_ac(1e-9), m_aDiameter("diameter"),
+		  m_influx_ac(1e-9), m_aDiameter("diameter"), m_v(0), m_k(0), m_na(0), m_ca(0),
 #ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ACTIVE
 		  m_spSD(SPNULL),
 #endif
@@ -298,6 +300,12 @@ class VMDisc
 
 		/// set influx params (flux value, coordinates, beginning, duration)
 		void set_influx(number Flux, number x, number y, number z, number beg, number dur);
+
+		/// functions to get different ion fluxes
+		double get_flux_ca();
+		double get_flux_v();
+		double get_flux_k();
+		double get_flux_na();
 
 #ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ACTIVE
 		/// assign a synapse distributor
