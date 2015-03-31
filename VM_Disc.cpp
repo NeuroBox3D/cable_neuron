@@ -22,33 +22,6 @@ namespace ug {
 
 
 template<typename TDomain>
-double VMDisc<TDomain>::
-get_flux_v()
-{
-	return m_v;
-}
-
-template<typename TDomain>
-double VMDisc<TDomain>::
-get_flux_ca()
-{
-	return m_ca;
-}
-
-template<typename TDomain>
-double VMDisc<TDomain>::
-get_flux_na()
-{
-	return m_na;
-}
-
-template<typename TDomain>
-double VMDisc<TDomain>::
-get_flux_k()
-{
-	return m_k;
-}
-template<typename TDomain>
 void VMDisc<TDomain>::
 set_diameter(const number d)
 {
@@ -116,10 +89,10 @@ set_influx(number Flux, number x, number y, number z, number beg, number dur)
 }
 
 
-#ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
+//#ifdef PLUGIN_SYNAPSE_PROVIDER_ACTIVATED
 template<typename TDomain>
 void VMDisc<TDomain>::
-set_synapse_provider_factory(ConstSmartPtr<SynapseProviderFactory<TDomain> > spf) {
+set_synapse_provider_factory(ConstSmartPtr<SynapseProviderFactory<TDomain> > spf)
 {
 	m_spSPF = spf;
 }
@@ -130,7 +103,7 @@ void VMDisc<TDomain>::
 set_provider_type(const std::string& providerName) {
 	m_spSP = m_spSPF.get()->get()->Create(providerName);
 }
-#endif
+//#endif
 
 
 
@@ -281,7 +254,7 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 			}
 		}
 
-#ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
+//#ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
 		// influxes from synapse provider
 		if (m_spSPF.valid())
 		{
@@ -289,7 +262,7 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 			if (m_spSP->synapse_at_location(pElem, co, time, current))
 				d(_v_, co) += current;
 		}
-#endif
+//#endif
 
 		// membrane transport mechanisms
 		std::vector<number> allOutCurrentValues;
@@ -330,21 +303,9 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 
 		// writing potential defects
 		d(_v_, co) += scv.volume()*PI*Diam * (allOutCurrentValues[0]-influx);
-		m_v = allOutCurrentValues[0];
-		// writing ion species defects TODO is this really working??
+		// writing ion species defects
 		for (size_t k = 1; k < m_numb_funcs+1; k++)
-		{
 			d(k, co) += scv.volume()*PI*Diam * allOutCurrentValues[k];
-			/*static const size_t _k_  = 1;
-			static const size_t _na_ = 2;
-			static const size_t _ca_ = 3;*/
-			if (k==1)
-				m_k = allOutCurrentValues[k];
-			if (k==2)
-				m_na = allOutCurrentValues[k];
-			if (k==3)
-				m_ca = allOutCurrentValues[k];
-		}
 
 	}
 
