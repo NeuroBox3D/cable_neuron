@@ -220,6 +220,7 @@ static void Domain(bridge::Registry& reg, string grp)
 #ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
 			.add_method("set_synapse_provider_factory", &T::set_synapse_provider_factory)
 			.add_method("set_provider_type", &T::set_provider_type)
+			.add_method("set_synapse_provider", &T::set_synapse_provider)
 #endif
 			//.add_method("add_func", &T::add_func)
 			//.add_method("setGridFct", &T::setGridFct)

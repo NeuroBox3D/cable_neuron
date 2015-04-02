@@ -131,7 +131,14 @@ void VMDisc<TDomain>::
 set_provider_type(const std::string& providerName) {
 	m_spSP = m_spSPF.get()->get()->Create(providerName);
 }
+
+template <typename TDomain>
+void VMDisc<TDomain>::
+set_synapse_provider(SmartPtr<SynapseProvider<TDomain> sp) {
+	this->m_spSP = sp;
+}
 #endif
+
 
 
 
@@ -283,12 +290,15 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 		}
 
 #ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
-		// influxes from synapse provider
+		// influxes from synapse provider factory
 		if (m_spSPF.valid())
 		{
-			// ... and assemble to defect
-			if (m_spSP->synapse_at_location(pElem, co, time, current))
+			/// if a synapse provider is available
+			if	(m_spSF.valid()) {
+				// ... and assemble to defect
+				if (m_spSP->synapse_at_location(pElem, co, time, current))
 				d(_v_, co) += current;
+			}
 		}
 #endif
 

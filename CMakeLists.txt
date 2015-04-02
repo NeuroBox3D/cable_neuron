@@ -11,7 +11,6 @@ project(HH_Kabelnew)
 # include the definitions and dependencies for ug-plugins.
 include("../../../cmake/ug_plugin_includes.cmake")
 
-
 # sources
 set(SOURCES	ElemDiscHH_base.cpp   
 Convert/Debug/release_exp_converted_standard_UG.cpp 

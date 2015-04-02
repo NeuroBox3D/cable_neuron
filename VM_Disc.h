@@ -308,7 +308,7 @@ class VMDisc
 		double get_flux_k();
 		double get_flux_na();
 
-#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ACTIVE
+#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED
 		/// assign a synapse distributor
 		void set_synapse_distributor(ConstSmartPtr<SynapseDistributor> sd);
 #endif
@@ -318,6 +318,7 @@ class VMDisc
 #ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
 		void set_synapse_provider_factory(ConstSmartPtr<SynapseProviderFactory<TDomain> > spf);
 		void set_provider_type(const std::string& providerName);
+		void set_synapse_provider(SmartPtr<SynapseProvider<TDomain> sp);
 #endif
 		/// adding a channel
 		void add_channel(SmartPtr<IChannel<TDomain> > Channel);
