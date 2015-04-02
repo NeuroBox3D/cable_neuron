@@ -20,6 +20,34 @@
 
 namespace ug {
 
+template<typename TDomain>
+double VMDisc<TDomain>::
+get_flux_ca()
+{
+	return m_ca;
+}
+
+template<typename TDomain>
+double VMDisc<TDomain>::
+get_flux_na()
+{
+	return m_na;
+}
+
+template<typename TDomain>
+double VMDisc<TDomain>::
+get_flux_k()
+{
+	return m_k;
+}
+
+template<typename TDomain>
+double VMDisc<TDomain>::
+get_flux_v()
+{
+	return m_v;
+}
+
 
 template<typename TDomain>
 void VMDisc<TDomain>::
@@ -89,7 +117,7 @@ set_influx(number Flux, number x, number y, number z, number beg, number dur)
 }
 
 
-//#ifdef PLUGIN_SYNAPSE_PROVIDER_ACTIVATED
+#ifdef PLUGIN_SYNAPSE_PROVIDER_ACTIVATED
 template<typename TDomain>
 void VMDisc<TDomain>::
 set_synapse_provider_factory(ConstSmartPtr<SynapseProviderFactory<TDomain> > spf)
@@ -103,7 +131,7 @@ void VMDisc<TDomain>::
 set_provider_type(const std::string& providerName) {
 	m_spSP = m_spSPF.get()->get()->Create(providerName);
 }
-//#endif
+#endif
 
 
 
@@ -254,7 +282,7 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 			}
 		}
 
-//#ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
+#ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
 		// influxes from synapse provider
 		if (m_spSPF.valid())
 		{
@@ -262,7 +290,7 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 			if (m_spSP->synapse_at_location(pElem, co, time, current))
 				d(_v_, co) += current;
 		}
-//#endif
+#endif
 
 		// membrane transport mechanisms
 		std::vector<number> allOutCurrentValues;

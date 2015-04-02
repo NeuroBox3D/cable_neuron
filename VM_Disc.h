@@ -37,10 +37,10 @@
 
 #include "channel_interface.h"
 
-//#ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
+#ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
 #include "../synapse_provider/synapse_provider.h"
 
-//#endif
+#endif
 
 
 namespace ug
@@ -315,10 +315,10 @@ class VMDisc
 
 
 
-//#ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
+#ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
 		void set_synapse_provider_factory(ConstSmartPtr<SynapseProviderFactory<TDomain> > spf);
 		void set_provider_type(const std::string& providerName);
-//#endif
+#endif
 		/// adding a channel
 		void add_channel(SmartPtr<IChannel<TDomain> > Channel);
 #if 0
@@ -420,10 +420,10 @@ class VMDisc
 		AVector4 m_aUold;
 		Grid::AttachmentAccessor<Vertex, AVector4> m_aaUold;
 
-//#ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
+#ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
 		ConstSmartPtr<SynapseProviderFactory<TDomain> > m_spSPF;
 		ConstSmartPtr<ISynapseProvider<TDomain> > m_spSP;
-//#endif
+#endif
 
 		/// approx space
 		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
