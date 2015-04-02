@@ -38,7 +38,8 @@
 #include "channel_interface.h"
 
 #ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
-	#include "../synapse_provider/synapse_provider.h"
+#include "../../../synapse_provider/synapse_provider.h"
+
 #endif
 
 
@@ -312,6 +313,12 @@ class VMDisc
 		void set_synapse_distributor(ConstSmartPtr<SynapseDistributor> sd);
 #endif
 
+
+
+#ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
+		void set_synapse_provider_factory(ConstSmartPtr<SynapseProviderFactory<TDomain> > spf);
+		void set_provider_type(const std::string& providerName);
+#endif
 		/// adding a channel
 		void add_channel(SmartPtr<IChannel<TDomain> > Channel);
 #if 0
