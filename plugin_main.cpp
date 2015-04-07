@@ -223,7 +223,7 @@ static void Domain(bridge::Registry& reg, string grp)
 			.add_method("set_synapse_provider", &T::set_synapse_provider)
 #endif
 
-#ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
+#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED
 			.add_method("set_synapse_distributor", &T::set_synapse_distributor)
 #endif
 
