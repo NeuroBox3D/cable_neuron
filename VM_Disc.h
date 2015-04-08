@@ -38,7 +38,7 @@
 #include "channel_interface.h"
 
 #ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
-#include "../synapse_provider/synapse_provider.h"
+#include "../synapse_distributor/synapse_distributor.h"
 
 #endif
 
@@ -117,8 +117,8 @@ class VMDisc
 		: IElemDisc<TDomain>("v, k, na, ca", subsets),
 		  k_out(2.5), na_out(140.0), ca_out(1.5),
 		  m_spec_res(1.0e6), m_spec_cap(1.0e-5), celsius(37.0),
-		  m_influx_ac(1e-9), m_aDiameter("diameter"), m_v(0), m_k(0), m_na(0), m_ca(0),
-#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ACTIVE
+		  m_influx_ac(1e-9), m_aDiameter("diameter"), m_v(0), m_na(0), m_k(0), m_ca(0),
+#ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
 		  m_spSD(SPNULL),
 #endif
 		  m_spApproxSpace(approx), m_spDD(m_spApproxSpace->dof_distribution(GridLevel::TOP)),
@@ -307,13 +307,6 @@ class VMDisc
 		double get_flux_v();
 		double get_flux_k();
 		double get_flux_na();
-
-#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED
-		/// assign a synapse distributor
-		void set_synapse_distributor(ConstSmartPtr<SynapseDistributor> sd);
-#endif
-
-
 
 #ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
 		void set_synapse_provider_factory(ConstSmartPtr<SynapseProviderFactory<TDomain> > spf);
