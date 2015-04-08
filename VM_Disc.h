@@ -38,8 +38,7 @@
 #include "channel_interface.h"
 
 #ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
-#include "../synapse_distributor/synapse_distributor.h"
-
+	#include "../synapse_provider/synapse_provider.h"
 #endif
 
 
@@ -117,9 +116,10 @@ class VMDisc
 		: IElemDisc<TDomain>("v, k, na, ca", subsets),
 		  k_out(2.5), na_out(140.0), ca_out(1.5),
 		  m_spec_res(1.0e6), m_spec_cap(1.0e-5), celsius(37.0),
-		  m_influx_ac(1e-9), m_aDiameter("diameter"), m_v(0), m_na(0), m_k(0), m_ca(0),
+		  m_v(0), m_na(0), m_k(0), m_ca(0), m_influx_ac(1e-9),
+		  m_aDiameter("diameter"),
 #ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
-		  m_spSD(SPNULL),
+		  m_spSP(SPNULL),
 #endif
 		  m_spApproxSpace(approx), m_spDD(m_spApproxSpace->dof_distribution(GridLevel::TOP)),
 		  m_bNonRegularGrid(false),
@@ -311,7 +311,7 @@ class VMDisc
 #ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
 		void set_synapse_provider_factory(ConstSmartPtr<SynapseProviderFactory<TDomain> > spf);
 		void set_provider_type(const std::string& providerName);
-		void set_synapse_provider(SmartPtr<SynapseProvider<TDomain> sp);
+		void set_synapse_provider(SmartPtr<SynapseProvider<TDomain> > sp);
 #endif
 		/// adding a channel
 		void add_channel(SmartPtr<IChannel<TDomain> > Channel);

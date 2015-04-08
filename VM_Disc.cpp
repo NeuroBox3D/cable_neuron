@@ -294,8 +294,9 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 		if (m_spSPF.valid())
 		{
 			/// if a synapse provider is available
-			if	(m_spSF.valid()) {
+			if	(m_spSP.valid()) {
 				// ... and assemble to defect
+				number current = 0.0;
 				if (m_spSP->synapse_at_location(pElem, co, time, current))
 				d(_v_, co) += current;
 			}
