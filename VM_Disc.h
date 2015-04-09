@@ -79,9 +79,6 @@ class VMDisc
 		number m_spec_res;	// mV * ms * m / C
 		number m_spec_cap;	// C / (mV * m^2)
 
-		// celsius
-		number celsius;
-
 		// diffusion coefficients
 		std::vector<number> m_diff;
 
@@ -115,8 +112,8 @@ class VMDisc
 		)
 		: IElemDisc<TDomain>("v, k, na, ca", subsets),
 		  k_out(2.5), na_out(140.0), ca_out(1.5),
-		  m_spec_res(1.0e6), m_spec_cap(1.0e-5), celsius(37.0),
-		  m_v(0), m_na(0), m_k(0), m_ca(0), m_influx_ac(1e-9),
+		  m_v(0), m_na(0), m_k(0), m_ca(0),
+		  m_spec_res(1.0e6), m_spec_cap(1.0e-5), m_influx_ac(1e-9),
 		  m_aDiameter("diameter"),
 #ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
 		  m_spSP(SPNULL),

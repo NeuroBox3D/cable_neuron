@@ -117,7 +117,7 @@ set_influx(number Flux, number x, number y, number z, number beg, number dur)
 }
 
 
-#ifdef PLUGIN_SYNAPSE_PROVIDER_ACTIVATED
+#ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
 template<typename TDomain>
 void VMDisc<TDomain>::
 set_synapse_provider_factory(ConstSmartPtr<SynapseProviderFactory<TDomain> > spf)
@@ -129,13 +129,13 @@ set_synapse_provider_factory(ConstSmartPtr<SynapseProviderFactory<TDomain> > spf
 template<typename TDomain>
 void VMDisc<TDomain>::
 set_provider_type(const std::string& providerName) {
-	m_spSP = m_spSPF.get()->get()->Create(providerName);
+	m_spSP = make_sp(m_spSPF->CreateProvider(providerName));
 }
 
 template <typename TDomain>
 void VMDisc<TDomain>::
-set_synapse_provider(SmartPtr<SynapseProvider<TDomain> sp) {
-	this->m_spSP = sp;
+set_synapse_provider(SmartPtr<SynapseProvider<TDomain> > sp) {
+	m_spSP = sp;
 }
 #endif
 
