@@ -20,6 +20,13 @@
 
 namespace ug {
 
+
+template<typename TDomain>
+VMDisc<TDomain>* VMDisc<TDomain>::get_VmDisc()
+{
+	return this;
+}
+
 template<typename TDomain>
 double VMDisc<TDomain>::
 get_flux_ca()
