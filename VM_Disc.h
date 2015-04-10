@@ -37,11 +37,8 @@
 
 #include "channel_interface.h"
 
-#ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
-	#include "../synapse_provider/synapse_provider.h"
-#endif
-
-
+#include "../synapse_provider/synapse_provider.h"
+using namespace ug::synapse_provider;
 
 namespace ug
 {
@@ -49,6 +46,15 @@ namespace ug
 // forward declaration
 template <typename TDomain>
 class IChannel;
+
+template <typename TDomain>
+class ISynapseProvider;
+
+template <typename TDomain>
+class SynapseProviderFactory;
+
+template <typename TDomain>
+class SynapseProvider;
 
 template <typename TDomain>
 class VMDisc
