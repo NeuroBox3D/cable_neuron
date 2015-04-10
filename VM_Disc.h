@@ -298,6 +298,9 @@ class VMDisc
 		/// set influx position accuracy
 		void set_influx_ac(number influx_ac);
 
+		/// setting write temperature
+		void set_celsius(number cels);
+
 		/// set influx params (flux value, coordinates, beginning, duration)
 		void set_influx(number Flux, number x, number y, number z, number beg, number dur);
 

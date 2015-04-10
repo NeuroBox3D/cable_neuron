@@ -21,6 +21,11 @@
 namespace ug {
 
 
+
+/*set_celsius(number cels)
+		celsius = cels;*/
+
+
 template<typename TDomain>
 VMDisc<TDomain>* VMDisc<TDomain>::get_VmDisc()
 {
@@ -185,8 +190,8 @@ set_provider_type(const std::string& providerName) {
 
 template <typename TDomain>
 void VMDisc<TDomain>::
-set_synapse_provider(SmartPtr<SynapseProvider<TDomain> > sp) {
-	m_spSP = sp;
+set_synapse_provider(SmartPtr<SynapseProvider<TDomain> sp) {
+	this->m_spSP = sp;
 }
 #endif
 
@@ -345,10 +350,9 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 		if (m_spSPF.valid())
 		{
 			/// if a synapse provider is available
-			if	(m_spSP.valid())
+			if	(m_spSF.valid()) 
 			{
 				// ... and assemble to defect
-				number current = 0.0;
 				if (m_spSP->synapse_at_location(pElem, co, time, current))
 				{
 					//TODO add get current from synapse location and delete current from above
