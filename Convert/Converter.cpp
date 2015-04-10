@@ -2954,6 +2954,10 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  									{
 	  										std::cout << "double " + Proc_vals[k] << std::endl;
 	  										mycppfile << "double " + Proc_vals[k] + "; \n";
+	  										if (Proc_vals[k].find("=")!=Proc_vals[k].npos)
+	  											HFile_added_Vars_Deriv.push_back(Remove_all(Proc_vals[k].substr(0, Proc_vals[k].find("=")-1)));
+	  										else
+	  											HFile_added_Vars_Deriv.push_back(Remove_all(Proc_vals[k]));
 	  									}
 	  								}
 	  							  }
@@ -3010,6 +3014,10 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 							{
 								//std::cout << "double "+ DERIVATIVE[i] << std::endl;
 								mycppfile << "double " + DERIVATIVE[i] + "; \n";
+								if (DERIVATIVE[i].find("=")!=DERIVATIVE[i].npos)
+									HFile_added_Vars_Deriv.push_back(Remove_all(DERIVATIVE[i].substr(0, DERIVATIVE[i].find("=")-1)));
+								else
+									HFile_added_Vars_Deriv.push_back(Remove_all(DERIVATIVE[i]));
 							}
 						}
 						else
@@ -3030,10 +3038,57 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 								oje = 0;
 								mycppfile << DERIVATIVE[i] + "; \n";
 							}
+
+							//writting of files out of if TODO add checking vars used if not declare before
+							//if -loop for later use
+							std::vector<string> setted_in_if;
+							bool same = false;
+							for (size_t m = 0; m<oje; m++)
+							{
+								if ((if_file[m].find("=")!=if_file[m].npos) && (if_file[m].find("if")==if_file[m].npos)
+									  && (if_file[m].find("else")==if_file[m].npos))
+								{
+									for (size_t n=0; n<HFile_added_Vars_Deriv.size(); n++)
+									{
+										std::cout << "Vergleich: " << Remove_all(if_file[m].substr(0, if_file[m].find("=")-1)) << " - "<< Remove_all(HFile_added_Vars_Deriv[n]) << std::endl;
+										if (Remove_all(if_file[m].substr(0, if_file[m].find("=")-1))==Remove_all(HFile_added_Vars_Deriv[n]))
+											same = true;
+									}
+
+									// if there is not such a var then we need to add
+									if (same == false)
+									{
+										setted_in_if.push_back(Remove_all(if_file[m].substr(0, if_file[m].find("=")-1)));
+										HFile_added_Vars_Deriv.push_back(Remove_all(if_file[m].substr(0, if_file[m].find("=")-1)));
+									}
+								}
+							}
+							// writting needed double's
+							if (setted_in_if.size()>0)
+							{
+								for (size_t m=0; m<setted_in_if.size(); m++)
+								{
+									if (Remove_all(setted_in_if[m])!="")
+									{
+										if (m == 0)
+											mycppfile << "double " + setted_in_if[m];
+										else
+											mycppfile << ", " + setted_in_if[m];
+									}
+								}
+							}
+
+							// new zeile
+							mycppfile << "; \n \n";
+
+							// writing if-loop
 							for (size_t m = 0; m<oje; m++)
 							{
 								mycppfile << if_file[m];
 							}
+
+
+
 
 						}
 					}
@@ -3523,10 +3578,58 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 			  if (BREAKPOINT[i].find("if")!=BREAKPOINT[i].npos)
 			  {
 				  std::vector<string> break_if = if_handling(i, BREAKPOINT);
-				  for (size_t j = 0; j<break_if.size()-1; j++)
+
+				  //writting of files out of if TODO add checking vars used if not declare before
+				  //if -loop for later use
+				  std::vector<string> setted_in_if;
+				  bool same = false;
+				  for (size_t m = 0; m<break_if.size()-1; m++)
 				  {
-					  mycppfile << break_if[j];
+					  if ((break_if[m].find("=")!=break_if[m].npos) && (break_if[m].find("if")==break_if[m].npos)
+							  && (break_if[m].find("else")==break_if[m].npos))
+					  {
+						  for (size_t n=0; n<HFile_added_Vars_org.size(); n++)
+						  {
+							  if (Remove_all(break_if[m].substr(0, break_if[m].find("=")-1))==Remove_all(HFile_added_Vars_org[n]))
+								  same = true;
+						  }
+
+						  // if there is not such a var then we need to add
+						  if (same == false)
+						  {
+							  setted_in_if.push_back(Remove_all(break_if[m].substr(0, break_if[m].find("=")-1)));
+							  HFile_added_Vars_org.push_back(Remove_all(break_if[m].substr(0, break_if[m].find("=")-1)));
+						  }
+					  }
 				  }
+				  // writting needed double's
+				  if (setted_in_if.size()>0)
+				  {
+					  for (size_t m=0; m<setted_in_if.size(); m++)
+					  {
+						  if (Remove_all(setted_in_if[m])!="")
+						  {
+							  if (m == 0)
+								  mycppfile << "double " + setted_in_if[m];
+							  else
+								  mycppfile << ", " + setted_in_if[m];
+						  }
+					  }
+				  }
+
+				  // new zeile
+				  mycppfile << "; \n \n";
+
+				  // writing if-loop
+				  for (size_t m = 0; m<break_if.size()-1; m++)
+				  {
+					  mycppfile << break_if[m];
+				  }
+
+
+
+
+
 				  // writing position to work on
 				  istringstream f(break_if[break_if.size()-1]);
 				  f >> i;
@@ -3868,10 +3971,6 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 	  myhfile.close();
 }
-
-
-
-
 
 
 ////////////////////////////////////////////////////////////////////////////////////////
