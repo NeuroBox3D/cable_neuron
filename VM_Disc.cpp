@@ -27,6 +27,50 @@ VMDisc<TDomain>* VMDisc<TDomain>::get_VmDisc()
 	return this;
 }
 
+
+template<typename TDomain>
+double VMDisc<TDomain>::
+get_eca()
+{
+	return m_eca;
+}
+
+template<typename TDomain>
+double VMDisc<TDomain>::
+get_ena()
+{
+	return m_ena;
+}
+
+template<typename TDomain>
+double VMDisc<TDomain>::
+get_ek()
+{
+	return m_ek;
+}
+
+template<typename TDomain>
+void VMDisc<TDomain>::
+set_eca(double value)
+{
+	m_eca = value;
+}
+
+template<typename TDomain>
+void VMDisc<TDomain>::
+set_ek(double value)
+{
+	m_ek = value;
+}
+
+template<typename TDomain>
+void VMDisc<TDomain>::
+set_ena(double value)
+{
+	m_ena = value;
+}
+
+
 template<typename TDomain>
 double VMDisc<TDomain>::
 get_flux_ca()
@@ -301,11 +345,15 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 		if (m_spSPF.valid())
 		{
 			/// if a synapse provider is available
-			if	(m_spSP.valid()) {
+			if	(m_spSP.valid())
+			{
 				// ... and assemble to defect
 				number current = 0.0;
 				if (m_spSP->synapse_at_location(pElem, co, time, current))
-				d(_v_, co) += current;
+				{
+					//TODO add get current from synapse location and delete current from above
+					d(_v_, co) += current;
+				}
 			}
 		}
 #endif

@@ -76,7 +76,7 @@ public:
 	std::vector<string> WriteChannelFile(string Ch_Name, string filename);
 	void WriteInclude_List(std::vector<string> Includes, string filename, string sources);
 	void WriteInPlugin(string SourceFile, string DestFile);
-
+	std::vector<string> Get_Set_Registry(string filename);
 
 	// Find all Blocks of NModl-File
 	std::vector<std::pair<int, int> > FindBlocks(std::vector<string> Zeilen);

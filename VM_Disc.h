@@ -48,15 +48,6 @@ template <typename TDomain>
 class IChannel;
 
 template <typename TDomain>
-class ISynapseProvider;
-
-template <typename TDomain>
-class SynapseProviderFactory;
-
-template <typename TDomain>
-class SynapseProvider;
-
-template <typename TDomain>
 class VMDisc
 	: public IElemDisc<TDomain>
 {
@@ -79,7 +70,11 @@ class VMDisc
 		const number na_out;	// mol/m^3 = mM
 		const number ca_out;	// mol/m^3 = mM
 
+		double celsius;
+
 		double m_v, m_na, m_k, m_ca;
+
+		double m_ena, m_ek, m_eca;
 
 		// dendritic params
 		number m_spec_res;	// mV * ms * m / C
@@ -117,8 +112,9 @@ class VMDisc
 			const number init_time = 0.0
 		)
 		: IElemDisc<TDomain>("v, k, na, ca", subsets),
-		  k_out(2.5), na_out(140.0), ca_out(1.5),
+		  k_out(2.5), na_out(140.0), ca_out(1.5), celsius(37),
 		  m_v(0), m_na(0), m_k(0), m_ca(0),
+		  m_ena(0), m_ek(0), m_eca(0),
 		  m_spec_res(1.0e6), m_spec_cap(1.0e-5), m_influx_ac(1e-9),
 		  m_aDiameter("diameter"),
 #ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
@@ -312,6 +308,16 @@ class VMDisc
 		double get_flux_v();
 		double get_flux_k();
 		double get_flux_na();
+
+
+		/// functions for different reversal potentials
+		double get_eca();
+		double get_ena();
+		double get_ek();
+		void set_eca(double value);
+		void set_ena(double value);
+		void set_ek(double value);
+
 
 #ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
 		void set_synapse_provider_factory(ConstSmartPtr<SynapseProviderFactory<TDomain> > spf);

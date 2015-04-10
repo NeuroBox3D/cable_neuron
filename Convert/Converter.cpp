@@ -3441,7 +3441,36 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 				  }
 
 				  if (is_comp_out == false && rev_pot_is_setted == false)
-					  mycppfile << eqs[i] + " \n";
+				  {
+					  string test = eqs[i];
+					  test = test.replace(test.find("number"), 6, "");
+					  //writting in if-schleife if there is hard coded ena, eca or ek given use this instead of calculation
+					  if (i==0)
+					  {
+						  mycppfile << eqs[i] + " \n";
+					  }
+					  // if really only eca ek or ena is meant
+					  else if (Remove_all(test)[0]!='e')
+					  {
+						  mycppfile << eqs[i] + " \n";
+					  }
+					  else
+					  {
+						  string e_name2;
+						  string e_name = eqs[i].substr(0, eqs[i].find("=")-1);
+						  mycppfile << e_name + "; \n";
+						  eqs[i] = eqs[i].replace(eqs[i].find("number"), 6, "");
+						  e_name2 = e_name.replace(e_name.find("number"), 6, "");
+						  mycppfile << "if (m_pVMDisc->get_" + Remove_all(e_name2) + "() == 0) \n";
+						  mycppfile << "{ \n";
+						  mycppfile << "\t " + eqs[i] + " \n";
+						  mycppfile << "} \n";
+						  mycppfile << "else \n";
+						  mycppfile << "{ \n";
+						  mycppfile << "\t " + e_name + " = m_pVMDisc->get_" + Remove_all(e_name2) + "(); \n";
+						  mycppfile << "} \n";
+					  }
+				  }
 			  }
 		  }
 	  }
@@ -3849,6 +3878,38 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 // Part which is needed for including in UG4 directly
 ////////////////////////////////////////////////////////////////////////////////////////
 
+////////////////////////////////////////////////////////////////////////////////////////
+// Returns all needed Sets for one function
+////////////////////////////////////////////////////////////////////////////////////////
+
+std::vector<string> Converter::Get_Set_Registry(string filename)
+{
+	std::vector<string> erg;
+	std::vector<string> lines;
+
+	lines = Openfile(filename);
+
+	for (size_t i=0; i<lines.size(); i++)
+	{
+		size_t sets = lines[i].find("sets");
+		size_t set = lines[i].find("set");
+		if (sets==lines[i].npos)
+		{
+			//.add_method("set_synapse_provider_factory", &T::set_synapse_provider_factory)
+			if (set!=lines[i].npos)
+			{
+				string func_name = lines[i].substr(set, lines[i].find("(")-set);
+				erg.push_back(".add_method(\"" + func_name + "\" , &T::" + func_name + ")" );
+			}
+		}
+
+	}
+
+
+
+	return erg;
+}
+
 
 std::vector<string> Converter::WriteChannelFile(string Ch_Name, string filename)
 {
@@ -3875,6 +3936,8 @@ std::vector<string> Converter::WriteChannelFile(string Ch_Name, string filename)
 	}
 
 
+	std::vector<string> setters;
+
 	const char* filenamechar = filename.c_str();
 	ofstream mychannelfile;
 	// if not existing write channel in file
@@ -3889,6 +3952,15 @@ std::vector<string> Converter::WriteChannelFile(string Ch_Name, string filename)
 		mychannelfile << "\t reg.add_class_<T, TBase >(name, grp) \n";
 		mychannelfile << "\t \t .template add_constructor<void (*)(const char*, const char*)>(\"Function(s)#Subset(s)\") \n";
 		mychannelfile << "\t \t .template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>(\"Function(s)#Subset(s)\") \n";
+		// Todo add all getters and setters
+		setters = Get_Set_Registry(Ch_Name+".h");
+		for (size_t i=0; i<setters.size(); i++)
+		{
+			mychannelfile << setters[i] + "\n";
+		}
+
+
+
 		mychannelfile << "\t \t .set_construct_as_smart_pointer(true); \n";
 		mychannelfile << "\t reg.add_class_to_group(name, \"" + Ch_Name + "\", tag); \n";
 		mychannelfile << "} \n \n \n";
