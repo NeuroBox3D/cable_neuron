@@ -432,7 +432,7 @@ void ChannelHHNernst<TDomain>::ionic_current(Vertex* vrt, const std::vector<numb
 	number k 	 = vrt_values[VMDisc<TDomain>::_k_];
 	number na 	 = vrt_values[VMDisc<TDomain>::_na_];
 
-	UG_ASSERT(m_pVMDisc.valid(), "Channel has not been assigned a vmDisc object yet!");
+	//UG_ASSERT(m_pVMDisc->valid(), "Channel has not been assigned a vmDisc object yet!");
 	const number helpV = 1e3*(m_R*m_T)/m_F;
 	number potassium_nernst_eq 	= helpV*(std::log(m_pVMDisc->k_out/k));
 	number sodium_nernst_eq	 	= helpV*(std::log(m_pVMDisc->na_out/na));
