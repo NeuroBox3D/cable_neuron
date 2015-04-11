@@ -134,12 +134,18 @@ double caS = aacaSGate[vrt];
  
  
 double 	drive_channel =  - (10000) * ica / (2 * FARADAY * depth); 
+; 
+ 
 if (drive_channel <= 0.)
 { 
  drive_channel = 0. ; 
 } 
 caS +=  drive_channel + (cainf-caS)/taur*dt; 
+; 
+ 
 	cai = ca; 
+; 
+ 
 
  
  

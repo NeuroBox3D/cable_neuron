@@ -103,7 +103,7 @@ this->aanGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->nGate);
 template<typename TDomain> 
 void hh_converted_standard_UG<TDomain>::init(const LocalVector& u, Edge* edge) 
 { 
-//get celsius and time 
+//get celsius and time
 number celsius = m_pVMDisc->celsius; 
 number dt = m_pVMDisc->time(); 
 // make preparing vor getting values of every edge 
@@ -203,8 +203,14 @@ q10= pow(3 , ((celsius-6.3)/10));
         ntau = 1/(q10*sum); 
         ninf = alpha/sum; 
         m  +=   (minf-m)/mtau*dt; 
+; 
+ 
         h  +=  (hinf-h)/htau*dt; 
+; 
+ 
         n  +=  (ninf-n)/ntau*dt; 
+; 
+ 
 
  
  
@@ -231,9 +237,28 @@ number k = vrt_values[VMDisc<TDomain>::_k_];
 number v =  vrt_values[VMDisc<TDomain>::_v_]; 
  
  
+number t = m_pVMDisc->time(); 
+ 
+ 
 const number helpV = 1e3*(m_R*m_T)/m_F; 
-number ena = helpV*(log(m_pVMDisc->na_out/na)); 
-number ek = helpV*(log(m_pVMDisc->k_out/k)); 
+number ena; 
+if (m_pVMDisc->get_ena() == 0) 
+{ 
+	  ena = helpV*(log(m_pVMDisc->na_out/na)); 
+} 
+else 
+{ 
+	  ena = m_pVMDisc->get_ena(); 
+} 
+number ek; 
+if (m_pVMDisc->get_ek() == 0) 
+{ 
+	  ek = helpV*(log(m_pVMDisc->k_out/k)); 
+} 
+else 
+{ 
+	  ek = m_pVMDisc->get_ek(); 
+} 
  
  
 number gna = gnabar*m*m*m*h; 

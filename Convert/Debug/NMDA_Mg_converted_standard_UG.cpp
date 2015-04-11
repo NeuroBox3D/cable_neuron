@@ -433,7 +433,7 @@ this->aaOMgGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->OMgGa
 template<typename TDomain> 
 void NMDA_Mg_converted_standard_UG<TDomain>::init(const LocalVector& u, Edge* edge) 
 { 
-//get celsius and time 
+//get celsius and time
 number celsius = m_pVMDisc->celsius; 
 number dt = m_pVMDisc->time(); 
 // make preparing vor getting values of every edge 
@@ -571,6 +571,9 @@ number D1Mg = aaD1MgGate[ver];
 number D2Mg = aaD2MgGate[ver]; 
 number OMg = aaOMgGate[ver]; 
 number v =  vrt_values[VMDisc<TDomain>::_v_]; 
+ 
+ 
+number t = m_pVMDisc->time(); 
  
  
 const number helpV = 1e3*(m_R*m_T)/m_F; 

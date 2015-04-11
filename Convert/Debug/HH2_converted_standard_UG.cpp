@@ -132,7 +132,7 @@ this->aanGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->nGate);
 template<typename TDomain> 
 void HH2_converted_standard_UG<TDomain>::init(const LocalVector& u, Edge* edge) 
 { 
-//get celsius and time 
+//get celsius and time
 number celsius = m_pVMDisc->celsius; 
 number dt = m_pVMDisc->time(); 
 // make preparing vor getting values of every edge 
@@ -237,6 +237,9 @@ number n = aanGate[ver];
 number na = vrt_values[VMDisc<TDomain>::_na_]; 
 number k = vrt_values[VMDisc<TDomain>::_k_]; 
 number v =  vrt_values[VMDisc<TDomain>::_v_]; 
+ 
+ 
+number t = m_pVMDisc->time(); 
  
  
 const number helpV = 1e3*(m_R*m_T)/m_F; 

@@ -89,7 +89,7 @@ aaAGate[vrt] = 0;
 aaBGate[vrt] = 0; 
 double tp =  (tau1*tau2)/(tau2 - tau1) * log(tau2/tau1); 
 double factor =  -exp(-tp/tau1) + exp(-tp/tau2); 
-//double factor =  1/factor;
+double factor =  1/factor; 
 }  
 }  
  
@@ -122,6 +122,8 @@ double B = aaBGate[vrt];
  
  
     B  +=  -B/tau2*dt; 
+; 
+ 
 
  
  
@@ -154,7 +156,7 @@ const number helpV = 1e3*(m_R*m_T)/m_F;
  
  
 number T = B - A; 
-outCurrentValues.push_back(0);
+outCurrentValues.push_back(); 
  } 
  
  

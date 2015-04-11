@@ -227,7 +227,7 @@ this->aahGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->hGate);
 template<typename TDomain> 
 void na_converted_standard_UG<TDomain>::init(const LocalVector& u, Edge* edge) 
 { 
-//get celsius and time 
+//get celsius and time
 number celsius = m_pVMDisc->celsius; 
 number dt = m_pVMDisc->time(); 
 // make preparing vor getting values of every edge 
@@ -311,7 +311,11 @@ double 	hinf = 1/(1+exp((vm-thinf)/qinf));
 //        mexp = 1 - exp(tinc/mtau)
 //        hexp = 1 - exp(tinc/htau)
         m  +=   (minf-m)/mtau*dt; 
+; 
+ 
         h  +=   (hinf-h)/htau*dt; 
+; 
+ 
 
  
  
@@ -335,8 +339,19 @@ number na = vrt_values[VMDisc<TDomain>::_na_];
 number v =  vrt_values[VMDisc<TDomain>::_v_]; 
  
  
+number t = m_pVMDisc->time(); 
+ 
+ 
 const number helpV = 1e3*(m_R*m_T)/m_F; 
-number ena = helpV*(log(m_pVMDisc->na_out/na)); 
+number ena; 
+if (m_pVMDisc->get_ena() == 0) 
+{ 
+	  ena = helpV*(log(m_pVMDisc->na_out/na)); 
+} 
+else 
+{ 
+	  ena = m_pVMDisc->get_ena(); 
+} 
  
  
 

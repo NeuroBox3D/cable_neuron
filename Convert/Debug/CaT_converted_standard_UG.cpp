@@ -245,7 +245,7 @@ this->aahGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->hGate);
 template<typename TDomain> 
 void CaT_converted_standard_UG<TDomain>::init(const LocalVector& u, Edge* edge) 
 { 
-//get celsius and time 
+//get celsius and time
 number celsius = m_pVMDisc->celsius; 
 number dt = m_pVMDisc->time(); 
 // make preparing vor getting values of every edge 
@@ -343,8 +343,19 @@ number ca = vrt_values[VMDisc<TDomain>::_ca_];
 number v =  vrt_values[VMDisc<TDomain>::_v_]; 
  
  
+number t = m_pVMDisc->time(); 
+ 
+ 
 const number helpV = 1e3*(m_R*m_T)/m_F; 
-number eca = helpV*(log(m_pVMDisc->ca_out/ca)); 
+number eca; 
+if (m_pVMDisc->get_eca() == 0) 
+{ 
+	  eca = helpV*(log(m_pVMDisc->ca_out/ca)); 
+} 
+else 
+{ 
+	  eca = m_pVMDisc->get_eca(); 
+} 
  
  
 

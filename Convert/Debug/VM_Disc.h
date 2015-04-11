@@ -37,11 +37,8 @@
 
 #include "channel_interface.h"
 
-#ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
 #include "../../../synapse_provider/synapse_provider.h"
-
-#endif
-
+using namespace ug::synapse_provider;
 
 namespace ug
 {
@@ -49,7 +46,6 @@ namespace ug
 // forward declaration
 template <typename TDomain>
 class IChannel;
-
 
 template <typename TDomain>
 class VMDisc
@@ -74,14 +70,15 @@ class VMDisc
 		const number na_out;	// mol/m^3 = mM
 		const number ca_out;	// mol/m^3 = mM
 
+		double celsius;
+
 		double m_v, m_na, m_k, m_ca;
+
+		double m_ena, m_ek, m_eca;
 
 		// dendritic params
 		number m_spec_res;	// mV * ms * m / C
 		number m_spec_cap;	// C / (mV * m^2)
-
-		// celsius
-		number celsius;
 
 		// diffusion coefficients
 		std::vector<number> m_diff;
@@ -115,11 +112,13 @@ class VMDisc
 			const number init_time = 0.0
 		)
 		: IElemDisc<TDomain>("v, k, na, ca", subsets),
-		  k_out(2.5), na_out(140.0), ca_out(1.5),
-		  m_spec_res(1.0e6), m_spec_cap(1.0e-5), celsius(37.0),
-		  m_influx_ac(1e-9), m_aDiameter("diameter"), m_v(0), m_k(0), m_na(0), m_ca(0),
-#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ACTIVE
-		  m_spSD(SPNULL),
+		  k_out(2.5), na_out(140.0), ca_out(1.5), celsius(37),
+		  m_v(0), m_na(0), m_k(0), m_ca(0),
+		  m_ena(0), m_ek(0), m_eca(0),
+		  m_spec_res(1.0e6), m_spec_cap(1.0e-5), m_influx_ac(1e-9),
+		  m_aDiameter("diameter"),
+#ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
+		  m_spSP(SPNULL),
 #endif
 		  m_spApproxSpace(approx), m_spDD(m_spApproxSpace->dof_distribution(GridLevel::TOP)),
 		  m_bNonRegularGrid(false),
@@ -299,8 +298,13 @@ class VMDisc
 		/// set influx position accuracy
 		void set_influx_ac(number influx_ac);
 
+		/// setting write temperature
+		void set_celsius(number cels);
+
 		/// set influx params (flux value, coordinates, beginning, duration)
 		void set_influx(number Flux, number x, number y, number z, number beg, number dur);
+
+		VMDisc<TDomain>* get_VmDisc();
 
 		/// functions to get different ion fluxes
 		double get_flux_ca();
@@ -308,16 +312,20 @@ class VMDisc
 		double get_flux_k();
 		double get_flux_na();
 
-#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ACTIVE
-		/// assign a synapse distributor
-		void set_synapse_distributor(ConstSmartPtr<SynapseDistributor> sd);
-#endif
 
+		/// functions for different reversal potentials
+		double get_eca();
+		double get_ena();
+		double get_ek();
+		void set_eca(double value);
+		void set_ena(double value);
+		void set_ek(double value);
 
 
 #ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
 		void set_synapse_provider_factory(ConstSmartPtr<SynapseProviderFactory<TDomain> > spf);
 		void set_provider_type(const std::string& providerName);
+		void set_synapse_provider(SmartPtr<SynapseProvider<TDomain> > sp);
 #endif
 		/// adding a channel
 		void add_channel(SmartPtr<IChannel<TDomain> > Channel);

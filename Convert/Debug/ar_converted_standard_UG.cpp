@@ -63,7 +63,7 @@ SmartPtr<Grid> spGrid = m_pVMDisc->approx_space()->domain()->grid();
 template<typename TDomain> 
 void ar_converted_standard_UG<TDomain>::init(const LocalVector& u, Edge* edge) 
 { 
-//get celsius and time 
+//get celsius and time
 number celsius = m_pVMDisc->celsius; 
 number dt = m_pVMDisc->time(); 
 // make preparing vor getting values of every edge 
@@ -128,10 +128,14 @@ void ar_converted_standard_UG<TDomain>::ionic_current(Vertex* ver, const std::ve
 number v =  vrt_values[VMDisc<TDomain>::_v_]; 
  
  
+number t = m_pVMDisc->time(); 
+ 
+ 
 const number helpV = 1e3*(m_R*m_T)/m_F; 
  
-double g, i;
-
+ 
+double g, i; 
+ 
 if (c==0)
 { 
 		g = g0; 

@@ -135,8 +135,11 @@ number t = m_pVMDisc->time();
 const number helpV = 1e3*(m_R*m_T)/m_F; 
  
  
-double T;
-
+; 
+; 
+; 
+double T; 
+ 
 if (t < del + dur && t > del)
 { 
 		T = amp; 
@@ -145,6 +148,7 @@ else
 { 
 		T = 0; 
 }
+//Todo no push_back write 0
 outCurrentValues.push_back(0);
  } 
  
