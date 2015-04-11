@@ -286,6 +286,8 @@ class VMDisc
 		/// set constant diameter for dendrites
 		void set_diameter(const number d);
 
+		void set_diameter_attachment(Attachment<number> diameter);
+
 		/// set spec_resistance
 		void set_spec_res(number val);
 

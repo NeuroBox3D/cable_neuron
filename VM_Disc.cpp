@@ -118,6 +118,12 @@ set_diameter(const number d)
 	m_aaDiameter = Grid::AttachmentAccessor<Vertex, ANumber>(*m_spApproxSpace->domain()->grid(), m_aDiameter);
 }
 
+template <typename TDomain>
+void VMDisc<TDomain>::
+set_diameter_attachment(Attachment<number> diameter) {
+	m_aDiameter = diameter;
+}
+
 template<typename TDomain>
 void VMDisc<TDomain>::
 set_spec_res(number val)
