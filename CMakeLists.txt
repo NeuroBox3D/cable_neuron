@@ -13,7 +13,7 @@ include("../../../cmake/ug_plugin_includes.cmake")
 
 # sources
 set(SOURCES	ElemDiscHH_base.cpp   
-Convert/Debug/release_exp_converted_standard_UG.cpp 
+##Convert/Debug/release_exp_converted_standard_UG.cpp 
 Convert/Debug/cad_converted_standard_UG.cpp 
 Convert/Debug/ar_converted_standard_UG.cpp 
 Convert/Debug/ca_converted_standard_UG.cpp 
@@ -37,7 +37,6 @@ Convert/Debug/release_BMK_converted_standard_UG.cpp
 			channel_interface.cpp
 			VM_Disc.cpp
 			plugin_main.cpp
-
 			)
 
 
@@ -50,6 +49,34 @@ else(buildEmbeddedPlugins)
 	add_library(HH_Kabelnew SHARED ${SOURCES})
 	target_link_libraries (HH_Kabelnew ug4)
 endif(buildEmbeddedPlugins)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
