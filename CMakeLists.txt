@@ -40,6 +40,9 @@ Convert/Debug/release_BMK_converted_standard_UG.cpp
 			)
 
 
+# indicate that we have built this plugin
+add_definitions(-DPLUGIN_HH_KABELNEW_ENABLED)
+ExportDefinitions(-DPLUGIN_HH_KABELNEW_ENABLED)
 
 
 if(buildEmbeddedPlugins)
