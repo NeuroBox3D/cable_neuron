@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 2.6)
 
 project(HH_Kabelnew)
 
-set(HHSynapseProvider ON)
+set(HHSP ${HHSynapseProvider})
 
 # include the definitions and dependencies for ug-plugins.
 include("../../../cmake/ug_plugin_includes.cmake")
@@ -43,16 +43,17 @@ Convert/Debug/release_BMK_converted_standard_UG.cpp
 
 
 # check for SynapseProvider availability and activate
-#
 message(STATUS "")
-message(STATUS "Info: Additional options for the HH_Kabelnew plugin:")
+message(STATUS "Info: Additional options (-DHH) for the HH_Kabelnew (HH) plugin:")
+option(HHSynapseProvider, "Build SynapseProvider support" ${HHSP})
+message(STATUS "Info: SynapseProvider: " ${HHSP} " (options are: ON, OFF)")
+
 if (NOT HHSynapseProvider OR NOT SynapseProvider)
     message(STATUS "SynapseProvider support deactivated. Enable by -DHHSynapseProvider=ON if -DHH_Kabelnew=ON")
 else (NOT HHSynapseProvider OR NOT SynapseProvider)
-    message(STATUS "SynapseProvider support activated.")
+    message(STATUS "SynapseProvider support activated. Disable by -DHHSynapseProvider=OFF")
     add_definitions(-DPLUGIN_SYNAPSE_PROVIDER_ENABLED)
     ExportDefinitions(-DPLUGIN_SYNAPSE_PROVIDER_ENABLED)
-    set(pluginsToLink ${pluginsToLink} SynapseProvider)
 endif (NOT HHSynapseProvider OR NOT SynapseProvider)
 
 if(buildEmbeddedPlugins)

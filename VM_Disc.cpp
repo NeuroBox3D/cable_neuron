@@ -120,7 +120,7 @@ set_diameter(const number d)
 
 template <typename TDomain>
 void VMDisc<TDomain>::
-set_diameter_attachment(Attachment<number> diameter) {
+set_diameter_attachment(ANumber diameter) {
 	m_aDiameter = diameter;
 }
 
