@@ -217,6 +217,9 @@ static void Domain(bridge::Registry& reg, string grp)
 			.add_method("set_diff_coeffs", &T::set_diff_coeffs)
 			.add_method("add_channel", &T::add_channel)
 			.add_method("set_influx", &T::set_influx)
+			.add_method("set_ena", &T::set_ena)
+			.add_method("set_ek", &T::set_ek)
+			.add_method("set_eca", &T::set_eca)
 			//.add_method("set_celsius", &T::set_celsius)
 #ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
 			.add_method("set_synapse_provider", &T::set_synapse_provider)
@@ -227,7 +230,7 @@ static void Domain(bridge::Registry& reg, string grp)
 		reg.add_class_to_group(name, "VMDisc", tag);
 	}
 
-//#include "Convert/Debug/channels.cpp"
+#include "Convert/Debug/channels.cpp"
 
 }
 
