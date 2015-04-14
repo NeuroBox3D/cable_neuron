@@ -180,29 +180,12 @@ set_influx(number Flux, number x, number y, number z, number beg, number dur)
 
 
 #ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
-template<typename TDomain>
-void VMDisc<TDomain>::
-set_synapse_provider_factory(ConstSmartPtr<SynapseProviderFactory<TDomain> > spf)
-{
-	m_spSPF = spf;
-}
-
-
-template<typename TDomain>
-void VMDisc<TDomain>::
-set_provider_type(const std::string& providerName) {
-	m_spSP = make_sp(m_spSPF->CreateProvider(providerName));
-}
-
 template <typename TDomain>
 void VMDisc<TDomain>::
-set_synapse_provider(SmartPtr<SynapseProvider<TDomain> sp) {
-	this->m_spSP = sp;
+set_synapse_provider(synapse_provider::SynapseProvider<TDomain>* sp) {
+	this->m_spSP = make_sp(sp);
 }
 #endif
-
-
-
 
 template<typename TDomain>
 void VMDisc<TDomain>::
@@ -352,18 +335,15 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 		}
 
 #ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
-		// influxes from synapse provider factory
-		if (m_spSPF.valid())
+		/// if a synapse provider is available
+		if	(m_spSP.valid())
 		{
-			/// if a synapse provider is available
-			if	(m_spSF.valid()) 
+			// ... and assemble to defect
+			number current = 0;
+			if (m_spSP->synapse_at_location(pElem, co, time, current))
 			{
-				// ... and assemble to defect
-				if (m_spSP->synapse_at_location(pElem, co, time, current))
-				{
-					//TODO add get current from synapse location and delete current from above
-					d(_v_, co) += current;
-				}
+				//TODO add get current from synapse location and delete current from above
+				d(_v_, co) += current;
 			}
 		}
 #endif

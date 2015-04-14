@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 2.6)
 
 project(HH_Kabelnew)
 
-set(HHSynapseProvider OFF)
+set(HHSynapseProvider ON)
 
 # include the definitions and dependencies for ug-plugins.
 include("../../../cmake/ug_plugin_includes.cmake")
@@ -46,14 +46,14 @@ Convert/Debug/release_BMK_converted_standard_UG.cpp
 #
 message(STATUS "")
 message(STATUS "Info: Additional options for the HH_Kabelnew plugin:")
-if (NOT SynapseProvider OR NOT HHSynapseProvider)
+if (NOT HHSynapseProvider OR NOT SynapseProvider)
     message(STATUS "SynapseProvider support deactivated. Enable by -DHHSynapseProvider=ON if -DHH_Kabelnew=ON")
-else (NOT SynapseProvider OR NOT HHSynapseProvider)
+else (NOT HHSynapseProvider OR NOT SynapseProvider)
     message(STATUS "SynapseProvider support activated.")
     add_definitions(-DPLUGIN_SYNAPSE_PROVIDER_ENABLED)
     ExportDefinitions(-DPLUGIN_SYNAPSE_PROVIDER_ENABLED)
     set(pluginsToLink ${pluginsToLink} SynapseProvider)
-endif (NOT SynapseProvider OR NOT HHSynapseProvider)
+endif (NOT HHSynapseProvider OR NOT SynapseProvider)
 
 if(buildEmbeddedPlugins)
 	# add the sources to ug4's sources
