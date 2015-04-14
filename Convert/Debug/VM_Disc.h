@@ -37,13 +37,26 @@
 
 #include "channel_interface.h"
 
+#ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
 #include "../../../synapse_provider/synapse_provider.h"
-using namespace ug::synapse_provider;
+#endif
 
 namespace ug
 {
-
+namespace synapse_provider {
+#ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
 // forward declaration
+template <typename TDomain>
+class ISynapseProvider;
+
+template <typename TDomain>
+class SynapseProviderFactory;
+
+template <typename TDomain>
+class SynapseProvider;
+#endif
+}
+
 template <typename TDomain>
 class IChannel;
 
@@ -286,6 +299,8 @@ class VMDisc
 		/// set constant diameter for dendrites
 		void set_diameter(const number d);
 
+		void set_diameter_attachment(ANumber diameter);
+
 		/// set spec_resistance
 		void set_spec_res(number val);
 
@@ -323,9 +338,7 @@ class VMDisc
 
 
 #ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
-		void set_synapse_provider_factory(ConstSmartPtr<SynapseProviderFactory<TDomain> > spf);
-		void set_provider_type(const std::string& providerName);
-		void set_synapse_provider(SmartPtr<SynapseProvider<TDomain> > sp);
+		void set_synapse_provider(synapse_provider::SynapseProvider<TDomain>* spf);
 #endif
 		/// adding a channel
 		void add_channel(SmartPtr<IChannel<TDomain> > Channel);
@@ -429,8 +442,8 @@ class VMDisc
 		Grid::AttachmentAccessor<Vertex, AVector4> m_aaUold;
 
 #ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
-		ConstSmartPtr<SynapseProviderFactory<TDomain> > m_spSPF;
-		ConstSmartPtr<ISynapseProvider<TDomain> > m_spSP;
+		ConstSmartPtr<synapse_provider::SynapseProviderFactory<TDomain> > m_spSPF;
+		ConstSmartPtr<synapse_provider::ISynapseProvider<TDomain> > m_spSP;
 #endif
 
 		/// approx space
