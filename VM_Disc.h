@@ -112,6 +112,21 @@ class VMDisc
 		static const size_t m_numb_funcs = 3;
 
 	public:
+		/// get membrane potentials on edge
+		std::vector<number> get_vm(number time, Edge* edge) {
+			typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list;
+			vrt_list vl;
+			this->m_spApproxSpace->domain()->grid()->associated_elements_sorted(vl, edge);
+
+		    std::vector<number> vms;
+
+			for (size_t vrt = 0; vrt < vl.size(); ++vrt) {
+				vms.push_back(m_aaUold[vl[vrt]][_v_]);
+			}
+
+			return vms;
+
+		}
 		///	constructor
 		// TODO: rework this!
 		// We generally only have the following functions: VM, K, Na, Ca.
