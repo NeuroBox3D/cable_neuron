@@ -193,6 +193,7 @@ set_synapse_provider(synapse_provider::SynapseProvider<TDomain>* sp) {
 	        grid.attach_to<Vertex>(diameter);
 	   }
 
+	   /// TODO aasynapsebool presence required too!
 	   using ug::neuronal_topology_importer::SynapseConnectionInformation;
 	   typedef Attachment<SynapseConnectionInformation> ASynapse;
 	   Attachment<ASynapse> synapses = GlobalAttachments::attachment<ASynapse>("synapses");
