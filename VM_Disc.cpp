@@ -230,6 +230,26 @@ void VMDisc<TDomain>::save_old_sol(const LocalVector& u, Edge* edge)
 			m_aaUold[vl[vrt]][i] = u(i, vrt);
 }
 
+template<typename TDomain>
+std::vector<number> VMDisc<TDomain>::get_vm(Edge* edge) {
+	typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list;
+	vrt_list vl;
+	m_spApproxSpace->domain()->grid()->associated_elements_sorted(vl, edge);
+
+    std::vector<number> vms;
+
+    for (size_t vrt = 0; vrt < vl.size(); ++vrt) {
+		vms.push_back(m_aaUold[vl[vrt]][_v_]);
+	}
+
+	return vms;
+}
+
+template <typename TDomain>
+ConstSmartPtr<ApproximationSpace<TDomain> > VMDisc<TDomain>::get_approximation_space() const {
+	return m_spApproxSpace;
+}
+
 
 template<typename TDomain>
 void VMDisc<TDomain>::prep_timestep_elem
