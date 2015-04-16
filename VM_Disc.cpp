@@ -14,6 +14,8 @@
 #include "lib_disc/function_spaces/grid_function.h"
 #include "lib_disc/function_spaces/local_transfer_interface.h"
 
+#include "lib_grid/global_attachments.h"
+#include "../neuronal_topology_importer/neuronal_topology_importer.h"
 
 
 
@@ -183,6 +185,21 @@ set_influx(number Flux, number x, number y, number z, number beg, number dur)
 template <typename TDomain>
 void VMDisc<TDomain>::
 set_synapse_provider(synapse_provider::SynapseProvider<TDomain>* sp) {
+#ifdef PLUGIN_NEURONAL_TOPOLOGY_IMPORTER_ENABLED
+		/// TODO
+	   ANumber diameter = GlobalAttachments::attachment<ANumber>("diameter");
+	   ug::Grid* grid = m_spApproxSpace->domain()->grid().get();
+	   if(!grid.has_attachment<Vertex>(diameter) {
+	        grid.attach_to<Vertex>(diameter);
+	   }
+
+	   using ug::neuronal_topology_importer::SynapseConnectionInformation;
+	   typedef Attachment<SynapseConnectionInformation> ASynapse;
+	   Attachment<ASynapse> synapses = GlobalAttachments::attachment<ASynapse>("synapses");
+	   if (!grid.has_attachment<Edge>(synapses) {
+		   grid.attach_to<Edge>(synapses);
+	   }
+#endif
 	this->m_spSP = make_sp(sp);
 }
 #endif
