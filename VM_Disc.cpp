@@ -378,7 +378,7 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 		{
 			// ... and assemble to defect
 			number current = 0;
-			if (m_spSP->synapse_at_location(pElem, co, time, current))
+			if (m_spSP->synapse_on_edge(pElem, co, time, current))
 			{
 				//TODO add get current from synapse location and delete current from above
 				d(_v_, co) += current;
