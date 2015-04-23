@@ -120,6 +120,23 @@ set_diameter(const number d)
 	m_aaDiameter = Grid::AttachmentAccessor<Vertex, ANumber>(*m_spApproxSpace->domain()->grid(), m_aDiameter);
 }
 
+
+template<typename TDomain>
+void VMDisc<TDomain>::
+set_diameterGeo()
+{
+	// handle the attachments
+	if (m_spApproxSpace->domain()->grid()->has_vertex_attachment(m_aDiameter))
+		UG_THROW("Radius attachment necessary for Vm disc "
+				 "could not be created, since it already exists.");
+
+	m_aDiameter = GlobalAttachments::attachment<ANumber>("diameter");
+
+	m_spApproxSpace->domain()->grid()->attach_to_vertices(m_aDiameter);
+
+}
+
+
 template <typename TDomain>
 void VMDisc<TDomain>::
 set_diameter_attachment(ANumber diameter) {
