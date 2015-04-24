@@ -206,6 +206,15 @@ set_synapse_provider(synapse_provider::SynapseProvider<TDomain>* sp) {
 }
 #endif
 
+
+#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED
+template <typename TDomain>
+void VMDisc<TDomain>::
+set_synapse_distributor(SmartPtr<SynapseDistributor> sd) {
+	this->m_spSD = sd;
+}
+#endif
+
 template<typename TDomain>
 void VMDisc<TDomain>::
 add_channel(SmartPtr<IChannel<TDomain> > Channel)
@@ -380,6 +389,19 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 			number current = 0;
 			// ... and assemble to defect if synapse present
 			if (m_spSP->synapse_on_edge(pElem, co, time, current))
+			{
+				d(_v_, co) += current;
+			}
+		}
+#endif
+
+#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED
+		/// if a synapse distributor is available
+		if	(m_spSD.valid())
+		{
+			number current = 0;
+			// ... and assemble to defect if synapse present
+			if (m_spSD->synapse_on_edge(pElem, co, time, current))
 			{
 				d(_v_, co) += current;
 			}

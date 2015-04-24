@@ -225,6 +225,9 @@ static void Domain(bridge::Registry& reg, string grp)
 #ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
 			.add_method("set_synapse_provider", &T::set_synapse_provider)
 #endif
+#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED
+			.add_method("set_synapse_distributor", &T::set_synapse_distributor)
+#endif
 			//.add_method("add_func", &T::add_func)
 			//.add_method("setGridFct", &T::setGridFct)
 			.set_construct_as_smart_pointer(true);

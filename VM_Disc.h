@@ -134,6 +134,9 @@ class VMDisc
 #ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
 		  m_spSP(SPNULL),
 #endif
+#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED
+		  m_spSD(SPNULL),
+#endif
 		  m_spApproxSpace(approx), m_spDD(m_spApproxSpace->dof_distribution(GridLevel::TOP)),
 		  m_bNonRegularGrid(false),
 		  m_init_time(init_time)
@@ -343,6 +346,9 @@ class VMDisc
 #ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
 		void set_synapse_provider(synapse_provider::SynapseProvider<TDomain>* spf);
 #endif
+#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED
+		void set_synapse_distributor(SmartPtr<SynapseDistributor> sd);
+#endif
 		/// adding a channel
 		void add_channel(SmartPtr<IChannel<TDomain> > Channel);
 #if 0
@@ -455,6 +461,10 @@ class VMDisc
 #ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
 		SmartPtr<synapse_provider::SynapseProviderFactory<TDomain> > m_spSPF;
 		SmartPtr<synapse_provider::ISynapseProvider<TDomain> > m_spSP;
+#endif
+
+#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED
+		SmartPtr<SynapseDistributor> m_spSD;
 #endif
 
 		/// approx space
