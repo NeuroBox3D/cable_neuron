@@ -453,8 +453,8 @@ class VMDisc
 		Grid::AttachmentAccessor<Vertex, AVector4> m_aaUold;
 
 #ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
-		ConstSmartPtr<synapse_provider::SynapseProviderFactory<TDomain> > m_spSPF;
-		ConstSmartPtr<synapse_provider::ISynapseProvider<TDomain> > m_spSP;
+		SmartPtr<synapse_provider::SynapseProviderFactory<TDomain> > m_spSPF;
+		SmartPtr<synapse_provider::ISynapseProvider<TDomain> > m_spSP;
 #endif
 
 		/// approx space

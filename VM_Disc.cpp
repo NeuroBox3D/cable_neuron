@@ -202,22 +202,6 @@ set_influx(number Flux, number x, number y, number z, number beg, number dur)
 template <typename TDomain>
 void VMDisc<TDomain>::
 set_synapse_provider(synapse_provider::SynapseProvider<TDomain>* sp) {
-#ifdef PLUGIN_NEURONAL_TOPOLOGY_IMPORTER_ENABLED
-		/// TODO
-	   ANumber diameter = GlobalAttachments::attachment<ANumber>("diameter");
-	   ug::Grid* grid = m_spApproxSpace->domain()->grid().get();
-	   if(!grid.has_attachment<Vertex>(diameter) {
-	        grid.attach_to<Vertex>(diameter);
-	   }
-
-	   /// TODO aasynapsebool presence required too!
-	   using ug::neuronal_topology_importer::SynapseConnectionInformation;
-	   typedef Attachment<SynapseConnectionInformation> ASynapse;
-	   Attachment<ASynapse> synapses = GlobalAttachments::attachment<ASynapse>("synapses");
-	   if (!grid.has_attachment<Edge>(synapses) {
-		   grid.attach_to<Edge>(synapses);
-	   }
-#endif
 	this->m_spSP = make_sp(sp);
 }
 #endif
@@ -393,11 +377,10 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 		/// if a synapse provider is available
 		if	(m_spSP.valid())
 		{
-			// ... and assemble to defect
 			number current = 0;
+			// ... and assemble to defect if synapse present
 			if (m_spSP->synapse_on_edge(pElem, co, time, current))
 			{
-				//TODO add get current from synapse location and delete current from above
 				d(_v_, co) += current;
 			}
 		}
