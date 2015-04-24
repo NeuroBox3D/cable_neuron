@@ -40,6 +40,9 @@
 #ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
 #include "../synapse_provider/synapse_provider.h"
 #endif
+#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED
+#include "../synapse_distributor/synapse_distributor.h"
+#endif
 
 namespace ug
 {

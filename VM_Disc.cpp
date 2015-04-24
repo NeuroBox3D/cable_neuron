@@ -399,11 +399,10 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 		/// if a synapse distributor is available
 		if	(m_spSD.valid())
 		{
-			number current = 0;
 			// ... and assemble to defect if synapse present
-			if (m_spSD->synapse_on_edge(pElem, co, time, current))
+			if (m_spSD->has_active_synapse(pElem, co, time))
 			{
-				d(_v_, co) += current;
+				d(_v_, co) += -1e-14;
 			}
 		}
 #endif
