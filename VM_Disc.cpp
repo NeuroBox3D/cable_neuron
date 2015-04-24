@@ -131,7 +131,7 @@ set_diameterGeo()
 				 "could not be created, since it already exists.");
 
 	m_aDiameter = GlobalAttachments::attachment<ANumber>("diameter");
-
+// Scaling of attachments??
 	m_spApproxSpace->domain()->grid()->attach_to_vertices(m_aDiameter);
 
 }
