@@ -238,7 +238,7 @@ void ChannelHH<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>& v
 	// TODO Influx values needed
 	// single channel type fluxes
 	const number potassium_part_of_flux = m_g_K * pow(NGate,4) * (VM - m_rev_pot_K);
-	const number sodium_part_of_flux =  m_g_Na * pow(MGate,3) * HGate * (VM + m_rev_pot_Na);
+	const number sodium_part_of_flux =  m_g_Na * pow(MGate,3) * HGate * (VM - m_rev_pot_Na);
 	const number leakage_part_of_flux = m_g_I * (VM + 54.4);
 
 	number flux_value = (potassium_part_of_flux + sodium_part_of_flux + leakage_part_of_flux);

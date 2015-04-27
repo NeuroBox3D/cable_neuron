@@ -326,9 +326,7 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 	// get subset handler
 	MGSubsetHandler& ssh = *m_spApproxSpace->domain()->subset_handler();
 
-
 	// some helper vars
-	number element_length2 = 0.0;
 	number element_length = 0.0;
 	number pre_resistance = 0.0;
 
@@ -351,8 +349,6 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 		// add length of scv to element length
 		element_length += scv.volume();
 
-		element_length2 += scv.volume()/2;
-
 		// add "pre_resistance" parts
 		pre_resistance += scv.volume() / (0.25*PI*Diam*Diam);
 
@@ -373,12 +369,8 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 				&& fabs(0.5*(vCornerCoords[co][2]+vCornerCoords[(co+1)%2][2]) - m_coords[i][2]) < m_influx_ac
 			   )
 			{
+				// use real current here, thus the influx is independent from the geometry
 				d(_v_, co) += -m_flux_value[i];
-				if (co==1)
-				{
-					d(_v_, 0)*=(element_length2)*PI*m_aaDiameter[pElem->vertex(0)];
-					d(_v_, 1)*=(element_length2)*PI*m_aaDiameter[pElem->vertex(1)];
-				}
 			}
 		}
 
@@ -402,7 +394,7 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 			// ... and assemble to defect if synapse present
 			if (m_spSD->has_active_synapse(pElem, co, time))
 			{
-				d(_v_, co) += -1e-14;
+				d(_v_, co) += -2e-14;
 			}
 		}
 #endif
@@ -416,11 +408,13 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 		{
 			// if channel working on right subset
 			const std::vector<std::string> Subsets = m_channel[i]->write_subsets();
+
+			// getting subset of vertex
+			size_t siElem = ssh.get_subset_index(pElem);
+			std::string SName = ssh.get_subset_name(siElem);
+
 			for (size_t j = 0; j<Subsets.size(); j++)
 			{
-				// getting subset of vertex
-				size_t indexVert = ssh.get_subset_index(pElem->vertex(co));
-				std::string SName = ssh.get_subset_name(indexVert);
 				// if channel works on provided subset
 				if (Subsets[j]==SName)
 				{
@@ -470,10 +464,9 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 		// scale by 1/resistance and by length of element
 		number diff_flux = grad_normal * element_length / (m_spec_res*pre_resistance);
 
-		if (diff_flux > 1.0 || diff_flux < -1.0)
-		{
-			UG_LOG("m_spec_res: " << m_spec_res << "   pre_res: " << pre_resistance << std::endl);
-		}
+		// debug
+		UG_ASSERT(std::fabs(diff_flux) < 1.0,
+				  "m_spec_res: " << m_spec_res << "   pre_res: " << pre_resistance << std::endl);
 
 		// add to local defect of VM
 		d(_v_, scvf.from()) -= diff_flux;
