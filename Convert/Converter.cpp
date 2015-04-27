@@ -458,7 +458,7 @@ double Converter::Unit_Conv_Value(string s)
 	// um2 mm2 cm2 dm2 m2 km2
 	// existing units time: ms, s,
 	// working with Siemens!!
-	// existing unigs simens: pS, mS, S
+	// existing units simens: pS, mS, S
 	// existing units concentrats: mM,
 	// existing units temp: degC
 	// (um) = (micron) ????
@@ -2291,7 +2291,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  myhfile << "private: \n \n";
 	  // Neuron-lines with use ion
 
-
+	  myhfile << "number m_R, m_T, m_F; \n";
 
 
 
@@ -3816,6 +3816,8 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 
 
+		 	  if (outs[0]=="")
+		 		  outs[0]="0";
 
 		 	  mycppfile << "outCurrentValues.push_back(" + outs[0] + "); \n";
 		 	  for (size_t i=1; i<outs.size(); i++)
@@ -3960,7 +3962,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		  }
 	  }
 
-	  myhfile << "number m_R, m_T, m_F; \n";
+
 
 
 	  myhfile << "}; \n \n";
