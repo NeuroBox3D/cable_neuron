@@ -156,7 +156,7 @@ const number helpV = 1e3*(m_R*m_T)/m_F;
  
  
 number T = B - A; 
-outCurrentValues.push_back(); 
+outCurrentValues.push_back(0); 
  } 
  
  

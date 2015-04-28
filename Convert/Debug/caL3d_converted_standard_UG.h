@@ -106,6 +106,7 @@ void setq10(double val);
 protected: 
 private: 
  
+number m_R, m_T, m_F; 
 ADouble CGate; 
 Grid::AttachmentAccessor<Vertex, ADouble> aaCGate; 
 ADouble OGate; 
@@ -118,7 +119,6 @@ number 	th   ;
 number 	q   ; 
 number 	Ra   ; 
 number 	Rb   ; 
-number m_R, m_T, m_F; 
 }; 
  
 } // namespace ug 

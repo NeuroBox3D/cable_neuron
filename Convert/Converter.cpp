@@ -1960,7 +1960,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  myhfile << "#include \"common/util/vector_util.h\" \n";
 	  myhfile << "\n";
 
-	  myhfile << "#include \"VM_Disc.h\" \n \n";
+	  myhfile << "#include \"../../VM_Disc.h\" \n \n";
 
 	  myhfile << "#include <vector> \n";
 	  myhfile << "#include <stdio.h> \n";
@@ -2292,6 +2292,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  // Neuron-lines with use ion
 
 	  myhfile << "number m_R, m_T, m_F; \n";
+
 
 
 
@@ -3815,7 +3816,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 
 
-
+		 	  // if output is empty write 0 defekt
 		 	  if (outs[0]=="")
 		 		  outs[0]="0";
 

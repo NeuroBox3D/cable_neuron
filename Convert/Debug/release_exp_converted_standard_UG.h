@@ -84,6 +84,7 @@ void settau2(double val);
 protected: 
 private: 
  
+number m_R, m_T, m_F; 
 ADouble AGate; 
 Grid::AttachmentAccessor<Vertex, ADouble> aaAGate; 
 ADouble BGate; 
@@ -91,7 +92,6 @@ Grid::AttachmentAccessor<Vertex, ADouble> aaBGate;
 number total; 
 number     tau1; 
 number     tau2 ; 
-number m_R, m_T, m_F; 
 }; 
  
 } // namespace ug 

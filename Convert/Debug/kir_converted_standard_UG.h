@@ -22,7 +22,7 @@
 #include "common/util/smart_pointer.h" 
 #include "common/util/vector_util.h" 
 
-#include "VM_Disc.h" 
+#include "../../VM_Disc.h" 
  
 #include <vector> 
 #include <stdio.h> 
@@ -97,6 +97,7 @@ void setqfact(double val);
 protected: 
 private: 
  
+number m_R, m_T, m_F; 
 ADouble mGate; 
 Grid::AttachmentAccessor<Vertex, ADouble> aamGate; 
 number 	gkbar  ; 
@@ -104,7 +105,6 @@ number 	mvhalf ;
 number 	mslope ; 
 number 	mshift ; 
 number 	qfact ; 
-number m_R, m_T, m_F; 
 }; 
  
 } // namespace ug 

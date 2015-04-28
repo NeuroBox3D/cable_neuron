@@ -22,7 +22,7 @@
 #include "common/util/smart_pointer.h" 
 #include "common/util/vector_util.h" 
 
-#include "VM_Disc.h" 
+#include "../../VM_Disc.h" 
  
 #include <vector> 
 #include <stdio.h> 
@@ -212,6 +212,7 @@ void setC(double val);
 protected: 
 private: 
  
+number m_R, m_T, m_F; 
 ADouble UGate; 
 Grid::AttachmentAccessor<Vertex, ADouble> aaUGate; 
 ADouble ClGate; 
@@ -266,7 +267,6 @@ number 	Rr1Mg		;
 number 	Rd2Mg		; 
 number 	Rr2Mg		; 
 number C ; 
-number m_R, m_T, m_F; 
 }; 
  
 } // namespace ug 

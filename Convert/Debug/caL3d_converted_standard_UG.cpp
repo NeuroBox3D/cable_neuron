@@ -111,7 +111,6 @@ template<typename TDomain>
 void caL3d_converted_standard_UG<TDomain>::init_attachments() 
 { 
 // inits temperatur from kalvin to celsius and some other typical neuron values
-	// Todo should work the other way
 m_pVMDisc->celsius = m_T - 273; 
  
  

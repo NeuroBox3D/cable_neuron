@@ -22,7 +22,7 @@
 #include "common/util/smart_pointer.h" 
 #include "common/util/vector_util.h" 
 
-#include "VM_Disc.h" 
+#include "../../VM_Disc.h" 
  
 #include <vector> 
 #include <stdio.h> 
@@ -88,10 +88,10 @@ void setamp(double val);
 protected: 
 private: 
  
+number m_R, m_T, m_F; 
 number del ; 
 number dur ; 
 number amp ; 
-number m_R, m_T, m_F; 
 }; 
  
 } // namespace ug 

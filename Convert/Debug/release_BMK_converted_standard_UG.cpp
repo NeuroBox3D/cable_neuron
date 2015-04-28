@@ -148,7 +148,6 @@ else
 { 
 		T = 0; 
 }
-//Todo no push_back write 0
 outCurrentValues.push_back(0);
  } 
  
