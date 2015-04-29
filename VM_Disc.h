@@ -42,6 +42,7 @@
 #endif
 #ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED
 #include "../synapse_distributor/synapse_distributor.h"
+//#include "../synapse_distributor/synapse_distributor_impl.h"
 #endif
 
 namespace ug

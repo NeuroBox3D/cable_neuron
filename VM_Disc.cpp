@@ -125,15 +125,17 @@ template<typename TDomain>
 void VMDisc<TDomain>::
 set_diameterGeo()
 {
+	// iterator over all edges
 	// handle the attachments
-	if (m_spApproxSpace->domain()->grid()->has_vertex_attachment(m_aDiameter))
+	/*if (m_spApproxSpace->domain()->grid()->has_vertex_attachment(m_aDiameter))
 		UG_THROW("Radius attachment necessary for Vm disc "
-				 "could not be created, since it already exists.");
+				 "could not be created, since it already exists.");*/
+
+
 
 	m_aDiameter = GlobalAttachments::attachment<ANumber>("diameter");
-// Scaling of attachments??
-	m_spApproxSpace->domain()->grid()->attach_to_vertices(m_aDiameter);
 
+	m_aaDiameter = Grid::AttachmentAccessor<Vertex, ANumber>(*m_spApproxSpace->domain()->grid(), m_aDiameter);
 }
 
 
@@ -352,6 +354,9 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 		// add "pre_resistance" parts
 		pre_resistance += scv.volume() / (0.25*PI*Diam*Diam);
 
+		if (Diam!=1e-6)
+			UG_LOG_ALL_PROCS("Diameter: "<< Diam << "!"<<std::endl);
+
 
 		// influx handling
 		number time = this->time();
@@ -379,9 +384,11 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 		if	(m_spSP.valid())
 		{
 			number current = 0;
+			//UG_LOG_ALL_PROCS("In synapse Provider!!!" << "!"<<std::endl);
 			// ... and assemble to defect if synapse present
 			if (m_spSP->synapse_on_edge(pElem, co, time, current))
 			{
+				UG_LOG_ALL_PROCS("Setting Current" << "!"<<std::endl);
 				d(_v_, co) += current;
 			}
 		}
@@ -391,9 +398,11 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 		/// if a synapse distributor is available
 		if	(m_spSD.valid())
 		{
+
 			// ... and assemble to defect if synapse present
 			if (m_spSD->has_active_synapse(pElem, co, time))
 			{
+
 				d(_v_, co) += -2e-14;
 			}
 		}
