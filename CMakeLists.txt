@@ -15,6 +15,9 @@ include("../../../cmake/ug_plugin_includes.cmake")
 
 # sources
 set(SOURCES	ElemDiscHH_base.cpp   
+Convert/Debug/myseclamp_converted_standard_UG.cpp 
+Convert/Debug/Kv4_csi_converted_standard_UG.cpp 
+Convert/Debug/Kv4_csiosi_converted_standard_UG.cpp 
 ##Convert/Debug/caL3d_converted_standard_UG.cpp 
 ##Convert/Debug/release_exp_converted_standard_UG.cpp 
 Convert/Debug/cad_converted_standard_UG.cpp 
@@ -63,6 +66,7 @@ else (NOT HHSynapseDistributor OR NOT SynapseDistributor)
     message(STATUS "SynapseDistributor support activated. Disable by -DHHSynapseDistributor=OFF")
     add_definitions(-DPLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED)
     ExportDefinitions(-DPLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED)
+	set(pluginsToLink ${pluginsToLink} SynapseDistributor)
 endif (NOT HHSynapseDistributor OR NOT SynapseDistributor)
 
 
@@ -73,6 +77,14 @@ else(buildEmbeddedPlugins)
 	add_library(HH_Kabelnew SHARED ${SOURCES})
 	target_link_libraries (HH_Kabelnew ${pluginsToLink} ug4)
 endif(buildEmbeddedPlugins)
+
+
+
+
+
+
+
+
 
 
 
