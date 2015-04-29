@@ -14,7 +14,7 @@
 #include <unistd.h>
 #include <sstream>
 
-//Todo add setter for generator
+//TODO's
 // closer loook to unit conv
 // perhaps java interface for converter
 
@@ -1524,9 +1524,13 @@ std::vector<string> Converter::GetBlock(std::vector<pair<int, int> > Pairs, std:
 						//std::cout << right << std::endl;
 						//std::cout << left << std::endl;
 						////std::cout << "zeile: " << zeile << std::endl;
-						new_zeile = zeile_without.replace(zeile_without.find(right), right.size(), "");
+
+						//left side of = has to be same
+						//Problem only right site has to replace not left!!!
+
+						new_zeile = zeile_without.replace(zeile_without.find(right+")"), right.size()+1, "");
 						//std::cout << "new_zeile1: " << new_zeile << std::endl;
-						new_zeile = new_zeile.replace(new_zeile.find(left), left.size(), "");
+						new_zeile = new_zeile.replace(new_zeile.find("("+left), left.size()+1, "");
 						//std::cout << "new_zeile2: " << new_zeile << std::endl;
 						new_zeile = new_zeile.replace(new_zeile.find("^"), 1, " pow(" + left + " , " + right + ")");
 						//std::cout << "new_zeile3: " << new_zeile << std::endl;
@@ -2517,6 +2521,8 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  // v always used as var
 	  HFile_added_Vars_Init.push_back("v");
 
+
+	  std::cout << "before initial size: " << INITIAL.size() << std::endl;
 	  if (INITIAL.size() > 0)
 	  {
 		  begin = count_beg(INITIAL[1]);
@@ -2649,91 +2655,96 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		  }		  // write locals vals as double
 	  }
 
-	  //std::cout<< "writing end" << std::endl;
-	  for (size_t i=Stats_beg; i<INITIAL.size(); i++)
+	  if (INITIAL.size() > 0)
 	  {
-		  // writings at the end
-		  if (i >= Stats_beg)
+
+		  //std::cout<< "writing end" << std::endl;
+		  for (size_t i=Stats_beg; i<INITIAL.size(); i++)
 		  {
-			  size_t gleich, vorgleich;
-			  if ((INITIAL[i]!="") && (INITIAL[i]!="}"))
+			  // writings at the end
+			  if (i >= Stats_beg)
 			  {
-				  //std::cout << "gleich Search" << std::endl;
-				  vorgleich = pos_letter(INITIAL[i]);
-				  gleich = INITIAL[i].find("=");
-
-				  if (INITIAL[i].find("=")!=INITIAL[i].npos)
+				  size_t gleich, vorgleich;
+				  if ((INITIAL[i]!="") && (INITIAL[i]!="}"))
 				  {
-					  ////std::cout << "ab: " << vorgleich << "bis: " << gleich << std::endl;
-					  // needed if they are in gatting list use as gatting else write without gatting
-					  bool written = false;
-					  for (size_t j=0; j< State_vars.size(); j++)
+					  //std::cout << "gleich Search" << std::endl;
+					  vorgleich = pos_letter(INITIAL[i]);
+					  gleich = INITIAL[i].find("=");
+
+					  if (INITIAL[i].find("=")!=INITIAL[i].npos)
 					  {
-						  if (Remove_all(INITIAL[i].substr(vorgleich , gleich-vorgleich))==Remove_all(State_vars[j]))
+						  ////std::cout << "ab: " << vorgleich << "bis: " << gleich << std::endl;
+						  // needed if they are in gatting list use as gatting else write without gatting
+						  bool written = false;
+						  for (size_t j=0; j< State_vars.size(); j++)
 						  {
-							  mycppfile << "aa" + Remove_all(INITIAL[i].substr(vorgleich, gleich-vorgleich)) + "Gate[vrt] " + INITIAL[i].substr(gleich) + "; \n";
-							  written = true;
-						  }
-					  }
-					  {
-						  if (written==false)
-						  {
-							  if (INITIAL[i].find("=")!=INITIAL[i].npos)
+							  if (Remove_all(INITIAL[i].substr(vorgleich , gleich-vorgleich))==Remove_all(State_vars[j]))
 							  {
-
-								  string left = INITIAL[i].substr(0, INITIAL[i].find("="));
-								  //std::cout << left << std::endl;
-								  string right = INITIAL[i].substr(INITIAL[i].find("=")+1, INITIAL[i].npos-(INITIAL[i].find("=")+1));
-								  //std::cout << ProofSGatingInit(left, SGating) + " = " + right << std::endl;
-								  // checks if var is global or needs check
-								  bool with_double = true;
-								  bool same_as_left = false;
-
-								  string ProofedSGating_Left = ProofSGatingInit(Remove_all(left), SGating);
-
-								  std::cout << "left vs ProofedSGaating_left: " + left + " vs " + ProofedSGating_Left << std::endl;
-								  if (Remove_all(left) == Remove_all(ProofedSGating_Left))
+								  mycppfile << "aa" + Remove_all(INITIAL[i].substr(vorgleich, gleich-vorgleich)) + "Gate[vrt] " + INITIAL[i].substr(gleich) + "; \n";
+								  written = true;
+							  }
+						  }
+						  {
+							  if (written==false)
+							  {
+								  if (INITIAL[i].find("=")!=INITIAL[i].npos)
 								  {
-									  same_as_left = true;
-								  }
 
-								  for (size_t k=0; k<HFile_added_Vars_Init.size(); k++)
-								  {
-									  std::cout << "Vergleich: " + Remove_all(ProofedSGating_Left) + " vs " + Remove_all(HFile_added_Vars_Init[k]) << std::endl;
-									  if (Remove_all(ProofedSGating_Left) == Remove_all(HFile_added_Vars_Init[k]))
+									  string left = INITIAL[i].substr(0, INITIAL[i].find("="));
+									  //std::cout << left << std::endl;
+									  string right = INITIAL[i].substr(INITIAL[i].find("=")+1, INITIAL[i].npos-(INITIAL[i].find("=")+1));
+									  //std::cout << ProofSGatingInit(left, SGating) + " = " + right << std::endl;
+									  // checks if var is global or needs check
+									  bool with_double = true;
+									  bool same_as_left = false;
+
+									  string ProofedSGating_Left = ProofSGatingInit(Remove_all(left), SGating);
+
+									  std::cout << "left vs ProofedSGaating_left: " + left + " vs " + ProofedSGating_Left << std::endl;
+									  if (Remove_all(left) == Remove_all(ProofedSGating_Left))
 									  {
-										  with_double = false;
+										  same_as_left = true;
 									  }
+
+									  for (size_t k=0; k<HFile_added_Vars_Init.size(); k++)
+									  {
+										  std::cout << "Vergleich: " + Remove_all(ProofedSGating_Left) + " vs " + Remove_all(HFile_added_Vars_Init[k]) << std::endl;
+										  if (Remove_all(ProofedSGating_Left) == Remove_all(HFile_added_Vars_Init[k]))
+										  {
+											  with_double = false;
+										  }
+									  }
+
+									  if (with_double == true && same_as_left == true)
+									  {
+										  mycppfile << "double " + ProofedSGating_Left + " = " + right + "; \n";
+									  }
+
+									  if (with_double == false || same_as_left == false)
+									  {
+										  mycppfile <<  ProofedSGating_Left + " = " + right + "; \n";
+										  HFile_added_Vars_Init.push_back(ProofedSGating_Left);
+									  }
+
+
+
 								  }
 
-								  if (with_double == true && same_as_left == true)
+								  else
 								  {
-									  mycppfile << "double " + ProofedSGating_Left + " = " + right + "; \n";
+									  //std::cout << INITIAL[i] << std::endl;
+									  mycppfile << INITIAL[i] + "; \n";
 								  }
-
-								  if (with_double == false || same_as_left == false)
-								  {
-									  mycppfile <<  ProofedSGating_Left + " = " + right + "; \n";
-									  HFile_added_Vars_Init.push_back(ProofedSGating_Left);
-								  }
-
-
-
-							  }
-
-							  else
-							  {
-								  //std::cout << INITIAL[i] << std::endl;
-								  mycppfile << INITIAL[i] + "; \n";
 							  }
 						  }
-					  }
-				  } //else
-			    	  //vorgleich = beg_count(INITIAL[i]);
+					  } //else
+						  //vorgleich = beg_count(INITIAL[i]);
+				  }
 			  }
 		  }
 	  }
 
+	  std::cout << "all init worked" << std::endl;
 	  mycppfile << "}  \n";
 	  mycppfile << "}  \n \n \n \n";
 
@@ -2849,7 +2860,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  			  for (size_t j=0; j<Proc_funcs.size(); j++)
 	  			  {
 	  				  begin = 0;
-	  				  ////std::cout << "Vergleich: " << DERIVATIVE[i].substr(begin, DERIVATIVE[i].find("(")-begin)<< " - " << Proc_funcs[j][0] << std::endl;
+	  				  std::cout << "Vergleich: " << DERIVATIVE[i].substr(begin, DERIVATIVE[i].find("(")-begin)<< " - " << Proc_funcs[j][0] << std::endl;
 	  				  if (Proc_funcs[j][0] == Remove_all(DERIVATIVE[i].substr(begin, DERIVATIVE[i].find("(")-begin)))
 	  				  {
 	  					  Stats_beg = i;
@@ -3134,6 +3145,109 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  // if kinectic is defined
 	  if (KINETIC.size() >=1)
 	  {
+		  // testing if any Procedure is used in Kinetic block than write it down
+		  for (size_t i=0; i<KINETIC.size(); i++)
+		  {
+			  for (size_t j=0; j<Proc_funcs.size(); j++)
+			  {
+				  begin = 0;
+				  std::cout << "Vergleich: " << KINETIC[i].substr(begin, KINETIC[i].find("("))<< " - " << Proc_funcs[j][0] << std::endl;
+				  if (Remove_all(KINETIC[i].substr(begin, KINETIC[i].find("("))) == Proc_funcs[j][0])
+				  {
+  					  locals = get_local_proc_block(Pairs, Zeilen, Proc_funcs[j][0]);
+
+  					  if (locals.size()>0)
+  					  {
+						  for (size_t k=0; k<locals.size(); k++)
+						  {
+							  size_t locals_sep;
+
+							  mycppfile << "double " + locals[k] + "; \n";
+							  //std::cout << "double " + locals[k] << std::endl;
+							  // removes all unneeded formation-styles
+							  Remove_all(locals[k]);
+							  // locals need seperation through ","
+							  locals_sep = locals[k].find(",");
+							  if (locals_sep!=0)
+							  {
+								  while (locals_sep != locals[k].npos)
+								  {
+									  HFile_added_Vars_Deriv.push_back(Remove_all(locals[k].substr(0, locals_sep)));
+									  locals[k].replace(0, locals_sep+1, "");
+									  locals_sep = locals[k].find(",");
+								  }
+								  HFile_added_Vars_Deriv.push_back(Remove_all(locals[k].substr(0, locals_sep)));
+							  }
+
+
+						  }
+  					  }
+  					  //std::cout << "before proc vals" << std::endl;
+  					  Proc_vals = writer_proc_block(Pairs, Zeilen, Proc_funcs[j][0]);
+  					  //std::cout << Proc_vals.size() << std::endl;
+
+
+  					  bool HFile_added;
+  					  for (size_t k=0; k<Proc_vals.size(); k++)
+  					  {
+						  HFile_added = false;
+						  if ((Proc_vals[k]!="") && (Proc_vals[k]!="}") && (Proc_vals[k].find("LOCAL")==Proc_vals[k].npos)
+							   && Proc_vals[k]!=" " && Proc_vals[k]!="\t" && Proc_vals[k]!="        ")
+						  {
+  							  for (size_t l=0; l<HFile_added_Vars_Deriv.size(); l++)
+  							  {
+  								  //std::cout << "Vergleich " << Remove_all(Proc_vals[k].substr(0, Proc_vals[k].find("=")-1)) << " - " << Remove_all(HFile_added_Vars_Deriv[l]) << std::endl;
+  								  if (Remove_all(Proc_vals[k].substr(0, Proc_vals[k].find("=")))==Remove_all(HFile_added_Vars_Deriv[l]))
+  									  HFile_added = true;
+  							  }
+
+  							  string com_buf;
+
+  							  // if it added in hfile write without double else with!
+  							  if (HFile_added == true)
+  							  {
+  								  //writes comments
+  								  if (Proc_vals[k].find(":")!=Proc_vals[k].npos)
+  									  Proc_vals[k].replace(Proc_vals[k].find(":"), 1, ";//");
+
+  								  mycppfile << Proc_vals[k] + "; \n";
+  								  //std::cout << Proc_vals[k] << std::endl;
+
+  							  } else
+  							  {
+  								// writes comments, if comment for the whole than no double is allowed
+  								if (Proc_vals[k].find(":")!=Proc_vals[k].npos)
+  								{
+  									com_buf = Proc_vals[k];
+  									com_buf = Remove_all_com(com_buf);
+  									Proc_vals[k].replace(Proc_vals[k].find(":"), 1, ";//");
+  								}
+
+  								if (com_buf.find(":")==0)
+  								{
+  									Proc_vals[k].replace(Proc_vals[k].find(";"),1,"");
+  									mycppfile << Proc_vals[k] + "\n";
+  								} else
+  								{
+  									//std::cout<< Proc_vals[k] << std::endl;
+  									if (Remove_all(Proc_vals[k])!="")
+  									{
+  										std::cout << "double " + Proc_vals[k] << std::endl;
+  										mycppfile << "double " + Proc_vals[k] + "; \n";
+  										if (Proc_vals[k].find("=")!=Proc_vals[k].npos)
+  											HFile_added_Vars_Deriv.push_back(Remove_all(Proc_vals[k].substr(0, Proc_vals[k].find("=")-1)));
+  										else
+  											HFile_added_Vars_Deriv.push_back(Remove_all(Proc_vals[k]));
+  									}
+  								}
+  							 }
+
+						  }
+  					  }
+
+				  }
+			  }
+		  }
 
 		  if (Solve_List.size()>=1)
 		  {
@@ -4054,7 +4168,8 @@ std::vector<string> Converter::WriteChannelFile(string Ch_Name, string filename)
 		mychannelfile << "\t reg.add_class_<T, TBase >(name, grp) \n";
 		mychannelfile << "\t \t .template add_constructor<void (*)(const char*, const char*)>(\"Function(s)#Subset(s)\") \n";
 		mychannelfile << "\t \t .template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>(\"Function(s)#Subset(s)\") \n";
-		// Todo add all getters and setters
+
+		// Adding getters and setter
 		setters = Get_Set_Registry(Ch_Name+".h");
 		for (size_t i=0; i<setters.size(); i++)
 		{

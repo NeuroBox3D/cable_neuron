@@ -448,3 +448,97 @@
  
  
  
+#include "Kv4_csiosi_converted_standard_UG.h" 
+ 
+ 
+{ 
+	 typedef Kv4_csiosi_converted_standard_UG<TDomain> T; 
+	 typedef IChannel<TDomain> TBase; 
+	 string name = string("Kv4_csiosi_converted_standard_UG").append(suffix); 
+	 reg.add_class_<T, TBase >(name, grp) 
+	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
+	 	 .template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)") 
+.add_method("setgmax" , &T::setgmax)
+.add_method("setek" , &T::setek)
+.add_method("setF" , &T::setF)
+.add_method("setR" , &T::setR)
+.add_method("seta" , &T::seta)
+.add_method("setza" , &T::setza)
+.add_method("setb" , &T::setb)
+.add_method("setzb" , &T::setzb)
+.add_method("setc" , &T::setc)
+.add_method("setzc" , &T::setzc)
+.add_method("setd" , &T::setd)
+.add_method("setzd" , &T::setzd)
+.add_method("setk" , &T::setk)
+.add_method("setzk" , &T::setzk)
+.add_method("setl" , &T::setl)
+.add_method("setzl" , &T::setzl)
+.add_method("setf" , &T::setf)
+.add_method("setq" , &T::setq)
+.add_method("setkci" , &T::setkci)
+.add_method("setkic" , &T::setkic)
+.add_method("setkoi" , &T::setkoi)
+.add_method("setkio" , &T::setkio)
+.add_method("setkii2" , &T::setkii2)
+.add_method("setki2i" , &T::setki2i)
+	 	 .set_construct_as_smart_pointer(true); 
+	 reg.add_class_to_group(name, "Kv4_csiosi_converted_standard_UG", tag); 
+} 
+ 
+ 
+#include "Kv4_csi_converted_standard_UG.h" 
+ 
+ 
+{ 
+	 typedef Kv4_csi_converted_standard_UG<TDomain> T; 
+	 typedef IChannel<TDomain> TBase; 
+	 string name = string("Kv4_csi_converted_standard_UG").append(suffix); 
+	 reg.add_class_<T, TBase >(name, grp) 
+	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
+	 	 .template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)") 
+.add_method("setgmax" , &T::setgmax)
+.add_method("setek" , &T::setek)
+.add_method("setF" , &T::setF)
+.add_method("setR" , &T::setR)
+.add_method("seta" , &T::seta)
+.add_method("setza" , &T::setza)
+.add_method("setb" , &T::setb)
+.add_method("setzb" , &T::setzb)
+.add_method("setc" , &T::setc)
+.add_method("setzc" , &T::setzc)
+.add_method("setd" , &T::setd)
+.add_method("setzd" , &T::setzd)
+.add_method("setk" , &T::setk)
+.add_method("setzk" , &T::setzk)
+.add_method("setl" , &T::setl)
+.add_method("setzl" , &T::setzl)
+.add_method("setf" , &T::setf)
+.add_method("setq" , &T::setq)
+.add_method("setkci" , &T::setkci)
+.add_method("setkic" , &T::setkic)
+	 	 .set_construct_as_smart_pointer(true); 
+	 reg.add_class_to_group(name, "Kv4_csi_converted_standard_UG", tag); 
+} 
+ 
+ 
+#include "myseclamp_converted_standard_UG.h" 
+ 
+ 
+{ 
+	 typedef myseclamp_converted_standard_UG<TDomain> T; 
+	 typedef IChannel<TDomain> TBase; 
+	 string name = string("myseclamp_converted_standard_UG").append(suffix); 
+	 reg.add_class_<T, TBase >(name, grp) 
+	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
+	 	 .template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)") 
+.add_method("setrs" , &T::setrs)
+.add_method("setdur1" , &T::setdur1)
+.add_method("setdur2" , &T::setdur2)
+.add_method("setdur3" , &T::setdur3)
+.add_method("setdur4" , &T::setdur4)
+	 	 .set_construct_as_smart_pointer(true); 
+	 reg.add_class_to_group(name, "myseclamp_converted_standard_UG", tag); 
+} 
+ 
+ 
