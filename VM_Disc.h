@@ -373,7 +373,7 @@ class VMDisc
 
 	public:
 		/// get vm
-		std::vector<number> get_vm(Edge* edge);
+		void get_vm(std::vector<number>& outValues, Edge* edge) const;
 
 		/// get approx space
 		ConstSmartPtr<ApproximationSpace<TDomain> > get_approximation_space() const;
