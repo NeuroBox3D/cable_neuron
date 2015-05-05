@@ -100,16 +100,16 @@ ADouble hGate;
 Grid::AttachmentAccessor<Vertex, ADouble> aahGate; 
 ADouble nGate; 
 Grid::AttachmentAccessor<Vertex, ADouble> aanGate; 
+number         gnabar ; 
+number         gkbar ; 
+number         gl ; 
+number         el ; 
 number ntau; 
 number minf; 
 number hinf; 
 number ninf; 
 number mtau; 
 number htau; 
-number         gnabar ; 
-number         gkbar ; 
-number         gl ; 
-number         el ; 
 }; 
  
 } // namespace ug 

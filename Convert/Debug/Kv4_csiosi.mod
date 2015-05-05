@@ -87,14 +87,19 @@ ASSIGNED {
 	kII2b  (/ms)
 }
 
-STATE { C0 C1 C2 C3 C4 C5 I0 I1 I2 I3 I4 I5 O I6 I7 }
+STATE { 
+C0 C1 C2 C3 C4 C5 I0 I1 I2 I3 I4 I5 O I6 I7 
+}
+
 BREAKPOINT {
       SOLVE states METHOD sparse
       g = gmax * O
       ik = g * (v - ek)
 }
 
-INITIAL { SOLVE states STEADYSTATE sparse}
+INITIAL { 
+SOLVE states STEADYSTATE sparse
+}
 
 KINETIC states {   		
         rates(v)

@@ -95,9 +95,9 @@ private:
 number m_R, m_T, m_F; 
 ADouble caSGate; 
 Grid::AttachmentAccessor<Vertex, ADouble> aacaSGate; 
-number taur; 
-number depth; 
-number cainf; 
+number 	depth	; 
+number 	taur	; 
+number 	cainf	; 
 number cai ; 
 }; 
  

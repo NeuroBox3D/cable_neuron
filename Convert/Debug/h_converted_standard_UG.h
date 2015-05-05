@@ -121,8 +121,6 @@ private:
 number m_R, m_T, m_F; 
 ADouble lGate; 
 Grid::AttachmentAccessor<Vertex, ADouble> aalGate; 
-number taul; 
-number linf; 
 number ehd ; 
 number     ghdbar; 
 number     vhalfl; 
@@ -133,6 +131,8 @@ number     zetat;
 number     gmt; 
 number     q10; 
 number     qtl; 
+number taul; 
+number linf; 
 }; 
  
 } // namespace ug 

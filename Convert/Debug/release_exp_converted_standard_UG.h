@@ -22,7 +22,7 @@
 #include "common/util/smart_pointer.h" 
 #include "common/util/vector_util.h" 
 
-#include "VM_Disc.h" 
+#include "../../VM_Disc.h" 
  
 #include <vector> 
 #include <stdio.h> 
@@ -89,9 +89,9 @@ ADouble AGate;
 Grid::AttachmentAccessor<Vertex, ADouble> aaAGate; 
 ADouble BGate; 
 Grid::AttachmentAccessor<Vertex, ADouble> aaBGate; 
-number total; 
 number     tau1; 
 number     tau2 ; 
+number total; 
 }; 
  
 } // namespace ug 

@@ -109,13 +109,13 @@ ADouble hGate;
 Grid::AttachmentAccessor<Vertex, ADouble> aahGate; 
 ADouble nGate; 
 Grid::AttachmentAccessor<Vertex, ADouble> aanGate; 
-number tadj; 
 number 	gnabar  ; 
 number 	gkbar   ; 
 number 	ena     ; 
 number 	ek      ; 
 number 	celsius ; 
 number 	vtraub  ; 
+number tadj; 
 }; 
  
 } // namespace ug 

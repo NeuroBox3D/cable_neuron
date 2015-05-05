@@ -355,18 +355,6 @@ UG_THROW("Attachment necessary (I7Gate) for Kv4_csiosi_converted_standard_UG cha
 spGrid->attach_to_vertices(this->I7Gate); 
 this->aaI7Gate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->I7Gate); 
  
-if (spGrid->has_vertex_attachment(this->statesGate)) 
-UG_THROW("Attachment necessary (statesGate) for Kv4_csiosi_converted_standard_UG channel dynamics "
-"could not be made, since it already exists."); 
-spGrid->attach_to_vertices(this->statesGate); 
-this->aastatesGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->statesGate); 
- 
-if (spGrid->has_vertex_attachment(this->STEADYSTATEGate)) 
-UG_THROW("Attachment necessary (STEADYSTATEGate) for Kv4_csiosi_converted_standard_UG channel dynamics "
-"could not be made, since it already exists."); 
-spGrid->attach_to_vertices(this->STEADYSTATEGate); 
-this->aaSTEADYSTATEGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->STEADYSTATEGate); 
- 
 } 
  
  
@@ -436,8 +424,6 @@ double I5 = aaI5Gate[vrt];
 double O = aaOGate[vrt]; 
 double I6 = aaI6Gate[vrt]; 
 double I7 = aaI7Gate[vrt]; 
-double states = aastatesGate[vrt]; 
-double STEADYSTATE = aaSTEADYSTATEGate[vrt]; 
 
  
  
@@ -456,12 +442,12 @@ double       kC45f = c*exp(zc*v*F/(R*(273.16+celsius)));
 double       kC45b = d*exp(zd*v*F/(R*(273.16+celsius))); 
 double       kCOf = k*exp(zk*v*F/(R*(273.16+celsius))); 
 double       kCOb = l*exp(zl*v*F/(R*(273.16+celsius))); 
-double kCI0f=kci* pow(f , 4);//closedtoinactivatedtransitions; 
-double kCI0b=kic/ pow(f , 4); 
-double kCI1f=kci* pow(f , 3); 
-double kCI1b=kic/ pow(f , 3); 
-double kCI2f=kci* pow(f , 2); 
-double kCI2b=kic/ pow(f , 2); 
+double kCI0f=kci*( pow(f , 4));//closedtoinactivatedtransitions; 
+double kCI0b=kic/( pow(f , 4)); 
+double kCI1f=kci*( pow(f , 3)); 
+double kCI1b=kic/( pow(f , 3)); 
+double kCI2f=kci*( pow(f , 2)); 
+double kCI2b=kic/( pow(f , 2)); 
 double       kCI3f = kci*(f); 
 double       kCI3b = kic/(f); 
 double       kCI4f = kci; 
@@ -541,8 +527,6 @@ aaI5Gate[vrt] = I5;
 aaOGate[vrt] = O; 
 aaI6Gate[vrt] = I6; 
 aaI7Gate[vrt] = I7; 
-aastatesGate[vrt] = states; 
-aaSTEADYSTATEGate[vrt] = STEADYSTATE; 
  
  
  
@@ -570,8 +554,6 @@ number I5 = aaI5Gate[ver];
 number O = aaOGate[ver]; 
 number I6 = aaI6Gate[ver]; 
 number I7 = aaI7Gate[ver]; 
-number states = aastatesGate[ver]; 
-number STEADYSTATE = aaSTEADYSTATEGate[ver]; 
 number k = vrt_values[VMDisc<TDomain>::_k_]; 
 number v =  vrt_values[VMDisc<TDomain>::_v_]; 
  

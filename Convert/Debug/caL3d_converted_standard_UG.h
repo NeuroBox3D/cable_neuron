@@ -22,7 +22,7 @@
 #include "common/util/smart_pointer.h" 
 #include "common/util/vector_util.h" 
 
-#include "VM_Disc.h" 
+#include "../../VM_Disc.h" 
  
 #include <vector> 
 #include <stdio.h> 
@@ -111,14 +111,14 @@ ADouble CGate;
 Grid::AttachmentAccessor<Vertex, ADouble> aaCGate; 
 ADouble OGate; 
 Grid::AttachmentAccessor<Vertex, ADouble> aaOGate; 
-number tadj; 
-number q10; 
-number temp; 
 number 	p    ; 
 number 	th   ; 
 number 	q   ; 
 number 	Ra   ; 
 number 	Rb   ; 
+number 	temp ; 
+number 	q10  ; 
+number tadj; 
 }; 
  
 } // namespace ug 

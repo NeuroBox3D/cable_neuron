@@ -115,16 +115,16 @@ private:
 number m_R, m_T, m_F; 
 ADouble nGate; 
 Grid::AttachmentAccessor<Vertex, ADouble> aanGate; 
-number vmax; 
-number q10; 
-number temp; 
-number tadj; 
-number vmin; 
 number 	gbar ; 
 number cai ; 
 number 	caix ; 
 number 	Ra   ; 
 number 	Rb   ; 
+number 	temp ; 
+number 	q10  ; 
+number 	vmin ; 
+number 	vmax ; 
+number tadj; 
 }; 
  
 } // namespace ug 

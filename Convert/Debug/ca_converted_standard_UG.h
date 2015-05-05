@@ -114,15 +114,15 @@ ADouble mGate;
 Grid::AttachmentAccessor<Vertex, ADouble> aamGate; 
 ADouble hGate; 
 Grid::AttachmentAccessor<Vertex, ADouble> aahGate; 
-number vshift; 
-number q10; 
-number temp; 
-number tadj; 
-number vmin; 
-number vmax; 
 number 	gbar ; 
+number 	vshift ; 
 number 	cao  ; 
 number cai ; 
+number 	temp ; 
+number 	q10  ; 
+number 	vmin ; 
+number 	vmax ; 
+number tadj; 
 }; 
  
 } // namespace ug 
