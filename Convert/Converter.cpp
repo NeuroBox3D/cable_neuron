@@ -1528,9 +1528,9 @@ std::vector<string> Converter::GetBlock(std::vector<pair<int, int> > Pairs, std:
 						//left side of = has to be same
 						//Problem only right site has to replace not left!!!
 
-						new_zeile = zeile_without.replace(zeile_without.find(right+")"), right.size()+1, "");
+						new_zeile = zeile_without.replace(zeile_without.find(right, breaks), right.size(), "");
 						//std::cout << "new_zeile1: " << new_zeile << std::endl;
-						new_zeile = new_zeile.replace(new_zeile.find("("+left), left.size()+1, "");
+						new_zeile = new_zeile.replace(new_zeile.find(left, (breaks-(left.size()+1))), left.size(), "");
 						//std::cout << "new_zeile2: " << new_zeile << std::endl;
 						new_zeile = new_zeile.replace(new_zeile.find("^"), 1, " pow(" + left + " , " + right + ")");
 						//std::cout << "new_zeile3: " << new_zeile << std::endl;
@@ -2518,9 +2518,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  string helper;
 
 	  std::vector<string> new_locals, new_local_block;
-	  std::cout << "Before 1GetBlock" << std::endl;
 	  std::vector<string> PROCEDURE = GetBlock(Pairs, Zeilen, "PROCEDURE");
-	  std::cout << "After 1GetBlock" << std::endl;
 	  size_t begin;
 	  size_t Stats_beg = 1;
 
@@ -4006,6 +4004,8 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  mycppfile << "  \n";
 	  mycppfile << "  \n";
 	  mycppfile.close();
+
+
 
 
 
