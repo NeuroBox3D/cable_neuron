@@ -381,6 +381,7 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 			if (m_spSP->synapse_on_edge(pElem, co, time, current))
 			{
 				UG_LOG_ALL_PROCS("Setting Current" << "!"<<std::endl);
+				UG_LOG_ALL_PROCS("Current: " << current << std::endl);
 				d(_v_, co) += current;
 			}
 		}
