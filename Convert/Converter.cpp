@@ -2508,13 +2508,19 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  std::cout << "Start working on Initial-Block" << std::endl;
 
 	  // Reading functional info for states
+	  std::cout << "Before GetBlock" << std::endl;
 	  std::vector<string> INITIAL = GetBlock(Pairs, Zeilen, "INITIAL");
+	  std::cout << "After GetBlock" << std::endl;
+	  std::cout << "writing proc-Block" << std::endl;
 	  std::vector<vector <string> > Proc_funcs = write_proc_block(Pairs, Zeilen);
+	  std::cout << "after writing proc-Block" << std::endl;
 	  std::vector<string> Proc_vals, locals;
 	  string helper;
 
 	  std::vector<string> new_locals, new_local_block;
+	  std::cout << "Before 1GetBlock" << std::endl;
 	  std::vector<string> PROCEDURE = GetBlock(Pairs, Zeilen, "PROCEDURE");
+	  std::cout << "After 1GetBlock" << std::endl;
 	  size_t begin;
 	  size_t Stats_beg = 1;
 
@@ -4035,15 +4041,29 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 				 //std::cout << komma << std::endl;
 			 }
 		  }
+	  }
 
-		  std::vector<string> already_added;
 
+	  std::vector<string> already_added;
+
+
+	  if (Params_Unit.size() >0)
+	  {
+		  for (size_t i = 0; i<Params_Unit.size(); i++)
+		  {
+			  myhfile << "number " + Params_Unit[i].substr(0, Params_Unit[i].find("=")) + "; \n";
+			  already_added.push_back(Remove_all(Params_Unit[i].substr(0, Params_Unit[i].find("="))));
+		  }
+	  }
+
+	  if (Global_vars.size() > 0)
+	  {
 		  for (size_t i = 0; i<Global_vars.size(); i++)
 		  {
 			  bool adding = true;
 			  for (size_t j =0; j<already_added.size(); j++)
 			  {
-				  if (already_added[j] == Global_vars[i])
+				  if (Remove_all(already_added[j]) == Remove_all(Global_vars[i]))
 					  adding = false;
 			  }
 
@@ -4054,30 +4074,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 				  already_added.push_back(Global_vars[i]);
 			  }
 		  }
-
 	  }
-
-
-	  if (Params_Unit.size() >0)
-	  {
-		  for (size_t i = 0; i<Params_Unit.size(); i++)
-		  {
-			  bool is_written = false;
-			  //checking that no global which is also Parameter is written twice in h-file!
-			  for (size_t j=0; j<Global_vars.size(); j++)
-			  {
-				  //std::cout << "write vergleich: " << Remove_all(Params_Unit[i].substr(0, Params_Unit[i].find("="))) << " vs "<<Remove_all(Global_vars[j]) << std::endl;
-				  if (Remove_all(Params_Unit[i].substr(0, Params_Unit[i].find("=")))==Remove_all(Global_vars[j]))
-					  is_written = true;
-			  }
-			  if (is_written == false)
-			  {
-				  myhfile << "number " + Params_Unit[i].substr(0, Params_Unit[i].find("=")) + "; \n";
-			  }
-		  }
-	  }
-
-
 
 
 	  myhfile << "}; \n \n";
