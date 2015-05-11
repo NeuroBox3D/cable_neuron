@@ -3,6 +3,9 @@
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h" 
 #include "lib_disc/function_spaces/grid_function.h" 
 #include "lib_disc/function_spaces/local_transfer_interface.h" 
+#include <fstream>
+#include <iostream>
+#include <sstream>
 #include <cmath> 
 namespace ug { 
  
@@ -190,29 +193,103 @@ q10= pow(3 , ((celsius-6.3)/10));
         sum = alpha + beta; 
 	mtau = 1/(q10*sum); 
         minf = alpha/sum; 
+
+        m = (m/dt + alpha)/(1/dt + sum);
+
                 //"h" sodium inactivation system
         alpha = .07 * exp(-(v+65)/20); 
         beta = 1 / (exp(-(v+35)/10) + 1); 
         sum = alpha + beta; 
 	htau = 1/(q10*sum); 
         hinf = alpha/sum; 
+
+        h = (h/dt + alpha)/(1/dt + sum);
                 //"n" potassium activation system
         alpha = .01*vtrap(-(v+55),10) ; 
         beta = .125*exp(-(v+65)/80); 
 	sum = alpha + beta; 
         ntau = 1/(q10*sum); 
         ninf = alpha/sum; 
-        m  +=   (minf-m)/mtau*dt; 
-; 
- 
-        h  +=  (hinf-h)/htau*dt; 
-; 
- 
-        n  +=  (ninf-n)/ntau*dt; 
-; 
- 
+
+        n = (n/dt + alpha)/(1/dt + sum);
+
+        n = n / (1 + ntau) + alpha + ninf*dt;
+
+
+       // u(t+∆t) = u(t) - ∆t*(alpha(V)*u(t) + beta(V)*(1-u(t)))
+
+        //Im impliziten Fall würdest du einfach die beiden rechten u(t) durch u(t+∆t) ersetzen und dann nach u(t+∆t) auflösen, was gehen wird, da das eine lineare Gleichung ist. Da kommt dann typischerweise irgendein Bruch mit (1+∆t*…) im Nenner raus.
+
+
+       /*n = (n/dt + alpha)/(1/dt + sum);
+
+       n/dt / (1/dt +sum)) + (alpha / (1/dt + sum))
+    		   	   	   	   + (alpha/1/dt + alpha/sum)
+		n/dt / 1/dt + sum + (alpha/1/dt + ninf) // /*dt
+        n / (1 + ntau) + alpha + ninf*dt
+
+
+        n = (n/dt + alpha)/(1/dt + sum); // *dt
+
+        n = n + alpha*dt / 1 + sum*dt
+        n = n / 1 + sum*dt +  alpha*dt/1+sum*dt
+		n = n / 1 +sum *dt + alpha/1+sum
+
+
+
+
+		n = (n / 1 + sum*dt) + alpha + ninf
+
+
+        n = (n + alpha*dt) + (n/sum*dt + alpha*dt/sum*dt) */
+
+
+
+        //h  +=  (hinf-h)/htau*dt;
 
  
+        //n  +=  (ninf-n)/ntau*dt;
+        //vector3 test = vertex_position(vrt);
+        Grid::AttachmentAccessor< Vertex, APosition > aaPos;
+        std::cout << aaPos[0] << std::endl;
+
+number x=aaPos[0][1];
+number y=aaPos[0][2];
+number z=aaPos[0][3];
+
+
+string sh_file = "h_file.txt";
+string sm_file = "m_file.txt";
+string sn_file = "n_file.txt";
+
+const char* h_file = sh_file.c_str();
+const char* m_file = sm_file.c_str();
+const char* n_file = sn_file.c_str();
+
+//const char* filenameh = fnameh.c_str();
+
+ofstream myhfile;
+
+ofstream myh_file, mym_file, myn_file;
+
+
+
+if (x==0.0 && y==0.0 && z==0.0)
+{
+	myh_file.open (h_file, std::ios::app);
+	myh_file <<  h << "\n";
+	myh_file.close();
+
+	mym_file.open (m_file, std::ios::app);
+	mym_file <<  m << "\n";
+	mym_file.close();
+
+	myn_file.open (n_file, std::ios::app);
+	myn_file <<  n << "\n";
+	myn_file.close();
+}
+
+
  
 aamGate[vrt] = m; 
 aahGate[vrt] = h; 
