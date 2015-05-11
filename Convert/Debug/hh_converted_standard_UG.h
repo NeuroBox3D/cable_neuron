@@ -49,7 +49,8 @@ class hh_converted_standard_UG
 /// @copydoc IChannel<TDomain>::IChannel(cont char*) 
 hh_converted_standard_UG(const char* functions, const char* subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-m_R(8.314), m_T(293.0), m_F(96485.0), 
+m_state_output(false),
+m_R(8.314), m_T(293.0), m_F(96485.0),
         gnabar ( .12 *0.01), 
         gkbar ( .036 *0.01), 
         gl ( .0003 *0.01), 
@@ -60,6 +61,7 @@ UG_CATCH_THROW("Error in hh_converted_standard_UG initializer list. ")
 /// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&) 
 hh_converted_standard_UG(const std::vector<std::string>& functions, const std::vector<std::string>& subsets) 
 try : IChannel<TDomain>(functions, subsets), 
+m_state_output(false),
 m_R(8.314), m_T(293.0), m_F(96485.0), 
         gnabar ( .12 *0.01), 
         gkbar ( .036 *0.01), 
@@ -69,6 +71,7 @@ UG_CATCH_THROW("Error in hh_converted_standard_UG initializer list. ")
 /// destructor 
  
 virtual ~hh_converted_standard_UG() {}; 
+
 double vtrap(double x, double y); 
 /// create attachments and accessors 
 void init_attachments(); 
@@ -91,8 +94,10 @@ void setel(double val);
 
  
 protected: 
+
 private: 
  
+bool m_state_output;
 number m_R, m_T, m_F; 
 ADouble mGate; 
 Grid::AttachmentAccessor<Vertex, ADouble> aamGate; 

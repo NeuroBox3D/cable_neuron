@@ -183,7 +183,7 @@ double h = aahGate[vrt];
 double n = aanGate[vrt]; 
 
  
- 
+
 double           alpha, beta, sum, q10; 
                       //Call once from HOC to initialize inf at resting v.
 q10= pow(3 , ((celsius-6.3)/10)); 
@@ -191,29 +191,37 @@ q10= pow(3 , ((celsius-6.3)/10));
         alpha = .1 * vtrap(-(v+40),10); 
         beta =  4 * exp(-(v+65)/18); 
         sum = alpha + beta; 
-	mtau = 1/(q10*sum); 
+	mtau = 1/(sum);
         minf = alpha/sum; 
 
-        m = (m/dt + alpha)/(1/dt + sum);
+        //m = (m/dt + alpha)/(1/dt + sum);
+        m = (m + alpha*dt)/ (1 + sum*dt);
+        //m = (alpha*dt)/ (1 + sum*dt) + m /(1 + sum*dt);
 
                 //"h" sodium inactivation system
         alpha = .07 * exp(-(v+65)/20); 
         beta = 1 / (exp(-(v+35)/10) + 1); 
         sum = alpha + beta; 
-	htau = 1/(q10*sum); 
+	htau = 1/(sum);
         hinf = alpha/sum; 
 
-        h = (h/dt + alpha)/(1/dt + sum);
+        //h  +=  (hinf-h)/htau*dt;
+
+        //h = (h/dt + alpha)/(1/dt + sum);
+        h = (h + alpha*dt)/ (1 + sum*dt);
+        //h = (alpha*dt)/ (1 + sum*dt) + h /(1 + sum*dt);
                 //"n" potassium activation system
         alpha = .01*vtrap(-(v+55),10) ; 
         beta = .125*exp(-(v+65)/80); 
 	sum = alpha + beta; 
-        ntau = 1/(q10*sum); 
+        ntau = 1/(sum);
         ninf = alpha/sum; 
 
-        n = (n/dt + alpha)/(1/dt + sum);
+        //n = (alpha*dt)/ (1 + sum*dt) + n /(1 + sum*dt);
+        n = (n + alpha*dt)/ (1 + sum*dt);
+        //n = (n/dt + alpha)/(1/dt + sum);
 
-        n = n / (1 + ntau) + alpha + ninf*dt;
+        //n = n / (1 + ntau) + alpha + ninf*dt;
 
 
        // u(t+∆t) = u(t) - ∆t*(alpha(V)*u(t) + beta(V)*(1-u(t)))
@@ -247,15 +255,24 @@ q10= pow(3 , ((celsius-6.3)/10));
 
         //h  +=  (hinf-h)/htau*dt;
 
+        //m += (minf-m)/mtau*dt;
  
         //n  +=  (ninf-n)/ntau*dt;
         //vector3 test = vertex_position(vrt);
-        Grid::AttachmentAccessor< Vertex, APosition > aaPos;
-        std::cout << aaPos[0] << std::endl;
+//std::cout << "mau" << std::endl;
 
-number x=aaPos[0][1];
-number y=aaPos[0][2];
-number z=aaPos[0][3];
+
+typedef typename TDomain::position_type pos_type;
+typedef typename TDomain::position_accessor_type AAPos_type;
+
+const AAPos_type aaPos = m_pVMDisc->approx_space()->domain()->position_accessor();
+const pos_type coords = aaPos[vrt];
+
+//std::cout << coords << std::endl;
+
+number x=coords[0];
+number y=coords[1];
+number z=coords[2];
 
 
 string sh_file = "h_file.txt";
