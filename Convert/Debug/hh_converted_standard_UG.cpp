@@ -262,7 +262,7 @@ q10= pow(3 , ((celsius-6.3)/10));
 //std::cout << "mau" << std::endl;
 
 
-typedef typename TDomain::position_type pos_type;
+/*typedef typename TDomain::position_type pos_type;
 typedef typename TDomain::position_accessor_type AAPos_type;
 
 const AAPos_type aaPos = m_pVMDisc->approx_space()->domain()->position_accessor();
@@ -304,7 +304,7 @@ if (x==0.0 && y==0.0 && z==0.0)
 	myn_file.open (n_file, std::ios::app);
 	myn_file <<  n << "\n";
 	myn_file.close();
-}
+}*/
 
 
  
