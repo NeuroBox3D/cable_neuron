@@ -195,7 +195,7 @@ q10= pow(3 , ((celsius-6.3)/10));
         minf = alpha/sum; 
 
         //m = (m/dt + alpha)/(1/dt + sum);
-        m = (m + alpha*dt)/ (1 + sum*dt);
+        //m = (m + alpha*dt)/ (1 + sum*dt);
         //m = (alpha*dt)/ (1 + sum*dt) + m /(1 + sum*dt);
 
                 //"h" sodium inactivation system
@@ -208,7 +208,7 @@ q10= pow(3 , ((celsius-6.3)/10));
         //h  +=  (hinf-h)/htau*dt;
 
         //h = (h/dt + alpha)/(1/dt + sum);
-        h = (h + alpha*dt)/ (1 + sum*dt);
+        //h = (h + alpha*dt)/ (1 + sum*dt);
         //h = (alpha*dt)/ (1 + sum*dt) + h /(1 + sum*dt);
                 //"n" potassium activation system
         alpha = .01*vtrap(-(v+55),10) ; 
@@ -218,7 +218,7 @@ q10= pow(3 , ((celsius-6.3)/10));
         ninf = alpha/sum; 
 
         //n = (alpha*dt)/ (1 + sum*dt) + n /(1 + sum*dt);
-        n = (n + alpha*dt)/ (1 + sum*dt);
+        //n = (n + alpha*dt)/ (1 + sum*dt);
         //n = (n/dt + alpha)/(1/dt + sum);
 
         //n = n / (1 + ntau) + alpha + ninf*dt;
@@ -253,11 +253,11 @@ q10= pow(3 , ((celsius-6.3)/10));
 
 
 
-        //h  +=  (hinf-h)/htau*dt;
+        h  +=  (hinf-h)/htau*dt;
 
-        //m += (minf-m)/mtau*dt;
+        m += (minf-m)/mtau*dt;
  
-        //n  +=  (ninf-n)/ntau*dt;
+        n  +=  (ninf-n)/ntau*dt;
         //vector3 test = vertex_position(vrt);
 //std::cout << "mau" << std::endl;
 
