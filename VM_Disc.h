@@ -132,7 +132,9 @@ class VMDisc
 		  m_spec_res(1.0e6), m_spec_cap(1.0e-5), m_influx_ac(1e-9),
 		  m_aDiameter("diameter"),
 #ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
+#ifdef PLUGIN_NEURONAL_TOPOLOGY_IMPORTER_ENABLED
 		  m_spSP(SPNULL),
+#endif
 #endif
 #ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED
 		  m_spSD(SPNULL),
@@ -303,8 +305,10 @@ class VMDisc
 		virtual void approximation_space_changed()
 		{
 #ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
+#ifdef PLUGIN_NEURONAL_TOPOLOGY_IMPORTER_ENABLED
 			// call update function for synapse_provider
 			m_spSP->update();
+#endif
 #endif
 		}
 
