@@ -353,7 +353,9 @@ class VMDisc
 
 
 #ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
+#ifdef PLUGIN_NEURONAL_TOPOLOGY_IMPORTER_ENABLED
 		void set_synapse_provider(synapse_provider::NETISynapseProvider<TDomain>* sp);
+#endif
 #endif
 #ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED
 		void set_synapse_distributor(SmartPtr<SynapseDistributor> sd);
@@ -469,7 +471,9 @@ class VMDisc
 		Grid::AttachmentAccessor<Vertex, AVector4> m_aaUold;
 
 #ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
+#ifdef PLUGIN_NEURONAL_TOPOLOGY_IMPORTER_ENABLED
 		SmartPtr<synapse_provider::NETISynapseProvider<TDomain> > m_spSP;
+#endif
 #endif
 
 #ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED
