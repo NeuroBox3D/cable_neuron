@@ -203,7 +203,7 @@ set_influx(number Flux, number x, number y, number z, number beg, number dur)
 #ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
 template <typename TDomain>
 void VMDisc<TDomain>::
-set_synapse_provider(synapse_provider::SynapseProvider<TDomain>* sp) {
+set_synapse_provider(synapse_provider::NETISynapseProvider<TDomain>* sp) {
 	this->m_spSP = make_sp(sp);
 }
 #endif
@@ -267,6 +267,14 @@ void VMDisc<TDomain>::get_vm(std::vector<number>& outValues, Edge* edge) const
     	outValues.push_back(m_aaUold[edge->vertex(vrt)][_v_]);
 }
 
+
+template<typename TDomain>
+number VMDisc<TDomain>::get_vm(Vertex* vrt) const
+{
+	return m_aaUold[vrt][_v_];
+}
+
+
 template <typename TDomain>
 ConstSmartPtr<ApproximationSpace<TDomain> > VMDisc<TDomain>::get_approximation_space() const {
 	return m_spApproxSpace;
@@ -305,6 +313,10 @@ void VMDisc<TDomain>::prep_timestep_elem
 
 	// update time in attachments
 	update_time(time, edge);
+
+#ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
+	m_spSP->update();
+#endif
 }
 
 

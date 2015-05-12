@@ -228,32 +228,22 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		pre_resistance += scv.volume() / (0.25*PI*Diam*Diam);
 
 
-
-
         // values for m gate
         number AlphaHm = 0.1 * vtrap(-(u(_VM_,co)+40.0),10);
         number BetaHm =  4 * exp(-(u(_VM_,co)+65)/18.0);
-        number sumABHm = 4.5*(AlphaHm+BetaHm);
 
         // values for h gate
         number AlphaHh = 0.07 * exp(-(u(_VM_,co)+65.0)/20.0);
         number BetaHh = 1.0 / (exp(-(u(_VM_,co)+35.0)/10.0) + 1.0);
-        number sumABHh = 4.5*(AlphaHh+BetaHh);
-
 
         // values for n gate
         number AlphaHn = 0.01*vtrap(-(u(_VM_,co)+55), 10);
         number BetaHn = 0.125*exp(-(u(_VM_,co)+65)/80);
-        number sumABHn = 4.5*(AlphaHn+BetaHn);
-
-
 
 
 		number rate_h = -4.5*((AlphaHh * (1.0-u(_h_,co))) - BetaHh * u(_h_,co));
 		number rate_m = -4.5*((AlphaHm * (1.0-u(_m_,co))) - BetaHm * u(_m_,co));
 		number rate_n = -4.5*((AlphaHn * (1.0-u(_n_,co))) - BetaHn * u(_n_,co));
-
-
 
 
 		//const number helpV = (m_R*m_T)/m_F;

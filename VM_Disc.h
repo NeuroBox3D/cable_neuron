@@ -38,31 +38,27 @@
 #include "channel_interface.h"
 
 #ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
-#include "../synapse_provider/synapse_provider.h"
+	#include "../synapse_provider/synapse_provider.h"
 #endif
 #ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED
-#include "../synapse_distributor/synapse_distributor.h"
-//#include "../synapse_distributor/synapse_distributor_impl.h"
+	#include "../synapse_distributor/synapse_distributor.h"
 #endif
 
-namespace ug
-{
+namespace ug {
 namespace synapse_provider {
+
 #ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
-// forward declaration
-template <typename TDomain>
-class ISynapseProvider;
-
-template <typename TDomain>
-class SynapseProviderFactory;
-
-template <typename TDomain>
-class SynapseProvider;
+	// forward declaration
+	template <typename TDomain>
+	class SynapseProvider;
 #endif
 }
 
+// forward declaration
 template <typename TDomain>
 class IChannel;
+
+
 
 template <typename TDomain>
 class VMDisc
@@ -303,6 +299,15 @@ class VMDisc
 		///	destructor
 		virtual ~VMDisc() {};
 
+		/// @copydoc IElemDisc::approximation_space_changed()
+		virtual void approximation_space_changed()
+		{
+#ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
+			// call update function for synapse_provider
+			m_spSP->update();
+#endif
+		}
+
 		// functions for setting params
 		/// set constant diameter for dendrites
 		void set_diameter(const number d);
@@ -348,7 +353,7 @@ class VMDisc
 
 
 #ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
-		void set_synapse_provider(synapse_provider::SynapseProvider<TDomain>* spf);
+		void set_synapse_provider(synapse_provider::NETISynapseProvider<TDomain>* sp);
 #endif
 #ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED
 		void set_synapse_distributor(SmartPtr<SynapseDistributor> sd);
@@ -374,6 +379,7 @@ class VMDisc
 	public:
 		/// get vm
 		void get_vm(std::vector<number>& outValues, Edge* edge) const;
+		number get_vm(Vertex* vrt) const;
 
 		/// get approx space
 		ConstSmartPtr<ApproximationSpace<TDomain> > get_approximation_space() const;
@@ -463,8 +469,7 @@ class VMDisc
 		Grid::AttachmentAccessor<Vertex, AVector4> m_aaUold;
 
 #ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
-		SmartPtr<synapse_provider::SynapseProviderFactory<TDomain> > m_spSPF;
-		SmartPtr<synapse_provider::ISynapseProvider<TDomain> > m_spSP;
+		SmartPtr<synapse_provider::NETISynapseProvider<TDomain> > m_spSP;
 #endif
 
 #ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED
