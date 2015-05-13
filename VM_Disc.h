@@ -37,8 +37,8 @@
 
 #include "channel_interface.h"
 
-#ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
-	#include "../synapse_provider/synapse_provider.h"
+#ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
+	#include "../synapse_handler/synapse_provider.h"
 #endif
 #ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED
 	#include "../synapse_distributor/synapse_distributor.h"
@@ -47,7 +47,7 @@
 namespace ug {
 namespace synapse_provider {
 
-#ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
+#ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
 	// forward declaration
 	template <typename TDomain>
 	class SynapseProvider;
@@ -131,7 +131,7 @@ class VMDisc
 		  m_ena(0), m_ek(0), m_eca(0),
 		  m_spec_res(1.0e6), m_spec_cap(1.0e-5), m_influx_ac(1e-9),
 		  m_aDiameter("diameter"),
-#ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
+#ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
 #ifdef PLUGIN_NEURONAL_TOPOLOGY_IMPORTER_ENABLED
 		  m_spSP(SPNULL),
 #endif
@@ -304,7 +304,7 @@ class VMDisc
 		/// @copydoc IElemDisc::approximation_space_changed()
 		virtual void approximation_space_changed()
 		{
-#ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
+#ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
 #ifdef PLUGIN_NEURONAL_TOPOLOGY_IMPORTER_ENABLED
 			// call update function for synapse_provider
 			m_spSP->update();
@@ -356,7 +356,7 @@ class VMDisc
 		void set_ek(double value);
 
 
-#ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
+#ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
 #ifdef PLUGIN_NEURONAL_TOPOLOGY_IMPORTER_ENABLED
 		void set_synapse_provider(synapse_provider::NETISynapseProvider<TDomain>* sp);
 #endif
@@ -474,7 +474,7 @@ class VMDisc
 		AVector4 m_aUold;
 		Grid::AttachmentAccessor<Vertex, AVector4> m_aaUold;
 
-#ifdef PLUGIN_SYNAPSE_PROVIDER_ENABLED
+#ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
 #ifdef PLUGIN_NEURONAL_TOPOLOGY_IMPORTER_ENABLED
 		SmartPtr<synapse_provider::NETISynapseProvider<TDomain> > m_spSP;
 #endif
