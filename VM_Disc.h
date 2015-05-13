@@ -133,7 +133,7 @@ class VMDisc
 		  m_v(0), m_na(0), m_k(0), m_ca(0),
 		  m_ena(0), m_ek(0), m_eca(0),
 		  m_spec_res(1.0e6), m_spec_cap(1.0e-5), m_influx_ac(1e-9),
-		  m_aDiameter("diameter"),
+		  m_bDiamNotSet(true),
 #ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
 		  m_spSP(SPNULL),
 #endif
@@ -165,6 +165,16 @@ class VMDisc
 			m_spApproxSpace->domain()->grid()->attach_to_vertices(m_aUold);
 
 			m_aaUold = Grid::AttachmentAccessor<Vertex, AVector4>(*m_spApproxSpace->domain()->grid(), m_aUold);
+
+			// handle diameter attachment
+			m_aDiameter = GlobalAttachments::attachment<ANumber>(string("diameter"));
+			SmartPtr<MultiGrid> grid = m_spApproxSpace->domain()->grid();
+			if (!grid->has_attachment<Vertex>(m_aDiameter))
+				grid->attach_to_vertices_dv(m_aDiameter, 1e-6);
+			else
+				m_bDiamNotSet = false;
+
+			m_aaDiameter = Grid::AttachmentAccessor<Vertex, ANumber>(*grid, m_aDiameter);
 
 #if 0
 			//SmartPtr<GridFunction<TDomain, TAlgebra> > spGridPtr;
@@ -466,6 +476,8 @@ class VMDisc
 		/// dendritic radius attachment and accessor
 		ANumber m_aDiameter;
 		Grid::AttachmentAccessor<Vertex, ANumber> m_aaDiameter;
+
+		bool m_bDiamNotSet;
 
 		/// attachment and accessor for old solution in each vertex
 		AVector4 m_aUold;

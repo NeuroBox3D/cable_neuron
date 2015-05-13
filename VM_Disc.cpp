@@ -111,13 +111,13 @@ template<typename TDomain>
 void VMDisc<TDomain>::
 set_diameter(const number d)
 {
-	// handle the attachments
-	if (m_spApproxSpace->domain()->grid()->has_vertex_attachment(m_aDiameter))
-		UG_THROW("Radius attachment necessary for Vm disc "
-				 "could not be created, since it already exists.");
-	m_spApproxSpace->domain()->grid()->attach_to_vertices_dv(m_aDiameter, d);
+	// attachment is attached by constructor in any case
+	// thus, it needs to be detached and re-attached
+	SmartPtr<MultiGrid> grid = m_spApproxSpace->domain()->grid();
+	grid->detach_from_vertices(m_aDiameter);
+	grid->attach_to_vertices_dv(m_aDiameter, d);
 
-	m_aaDiameter = Grid::AttachmentAccessor<Vertex, ANumber>(*m_spApproxSpace->domain()->grid(), m_aDiameter);
+	m_aaDiameter = Grid::AttachmentAccessor<Vertex, ANumber>(*grid, m_aDiameter);
 }
 
 
@@ -358,10 +358,6 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 		// add "pre_resistance" parts
 		pre_resistance += scv.volume() / (0.25*PI*Diam*Diam);
 
-		if (Diam!=1e-6)
-			UG_LOG_ALL_PROCS("Diameter: "<< Diam << "!"<<std::endl);
-
-
 		// influx handling
 		number time = this->time();
 		double influx = 0;
@@ -392,8 +388,8 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 			// ... and assemble to defect if synapse present
 			if (m_spSP->synapse_on_edge(pElem, co, time, current))
 			{
-				UG_LOG_ALL_PROCS("Setting Current" << "!"<<std::endl);
-				UG_LOG_ALL_PROCS("Current: " << current << std::endl);
+				//UG_LOG_ALL_PROCS("Setting Current" << "!"<<std::endl);
+				//UG_LOG_ALL_PROCS("Current: " << current << std::endl);
 				d(_v_, co) += current;
 			}
 		}
@@ -408,8 +404,8 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 			// ... and assemble to defect if synapse present
 			if (m_spSD->has_active_synapses(pElem, co, time, current))
 			{
-				UG_LOG_ALL_PROCS("Setting Current" << "!"<<std::endl);
-				UG_LOG_ALL_PROCS("Current: " << current << std::endl);
+				//UG_LOG_ALL_PROCS("Setting Current" << "!"<<std::endl);
+				//UG_LOG_ALL_PROCS("Current: " << current << std::endl);
 				d(_v_, co) += current;
 			}
 		}
