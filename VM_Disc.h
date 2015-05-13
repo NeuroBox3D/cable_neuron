@@ -302,7 +302,7 @@ class VMDisc
 		{
 #ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
 			// call update function for synapse_handler
-			m_spSP->template update();
+			m_spSP->update();
 #endif
 		}
 
