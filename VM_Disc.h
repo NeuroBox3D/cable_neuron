@@ -44,13 +44,21 @@
 	#include "../synapse_distributor/synapse_distributor.h"
 #endif
 
+#ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
+#warning "enabled!"
+#endif
+
 namespace ug {
 namespace synapse_handler {
 
+//#define PLUGIN_SYNAPSE_HANDLER_ENABLED 1
 #ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
+#warning "declare forward!"
 	// forward declaration
 	template <typename TDomain>
 	class NETISynapseHandler;
+#else
+#warning "not declare forward!"
 #endif
 }
 
@@ -63,6 +71,10 @@ class VMDisc
 	: public IElemDisc<TDomain>
 {
 	public:
+
+#ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
+		synapse_handler::NETISynapseHandler<TDomain> sh;
+#endif
 		/// type for channels
 		typedef IChannel<TDomain> TIChannel;
 

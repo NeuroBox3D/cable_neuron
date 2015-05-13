@@ -9,6 +9,8 @@
 #include "bridge/util_domain_dependent.h"
 
 #include "lib_grid/global_attachments.h" // global attachments
+#include "../synapse_handler/grid/synapse_info.h"
+#include "../synapse_handler/grid/synapse_info_io_traits.h"
 
 // Hodgin und Huxley includes
 #include "channel_interface.h"
