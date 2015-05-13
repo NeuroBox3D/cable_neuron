@@ -70,8 +70,8 @@ else (NOT HHSynapseDistributor OR NOT SynapseDistributor)
 endif (NOT HHSynapseDistributor OR NOT SynapseDistributor)
 
 # indicate hh plugin will be build!
-  add_definitions(-DPLUGIN_HH_KABEL_NEW_ENABLED)
-    ExportDefinitions(-DPLUGIN_HH_KABEL_NEW_ENABLED)
+add_definitions(-DPLUGIN_HH_KABEL_NEW_ENABLED)
+ExportDefinitions(-DPLUGIN_HH_KABEL_NEW_ENABLED)
 
 if(buildEmbeddedPlugins)
 	# add the sources to ug4's sources
