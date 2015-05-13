@@ -38,27 +38,25 @@
 #include "channel_interface.h"
 
 #ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
-	#include "../synapse_handler/synapse_provider.h"
+	#include "../synapse_handler/synapse_handler.h"
 #endif
 #ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED
 	#include "../synapse_distributor/synapse_distributor.h"
 #endif
 
 namespace ug {
-namespace synapse_provider {
+namespace synapse_handler {
 
 #ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
 	// forward declaration
 	template <typename TDomain>
-	class SynapseProvider;
+	class NETISynapseHandler;
 #endif
 }
 
 // forward declaration
 template <typename TDomain>
 class IChannel;
-
-
 
 template <typename TDomain>
 class VMDisc
@@ -132,9 +130,7 @@ class VMDisc
 		  m_spec_res(1.0e6), m_spec_cap(1.0e-5), m_influx_ac(1e-9),
 		  m_aDiameter("diameter"),
 #ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
-#ifdef PLUGIN_NEURONAL_TOPOLOGY_IMPORTER_ENABLED
 		  m_spSP(SPNULL),
-#endif
 #endif
 #ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED
 		  m_spSD(SPNULL),
@@ -305,10 +301,8 @@ class VMDisc
 		virtual void approximation_space_changed()
 		{
 #ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
-#ifdef PLUGIN_NEURONAL_TOPOLOGY_IMPORTER_ENABLED
-			// call update function for synapse_provider
-			m_spSP->update();
-#endif
+			// call update function for synapse_handler
+			m_spSP->template update();
 #endif
 		}
 
@@ -357,9 +351,7 @@ class VMDisc
 
 
 #ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
-#ifdef PLUGIN_NEURONAL_TOPOLOGY_IMPORTER_ENABLED
-		void set_synapse_provider(synapse_provider::NETISynapseProvider<TDomain>* sp);
-#endif
+		void set_synapse_handler(synapse_handler::NETISynapseHandler<TDomain>* sp);
 #endif
 #ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED
 		void set_synapse_distributor(SmartPtr<SynapseDistributor> sd);
@@ -475,9 +467,7 @@ class VMDisc
 		Grid::AttachmentAccessor<Vertex, AVector4> m_aaUold;
 
 #ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
-#ifdef PLUGIN_NEURONAL_TOPOLOGY_IMPORTER_ENABLED
-		SmartPtr<synapse_provider::NETISynapseProvider<TDomain> > m_spSP;
-#endif
+		SmartPtr<synapse_handler::NETISynapseHandler<TDomain> > m_spSP;
 #endif
 
 #ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED

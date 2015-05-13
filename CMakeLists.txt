@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 2.6)
 
 project(HH_Kabelnew)
 
-set(HHSP ${HHSynapseProvider})
+set(HHSP ${HHSynapseHandler})
 
 # include the definitions and dependencies for ug-plugins.
 include("../../../cmake/ug_plugin_includes.cmake")
@@ -46,19 +46,19 @@ Convert/Debug/release_BMK_converted_standard_UG.cpp
 			)
 
 
-# check for SynapseProvider availability and activate
+# check for SynapseHandler availability and activate
 message(STATUS "")
 message(STATUS "Info: Additional options (-DHH) for the HH_Kabelnew (HH) plugin:")
-option(HHSynapseProvider, "Build SynapseProvider support" ${HHSP})
-message(STATUS "Info: SynapseProvider: " ${HHSP} " (options are: ON, OFF)")
+option(HHSynapseHandler, "Build SynapseHandler support" ${HHSH})
+message(STATUS "Info: SynapseHandler: " ${HHSH} " (options are: ON, OFF)")
 
-if (NOT HHSynapseProvider OR NOT SynapseProvider)
-    message(STATUS "SynapseProvider support deactivated. Enable by -DHHSynapseProvider=ON if -DHH_Kabelnew=ON")
-else (NOT HHSynapseProvider OR NOT SynapseProvider)
-    message(STATUS "SynapseProvider support activated. Disable by -DHHSynapseProvider=OFF")
-    add_definitions(-DPLUGIN_SYNAPSE_PROVIDER_ENABLED)
-    ExportDefinitions(-DPLUGIN_SYNAPSE_PROVIDER_ENABLED)
-endif (NOT HHSynapseProvider OR NOT SynapseProvider)
+if (NOT HHSynapseHandler OR NOT SynapseHandler)
+    message(STATUS "SynapseHandler support deactivated. Enable by -DHHSynapseHandler=ON if -DHH_Kabelnew=ON")
+else (NOT HHSynapseHandler OR NOT SynapseHandler)
+    message(STATUS "SynapseHandler support activated. Disable by -DHHSynapseHandler=OFF")
+    add_definitions(-DPLUGIN_SYNAPSE_HANDLER_ENABLED)
+    ExportDefinitions(-DPLUGIN_SYNAPSE_HANDLER_ENABLED)
+endif (NOT HHSynapseHandler OR NOT SynapseHandler)
 
 if (NOT HHSynapseDistributor OR NOT SynapseDistributor)
     message(STATUS "SynapseDistributor support deactivated. Enable by -DHHSynapseDistributor=ON if -DHH_Kabelnew=ON")

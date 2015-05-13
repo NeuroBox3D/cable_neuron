@@ -206,9 +206,7 @@ struct Functionality
 				.add_method("set_eca", &T::set_eca)
 				//.add_method("set_celsius", &T::set_celsius)
 	#ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
-#ifdef PLUGIN_NEURONAL_TOPOLOGY_IMPORTER_ENABLED
-				.add_method("set_synapse_provider", &T::set_synapse_provider)
-#endif
+				.add_method("set_synapse_handler", &T::set_synapse_handler)
 	#endif
 	#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED
 				.add_method("set_synapse_distributor", &T::set_synapse_distributor)

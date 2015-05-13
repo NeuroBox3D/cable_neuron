@@ -201,13 +201,11 @@ set_influx(number Flux, number x, number y, number z, number beg, number dur)
 
 
 #ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
-#ifdef PLUGIN_NEURONAL_TOPOLOGY_IMPORTER_ENABLED
 template <typename TDomain>
 void VMDisc<TDomain>::
-set_synapse_provider(synapse_provider::NETISynapseProvider<TDomain>* sp) {
+set_synapse_handler(synapse_handler::NETISynapseHandler<TDomain>* sp) {
 	this->m_spSP = make_sp(sp);
 }
-#endif
 #endif
 
 
@@ -317,9 +315,7 @@ void VMDisc<TDomain>::prep_timestep_elem
 	update_time(time, edge);
 
 #ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
-#ifdef PLUGIN_NEURONAL_TOPOLOGY_IMPORTER_ENABLED
-	m_spSP->update();
-#endif
+	m_spSP->template update();
 #endif
 }
 
@@ -388,7 +384,6 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 		}
 
 #ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
-#ifdef PLUGIN_NEURONAL_TOPOLOGY_IMPORTER_ENABLED
 		/// if a synapse provider is available
 		if	(m_spSP.valid())
 		{
@@ -402,7 +397,6 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 				d(_v_, co) += current;
 			}
 		}
-#endif
 #endif
 
 #ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED
