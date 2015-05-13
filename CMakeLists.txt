@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 2.6)
 
 project(HH_Kabelnew)
 
-set(HHSP ${HHSynapseHandler})
+set(HHSH ${HHSynapseHandler})
 
 # include the definitions and dependencies for ug-plugins.
 include("../../../cmake/ug_plugin_includes.cmake")
