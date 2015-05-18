@@ -86,7 +86,8 @@ class VMDisc
 		const number na_out;	// mol/m^3 = mM
 		const number ca_out;	// mol/m^3 = mM
 
-		double celsius;
+		//unsused!?
+		//double celsius;
 
 		double m_v, m_na, m_k, m_ca;
 
@@ -118,7 +119,7 @@ class VMDisc
 
 		///	constructor
 		// TODO: rework this!
-		// We generally only have the following functions: VM, K, Na, Ca.
+		// We generally only have the following functions: v, k, na, ca.
 		// We should begin with generating the necessary functions in a hard-coded way
 		// and might then check whether some of them are not in fact needed.
 		VMDisc
@@ -129,7 +130,7 @@ class VMDisc
 			const number init_time = 0.0
 		)
 		: IElemDisc<TDomain>("v, k, na, ca", subsets),
-		  k_out(2.5), na_out(140.0), ca_out(1.5), celsius(37),
+		  k_out(2.5), na_out(140.0), ca_out(1.5), //celsius(37),
 		  m_v(0), m_na(0), m_k(0), m_ca(0),
 		  m_ena(0), m_ek(0), m_eca(0),
 		  m_spec_res(1.0e6), m_spec_cap(1.0e-5), m_influx_ac(1e-9),
@@ -325,9 +326,10 @@ class VMDisc
 		/// set constant diameter for dendrites
 		void set_diameter(const number d);
 
-		void set_diameterGeo();
+		// This is done in the constructor.
+		//void set_diameterGeo();
 
-		void set_diameter_attachment(ANumber diameter);
+		//void set_diameter_attachment(ANumber diameter);
 
 		/// set spec_resistance
 		void set_spec_res(number val);
@@ -342,7 +344,7 @@ class VMDisc
 		void set_influx_ac(number influx_ac);
 
 		/// setting write temperature
-		void set_celsius(number cels);
+		//void set_celsius(number cels);
 
 		/// set influx params (flux value, coordinates, beginning, duration)
 		void set_influx(number Flux, number x, number y, number z, number beg, number dur);

@@ -120,7 +120,7 @@ set_diameter(const number d)
 	m_aaDiameter = Grid::AttachmentAccessor<Vertex, ANumber>(*grid, m_aDiameter);
 }
 
-
+#if 0
 template<typename TDomain>
 void VMDisc<TDomain>::
 set_diameterGeo()
@@ -137,13 +137,17 @@ set_diameterGeo()
 
 	m_aaDiameter = Grid::AttachmentAccessor<Vertex, ANumber>(*m_spApproxSpace->domain()->grid(), m_aDiameter);
 }
+#endif
 
-
+#if 0
+// that won't work unless attachment is also attached
+// and an accessor created for this attachment
 template <typename TDomain>
 void VMDisc<TDomain>::
 set_diameter_attachment(ANumber diameter) {
 	m_aDiameter = diameter;
 }
+#endif
 
 template<typename TDomain>
 void VMDisc<TDomain>::
@@ -360,7 +364,6 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 
 		// influx handling
 		number time = this->time();
-		double influx = 0;
 		for (size_t i = 0; i < m_flux_value.size(); i++)
 		{
 			/*std::cout << "coords: " << m_coords[i][0] << " - " << vCornerCoords[0][1] << std::endl;
@@ -390,7 +393,7 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 			{
 				//UG_LOG_ALL_PROCS("Setting Current" << "!"<<std::endl);
 				//UG_LOG_ALL_PROCS("Current: " << current << std::endl);
-				d(_v_, co) += current;
+				d(_v_, co) += 1e-12*current; // scaling from nA to C/ms
 			}
 		}
 #endif
@@ -451,7 +454,7 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 		}
 
 		// writing potential defects
-		d(_v_, co) += scv.volume()*PI*Diam * (allOutCurrentValues[0]-influx);
+		d(_v_, co) += scv.volume()*PI*Diam * allOutCurrentValues[0];
 		// writing ion species defects
 		for (size_t k = 1; k < m_numb_funcs+1; k++)
 			d(k, co) += scv.volume()*PI*Diam * allOutCurrentValues[k];
