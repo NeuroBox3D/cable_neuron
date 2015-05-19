@@ -268,6 +268,68 @@ class ChannelHHNernst
 
 
 
+template <typename TDomain>
+class ChannelLeak
+	: public IChannel<TDomain>
+{
+	public:
+		using IChannel<TDomain>::m_pVMDisc;
+
+		/// @copydoc IChannel<TDomain>::IChannel(const char*)
+		ChannelLeak(const char* functions, const char* subsets)
+		try : IChannel<TDomain>(functions, subsets),
+		m_g_I(3.0e-6), m_leak_vm(0),
+		m_accuracy(1e-12) {}
+		UG_CATCH_THROW("Error in ChannelHH initializer list.");
+
+		/// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&)
+		ChannelLeak(const std::vector<std::string>& functions, const std::vector<std::string>& subsets)
+		try : IChannel<TDomain>(functions, subsets),
+		m_g_I(3.0e-6), m_leak_vm(0),
+		m_accuracy(1e-12) {}
+		UG_CATCH_THROW("Error in ChannelHH initializer list.");
+
+		/// destructor
+		virtual ~ChannelLeak() {};
+
+		/// create attachments and accessors
+		void init_attachments();
+
+
+	/// functions for setting some HH params
+		void set_accuracy(double ac);
+
+		void set_leak_cond(number L);
+
+		void set_leak_vm(number vm);
+
+
+		// inherited from IChannel
+		virtual void init(const LocalVector& u, Edge* e);
+		virtual void update_gating(number newTime, const LocalVector& u, Edge* e);
+		virtual void ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues);
+		virtual void vm_disc_available();
+		//virtual void Jacobi_sets(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outJFlux);
+
+	private:
+		// membrane conductivities
+		number m_g_I;		// C / (m^2 * mV * ms)
+		number m_leak_vm;
+
+
+
+		// params gating
+		number m_accuracy;
+
+
+};
+
+
+
+
+
+
+
 } // namespace ug
 
 #endif // __UG__PLUGINS__EXPERIMENTAL__CABLE__CHANNEL_INTERFACE_H__

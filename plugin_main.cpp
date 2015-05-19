@@ -96,6 +96,7 @@ struct Functionality
 		}
 
 
+
 		// Kabel Diff FV1 with dynamic calculated reversal potential of K and Na (Nernst-Equatation)
 		{
 			typedef ElemDiscHH_Nernst_FV1<TDomain> T;
@@ -180,6 +181,26 @@ struct Functionality
 			reg.add_class_to_group(name, "ChannelHHNernst", tag);
 		}
 
+
+		// Only leakage Channel
+		{
+			typedef ChannelLeak<TDomain> T;
+			typedef IChannel<TDomain> Base;
+			string name = string("ChannelLeak").append(suffix);
+			reg.add_class_<T, TBase >(name, grp)
+				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
+				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
+				.add_method("set_leak_cond", &T::set_leak_cond)
+				.add_method("set_leak_vm", &T::set_leak_vm)
+				.add_method("set_accuracy", &T::set_accuracy)
+				//.add_method("ionic_current", /*static_cast<void (TBase::*) (Vertex*, std::vector<double>&)> (*/&T::ionic_current) /*, "","", "doing flux")*/
+				.set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "ChannelLeak", tag);
+
+
+		}
+
+
 		// VM-Disc class
 		{
 			typedef IChannel<TDomain> TIChannel;
@@ -219,7 +240,9 @@ struct Functionality
 			reg.add_class_to_group(name, "VMDisc", tag);
 		}
 
+//#ifdef HH_CONVERTED_CHANNELS_ENABLED
 	#include "Convert/Debug/channels.cpp"
+//#endif HH_CONVERTED_CHANNELS_ENABLED
 	}
 
 	/**

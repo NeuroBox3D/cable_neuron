@@ -481,6 +481,118 @@ void ChannelHHNernst<TDomain>::Jacobi_sets(Vertex* vrt, const std::vector<number
 }
 #endif
 
+
+
+
+
+
+
+////////////////////////////////////////////////
+// Methods for Leakeage-Channel-Class
+////////////////////////////////////////////////
+
+template<typename TDomain>
+void ChannelLeak<TDomain>::
+set_accuracy(number ac)
+{
+	m_accuracy = ac;
+}
+
+
+template<typename TDomain>
+void ChannelLeak<TDomain>::
+set_leak_cond(number L)
+{
+	m_g_I = L;
+}
+
+template<typename TDomain>
+void ChannelLeak<TDomain>::
+set_leak_vm(number vm)
+{
+	leak_vm = vm;
+}
+
+
+
+template<typename TDomain>
+void ChannelLeak<TDomain>::vm_disc_available()
+{
+	init_attachments();
+}
+
+
+template<typename TDomain>
+void ChannelLeak<TDomain>::init_attachments()
+{
+	// attach attachments
+	SmartPtr<Grid> spGrid = m_pVMDisc->approx_space()->domain()->grid();
+
+}
+
+
+// Methods for using gatings
+template<typename TDomain>
+void ChannelLeak<TDomain>::init(const LocalVector& u, Edge* edge)
+{
+
+}
+
+template<typename TDomain>
+void ChannelLeak<TDomain>::update_gating(number newTime, const LocalVector& u, Edge* edge)
+{
+
+
+}
+
+
+template<typename TDomain>
+void ChannelLeak<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
+{
+	// getting attachments for vertex
+	double NGate = m_aaNGate[vrt];
+ 	double MGate = m_aaMGate[vrt];
+	double HGate = m_aaHGate[vrt];
+	double VM 	 = vrt_values[VMDisc<TDomain>::_v_];
+
+
+	const number leakage_part_of_flux = m_g_I * (VM + m_leak_vm);
+
+	number flux_value = (leakage_part_of_flux);
+	outCurrentValues.push_back(flux_value);
+}
+
+
+#if 0
+template<typename TDomain>
+void ChannelLeak<TDomain>::Jacobi_sets(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outJFlux)
+{
+	double NGate = m_aaNGate[vrt];
+	double MGate = m_aaMGate[vrt];
+	double HGate = m_aaHGate[vrt];
+
+
+	number Jac = (m_g_K*pow(NGate,4) + m_g_Na*pow(MGate,3)*HGate + m_g_I);
+
+	outJFlux.push_back(Jac);
+
+}
+
+#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ////////////////////////////////////////////////////////////////////////////////
 //	explicit template instantiations
 ////////////////////////////////////////////////////////////////////////////////
@@ -488,18 +600,21 @@ void ChannelHHNernst<TDomain>::Jacobi_sets(Vertex* vrt, const std::vector<number
 #ifdef UG_DIM_1
 	template class IChannel<Domain1d>;
 	template class ChannelHH<Domain1d>;
+	template class ChannelLeak<Domain1d>;
 	template class ChannelHHNernst<Domain1d>;
 #endif
 
 #ifdef UG_DIM_2
 	template class IChannel<Domain2d>;
 	template class ChannelHH<Domain2d>;
+	template class ChannelLeak<Domain2d>;
 	template class ChannelHHNernst<Domain2d>;
 #endif
 
 #ifdef UG_DIM_3
 	template class IChannel<Domain3d>;
 	template class ChannelHH<Domain3d>;
+	template class ChannelLeak<Domain3d>;
 	template class ChannelHHNernst<Domain3d>;
 #endif
 
