@@ -168,7 +168,7 @@ class VMDisc
 			m_aaUold = Grid::AttachmentAccessor<Vertex, AVector4>(*m_spApproxSpace->domain()->grid(), m_aUold);
 
 			// handle diameter attachment
-			m_aDiameter = GlobalAttachments::attachment<ANumber>(string("diameter"));
+			m_aDiameter = GlobalAttachments::attachment<ANumber>(std::string("diameter"));
 			SmartPtr<MultiGrid> grid = m_spApproxSpace->domain()->grid();
 			if (!grid->has_attachment<Vertex>(m_aDiameter))
 				grid->attach_to_vertices_dv(m_aDiameter, 1e-6);
