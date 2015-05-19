@@ -86,8 +86,8 @@ class VMDisc
 		const number na_out;	// mol/m^3 = mM
 		const number ca_out;	// mol/m^3 = mM
 
-		//unsused!?
-		//double celsius;
+		// temperature [in degrees C]
+		double celsius;
 
 		double m_v, m_na, m_k, m_ca;
 
@@ -344,7 +344,7 @@ class VMDisc
 		void set_influx_ac(number influx_ac);
 
 		/// setting write temperature
-		//void set_celsius(number cels);
+		void set_celsius(number cels);
 
 		/// set influx params (flux value, coordinates, beginning, duration)
 		void set_influx(number Flux, number x, number y, number z, number beg, number dur);
