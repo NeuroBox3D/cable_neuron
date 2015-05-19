@@ -185,7 +185,7 @@ struct Functionality
 		// Only leakage Channel
 		{
 			typedef ChannelLeak<TDomain> T;
-			typedef IChannel<TDomain> Base;
+			typedef IChannel<TDomain> TBase;
 			string name = string("ChannelLeak").append(suffix);
 			reg.add_class_<T, TBase >(name, grp)
 				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")

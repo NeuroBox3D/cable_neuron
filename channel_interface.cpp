@@ -510,7 +510,7 @@ template<typename TDomain>
 void ChannelLeak<TDomain>::
 set_leak_vm(number vm)
 {
-	leak_vm = vm;
+	m_leak_vm = vm;
 }
 
 
@@ -550,9 +550,6 @@ template<typename TDomain>
 void ChannelLeak<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
 {
 	// getting attachments for vertex
-	double NGate = m_aaNGate[vrt];
- 	double MGate = m_aaMGate[vrt];
-	double HGate = m_aaHGate[vrt];
 	double VM 	 = vrt_values[VMDisc<TDomain>::_v_];
 
 
