@@ -317,8 +317,8 @@ class VMDisc
 		virtual void approximation_space_changed()
 		{
 #ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
-			// call update function for synapse_handler
-			m_spSP->update();
+			// call update function for synapse_handler --> unnecessary?!
+			//m_spSP->update();
 #endif
 		}
 
