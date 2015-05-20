@@ -319,7 +319,7 @@ void VMDisc<TDomain>::prep_timestep_elem
 	update_time(time, edge);
 
 #ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
-	m_spSP->update();
+	//m_spSP->update();	<-- do not do this element-wise!
 #endif
 }
 
