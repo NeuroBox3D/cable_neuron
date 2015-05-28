@@ -463,7 +463,7 @@ double Converter::Unit_Conv_Value(string s)
 	// existing units temp: degC
 	// (um) = (micron) ????
 	// mho/cm2 mA/cm2 S/cm2
-	// 2 standing for ²
+	// 2 standing for
 
 	bool onlyVA=true;
 	// In our model we have mA and mV
@@ -718,7 +718,7 @@ std::vector<string> Converter::GetProcEqualString(std::vector<pair<int, int> > P
 	//if (beg != 0)
 	//{
 		//std::cout << "GetProcEqual does anything" << std::endl;
-		// Rekursion könnte hier mehrfachaufrufe von prozeduren möglich machen
+		// Rekursion koennte hier mehrfachaufrufe von prozeduren moeglich machen
 		for (size_t i=beg; i<end; i++)
 		{
 			// deletes all not needed parts
@@ -1318,7 +1318,7 @@ bool Converter::pos_letterb(string s)
 }
 
 
-// ließt einzelne NModl-File ein
+// liest einzelne NModl-File ein
 std::vector<string> Converter::Openfile(string filename)
 {
 
@@ -1398,14 +1398,14 @@ std::vector<string> Converter::GetBlock(std::vector<pair<int, int> > Pairs, std:
 		if ((Zeilen[Pairs[i].first].find(name)!=Zeilen[Pairs[i].first].npos) && (Zeilen[Pairs[i].first].find(":"+name)==Zeilen[Pairs[i].first].npos))
 		{
 			////std::cout << Zeilen[Pairs[i].first] << std::endl;
-			//überprüft wenn weitere klammern da sind, dass nur die letzte verwendet wird;
+			//ueberprueft wenn weitere klammern da sind, dass nur die letzte verwendet wird;
 
 			while (Pairs[i].first == Pairs[i+1].first)
 			{
 				////std::cout << "in whhile by i: " << i << std::endl;
 				i = i+1;
 			}
-			//überspringt doppelte Pairs
+			//ueberspringt doppelte Pairs
 			//std:: cout << counter << " , " << Pairs[i+counter].second <<std::endl;
 
 			size_t breaks;
@@ -1722,7 +1722,8 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  mycppfile << "#include \"lib_disc/function_spaces/local_transfer_interface.h\" \n";
 	  mycppfile << "#include <cmath> \n";
 
-	  mycppfile << "namespace ug { \n \n \n";
+	  mycppfile << "namespace ug { \n";
+	  mycppfile << "namespace cable { \n \n \n";
 
 	  std::vector<string> mod_funcs_names;
 	  // all function and function_table have to be read in first so later need more attention more
@@ -1757,7 +1758,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 				  string right = func.substr(func.find("::")+2, func.npos-(func.find("::")+2));
 				  func = left + "<TDomain>::" + right;
 				  mycppfile << "template<typename TDomain> \n";
-				  // Todo template params in head benötigt
+				  // Todo template params in head benoetigt
 				  mycppfile << func +" \n";
 				  mycppfile << "{ \n";
 
@@ -1970,7 +1971,8 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  myhfile << "#include <stdio.h> \n";
 	  myhfile << "#include \"bindings/lua/lua_user_data.h\" \n";
 
-	  myhfile << "namespace ug { \n \n";
+	  myhfile << "namespace ug {\n";
+	  myhfile << "namespace ug {\n\n\n";
 	  myhfile << "// forward declaration \n";
 	  myhfile << "template <typename TDomain> \n";
 	  myhfile << "class VMDisc; \n \n";
@@ -3997,12 +3999,9 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  mycppfile << "#endif \n \n \n";
 
 
-	  mycppfile << "}  \n";
+	  mycppfile << "} // namespace cable\n";
+	  mycppfile << "} // namespace ug\n\n\n";
 
-
-
-	  mycppfile << "  \n";
-	  mycppfile << "  \n";
 	  mycppfile.close();
 
 
@@ -4079,7 +4078,8 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 	  myhfile << "}; \n \n";
 
-	  myhfile << "} // namespace ug \n \n \n";
+	  myhfile << "} // namespace cable\n";
+	  myhfile << "} // namespace ug\n\n\n";
 
 	  myhfile << "#endif // " + filename + "_H_\n";
 

@@ -9,6 +9,8 @@
 
 
 namespace ug {
+namespace cable {
+
 
 ////////////////////////////////////////////////
 // Methods for HH-Channel-Class
@@ -580,16 +582,6 @@ void ChannelLeak<TDomain>::Jacobi_sets(Vertex* vrt, const std::vector<number>& v
 
 
 
-
-
-
-
-
-
-
-
-
-
 ////////////////////////////////////////////////////////////////////////////////
 //	explicit template instantiations
 ////////////////////////////////////////////////////////////////////////////////
@@ -615,5 +607,5 @@ void ChannelLeak<TDomain>::Jacobi_sets(Vertex* vrt, const std::vector<number>& v
 	template class ChannelHHNernst<Domain3d>;
 #endif
 
-
+} // namespace cable
 } // namespace ug

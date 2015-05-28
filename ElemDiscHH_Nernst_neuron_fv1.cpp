@@ -18,6 +18,7 @@
 #include <math.h>
 
 namespace ug{
+namespace cable {
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -703,5 +704,7 @@ template class ElemDiscHH_Nernst_neuron_FV1<Domain2d>;
 template class ElemDiscHH_Nernst_neuron_FV1<Domain3d>;
 #endif
 
+
+} // namespace cable
 } // namespace ug
 

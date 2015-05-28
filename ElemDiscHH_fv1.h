@@ -15,8 +15,8 @@
 #include "ElemDiscHH_base.h"
 #include "lib_disc/spatial_disc/disc_util/conv_shape_interface.h"
 
-namespace ug{
-
+namespace ug {
+namespace cable {
 
 
 template<	typename TDomain>
@@ -159,7 +159,7 @@ class ElemDiscHH_FV1 : public ElemDiscHH_Base<TDomain>
 };
 
 
-
+} // end namspace cable
 } // end namespace ug
 
 

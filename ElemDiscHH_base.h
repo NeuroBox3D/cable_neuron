@@ -20,7 +20,9 @@
 #include "lib_disc/spatial_disc/user_data/data_export.h"
 #include "lib_disc/spatial_disc/user_data/data_import.h"
 
-namespace ug{
+namespace ug {
+namespace cable {
+
 
 // \ingroup lib_disc_elem_disc
 /// \addtogroup convection_diffusion
@@ -259,6 +261,7 @@ class ElemDiscHH_Base
 };
 
 
+} // end namespace cable
 } // end namespace ug
 
 

@@ -16,6 +16,7 @@
 #include "lib_disc/spatial_disc/disc_util/conv_shape_interface.h"
 
 namespace ug{
+namespace cable {
 
 
 
@@ -166,7 +167,7 @@ class ElemDiscHH_Nernst_neuron_FV1 : public ElemDiscHH_Base<TDomain>
 };
 
 
-
+} // end namespace cable
 } // end namespace ug
 
 

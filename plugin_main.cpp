@@ -9,35 +9,38 @@
 #include "bridge/util_domain_dependent.h"
 
 #include "lib_grid/global_attachments.h" // global attachments
-#include "../synapse_handler/grid/synapse_info.h"
-#include "../synapse_handler/grid/synapse_info_io_traits.h"
 
-// Hodgin und Huxley includes
+// Hodgkin & Huxley includes
 #include "channel_interface.h"
 #include "ElemDiscHH_base.h"
 #include "ElemDiscHH_fv1.h"
 #include "ElemDiscHH_Nernst_fv1.h"
 #include "ElemDiscHH_Nernst_neuron_fv1.h"
 #include "VM_Disc.h"
-// needed to add
-//#include "hh_converted_UG.h"
-//#include "passive_converted_standard_UG.h"
-#include "Convert/Debug/includefile.cpp"
 
-#include <string>
+// add converted channels
+#ifdef HH_CONVERTED_CHANNELS_ENABLED
+#include "Convert/Debug/includefile.cpp"
+#endif
 
 
 using namespace std;
 using namespace ug::bridge;
 
 namespace ug {
+namespace cable {
+
+
 
 /**
- *  This Plugin provides the Kabelgleichung in 1D
+ *  \defgroup plugin_cable Plugin cable
+ *  \ingroup plugins_experimental
+ *  This is a plugin for cable equation functionality.
+ *  \{
  */
 
 /**
- * Class exporting the functionality of the plugin. All functionality that is to
+ * Class exporting the functionality. All functionality that is to
  * be used in scripts or visualization must be registered here.
  */
 struct Functionality
@@ -196,8 +199,6 @@ struct Functionality
 				//.add_method("ionic_current", /*static_cast<void (TBase::*) (Vertex*, std::vector<double>&)> (*/&T::ionic_current) /*, "","", "doing flux")*/
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "ChannelLeak", tag);
-
-
 		}
 
 
@@ -208,17 +209,11 @@ struct Functionality
 			typedef IElemDisc<TDomain> TBase;
 			string name = string("VMDisc").append(suffix);
 			reg.add_class_<T, TBase >(name, grp)
-				.template add_constructor<void (*)(const char*,
-												   SmartPtr<ApproximationSpace<TDomain> >)>
+				.template add_constructor<void (*)(const char*)>
 					("Subset(s)#ApproxSpace")
-				.template add_constructor<void (*)(const char*,
-												   SmartPtr<ApproximationSpace<TDomain> >,
-												   const number)>
+				.template add_constructor<void (*)(const char*, const number)>
 					("Subset(s)#ApproxSpace#InitTime")
-				//.add_method("create_GridFunc", &T::create_GridFunc)
-				//.add_method("getApproxSpace" , &T::getApproxSpace)
 				.add_method("set_diameter", &T::set_diameter)
-				//.add_method("set_diameterGeo", &T::set_diameterGeo)
 				.add_method("set_spec_res", &T::set_spec_res)
 				.add_method("set_spec_cap", &T::set_spec_cap)
 				.add_method("set_diff_coeffs", &T::set_diff_coeffs)
@@ -234,15 +229,13 @@ struct Functionality
 	#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED
 				.add_method("set_synapse_distributor", &T::set_synapse_distributor)
 	#endif
-				//.add_method("add_func", &T::add_func)
-				//.add_method("setGridFct", &T::setGridFct)
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "VMDisc", tag);
 		}
 
-//#ifdef HH_CONVERTED_CHANNELS_ENABLED
+#ifdef HH_CONVERTED_CHANNELS_ENABLED
 	#include "Convert/Debug/channels.cpp"
-//#endif HH_CONVERTED_CHANNELS_ENABLED
+#endif
 	}
 
 	/**
@@ -262,9 +255,6 @@ struct Functionality
 		string tag = GetDomainAlgebraTag<TDomain, TAlgebra>();
 
 		typedef GridFunction<TDomain, TAlgebra> TFct;
-
-
-
 	}
 
 	/**
@@ -281,7 +271,6 @@ struct Functionality
 	{
 		string suffix = GetDimensionSuffix<dim>();
 		string tag = GetDimensionTag<dim>();
-
 	}
 
 	/**
@@ -298,7 +287,6 @@ struct Functionality
 	{
 		string suffix = GetAlgebraSuffix<TAlgebra>();
 		string tag = GetAlgebraTag<TAlgebra>();
-
 	}
 
 	/**
@@ -317,18 +305,24 @@ struct Functionality
 }; // end Functionality
 
 
+// end group plugin_cable
+/// \}
 
-////////////////////////////////////////////////////////////////////////////////
-//	InitUGPlugin_HH_Kabelnew
+} // end namespace cable
+
+
+
+/// This function is called when the plugin is loaded.
 extern "C" void
 InitUGPlugin_HH_Kabelnew(Registry* reg, string grp)
 {
+	grp.append("/HH_Kabelnew");
+
 	// declare diameter grid attachment
 	typedef ANumber ADiameter;
-	GlobalAttachments::declare_attachment<ADiameter>("diameter");
+	GlobalAttachments::declare_attachment<ADiameter>("diameter", true);
 
-	//Registering HH-Fluxes
-	grp.append("/HH_Kabelnew");
+	typedef cable::Functionality Functionality;
 
 	try
 	{

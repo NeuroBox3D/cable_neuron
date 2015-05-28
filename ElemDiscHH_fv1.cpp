@@ -17,7 +17,8 @@
 #include "lib_disc/spatial_disc/disc_util/conv_shape.h"
 #include <math.h>
 
-namespace ug{
+namespace ug {
+namespace cable {
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -619,5 +620,7 @@ template class ElemDiscHH_FV1<Domain2d>;
 template class ElemDiscHH_FV1<Domain3d>;
 #endif
 
+
+} // namespace cable
 } // namespace ug
 

@@ -15,7 +15,8 @@
 #include "bindings/lua/lua_user_data.h"
 #endif
 
-namespace ug{
+namespace ug {
+namespace cable {
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -416,4 +417,5 @@ template class ElemDiscHH_Base<Domain2d>;
 template class ElemDiscHH_Base<Domain3d>;
 #endif
 
+} // namespace cable
 } // namespace ug

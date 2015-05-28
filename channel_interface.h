@@ -8,33 +8,26 @@
 #ifndef __UG__PLUGINS__EXPERIMENTAL__CABLE__CHANNEL_INTERFACE_H__
 #define __UG__PLUGINS__EXPERIMENTAL__CABLE__CHANNEL_INTERFACE_H__
 
-#include "lib_grid/lg_base.h"
-#include "lib_grid/grid/grid_base_objects.h"
-
-#include "lib_disc/function_spaces/grid_function.h"
-#include "lib_disc/common/local_algebra.h"
-#include "lib_disc/function_spaces/grid_function.h"
-#include "lib_disc/function_spaces/interpolate.h"
-
-#include <vector>
-#include <stdio.h>
-
-#include "bindings/lua/lua_user_data.h"
-
-#include "common/util/smart_pointer.h"
-#include "common/util/vector_util.h"
 
 #include "VM_Disc.h"
 
 
+namespace ug {
+namespace cable {
 
-namespace ug
-{
 
 // forward declaration
 template <typename TDomain>
 class VMDisc;
 
+// ///////////////////////////////////////////////////////////////////////////////////////////////////
+// TODO:																							//
+// We will have to handle the attachments the channel implementations need in the following cases:	//
+// (a) adaptive refinement (we might re-use DiamAttachmentHandler for this)							//
+// (b) redistribution (functionality already exists, but needs to be activated -- ask S. Reiter)	//
+//																									//
+// Relocating these attachments to the edges might be worth a try. This would make (a) very easy.	//
+// ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain>
 class IChannel
@@ -113,7 +106,7 @@ class IChannel
 
 		const std::vector<std::string>& write_fcts() {return m_vWFct;}
 		const std::vector<std::string>& write_subsets() {return m_vSubset;}
-		void set_vm_disc(VMDisc<TDomain>*  vmdisc) {m_pVMDisc = vmdisc; vm_disc_available();}
+		void set_vm_disc(VMDisc<TDomain>*  vmdisc) {m_pVMDisc = vmdisc;}
 
 	protected:
 		/// functions whose defect will be written to by this channel
@@ -325,11 +318,7 @@ class ChannelLeak
 };
 
 
-
-
-
-
-
+} // namespace cable
 } // namespace ug
 
 #endif // __UG__PLUGINS__EXPERIMENTAL__CABLE__CHANNEL_INTERFACE_H__

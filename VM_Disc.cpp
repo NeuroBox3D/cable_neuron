@@ -21,11 +21,41 @@
 
 
 namespace ug {
+namespace cable {
 
 
+template<typename TDomain>
+VMDisc<TDomain>::VMDisc(const char* subsets, const number init_time)
+: 	IElemDisc<TDomain>("v, k, na, ca", subsets),
+	k_out(2.5), na_out(140.0), ca_out(1.5), celsius(37.0),
+	m_v(0), m_na(0), m_k(0), m_ca(0),
+	m_ena(0), m_ek(0), m_eca(0),
+	m_spec_res(1.0e6), m_spec_cap(1.0e-5), m_influx_ac(1e-9),
+	m_aDiameter(GlobalAttachments::attachment<ANumber>("diameter")),
+	m_constDiam(1e-6), m_bConstDiamSet(false),
+#ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
+	m_spSH(SPNULL),
+#endif
+#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED
+	m_spSD(SPNULL),
+#endif
+	m_bNonRegularGrid(false),
+	m_init_time(init_time), m_ass_time(init_time-1.0),
+	m_bLocked(false)
+{
+	// set diff constants
+	m_diff.resize(3);
+	m_diff[0] = 1.0e-12;
+	m_diff[1] = 1.0e-12;
+	m_diff[2] = 2.2e-13;
+}
 
-/*set_celsius(number cels)
-		celsius = cels;*/
+
+template<typename TDomain>
+void VMDisc<TDomain>::set_celsius(number cels)
+{
+	celsius = cels;
+}
 
 
 template<typename TDomain>
@@ -36,21 +66,21 @@ VMDisc<TDomain>* VMDisc<TDomain>::get_VmDisc()
 
 
 template<typename TDomain>
-double VMDisc<TDomain>::
+number VMDisc<TDomain>::
 get_eca()
 {
 	return m_eca;
 }
 
 template<typename TDomain>
-double VMDisc<TDomain>::
+number VMDisc<TDomain>::
 get_ena()
 {
 	return m_ena;
 }
 
 template<typename TDomain>
-double VMDisc<TDomain>::
+number VMDisc<TDomain>::
 get_ek()
 {
 	return m_ek;
@@ -58,49 +88,49 @@ get_ek()
 
 template<typename TDomain>
 void VMDisc<TDomain>::
-set_eca(double value)
+set_eca(number value)
 {
 	m_eca = value;
 }
 
 template<typename TDomain>
 void VMDisc<TDomain>::
-set_ek(double value)
+set_ek(number value)
 {
 	m_ek = value;
 }
 
 template<typename TDomain>
 void VMDisc<TDomain>::
-set_ena(double value)
+set_ena(number value)
 {
 	m_ena = value;
 }
 
 
 template<typename TDomain>
-double VMDisc<TDomain>::
+number VMDisc<TDomain>::
 get_flux_ca()
 {
 	return m_ca;
 }
 
 template<typename TDomain>
-double VMDisc<TDomain>::
+number VMDisc<TDomain>::
 get_flux_na()
 {
 	return m_na;
 }
 
 template<typename TDomain>
-double VMDisc<TDomain>::
+number VMDisc<TDomain>::
 get_flux_k()
 {
 	return m_k;
 }
 
 template<typename TDomain>
-double VMDisc<TDomain>::
+number VMDisc<TDomain>::
 get_flux_v()
 {
 	return m_v;
@@ -111,56 +141,19 @@ template<typename TDomain>
 void VMDisc<TDomain>::
 set_diameter(const number d)
 {
-	// attachment is attached by constructor in any case
-	// thus, it needs to be detached and re-attached
-	SmartPtr<MultiGrid> grid = m_spApproxSpace->domain()->grid();
-	grid->detach_from_vertices(m_aDiameter);
-	grid->attach_to_vertices_dv(m_aDiameter, d);
+	UG_COND_THROW(m_bLocked, "Diameter cannot be (re)set after VMDisc "
+				  "has been added to domain discretization.");
 
-	m_aaDiameter = Grid::AttachmentAccessor<Vertex, ANumber>(*grid, m_aDiameter);
+	m_constDiam = d;
+	m_bConstDiamSet = true;
 }
 
-#if 0
-template<typename TDomain>
-void VMDisc<TDomain>::
-set_diameterGeo()
-{
-	// iterator over all edges
-	// handle the attachments
-	/*if (m_spApproxSpace->domain()->grid()->has_vertex_attachment(m_aDiameter))
-		UG_THROW("Radius attachment necessary for Vm disc "
-				 "could not be created, since it already exists.");*/
-
-
-
-	m_aDiameter = GlobalAttachments::attachment<ANumber>("diameter");
-
-	m_aaDiameter = Grid::AttachmentAccessor<Vertex, ANumber>(*m_spApproxSpace->domain()->grid(), m_aDiameter);
-}
-#endif
-
-#if 0
-// that won't work unless attachment is also attached
-// and an accessor created for this attachment
-template <typename TDomain>
-void VMDisc<TDomain>::
-set_diameter_attachment(ANumber diameter) {
-	m_aDiameter = diameter;
-}
-#endif
 
 template<typename TDomain>
 void VMDisc<TDomain>::
 set_spec_res(number val)
 {
 	m_spec_res = val;
-}
-
-
-template<typename TDomain>
-SmartPtr<ApproximationSpace<TDomain> > VMDisc<TDomain>::approx_space()
-{
-	return m_spApproxSpace;
 }
 
 
@@ -207,8 +200,9 @@ set_influx(number Flux, number x, number y, number z, number beg, number dur)
 #ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
 template <typename TDomain>
 void VMDisc<TDomain>::
-set_synapse_handler(synapse_handler::NETISynapseHandler<TDomain>* sp) {
-	this->m_spSP = make_sp(sp);
+set_synapse_handler(SmartPtr<synapse_handler::NETISynapseHandler<TDomain> > sh)
+{
+	m_spSH = sh;
 }
 #endif
 
@@ -216,8 +210,9 @@ set_synapse_handler(synapse_handler::NETISynapseHandler<TDomain>* sp) {
 #ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED
 template <typename TDomain>
 void VMDisc<TDomain>::
-set_synapse_distributor(SmartPtr<SynapseDistributor> sd) {
-	this->m_spSD = sd;
+set_synapse_distributor(SmartPtr<SynapseDistributor> sd)
+{
+	m_spSD = sd;
 }
 #endif
 
@@ -247,7 +242,7 @@ void VMDisc<TDomain>::update_time(const number newTime, Edge* edge)
 {
 	typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list;
 	vrt_list vl;
-	m_spApproxSpace->domain()->grid()->associated_elements(vl, edge);
+	this->approx_space()->domain()->grid()->associated_elements(vl, edge);
 	for (size_t vrt = 0; vrt < vl.size(); ++vrt)
 		m_aaTime[vl[vrt]] = newTime;
 }
@@ -258,7 +253,7 @@ void VMDisc<TDomain>::save_old_sol(const LocalVector& u, Edge* edge)
 {
 	typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list;
 	vrt_list vl;
-	m_spApproxSpace->domain()->grid()->associated_elements_sorted(vl, edge);
+	this->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge);
 	for (size_t vrt = 0; vrt < vl.size(); ++vrt)
 		for (size_t i = 0; i < m_numb_funcs+1; ++i)
 			m_aaUold[vl[vrt]][i] = u(i, vrt);
@@ -279,12 +274,76 @@ number VMDisc<TDomain>::get_vm(Vertex* vrt) const
 }
 
 
-template <typename TDomain>
-ConstSmartPtr<ApproximationSpace<TDomain> > VMDisc<TDomain>::get_approximation_space() const {
-	return m_spApproxSpace;
+
+
+template<typename TDomain>
+void VMDisc<TDomain>::approximation_space_changed()
+{
+	// only do this the first time the approx changes (when it is initially set)
+	if (m_bLocked) return;
+
+
+	SmartPtr<MultiGrid> grid = this->approx_space()->domain()->grid();
+
+	// create time attachment and accessor
+	if (grid->has_vertex_attachment(m_aTime))
+		UG_THROW("Time attachment necessary for Vm disc "
+				 "could not be created, since it already exists.");
+	grid->attach_to_vertices_dv(m_aTime, m_init_time);
+
+	m_aaTime = Grid::AttachmentAccessor<Vertex, ANumber>(*grid, m_aTime);
+
+	// create old solution attachment and accessor
+	if (grid->has_vertex_attachment(m_aUold))
+		UG_THROW("Old solution attachment necessary for Vm disc "
+				 "could not be created, since it already exists.");
+	grid->attach_to_vertices(m_aUold);
+
+	m_aaUold = Grid::AttachmentAccessor<Vertex, AVector4>(*grid, m_aUold);
+
+	// handle diameter attachment
+	if (!grid->has_attachment<Vertex>(m_aDiameter))
+		grid->attach_to_vertices_dv(m_aDiameter, m_constDiam);
+	else
+	{
+		if (m_bConstDiamSet)
+		{
+			UG_LOG("HINT: Even though you have explicitly set a constant diameter to the domain\n"
+				   "      this discretization will use the diameter information attached to the grid\n"
+				   "      you specified.\n");
+
+		}
+	}
+
+	// this will distribute the attachment values to the whole grid
+	m_dah.set_attachment(m_aDiameter);
+	m_dah.set_grid(grid);
+
+	// create accessor
+	m_aaDiameter = Grid::AttachmentAccessor<Vertex, ANumber>(*grid, m_aDiameter);
+
+	// call channel init functions
+	for (size_t i = 0; i < m_channel.size(); i++)
+		m_channel[i]->vm_disc_available();
+
+
+#ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
+	// call init method for synapse handler
+	if (m_spSH.valid())
+		m_spSH->grid_first_available();
+#endif
+
+	// lock discretization
+	m_bLocked = true;
 }
 
-
+// ///////////////////////////////////////////////////////////
+// TODO														//
+// It would be preferable to do this in one loop instead of	//
+// element-wise. This would also enable us to call the		//
+// update_presyn() method of the synapse_handler class from	//
+// here instead of from the script.							//
+// ///////////////////////////////////////////////////////////
 template<typename TDomain>
 void VMDisc<TDomain>::prep_timestep_elem
 (
@@ -312,15 +371,10 @@ void VMDisc<TDomain>::prep_timestep_elem
 		//std::cout << "update" << std::endl;
 		for (size_t i = 0; i < m_channel.size(); ++i)
 			m_channel[i]->update_gating(time, u, edge);
-
 	}
 
 	// update time in attachments
 	update_time(time, edge);
-
-#ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
-	//m_spSP->update();	<-- do not do this element-wise!
-#endif
 }
 
 
@@ -334,7 +388,7 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
 	// get subset handler
-	MGSubsetHandler& ssh = *m_spApproxSpace->domain()->subset_handler();
+	MGSubsetHandler& ssh = *this->approx_space()->domain()->subset_handler();
 
 	// some helper vars
 	number element_length = 0.0;
@@ -384,12 +438,12 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 
 #ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
 		/// if a synapse provider is available
-		if	(m_spSP.valid())
+		if	(m_spSH.valid())
 		{
 			number current = 0;
 			//UG_LOG_ALL_PROCS("In synapse Provider!!!" << "!"<<std::endl);
 			// ... and assemble to defect if synapse present
-			if (m_spSP->synapse_on_edge(pElem, co, time, current))
+			if (m_spSH->synapse_on_edge(pElem, co, time, current))
 			{
 				//UG_LOG_ALL_PROCS("Setting Current" << "!"<<std::endl);
 				//UG_LOG_ALL_PROCS("Current: " << current << std::endl);
@@ -740,7 +794,7 @@ void VMDisc<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, const MathV
 template<typename TDomain>
 size_t VMDisc<TDomain>::get_index(std::string s)
 {
-	return m_spApproxSpace->fct_id_by_name(s.c_str());
+	return this->approx_space()->fct_id_by_name(s.c_str());
 }
 
 
@@ -774,7 +828,6 @@ register_func()
 	this->set_add_def_M_elem_fct(id, &T::template add_def_M_elem<TElem, TFVGeom>);
 	this->set_add_jac_A_elem_fct(id, &T::template add_jac_A_elem<TElem, TFVGeom>);
 	this->set_add_jac_M_elem_fct(id, &T::template add_jac_M_elem<TElem, TFVGeom>);
-
 }
 
 
@@ -796,4 +849,5 @@ register_func()
 #endif
 
 
-} /* namespace ug */
+} // namespace cable
+} // namespace ug

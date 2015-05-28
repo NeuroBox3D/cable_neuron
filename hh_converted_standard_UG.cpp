@@ -3,10 +3,12 @@
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h" 
 #include "lib_disc/function_spaces/grid_function.h" 
 #include "lib_disc/function_spaces/local_transfer_interface.h" 
-#include <cmath> 
+#include <cmath>
+
 namespace ug { 
- 
- 
+namespace cable {
+
+
 template<typename TDomain> 
 double hh_converted_standard_UG<TDomain>::vtrap(double x, double y)
 { 
@@ -226,7 +228,8 @@ template class hh_converted_standard_UG<Domain2d>;
 template class hh_converted_standard_UG<Domain3d>; 
 #endif 
  
- 
+
+}
 }  
   
   
