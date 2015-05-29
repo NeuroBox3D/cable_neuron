@@ -1972,7 +1972,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  myhfile << "#include \"bindings/lua/lua_user_data.h\" \n";
 
 	  myhfile << "namespace ug {\n";
-	  myhfile << "namespace ug {\n\n\n";
+	  myhfile << "namespace cable {\n\n\n";
 	  myhfile << "// forward declaration \n";
 	  myhfile << "template <typename TDomain> \n";
 	  myhfile << "class VMDisc; \n \n";

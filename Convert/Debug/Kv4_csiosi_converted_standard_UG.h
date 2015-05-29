@@ -27,7 +27,8 @@
 #include <vector> 
 #include <stdio.h> 
 #include "bindings/lua/lua_user_data.h" 
-namespace ug { 
+namespace ug {
+namespace cable {
  
 // forward declaration 
 template <typename TDomain> 
@@ -229,7 +230,8 @@ number 		kii2 ;
 number 		ki2i ; 
 }; 
  
-} // namespace ug 
+} // namespace cable
+} // namespace ug
  
  
 #endif // Kv4_csiosi_converted_standard_UG_H_

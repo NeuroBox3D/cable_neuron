@@ -5,6 +5,7 @@
 #include "lib_disc/function_spaces/local_transfer_interface.h" 
 #include <cmath> 
 namespace ug { 
+namespace cable { 
  
  
 // adding function which always inits_attachments 
@@ -149,6 +150,7 @@ template class passive_converted_standard_UG<Domain3d>;
 #endif 
  
  
-}  
-  
-  
+} // namespace cable
+} // namespace ug
+
+

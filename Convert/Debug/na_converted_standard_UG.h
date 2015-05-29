@@ -27,8 +27,10 @@
 #include <vector> 
 #include <stdio.h> 
 #include "bindings/lua/lua_user_data.h" 
-namespace ug { 
- 
+namespace ug {
+namespace cable {
+
+
 // forward declaration 
 template <typename TDomain> 
 class VMDisc; 
@@ -170,7 +172,8 @@ number 	vmax ;
 number tadj; 
 }; 
  
-} // namespace ug 
- 
- 
+} // namespace cable
+} // namespace ug
+
+
 #endif // na_converted_standard_UG_H_

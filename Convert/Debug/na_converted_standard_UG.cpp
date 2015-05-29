@@ -5,6 +5,7 @@
 #include "lib_disc/function_spaces/local_transfer_interface.h" 
 #include <cmath> 
 namespace ug { 
+namespace cable { 
  
  
 template<typename TDomain> 
@@ -380,6 +381,7 @@ template class na_converted_standard_UG<Domain3d>;
 #endif 
  
  
-}  
-  
-  
+} // namespace cable
+} // namespace ug
+
+

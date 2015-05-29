@@ -5,6 +5,7 @@
 #include "lib_disc/function_spaces/local_transfer_interface.h" 
 #include <cmath> 
 namespace ug { 
+namespace cable { 
  
  
 template<typename TDomain> 
@@ -190,9 +191,9 @@ double O = aaOGate[vrt];
 
  
  
-tadj= pow(q10 , ((celsius-temp)/10);
-number	a = Ra / (1 + exp(-(v-th)/q)) * tadj;
-number 	b = Rb / (1 + exp((v-th)/q)) * tadj;
+tadj= pow(q10 , ((celsius-temp)/10(celsius)));
+	a = Ra / (1 + exp(-(v-th)/q)) * tadj; 
+	b = Rb / (1 + exp((v-th)/q)) * tadj; 
  
  
  
@@ -231,12 +232,12 @@ number cai =  ca;
 
  
  
-//number rates(v);
-number cao = m_pVMDisc->ca_out;
-number ghks = ghk(v,cai,cao);
+number rates(v); 
+number cao = m_pVMDisc->ca_out; 
+
  
  
-outCurrentValues.push_back( O * p * ghks);
+outCurrentValues.push_back( O * p * ghk(v,cai,cao)); 
  } 
  
  
@@ -258,6 +259,7 @@ template class caL3d_converted_standard_UG<Domain3d>;
 #endif 
  
  
-}  
-  
-  
+} // namespace cable
+} // namespace ug
+
+

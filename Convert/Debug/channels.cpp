@@ -547,3 +547,42 @@
  
  
  
+#include "caL3d_converted_standard_UG.h" 
+ 
+ 
+{ 
+	 typedef caL3d_converted_standard_UG<TDomain> T; 
+	 typedef IChannel<TDomain> TBase; 
+	 string name = string("caL3d_converted_standard_UG").append(suffix); 
+	 reg.add_class_<T, TBase >(name, grp) 
+	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
+	 	 .template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)") 
+.add_method("setp" , &T::setp)
+.add_method("setth" , &T::setth)
+.add_method("setq" , &T::setq)
+.add_method("setRa" , &T::setRa)
+.add_method("setRb" , &T::setRb)
+.add_method("settemp" , &T::settemp)
+.add_method("setq10" , &T::setq10)
+	 	 .set_construct_as_smart_pointer(true); 
+	 reg.add_class_to_group(name, "caL3d_converted_standard_UG", tag); 
+} 
+ 
+ 
+#include "release_exp_converted_standard_UG.h" 
+ 
+ 
+{ 
+	 typedef release_exp_converted_standard_UG<TDomain> T; 
+	 typedef IChannel<TDomain> TBase; 
+	 string name = string("release_exp_converted_standard_UG").append(suffix); 
+	 reg.add_class_<T, TBase >(name, grp) 
+	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
+	 	 .template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)") 
+.add_method("settau1" , &T::settau1)
+.add_method("settau2" , &T::settau2)
+	 	 .set_construct_as_smart_pointer(true); 
+	 reg.add_class_to_group(name, "release_exp_converted_standard_UG", tag); 
+} 
+ 
+ 
