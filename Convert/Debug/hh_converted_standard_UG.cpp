@@ -20,6 +20,21 @@ double hh_converted_standard_UG<TDomain>::vtrap(double x, double y)
 
  
  
+template<typename TDomain> 
+void hh_converted_standard_UG<TDomain>::set_out_x(number x){  
+	out_x = x;  
+}  
+ 
+template<typename TDomain> 
+void hh_converted_standard_UG<TDomain>::set_out_y(number y){  
+	out_y = y;  
+}  
+ 
+template<typename TDomain> 
+void hh_converted_standard_UG<TDomain>::set_out_z(number z){  
+	out_z = z;  
+}  
+ 
 // adding function which always inits_attachments 
 template<typename TDomain> 
 void hh_converted_standard_UG<TDomain>::vm_disc_available()  
@@ -179,6 +194,35 @@ number k = u(m_pVMDisc->_k_, size_l);
 double m = aamGate[vrt]; 
 double h = aahGate[vrt]; 
 double n = aanGate[vrt]; 
+
+ 
+ 
+Grid::AttachmentAccessor< Vertex, APosition > aaPos; 
+std::cout << aaPos[0] << std::endl; 
+number x=aaPos[0][1]; 
+number y=aaPos[0][2]; 
+number z=aaPos[0][3]; 
+string sm_file = "m_file.txt"; 
+const char* m_file = sm_file.c_str();
+string sh_file = "h_file.txt"; 
+const char* h_file = sh_file.c_str();
+string sn_file = "n_file.txt"; 
+const char* n_file = sn_file.c_str();
+
+ 
+ofstream mym_file, myh_file, myn_file;
+ if (x==out_x && y==out_y && z==out_z) 
+{ 
+	 mym_file.open(m_file, std::ios::app); 
+	 mym_file << m << " \n ";
+	 mym_file.close(); 
+	 myh_file.open(h_file, std::ios::app); 
+	 myh_file << h << " \n ";
+	 myh_file.close(); 
+	 myn_file.open(n_file, std::ios::app); 
+	 myn_file << n << " \n ";
+	 myn_file.close(); 
+}
 
  
  

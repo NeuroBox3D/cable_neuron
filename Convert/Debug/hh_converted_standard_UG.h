@@ -52,6 +52,7 @@ class hh_converted_standard_UG
 hh_converted_standard_UG(const char* functions, const char* subsets) 
 try : IChannel<TDomain>(functions, subsets), 
 m_R(8.314), m_T(293.0), m_F(96485.0), 
+out_x(NULL), out_y(NULL), out_z(NULL), 
         gnabar ( .12 *0.01), 
         gkbar ( .036 *0.01), 
         gl ( .0003 *0.01), 
@@ -63,6 +64,7 @@ UG_CATCH_THROW("Error in hh_converted_standard_UG initializer list. ")
 hh_converted_standard_UG(const std::vector<std::string>& functions, const std::vector<std::string>& subsets) 
 try : IChannel<TDomain>(functions, subsets), 
 m_R(8.314), m_T(293.0), m_F(96485.0), 
+out_x(NULL), out_y(NULL), out_z(NULL), 
         gnabar ( .12 *0.01), 
         gkbar ( .036 *0.01), 
         gl ( .0003 *0.01), 
@@ -82,6 +84,9 @@ virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std
 virtual void vm_disc_available(); 
 
  
+void set_out_x(number x);
+void set_out_y(number y);
+void set_out_z(number z);
 double getgnabar(); 
 double getgkbar(); 
 double getgl(); 
@@ -96,6 +101,7 @@ protected:
 private: 
  
 number m_R, m_T, m_F; 
+number out_x, out_y, out_z; 
 ADouble mGate; 
 Grid::AttachmentAccessor<Vertex, ADouble> aamGate; 
 ADouble hGate; 
