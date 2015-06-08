@@ -2853,6 +2853,60 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 	  mycppfile << "\n \n \n";
 
+////////////////////////////////////////////////////////////////////////////////
+//////// writting output of State-Files
+////////////////////////////////////////////////////////////////////////////////
+
+	  mycppfile << "Grid::AttachmentAccessor< Vertex, APosition > aaPos; \n";
+	  mycppfile << "std::cout << aaPos[0] << std::endl; \n";
+
+	  mycppfile << "number x=aaPos[0][1]; \n";
+	  mycppfile << "number y=aaPos[0][2]; \n";
+	  mycppfile << "number z=aaPos[0][3]; \n";
+
+
+string sh_file = "h_file.txt";
+string sm_file = "m_file.txt";
+string sn_file = "n_file.txt";
+
+const char* h_file = sh_file.c_str();
+const char* m_file = sm_file.c_str();
+const char* n_file = sn_file.c_str();
+
+//const char* filenameh = fnameh.c_str();
+
+ofstream myhfile;
+
+ofstream myh_file, mym_file, myn_file;
+
+
+
+if (x==0.0 && y==0.0 && z==0.0)
+{
+	myh_file.open (h_file, std::ios::app);
+	myh_file <<  h << "\n";
+	myh_file.close();
+
+	mym_file.open (m_file, std::ios::app);
+	mym_file <<  m << "\n";
+	mym_file.close();
+
+	myn_file.open (n_file, std::ios::app);
+	myn_file <<  n << "\n";
+	myn_file.close();
+}
+
+
+
+
+
+
+
+
+
+
+
+
 	  std::cout << "Working on Derivative-Block starts" << std::endl;
 	  if (DERIVATIVE.size() > 0)
 	  	  {
