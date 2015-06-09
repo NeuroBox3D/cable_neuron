@@ -520,15 +520,13 @@ set_leak_vm(number vm)
 template<typename TDomain>
 void ChannelLeak<TDomain>::vm_disc_available()
 {
-	init_attachments();
+
 }
 
 
 template<typename TDomain>
 void ChannelLeak<TDomain>::init_attachments()
 {
-	// attach attachments
-	SmartPtr<Grid> spGrid = m_pVMDisc->approx_space()->domain()->grid();
 
 }
 
@@ -544,7 +542,6 @@ template<typename TDomain>
 void ChannelLeak<TDomain>::update_gating(number newTime, const LocalVector& u, Edge* edge)
 {
 
-
 }
 
 
@@ -555,7 +552,7 @@ void ChannelLeak<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>&
 	double VM 	 = vrt_values[VMDisc<TDomain>::_v_];
 
 
-	const number leakage_part_of_flux = m_g_I * (VM + m_leak_vm);
+	const number leakage_part_of_flux = m_g_I * (VM - m_leak_vm);
 
 	number flux_value = (leakage_part_of_flux);
 	outCurrentValues.push_back(flux_value);

@@ -271,14 +271,14 @@ class ChannelLeak
 		/// @copydoc IChannel<TDomain>::IChannel(const char*)
 		ChannelLeak(const char* functions, const char* subsets)
 		try : IChannel<TDomain>(functions, subsets),
-		m_g_I(3.0e-6), m_leak_vm(0),
+		m_g_I(3.0e-6), m_leak_vm(-54.4),
 		m_accuracy(1e-12) {}
 		UG_CATCH_THROW("Error in ChannelHH initializer list.");
 
 		/// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&)
 		ChannelLeak(const std::vector<std::string>& functions, const std::vector<std::string>& subsets)
 		try : IChannel<TDomain>(functions, subsets),
-		m_g_I(3.0e-6), m_leak_vm(0),
+		m_g_I(3.0e-6), m_leak_vm(-54.4),
 		m_accuracy(1e-12) {}
 		UG_CATCH_THROW("Error in ChannelHH initializer list.");
 
