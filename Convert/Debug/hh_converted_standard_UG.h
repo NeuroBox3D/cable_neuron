@@ -52,7 +52,7 @@ class hh_converted_standard_UG
 hh_converted_standard_UG(const char* functions, const char* subsets) 
 try : IChannel<TDomain>(functions, subsets), 
 m_R(8.314), m_T(293.0), m_F(96485.0), 
-out_x(NULL), out_y(NULL), out_z(NULL), 
+out_x(NAN), out_y(NAN), out_z(NAN),
         gnabar ( .12 *0.01), 
         gkbar ( .036 *0.01), 
         gl ( .0003 *0.01), 
@@ -64,7 +64,7 @@ UG_CATCH_THROW("Error in hh_converted_standard_UG initializer list. ")
 hh_converted_standard_UG(const std::vector<std::string>& functions, const std::vector<std::string>& subsets) 
 try : IChannel<TDomain>(functions, subsets), 
 m_R(8.314), m_T(293.0), m_F(96485.0), 
-out_x(NULL), out_y(NULL), out_z(NULL), 
+out_x(NAN), out_y(NAN), out_z(NAN),
         gnabar ( .12 *0.01), 
         gkbar ( .036 *0.01), 
         gl ( .0003 *0.01), 

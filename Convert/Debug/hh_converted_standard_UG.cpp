@@ -198,19 +198,27 @@ double n = aanGate[vrt];
  
  
 Grid::AttachmentAccessor< Vertex, APosition > aaPos; 
-std::cout << aaPos[0] << std::endl; 
+
 number x=aaPos[0][1]; 
 number y=aaPos[0][2]; 
 number z=aaPos[0][3]; 
-string sm_file = "m_file.txt"; 
+
+std::stringstream ssm_file, ssh_file, ssn_file;
+
+ssm_file << "m_file_pos_x_" << x << "_y_" << y << "_z_" << z << ".txt";
+std::string sm_file = ssm_file.str();
 const char* m_file = sm_file.c_str();
-string sh_file = "h_file.txt"; 
+
+ssh_file << "h_file_pos_x_" << x << "_y_" << y << "_z_" << z << ".txt";
+std::string sh_file = ssh_file.str();
 const char* h_file = sh_file.c_str();
-string sn_file = "n_file.txt"; 
+
+ssn_file << "n_file_pos_x_" << x << "_y_" << y << "_z_" << z << ".txt";
+std::string sn_file = ssn_file.str();
 const char* n_file = sn_file.c_str();
 
  
-ofstream mym_file, myh_file, myn_file;
+std::ofstream mym_file, myh_file, myn_file;
  if (x==out_x && y==out_y && z==out_z) 
 { 
 	 mym_file.open(m_file, std::ios::app); 
@@ -312,6 +320,29 @@ number gk = gkbar*n*n*n*n;
  
  
 outCurrentValues.push_back( gna*(v - ena) +  gk*(v - ek)       +  gl*(v - el)); 
+
+Grid::AttachmentAccessor< Vertex, APosition > aaPos;
+
+number x=aaPos[0][1];
+number y=aaPos[0][2];
+number z=aaPos[0][3];
+
+std::stringstream ssVfile;
+ssVfile << "V_file_pos_x_" << x << "_y_" << y << "_z_" << z << ".txt";
+std::string sV_file = ssVfile.str();
+const char* V_file = sV_file.c_str();
+
+
+std::ofstream myV_file;
+ if (x==out_x && y==out_y && z==out_z)
+{
+	 myV_file.open(V_file, std::ios::app);
+	 myV_file << outCurrentValues[0] << " \n ";
+	 myV_file.close();
+
+}
+
+
  } 
  
  
