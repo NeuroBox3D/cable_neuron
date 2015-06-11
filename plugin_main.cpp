@@ -19,9 +19,9 @@
 #include "VM_Disc.h"
 
 // add converted channels
-#ifdef HH_CONVERTED_CHANNELS_ENABLED
+//#ifdef HH_CONVERTED_CHANNELS_ENABLED
 #include "Convert/Debug/includefile.cpp"
-#endif
+//#endif
 
 
 using namespace std;
@@ -201,7 +201,6 @@ struct Functionality
 			reg.add_class_to_group(name, "ChannelLeak", tag);
 		}
 
-
 		// VM-Disc class
 		{
 			typedef IChannel<TDomain> TIChannel;
@@ -213,16 +212,30 @@ struct Functionality
 					("Subset(s)#ApproxSpace")
 				.template add_constructor<void (*)(const char*, const number)>
 					("Subset(s)#ApproxSpace#InitTime")
-				.add_method("set_diameter", &T::set_diameter)
-				.add_method("set_spec_res", &T::set_spec_res)
-				.add_method("set_spec_cap", &T::set_spec_cap)
+				.add_method("set_diameter", static_cast<void (T::*)(number)>(&T::set_diameter),
+						"", "new diameter | default | value=1e-6", "sets a new diameter")
+				.add_method("set_spec_res", static_cast<void (T::*)(number)>(&T::set_spec_res),
+						"", "new spec resistence | default | value=1e6", "sets a new spec resistence")
+				.add_method("set_spec_cap", static_cast<void (T::*)(number)>(&T::set_spec_cap),
+						"", "new spec capacity | default | value=1e-5", "sets a new spec capacity")
 				.add_method("set_diff_coeffs", &T::set_diff_coeffs)
 				.add_method("add_channel", &T::add_channel)
-				.add_method("set_influx", &T::set_influx)
-				.add_method("set_ena", &T::set_ena)
-				.add_method("set_ek", &T::set_ek)
-				.add_method("set_eca", &T::set_eca)
-				//.add_method("set_celsius", &T::set_celsius)
+				.add_method("set_influx", static_cast<void (T::*)(number, number, number, number, number, number)>(&T::set_influx), "",
+						"flux value | default | value=1e-12 #"
+						"x-coordinate of influx position | default | 0.0 #"
+						"y-coordinate of influx position | default | 0.0 #"
+						"z-coordinate of influx position | default | 0.0 #"
+						"begin time | default | 0 #"
+						"duration time | default | 0 ",
+						"sets Position, duration, ending and influxvalue of an Influx")
+				.add_method("set_ena", static_cast<void (T::*)(number)>(&T::set_ena),
+						"", "reversible potential for Sodium | default | value=1e-6", "sets reversible potential for Sodium")
+				.add_method("set_ek", static_cast<void (T::*)(number)>(&T::set_ek),
+						"", "reversible potential for Kalium | default | value=1e-6", "sets reversible potential for Kalium")
+				.add_method("set_eca", static_cast<void (T::*)(number)>(&T::set_eca),
+						"", "reversible potential for Calcium | default | value=1e-6", "sets reversible potential for Calcium")
+				.add_method("set_celsius", static_cast<void (T::*)(number)>(&T::set_celsius),
+						"", "new temperature value in grad celsius | default | value=37", "sets new temperature")
 	#ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
 				.add_method("set_synapse_handler", &T::set_synapse_handler)
 	#endif
@@ -233,9 +246,9 @@ struct Functionality
 			reg.add_class_to_group(name, "VMDisc", tag);
 		}
 
-#ifdef HH_CONVERTED_CHANNELS_ENABLED
+//#ifdef HH_CONVERTED_CHANNELS_ENABLED
 	#include "Convert/Debug/channels.cpp"
-#endif
+//#endif
 	}
 
 	/**
