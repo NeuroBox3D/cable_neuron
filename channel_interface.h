@@ -131,17 +131,13 @@ class ChannelHH
 		/// @copydoc IChannel<TDomain>::IChannel(const char*)
 		ChannelHH(const char* functions, const char* subsets)
 		try : IChannel<TDomain>(functions, subsets),
-		m_g_K(3.6e-4), m_g_Na(1.2e-3), m_g_I(3.0e-6),
-		m_rev_pot_K(-74.1266), m_rev_pot_Na(63.5129),
-		m_accuracy(1e-12) {}
+		m_g_K(3.6e-4), m_g_Na(1.2e-3), m_g_I(3.0e-6) {}
 		UG_CATCH_THROW("Error in ChannelHH initializer list.");
 
 		/// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&)
 		ChannelHH(const std::vector<std::string>& functions, const std::vector<std::string>& subsets)
 		try : IChannel<TDomain>(functions, subsets),
-		m_g_K(3.6e-4), m_g_Na(1.2e-3), m_g_I(3.0e-6),
-		m_rev_pot_K(-74.1266), m_rev_pot_Na(63.5129),
-		m_accuracy(1e-12) {}
+		m_g_K(3.6e-4), m_g_Na(1.2e-3), m_g_I(3.0e-6) {}
 		UG_CATCH_THROW("Error in ChannelHH initializer list.");
 
 		/// destructor
@@ -152,14 +148,12 @@ class ChannelHH
 
 
 	/// functions for setting some HH params
-		void set_accuracy(double ac);
-
 		void set_conductivities(number Na, number K, number L);
 
-		void set_rev_pot(number R_Na, number R_K);
-
+	private:
 		number vtrap(number x, number y);
 
+	public:
 		// inherited from IChannel
 		virtual void init(const LocalVector& u, Edge* e);
 		virtual void update_gating(number newTime, const LocalVector& u, Edge* e);
@@ -173,21 +167,14 @@ class ChannelHH
 		number m_g_Na;		// C / (m^2 * mV * ms)
 		number m_g_I;		// C / (m^2 * mV * ms)
 
-		// reversal pot of sodium and potassium
-		number m_rev_pot_K;
-		number m_rev_pot_Na;
-
-		// params gating
-		number m_accuracy;
-
 		// one attachment per state variable
-		ADouble m_MGate;
-		ADouble m_HGate;
-		ADouble m_NGate;
+		ANumber m_MGate;
+		ANumber m_HGate;
+		ANumber m_NGate;
 
-		Grid::AttachmentAccessor<Vertex, ADouble> m_aaMGate;
-		Grid::AttachmentAccessor<Vertex, ADouble> m_aaHGate;
-		Grid::AttachmentAccessor<Vertex, ADouble> m_aaNGate;
+		Grid::AttachmentAccessor<Vertex, ANumber> m_aaMGate;
+		Grid::AttachmentAccessor<Vertex, ANumber> m_aaHGate;
+		Grid::AttachmentAccessor<Vertex, ANumber> m_aaNGate;
 };
 
 
@@ -203,8 +190,7 @@ class ChannelHHNernst
 		ChannelHHNernst(const char* functions, const char* subsets)
 		try : IChannel<TDomain>(functions, subsets),
 		m_g_K(3.6e-4), m_g_Na(1.2e-3), m_g_I(3.0e-6),
-		m_R(8.314), m_T(310.0), m_F(96485.0),
-		m_accuracy(1e-12) {}
+		m_R(8.314), m_T(310.0), m_F(96485.0) {}
 		UG_CATCH_THROW("Error in ChannelHHNernst initializer list.");
 
 
@@ -213,7 +199,7 @@ class ChannelHHNernst
 		try : IChannel<TDomain>(functions, subsets),
 		m_g_K(3.6e-4), m_g_Na(1.2e-3), m_g_I(3.0e-6),
 		m_R(8.314), m_T(310.0), m_F(96485.0),
-		m_accuracy(1e-12) {}
+		m_rev_pot_leak(-54.4) {}
 		UG_CATCH_THROW("Error in ChannelHHNernst initializer list.");
 
 		/// destructor
@@ -223,10 +209,12 @@ class ChannelHHNernst
 		void init_attachments();
 
 		// functions for setting some HH params
-		void set_accuracy(double ac);
-
 		void set_conductivities(number Na, number K, number L);
 
+	private:
+		number vtrap(number x, number y);
+
+	public:
 		// inherited from IChannel
 		virtual void init(const LocalVector& u, Edge* e);
 		virtual void update_gating(number newTime, const LocalVector& u, Edge* e);
@@ -246,17 +234,17 @@ class ChannelHHNernst
 		number m_T;
 		number m_F;
 
-		// params gating
-		number m_accuracy;
+		// leakage reversal potential
+		number m_rev_pot_leak;
 
 		// one attachment per state variable
-		ADouble m_MGate;
-		ADouble m_HGate;
-		ADouble m_NGate;
+		ANumber m_MGate;
+		ANumber m_HGate;
+		ANumber m_NGate;
 
-		Grid::AttachmentAccessor<Vertex, ADouble> m_aaMGate;
-		Grid::AttachmentAccessor<Vertex, ADouble> m_aaHGate;
-		Grid::AttachmentAccessor<Vertex, ADouble> m_aaNGate;
+		Grid::AttachmentAccessor<Vertex, ANumber> m_aaMGate;
+		Grid::AttachmentAccessor<Vertex, ANumber> m_aaHGate;
+		Grid::AttachmentAccessor<Vertex, ANumber> m_aaNGate;
 };
 
 
@@ -271,15 +259,13 @@ class ChannelLeak
 		/// @copydoc IChannel<TDomain>::IChannel(const char*)
 		ChannelLeak(const char* functions, const char* subsets)
 		try : IChannel<TDomain>(functions, subsets),
-		m_g_I(3.0e-6), m_leak_vm(-54.4),
-		m_accuracy(1e-12) {}
+		m_g_I(3.0e-6){}
 		UG_CATCH_THROW("Error in ChannelHH initializer list.");
 
 		/// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&)
 		ChannelLeak(const std::vector<std::string>& functions, const std::vector<std::string>& subsets)
 		try : IChannel<TDomain>(functions, subsets),
-		m_g_I(3.0e-6), m_leak_vm(-54.4),
-		m_accuracy(1e-12) {}
+		m_g_I(3.0e-6) {}
 		UG_CATCH_THROW("Error in ChannelHH initializer list.");
 
 		/// destructor
@@ -290,12 +276,7 @@ class ChannelLeak
 
 
 	/// functions for setting some HH params
-		void set_accuracy(double ac);
-
 		void set_leak_cond(number L);
-
-		void set_leak_vm(number vm);
-
 
 		// inherited from IChannel
 		virtual void init(const LocalVector& u, Edge* e);
@@ -307,14 +288,6 @@ class ChannelLeak
 	private:
 		// membrane conductivities
 		number m_g_I;		// C / (m^2 * mV * ms)
-		number m_leak_vm;
-
-
-
-		// params gating
-		number m_accuracy;
-
-
 };
 
 

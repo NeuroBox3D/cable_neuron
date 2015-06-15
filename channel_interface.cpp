@@ -15,15 +15,6 @@ namespace cable {
 ////////////////////////////////////////////////
 // Methods for HH-Channel-Class
 ////////////////////////////////////////////////
-
-template<typename TDomain>
-void ChannelHH<TDomain>::
-set_accuracy(number ac)
-{
-	m_accuracy = ac;
-}
-
-
 template<typename TDomain>
 void ChannelHH<TDomain>::
 set_conductivities(number Na, number K, number L)
@@ -33,15 +24,6 @@ set_conductivities(number Na, number K, number L)
 	m_g_I = L;
 }
 
-
-template<typename TDomain>
-void ChannelHH<TDomain>::
-set_rev_pot(number R_Na, number R_K)
-{
-  m_rev_pot_Na = R_Na;
-  m_rev_pot_K = R_K;
-
-}
 
 template<typename TDomain>
 number ChannelHH<TDomain>::
@@ -86,9 +68,9 @@ void ChannelHH<TDomain>::init_attachments()
 	spGrid->attach_to_vertices(m_NGate);
 
 	// create attachment accessors
-	m_aaMGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, m_MGate);
-	m_aaNGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, m_NGate);
-	m_aaHGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, m_HGate);
+	m_aaMGate = Grid::AttachmentAccessor<Vertex, ANumber>(*spGrid, m_MGate);
+	m_aaNGate = Grid::AttachmentAccessor<Vertex, ANumber>(*spGrid, m_NGate);
+	m_aaHGate = Grid::AttachmentAccessor<Vertex, ANumber>(*spGrid, m_HGate);
 }
 
 
@@ -118,35 +100,6 @@ void ChannelHH<TDomain>::init(const LocalVector& u, Edge* edge)
 		// values for h gate
 		number AlphaHh = 0.07 * exp(-(VM+65.0)/20.0);
 		number BetaHh = 1.0 / (exp(-(VM+35.0)/10.0) + 1.0);
-
-		/*
-		// writing Gating-Params in attachment
-		// gating param h
-		number AlphaHh = 0.07*exp(-(VM + 65.0)/20.0);
-		number BetaHh = 1.0/(exp(3.0-0.1*(VM  + 65.0))+1.0);
-
-		// gating param m
-		number AlphaHm;
-		number AlphaHm_test = exp(2.5-0.1*(VM + 65.0))-1.0;
-		if (fabs(AlphaHm_test) > m_accuracy)
-			AlphaHm = (2.5 - 0.1*(VM + 65.0)) / AlphaHm_test;
-		else
-			AlphaHm = 1.0;
-
-		number BetaHm = 4.0*exp(-(VM + 65.0)/18.0);
-
-
-		// gating param n
-		number AlphaHn;
-		number AlphaHn_test;
-		AlphaHn_test = exp(1.0-0.1*(VM + 65.0))-1.0;
-		if (fabs(AlphaHn_test) > m_accuracy)
-			AlphaHn = (0.1-0.01*(VM + 65.0)) / AlphaHn_test;
-		else
-			AlphaHn = 0.1;
-
-		number BetaHn = 0.125*exp((VM + 65.0)/80.0);
-		*/
 
 		// setting initial gating params as equilibrium states
 		this->m_aaHGate[vrt] = AlphaHh / (AlphaHh + BetaHh);
@@ -188,33 +141,6 @@ void ChannelHH<TDomain>::update_gating(number newTime, const LocalVector& u, Edg
 		number BetaHh = 1.0 / (exp(-(VM+35.0)/10.0) + 1.0);
 		number sumABHh = 4.5*(AlphaHh+BetaHh);
 
-		/*
-		// set gating params
-		number AlphaHh = 0.07*exp(-(m_aaVm[*iter] + 65.0)/20.0);
-		number BetaHh = 1.0/(exp(3.0-0.1*(m_aaVm[*iter]  + 65.0))+1.0);
-
-		// gating param m
-		number AlphaHm;
-		number AlphaHm_test = exp(2.5-0.1*(m_aaVm[*iter] + 65.0))-1.0;
-		if (fabs(AlphaHm_test) > m_accuracy)
-			AlphaHm = (2.5 - 0.1*( m_aaVm[*iter] + 65.0)) / AlphaHm_test;
-		else
-			AlphaHm = 1.0;
-
-		number BetaHm = 4.0*exp(-(m_aaVm[*iter] + 65.0)/18.0);
-
-		// gating param n
-		number AlphaHn;
-		number AlphaHn_test;
-		AlphaHn_test = exp(1.0-0.1*(m_aaVm[*iter] + 65.0))-1.0;
-		if (fabs(AlphaHn_test) > m_accuracy)
-			AlphaHn = (0.1-0.01*(m_aaVm[*iter] + 65.0)) / AlphaHn_test;
-		else
-			AlphaHn = 0.1;
-
-		number BetaHn = 0.125*exp((m_aaVm[*iter] + 65.0)/80.0);
-		 */
-
 		number rate_h = ((AlphaHh/((AlphaHh+BetaHh))) - m_aaHGate[vrt]) / (1.0/sumABHh) * dt;
 		number rate_m = ((AlphaHm/((AlphaHm+BetaHm))) - m_aaMGate[vrt]) / (1.0/sumABHm) * dt;
 		number rate_n = ((AlphaHn/((AlphaHn+BetaHn))) - m_aaNGate[vrt]) / (1.0/sumABHn) * dt;
@@ -232,16 +158,20 @@ template<typename TDomain>
 void ChannelHH<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
 {
 	// getting attachments for vertex
-	double NGate = m_aaNGate[vrt];
- 	double MGate = m_aaMGate[vrt];
-	double HGate = m_aaHGate[vrt];
-	double VM 	 = vrt_values[VMDisc<TDomain>::_v_];
+	number NGate = m_aaNGate[vrt];
+	number MGate = m_aaMGate[vrt];
+	number HGate = m_aaHGate[vrt];
+	number VM 	 = vrt_values[VMDisc<TDomain>::_v_];
+
+	number rev_pot_K = m_pVMDisc->m_ek;
+	number rev_pot_Na = m_pVMDisc->m_ena;
+	number rev_pot_leak = m_pVMDisc->m_eleak;
 
 	// TODO Influx values needed
 	// single channel type fluxes
-	const number potassium_part_of_flux = m_g_K * pow(NGate,4) * (VM - m_rev_pot_K);
-	const number sodium_part_of_flux =  m_g_Na * pow(MGate,3) * HGate * (VM - m_rev_pot_Na);
-	const number leakage_part_of_flux = m_g_I * (VM + 54.4);
+	const number potassium_part_of_flux = m_g_K * pow(NGate,4) * (VM - rev_pot_K);
+	const number sodium_part_of_flux =  m_g_Na * pow(MGate,3) * HGate * (VM - rev_pot_Na);
+	const number leakage_part_of_flux = m_g_I * (VM - rev_pot_leak);
 
 	number flux_value = (potassium_part_of_flux + sodium_part_of_flux + leakage_part_of_flux);
 	outCurrentValues.push_back(flux_value);
@@ -252,9 +182,9 @@ void ChannelHH<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>& v
 template<typename TDomain>
 void ChannelHH<TDomain>::Jacobi_sets(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outJFlux)
 {
-	double NGate = m_aaNGate[vrt];
-	double MGate = m_aaMGate[vrt];
-	double HGate = m_aaHGate[vrt];
+	number NGate = m_aaNGate[vrt];
+	number MGate = m_aaMGate[vrt];
+	number HGate = m_aaHGate[vrt];
 
 
 	number Jac = (m_g_K*pow(NGate,4) + m_g_Na*pow(MGate,3)*HGate + m_g_I);
@@ -267,15 +197,6 @@ void ChannelHH<TDomain>::Jacobi_sets(Vertex* vrt, const std::vector<number>& vrt
 ////////////////////////////////////////////////
 // Methods for HH-Channel-Nernst-Class
 ////////////////////////////////////////////////
-
-template<typename TDomain>
-void ChannelHHNernst<TDomain>::
-set_accuracy(double ac)
-{
-	m_accuracy = ac;
-}
-
-
 template<typename TDomain>
 void ChannelHHNernst<TDomain>::
 set_conductivities(number Na, number K, number L)
@@ -283,6 +204,20 @@ set_conductivities(number Na, number K, number L)
 	m_g_K = K;
 	m_g_Na = Na;
 	m_g_I = L;
+}
+
+
+template<typename TDomain>
+number ChannelHHNernst<TDomain>::
+vtrap(number x, number y)
+{
+	number vtrap;
+    if (fabs(x/y) < 1e-6) {
+           	   vtrap = y*(1 - x/y/2);
+        }else{
+               vtrap = x/(exp(x/y) - 1);
+        }
+    return vtrap;
 }
 
 
@@ -315,9 +250,9 @@ void ChannelHHNernst<TDomain>::init_attachments()
 	spGrid->attach_to_vertices(m_NGate);
 
 	// create attachment accessors
-	m_aaMGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, m_MGate);
-	m_aaNGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, m_NGate);
-	m_aaHGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, m_HGate);
+	m_aaMGate = Grid::AttachmentAccessor<Vertex, ANumber>(*spGrid, m_MGate);
+	m_aaNGate = Grid::AttachmentAccessor<Vertex, ANumber>(*spGrid, m_NGate);
+	m_aaHGate = Grid::AttachmentAccessor<Vertex, ANumber>(*spGrid, m_HGate);
 }
 
 
@@ -336,31 +271,17 @@ void ChannelHHNernst<TDomain>::init(const LocalVector& u, Edge* edge)
 		// update Vm
 		number VM = u(m_pVMDisc->_v_, k);
 
-		// writing gating params in attachments
-		// gating param h
-		number AlphaHh = 0.07*exp(-(VM + 65.0)/20.0);
-		number BetaHh = 1.0/(exp(3.0-0.1*(VM + 65.0))+1.0);
+		// values for m gate
+		number AlphaHm = 0.1 * vtrap(-(VM+40.0),10.0);
+		number BetaHm =  4.0 * exp(-(VM+65.0)/18.0);
 
-		// gating param m
-		number AlphaHm;
-		number AlphaHm_test = exp(2.5-0.1*(VM + 65.0))-1.0;
-		if (fabs(AlphaHm_test) > m_accuracy)
-			AlphaHm = (2.5 - 0.1*(VM + 65.0)) / AlphaHm_test;
-		else
-			AlphaHm = 1.0;
+		// values for n gate
+		number AlphaHn = 0.01*vtrap(-(VM+55.0),10.0);
+		number BetaHn = 0.125*exp(-(VM+65.0)/80.0);
 
-		number BetaHm = 4.0*exp(-(VM + 65.0)/18.0);
-
-		// gating param n
-		number AlphaHn;
-		number AlphaHn_test;
-		AlphaHn_test = exp(1.0-0.1*(VM + 65.0))-1.0;
-		if (fabs(AlphaHn_test) > m_accuracy)
-			AlphaHn = (0.1-0.01*(VM + 65.0)) / AlphaHn_test;
-		else
-			AlphaHn = 0.1;
-
-		number BetaHn = 0.125*exp((VM + 65.0)/80.0);
+		// values for h gate
+		number AlphaHh = 0.07 * exp(-(VM+65.0)/20.0);
+		number BetaHh = 1.0 / (exp(-(VM+35.0)/10.0) + 1.0);
 
 		// setting initial gating params as equilibrium states
 		this->m_aaHGate[vrt] = AlphaHh / (AlphaHh + BetaHh);
@@ -387,30 +308,17 @@ void ChannelHHNernst<TDomain>::update_gating(number newTime, const LocalVector& 
 		number VM = u(m_pVMDisc->_v_, k);
 
 		// set new gating states
-		// gating param h
-		number AlphaHh = 0.07*exp(-(VM + 65.0)/20.0);
-		number BetaHh = 1.0/(exp(3.0-0.1*(VM + 65.0))+1.0);
+		// values for m gate
+		number AlphaHm = 0.1 * vtrap(-(VM+40.0),10.0);
+		number BetaHm =  4.0 * exp(-(VM+65.0)/18.0);
 
-		// gating param m
-		number AlphaHm;
-		number AlphaHm_test = exp(2.5-0.1*(VM + 65.0))-1.0;
-		if (fabs(AlphaHm_test) > m_accuracy)
-			AlphaHm = (2.5 - 0.1*(VM + 65.0)) / AlphaHm_test;
-		else
-			AlphaHm = 1.0;
+		// values for n gate
+		number AlphaHn = 0.01*vtrap(-(VM+55.0),10.0);
+		number BetaHn = 0.125*exp(-(VM+65.0)/80.0);
 
-		number BetaHm = 4.0*exp(-(VM + 65.0)/18.0);
-
-		// gating param n
-		number AlphaHn;
-		number AlphaHn_test;
-		AlphaHn_test = exp(1.0-0.1*(VM + 65.0))-1.0;
-		if (fabs(AlphaHn_test) > m_accuracy)
-			AlphaHn = (0.1-0.01*(VM + 65.0)) / AlphaHn_test;
-		else
-			AlphaHn = 0.1;
-
-		number BetaHn = 0.125*exp((VM + 65.0)/80.0);
+		// values for h gate
+		number AlphaHh = 0.07 * exp(-(VM+65.0)/20.0);
+		number BetaHh = 1.0 / (exp(-(VM+35.0)/10.0) + 1.0);
 
 		number rate_h = ((AlphaHh/(AlphaHh+BetaHh)) - m_aaHGate[vrt]) / (1.0/(AlphaHh+BetaHh)) * dt;
 		number rate_m = ((AlphaHm/(AlphaHm+BetaHm)) - m_aaMGate[vrt]) / (1.0/(AlphaHm+BetaHm)) * dt;
@@ -442,7 +350,7 @@ void ChannelHHNernst<TDomain>::ionic_current(Vertex* vrt, const std::vector<numb
 	// single channel ion fluxes
 	number potassium_part_of_flux = m_g_K * pow(NGate,4) * (v - potassium_nernst_eq);
 	number sodium_part_of_flux =  m_g_Na * pow(MGate,3) * HGate * (v - sodium_nernst_eq);
-	number leakage_part_of_flux = m_g_I * (v - (-54.4));
+	number leakage_part_of_flux = m_g_I * (v - m_rev_pot_leak);
 
 	//std::cout << "potassium_part_of_flux: " << potassium_part_of_flux << std::endl;
 	//std::cout << "sodium_part_of_flux: " << sodium_part_of_flux << std::endl;
@@ -492,29 +400,12 @@ void ChannelHHNernst<TDomain>::Jacobi_sets(Vertex* vrt, const std::vector<number
 ////////////////////////////////////////////////
 // Methods for Leakeage-Channel-Class
 ////////////////////////////////////////////////
-
-template<typename TDomain>
-void ChannelLeak<TDomain>::
-set_accuracy(number ac)
-{
-	m_accuracy = ac;
-}
-
-
 template<typename TDomain>
 void ChannelLeak<TDomain>::
 set_leak_cond(number L)
 {
 	m_g_I = L;
 }
-
-template<typename TDomain>
-void ChannelLeak<TDomain>::
-set_leak_vm(number vm)
-{
-	m_leak_vm = vm;
-}
-
 
 
 template<typename TDomain>
@@ -549,10 +440,10 @@ template<typename TDomain>
 void ChannelLeak<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
 {
 	// getting attachments for vertex
-	double VM 	 = vrt_values[VMDisc<TDomain>::_v_];
+	number VM 	 = vrt_values[VMDisc<TDomain>::_v_];
+	number leak_equilibrium = m_pVMDisc->m_eleak;
 
-
-	const number leakage_part_of_flux = m_g_I * (VM - m_leak_vm);
+	const number leakage_part_of_flux = m_g_I * (VM - leak_equilibrium);
 
 	number flux_value = (leakage_part_of_flux);
 	outCurrentValues.push_back(flux_value);
@@ -563,9 +454,9 @@ void ChannelLeak<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>&
 template<typename TDomain>
 void ChannelLeak<TDomain>::Jacobi_sets(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outJFlux)
 {
-	double NGate = m_aaNGate[vrt];
-	double MGate = m_aaMGate[vrt];
-	double HGate = m_aaHGate[vrt];
+	number NGate = m_aaNGate[vrt];
+	number MGate = m_aaMGate[vrt];
+	number HGate = m_aaHGate[vrt];
 
 
 	number Jac = (m_g_K*pow(NGate,4) + m_g_Na*pow(MGate,3)*HGate + m_g_I);

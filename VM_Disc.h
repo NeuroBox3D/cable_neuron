@@ -70,7 +70,7 @@ class VMDisc
 
 		number m_v, m_na, m_k, m_ca;
 
-		number m_ena, m_ek, m_eca;
+		number m_ena, m_ek, m_eca, m_eleak;
 
 		// dendritic params
 		number m_spec_res;	// mV * ms * m / C

@@ -29,7 +29,7 @@ VMDisc<TDomain>::VMDisc(const char* subsets, const number init_time)
 : 	IElemDisc<TDomain>("v, k, na, ca", subsets),
 	k_out(2.5), na_out(140.0), ca_out(1.5), celsius(37.0),
 	m_v(0), m_na(0), m_k(0), m_ca(0),
-	m_ena(0), m_ek(0), m_eca(0),
+	m_ena(50.0), m_ek(-77.0), m_eca(138.0), m_eleak(-54.4),
 	m_spec_res(1.0e6), m_spec_cap(1.0e-5), m_influx_ac(1e-9),
 	m_aDiameter(GlobalAttachments::attachment<ANumber>("diameter")),
 	m_constDiam(1e-6), m_bConstDiamSet(false),

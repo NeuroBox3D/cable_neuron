@@ -161,8 +161,6 @@ struct Functionality
 				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
 				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
 				.add_method("set_conductivities", &T::set_conductivities)
-				.add_method("set_rev_pot", &T::set_rev_pot)
-				.add_method("set_accuracy", &T::set_accuracy)
 				//.add_method("ionic_current", /*static_cast<void (TBase::*) (Vertex*, std::vector<double>&)> (&T::ionic_current) /*, "","", "doing flux")
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "ChannelHH", tag);
@@ -178,7 +176,6 @@ struct Functionality
 				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
 				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
 				.add_method("set_conductivities", &T::set_conductivities)
-				.add_method("set_accuracy", &T::set_accuracy)
 				//.add_method("ionic_current", /*static_cast<void (TBase::*) (Vertex*, std::vector<double>&)> (*/&T::ionic_current) /*, "","", "doing flux")*/
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "ChannelHHNernst", tag);
@@ -194,8 +191,6 @@ struct Functionality
 				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
 				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
 				.add_method("set_leak_cond", &T::set_leak_cond)
-				.add_method("set_leak_vm", &T::set_leak_vm)
-				.add_method("set_accuracy", &T::set_accuracy)
 				//.add_method("ionic_current", /*static_cast<void (TBase::*) (Vertex*, std::vector<double>&)> (*/&T::ionic_current) /*, "","", "doing flux")*/
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "ChannelLeak", tag);
@@ -213,11 +208,11 @@ struct Functionality
 				.template add_constructor<void (*)(const char*, const number)>
 					("Subset(s)#ApproxSpace#InitTime")
 				.add_method("set_diameter", static_cast<void (T::*)(number)>(&T::set_diameter),
-						"", "new diameter | default | value=1e-6", "sets a new diameter")
+						"", "new diameter | default | value=1e6", "sets a new diameter")
 				.add_method("set_spec_res", static_cast<void (T::*)(number)>(&T::set_spec_res),
-						"", "new spec resistence | default | value=1e6", "sets a new spec resistence")
+						"", "new specific resistance | default | value=1e6", "sets a new specific resistance")
 				.add_method("set_spec_cap", static_cast<void (T::*)(number)>(&T::set_spec_cap),
-						"", "new spec capacity | default | value=1e-5", "sets a new spec capacity")
+						"", "new specific capacity | default | value=1e-5", "sets a new specific capacity")
 				/*.add_method("set_diff_coeffs", static_cast<void (T::*)(const std::vector<std::string>)> (&T::set_diff_coeffs), "",
 						"diffusion coeffizient of Kalium, Sodium and Calcium", "sets diffusion coeffizients")*/
 				.add_method("set_diff_coeffs", &T::set_diff_coeffs)
@@ -231,13 +226,13 @@ struct Functionality
 						"duration time | default | 0 ",
 						"sets Position, duration, ending and influxvalue of an Influx")
 				.add_method("set_ena", static_cast<void (T::*)(number)>(&T::set_ena),
-						"", "reversible potential for Sodium | default | value=1e-6", "sets reversible potential for Sodium")
+						"", "reversal potential for Na | default | value=1e-6", "sets reversal potential for Na")
 				.add_method("set_ek", static_cast<void (T::*)(number)>(&T::set_ek),
-						"", "reversible potential for Kalium | default | value=1e-6", "sets reversible potential for Kalium")
+						"", "reversal potential for K | default | value=1e-6", "sets reversal potential for K")
 				.add_method("set_eca", static_cast<void (T::*)(number)>(&T::set_eca),
-						"", "reversible potential for Calcium | default | value=1e-6", "sets reversible potential for Calcium")
+						"", "reversal potential for Ca | default | value=1e-6", "sets reversal potential for Ca")
 				.add_method("set_celsius", static_cast<void (T::*)(number)>(&T::set_celsius),
-						"", "new temperature value in grad celsius | default | value=37", "sets new temperature")
+						"", "new temperature value in degrees celsius | default | value=37", "sets new temperature")
 	#ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
 				.add_method("set_synapse_handler", &T::set_synapse_handler)
 	#endif
