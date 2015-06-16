@@ -27,7 +27,7 @@ namespace cable {
 template<typename TDomain>
 VMDisc<TDomain>::VMDisc(const char* subsets, const number init_time)
 : 	IElemDisc<TDomain>("v, k, na, ca", subsets),
-	k_out(2.5), na_out(140.0), ca_out(1.5), celsius(37.0),
+	m_k_out(2.5), m_na_out(140.0), m_ca_out(1.5), m_celsius(37.0),
 	m_v(0), m_na(0), m_k(0), m_ca(0),
 	m_ena(50.0), m_ek(-77.0), m_eca(138.0), m_eleak(-54.4),
 	m_spec_res(1.0e6), m_spec_cap(1.0e-5), m_influx_ac(1e-9),
@@ -52,10 +52,67 @@ VMDisc<TDomain>::VMDisc(const char* subsets, const number init_time)
 
 
 template<typename TDomain>
+size_t VMDisc<TDomain>::_v_()
+{
+	return m_v_;
+}
+
+template<typename TDomain>
+size_t VMDisc<TDomain>::_k_()
+{
+	return m_k_;
+}
+
+template<typename TDomain>
+size_t VMDisc<TDomain>::_na_()
+{
+	return m_na_;
+}
+
+template<typename TDomain>
+size_t VMDisc<TDomain>::_ca_()
+{
+	return m_ca_;
+}
+
+template<typename TDomain>
+number VMDisc<TDomain>::eleak()
+{
+	return m_eleak;
+}
+
+
+template<typename TDomain>
+number VMDisc<TDomain>::ca_out()
+{
+        return m_ca_out;
+}
+
+
+template<typename TDomain>
+number VMDisc<TDomain>::na_out()
+{
+        return m_na_out;
+}
+
+template<typename TDomain>
+number VMDisc<TDomain>::k_out()
+{
+	return m_k_out;
+}
+
+template<typename TDomain>
 void VMDisc<TDomain>::set_celsius(number cels)
 {
-	celsius = cels;
+	m_celsius = cels;
 }
+
+template<typename TDomain>
+number VMDisc<TDomain>::celsius()
+{
+	return m_celsius;
+}
+
 
 
 template<typename TDomain>
@@ -66,31 +123,17 @@ VMDisc<TDomain>* VMDisc<TDomain>::get_VmDisc()
 
 
 template<typename TDomain>
-number VMDisc<TDomain>::
-get_eca()
-{
-	return m_eca;
-}
-
-template<typename TDomain>
-number VMDisc<TDomain>::
-get_ena()
-{
-	return m_ena;
-}
-
-template<typename TDomain>
-number VMDisc<TDomain>::
-get_ek()
-{
-	return m_ek;
-}
-
-template<typename TDomain>
 void VMDisc<TDomain>::
 set_eca(number value)
 {
 	m_eca = value;
+}
+
+template<typename TDomain>
+number VMDisc<TDomain>::
+eca()
+{
+	return m_eca;
 }
 
 template<typename TDomain>
@@ -100,6 +143,13 @@ set_ek(number value)
 	m_ek = value;
 }
 
+
+template<typename TDomain>
+number VMDisc<TDomain>::ek()
+{
+	return m_ek;
+}
+
 template<typename TDomain>
 void VMDisc<TDomain>::
 set_ena(number value)
@@ -107,31 +157,37 @@ set_ena(number value)
 	m_ena = value;
 }
 
+template<typename TDomain>
+number VMDisc<TDomain>::ena()
+{
+	return m_ena;
+}
+
 
 template<typename TDomain>
 number VMDisc<TDomain>::
-get_flux_ca()
+flux_ca()
 {
 	return m_ca;
 }
 
 template<typename TDomain>
 number VMDisc<TDomain>::
-get_flux_na()
+flux_na()
 {
 	return m_na;
 }
 
 template<typename TDomain>
 number VMDisc<TDomain>::
-get_flux_k()
+flux_k()
 {
 	return m_k;
 }
 
 template<typename TDomain>
 number VMDisc<TDomain>::
-get_flux_v()
+flux_v()
 {
 	return m_v;
 }
@@ -263,14 +319,14 @@ template<typename TDomain>
 void VMDisc<TDomain>::get_vm(std::vector<number>& outValues, Edge* edge) const
 {
     for (size_t vrt = 0; vrt < edge->num_vertices(); ++vrt)
-    	outValues.push_back(m_aaUold[edge->vertex(vrt)][_v_]);
+    	outValues.push_back(m_aaUold[edge->vertex(vrt)][m_v_]);
 }
 
 
 template<typename TDomain>
 number VMDisc<TDomain>::get_vm(Vertex* vrt) const
 {
-	return m_aaUold[vrt][_v_];
+	return m_aaUold[vrt][m_v_];
 }
 
 
@@ -432,7 +488,7 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 			   )
 			{
 				// use real current here, thus the influx is independent from the geometry
-				d(_v_, co) += -m_flux_value[i];
+				d(m_v_, co) += -m_flux_value[i];
 			}
 		}
 
@@ -447,7 +503,7 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 			{
 				//UG_LOG_ALL_PROCS("Setting Current" << "!"<<std::endl);
 				//UG_LOG_ALL_PROCS("Current: " << current << std::endl);
-				d(_v_, co) += 1e-12*current; // scaling from nA to C/ms
+				d(m_v_, co) += 1e-12*current; // scaling from nA to C/ms
 			}
 		}
 #endif
@@ -463,7 +519,7 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 			{
 				//UG_LOG_ALL_PROCS("Setting Current" << "!"<<std::endl);
 				//UG_LOG_ALL_PROCS("Current: " << current << std::endl);
-				d(_v_, co) += current;
+				d(m_v_, co) += current;
 			}
 		}
 #endif
@@ -508,7 +564,7 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 		}
 
 		// writing potential defects
-		d(_v_, co) += scv.volume()*PI*Diam * allOutCurrentValues[0];
+		d(m_v_, co) += scv.volume()*PI*Diam * allOutCurrentValues[0];
 		// writing ion species defects
 		for (size_t k = 1; k < m_numb_funcs+1; k++)
 			d(k, co) += scv.volume()*PI*Diam * allOutCurrentValues[k];
@@ -525,7 +581,7 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 		// compute gradient at ip
 		VecSet(grad_c, 0.0);
 		for (size_t sh = 0; sh < scvf.num_sh(); ++sh)
-			VecScaleAppend(grad_c, u(_v_,sh), scvf.global_grad(sh));
+			VecScaleAppend(grad_c, u(m_v_,sh), scvf.global_grad(sh));
 
 		// scalar product with normal
 		number grad_normal = VecDot(grad_c, scvf.normal());
@@ -538,8 +594,8 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 				  "m_spec_res: " << m_spec_res << "   pre_res: " << pre_resistance << std::endl);
 
 		// add to local defect of VM
-		d(_v_, scvf.from()) -= diff_flux;
-		d(_v_, scvf.to()  ) += diff_flux;
+		d(m_v_, scvf.from()) -= diff_flux;
+		d(m_v_, scvf.to()  ) += diff_flux;
 
 		// diameter of axial flux cross-section
 		number diam_fromTo = std::min(m_aaDiameter[pElem->vertex(scvf.from())],
@@ -597,7 +653,7 @@ void VMDisc<TDomain>::add_def_M_elem(LocalVector& d, const LocalVector& u, GridO
 
 
 		// potential equation time derivative
-		d(_v_, co) += PI*diam*scv.volume()*u(_v_, co)*spec_capacity;
+		d(m_v_, co) += PI*diam*scv.volume()*u(m_v_, co)*spec_capacity;
 
 		// ion species time derivative
 		for (size_t k = 1; k < m_numb_funcs+1; k++)
@@ -657,8 +713,8 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 			number d_diff_flux = grad_normal * element_length / (m_spec_res*pre_resistance);
 
 			// add flux term to local matrix
-			J(_v_, scvf.from(), _v_, sh) -= d_diff_flux;
-			J(_v_, scvf.to()  , _v_, sh) += d_diff_flux;
+			J(m_v_, scvf.from(), m_v_, sh) -= d_diff_flux;
+			J(m_v_, scvf.to()  , m_v_, sh) += d_diff_flux;
 
 			// diameter of axial flux cross-section
 			number diam_fromTo = std::min(m_aaDiameter[pElem->vertex(scvf.from())],
@@ -708,7 +764,7 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 			J(k, co, k, co) += scv.volume()*0.25*PI*Diam*Diam;
 		}
 		// potential equation
-		J(_v_, co, _v_, co) += PI*Diam*scv.volume()*spec_capacity;
+		J(m_v_, co, m_v_, co) += PI*Diam*scv.volume()*spec_capacity;
 	}
 	//std::cout << "jac m elem ends" << std::endl;
 }

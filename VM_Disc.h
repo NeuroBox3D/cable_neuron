@@ -53,47 +53,7 @@ class VMDisc
 		///	world dimension
 		static const int dim = IElemDisc<TDomain>::dim;
 
-	public:
-		// indices for functions in this elemDisc
-		static const size_t _v_ = 0;
-		static const size_t _k_  = 1;
-		static const size_t _na_ = 2;
-		static const size_t _ca_ = 3;
-
-		// outer concentrations
-		const number k_out;		// mol/m^3 = mM
-		const number na_out;	// mol/m^3 = mM
-		const number ca_out;	// mol/m^3 = mM
-
-		// temperature [in degrees C]
-		number celsius;
-
-		number m_v, m_na, m_k, m_ca;
-
-		number m_ena, m_ek, m_eca, m_eleak;
-
-		// dendritic params
-		number m_spec_res;	// mV * ms * m / C
-		number m_spec_cap;	// C / (mV * m^2)
-
-		// diffusion coefficients
-		std::vector<number> m_diff;
-
-		// lists for all influxes
-		std::vector<MathVector<dim> > m_coords;
-		std::vector<number> m_flux_value;
-		std::vector<number> m_beg_flux;
-		std::vector<number> m_dur_flux;
-
-		// influx ac
-		number m_influx_ac;
-
-		// channel machanisms
-		std::vector<SmartPtr<TIChannel> > m_channel;
-
-		// number of ions
-		static const size_t m_numb_funcs = 3;
-
+	
 	public:
 
 		///	constructor
@@ -125,25 +85,42 @@ class VMDisc
 		/// setting write temperature
 		void set_celsius(number cels);
 
+		number celsius();
+
 		/// set influx params (flux value, coordinates, beginning, duration)
 		void set_influx(number Flux, number x, number y, number z, number beg, number dur);
 
 		VMDisc<TDomain>* get_VmDisc();
 
 		/// functions to get different ion fluxes
-		number get_flux_ca();
-		number get_flux_v();
-		number get_flux_k();
-		number get_flux_na();
+		number flux_ca();
+		number flux_v();
+		number flux_k();
+		number flux_na();
 
 
 		/// functions for different reversal potentials
-		number get_eca();
-		number get_ena();
-		number get_ek();
+		number eca();
+		number ena();
+		number ek();
+
 		void set_eca(number value);
 		void set_ena(number value);
 		void set_ek(number value);
+
+		/// functions for outer concentrations
+		number k_out();
+		number na_out();
+		number ca_out();
+
+		/// functions for Function size_t indexes
+		size_t _v_();
+		size_t _k_();
+		size_t _na_();
+		size_t _ca_();
+
+		/// function for leakeage Term
+	    number eleak();
 
 
 #ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
@@ -158,6 +135,51 @@ class VMDisc
 		/// add func
 		void add_func(std::string func);
 #endif
+
+	private:
+
+	    // outer concentrations
+	    const number m_k_out;             // mol/m^3 = mM
+	    const number m_na_out;    // mol/m^3 = mM
+	    const number m_ca_out;    // mol/m^3 = mM
+
+	    // temperature [in degrees C]
+	    number m_celsius;
+
+	    number m_v, m_na, m_k, m_ca;
+
+	    // reversible potentials
+	    number m_ena, m_ek, m_eca;
+
+	    // leakeage Term
+	    number m_eleak;
+
+	    /// settings for dendrite
+	    number m_spec_res, m_spec_cap;
+
+	    number m_influx_ac;
+
+
+	/// values for influxes
+	std::vector<number> m_flux_value, m_beg_flux, m_dur_flux;
+
+	/// vector for influx coordinates x, y, z
+	std::vector<MathVector<dim> > m_coords;
+
+	/// vector for diffusion consts of k, na and ca
+	std::vector<number> m_diff;
+
+    /// List of Channels
+	std::vector<SmartPtr<TIChannel> > m_channel;
+
+    ///     world dimension
+    static const size_t m_v_ = 0;
+    static const size_t m_k_ = 1;
+    static const size_t m_na_ = 2;
+    static const size_t m_ca_ = 3;
+
+    //
+    static const size_t m_numb_funcs = 3;
 
 	private:
 		/// determines the function index based on its name
@@ -263,6 +285,9 @@ class VMDisc
 		bool m_bLocked;
 
 	private:
+
+
+
 		///	register utils
 		///	\{
 		void register_all_funcs(bool bHang);

@@ -213,9 +213,8 @@ struct Functionality
 						"", "new specific resistance | default | value=1e6", "sets a new specific resistance")
 				.add_method("set_spec_cap", static_cast<void (T::*)(number)>(&T::set_spec_cap),
 						"", "new specific capacity | default | value=1e-5", "sets a new specific capacity")
-				/*.add_method("set_diff_coeffs", static_cast<void (T::*)(const std::vector<std::string>)> (&T::set_diff_coeffs), "",
-						"diffusion coeffizient of Kalium, Sodium and Calcium", "sets diffusion coeffizients")*/
-				.add_method("set_diff_coeffs", &T::set_diff_coeffs)
+				.add_method("set_diff_coeffs", static_cast<void (T::*)(const std::vector<number>&)> (&T::set_diff_coeffs), "",
+						"diffusion coeffizient of Kalium, Sodium and Calcium", "sets diffusion coeffizients")
 				.add_method("add_channel", &T::add_channel)
 				.add_method("set_influx", static_cast<void (T::*)(number, number, number, number, number, number)>(&T::set_influx), "",
 						"flux value | default | value=1e-12 #"
@@ -244,7 +243,7 @@ struct Functionality
 		}
 
 //#ifdef HH_CONVERTED_CHANNELS_ENABLED
-	//#include "Convert/Debug/channels.cpp"
+		//#include "Convert/Debug/channels.cpp"
 //#endif
 	}
 

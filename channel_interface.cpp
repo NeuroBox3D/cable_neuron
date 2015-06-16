@@ -86,7 +86,7 @@ void ChannelHH<TDomain>::init(const LocalVector& u, Edge* edge)
 		Vertex* vrt = vl[k];
 
 		// update Vm
-		number VM = u(m_pVMDisc->_v_, k);
+		number VM = u(m_pVMDisc->_v_(), k);
 
 		// values for m gate
 
@@ -123,7 +123,7 @@ void ChannelHH<TDomain>::update_gating(number newTime, const LocalVector& u, Edg
 		if (dt == 0.0) continue;
 
 		// update Vm
-		number VM = u(m_pVMDisc->_v_, k);
+		number VM = u(m_pVMDisc->_v_(), k);
 
 
 		// values for m gate
@@ -161,11 +161,11 @@ void ChannelHH<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>& v
 	number NGate = m_aaNGate[vrt];
 	number MGate = m_aaMGate[vrt];
 	number HGate = m_aaHGate[vrt];
-	number VM 	 = vrt_values[VMDisc<TDomain>::_v_];
+	number VM 	 = vrt_values[m_pVMDisc->_v_()];
 
-	number rev_pot_K = m_pVMDisc->m_ek;
-	number rev_pot_Na = m_pVMDisc->m_ena;
-	number rev_pot_leak = m_pVMDisc->m_eleak;
+	number rev_pot_K = m_pVMDisc->ek();
+	number rev_pot_Na = m_pVMDisc->ena();
+	number rev_pot_leak = m_pVMDisc->eleak();
 
 	// TODO Influx values needed
 	// single channel type fluxes
@@ -269,7 +269,7 @@ void ChannelHHNernst<TDomain>::init(const LocalVector& u, Edge* edge)
 		Vertex* vrt = vl[k];
 
 		// update Vm
-		number VM = u(m_pVMDisc->_v_, k);
+		number VM = u(m_pVMDisc->_v_(), k);
 
 		// values for m gate
 		number AlphaHm = 0.1 * vtrap(-(VM+40.0),10.0);
@@ -305,7 +305,7 @@ void ChannelHHNernst<TDomain>::update_gating(number newTime, const LocalVector& 
 		if (dt == 0.0) continue;
 
 		// update Vm
-		number VM = u(m_pVMDisc->_v_, k);
+		number VM = u(m_pVMDisc->_v_(), k);
 
 		// set new gating states
 		// values for m gate
@@ -338,14 +338,14 @@ void ChannelHHNernst<TDomain>::ionic_current(Vertex* vrt, const std::vector<numb
 	number NGate = m_aaNGate[vrt];
 	number MGate = m_aaMGate[vrt];
 	number HGate = m_aaHGate[vrt];
-	number v 	 = vrt_values[VMDisc<TDomain>::_v_];
-	number k 	 = vrt_values[VMDisc<TDomain>::_k_];
-	number na 	 = vrt_values[VMDisc<TDomain>::_na_];
+	number v 	 = vrt_values[m_pVMDisc->_v_()];
+	number k 	 = vrt_values[m_pVMDisc->_k_()];
+	number na 	 = vrt_values[m_pVMDisc->_na_()];
 
 	//UG_ASSERT(m_pVMDisc->valid(), "Channel has not been assigned a vmDisc object yet!");
 	const number helpV = 1e3*(m_R*m_T)/m_F;
-	number potassium_nernst_eq 	= helpV*(std::log(m_pVMDisc->k_out/k));
-	number sodium_nernst_eq	 	= helpV*(std::log(m_pVMDisc->na_out/na));
+	number potassium_nernst_eq 	= helpV*(std::log(m_pVMDisc->k_out()/k));
+	number sodium_nernst_eq	 	= helpV*(std::log(m_pVMDisc->na_out()/na));
 
 	// single channel ion fluxes
 	number potassium_part_of_flux = m_g_K * pow(NGate,4) * (v - potassium_nernst_eq);
@@ -375,13 +375,13 @@ void ChannelHHNernst<TDomain>::Jacobi_sets(Vertex* vrt, const std::vector<number
 	number NGate = m_aaNGate[vrt];
 	number MGate = m_aaMGate[vrt];
 	number HGate = m_aaHGate[vrt];
-	number k 	 = vrt_values[VMDisc<TDomain>::_k_];
-	number na 	 = vrt_values[VMDisc<TDomain>::_na_];
+	number k 	 = vrt_values[VMDisc<TDomain>::_k_()];
+	number na 	 = vrt_values[VMDisc<TDomain>::_na_()];
 
 	UG_ASSERT(m_pVMDisc, "Channel has not been assigned a vmDisc object yet!");
 	const number helpV = (m_R*m_T)/m_F;
-	const number potassium_nernst_eq_dK 	=  helpV * (-m_pVMDisc->k_out/k)*0.18; //helpV * (-K_out/pow(u(_K_,co),2));
-	const number sodium_nernst_eq_dNa		=  -helpV * (-m_pVMDisc->na_out/na)*0.003;
+	const number potassium_nernst_eq_dK 	=  helpV * (-m_pVMDisc->k_out()/k)*0.18; //helpV * (-K_out/pow(u(_K_,co),2));
+	const number sodium_nernst_eq_dNa		=  -helpV * (-m_pVMDisc->na_out()/na)*0.003;
 
 	outJFlux.push_back(m_g_K*pow(NGate,4) + m_g_Na*pow(MGate,3)*HGate + m_g_I);
 	outJFlux.push_back(sodium_nernst_eq_dNa);
@@ -440,8 +440,8 @@ template<typename TDomain>
 void ChannelLeak<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
 {
 	// getting attachments for vertex
-	number VM 	 = vrt_values[VMDisc<TDomain>::_v_];
-	number leak_equilibrium = m_pVMDisc->m_eleak;
+	number VM 	 = vrt_values[m_pVMDisc->_v_()];
+	number leak_equilibrium = m_pVMDisc->eleak();
 
 	const number leakage_part_of_flux = m_g_I * (VM - leak_equilibrium);
 
