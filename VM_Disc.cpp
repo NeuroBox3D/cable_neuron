@@ -400,6 +400,22 @@ void VMDisc<TDomain>::approximation_space_changed()
 	m_bLocked = true;
 }
 
+
+
+template <typename TDomain>
+void VMDisc<TDomain>::
+prep_timestep(number time, VectorProxyBase* upb)
+{
+	typedef CPUAlgebra::vector_type v_type;
+	typedef VectorProxy<v_type> vp_type;
+	vp_type* up = dynamic_cast<vp_type*>(upb);
+	UG_COND_THROW(!up, "Wrong algebra type!");
+	const v_type& u = up->m_v;
+
+	// TODO: implement me further!
+}
+
+
 // ///////////////////////////////////////////////////////////
 // TODO														//
 // It would be preferable to do this in one loop instead of	//
@@ -872,6 +888,10 @@ void VMDisc<TDomain>::
 register_all_funcs(bool bHang)
 {
 	register_func<RegularEdge, FV1Geometry<RegularEdge, dim> >();
+
+	// register prepare_timestep functionality separately, only for CPU1
+	size_t aid = bridge::AlgebraTypeIDProvider::instance().id<CPUAlgebra>();
+	this->set_prep_timestep_fct(aid, &VMDisc<TDomain>::prep_timestep);
 }
 
 template<typename TDomain>

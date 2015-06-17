@@ -9,8 +9,14 @@
 #ifndef __UG__PLUGINS__EXPERIMENTAL__CABLE__VM_DISC_H__
 #define __UG__PLUGINS__EXPERIMENTAL__CABLE__VM_DISC_H__
 
-#include "lib_disc/lib_disc.h"
+// other ug4 modules
+#include "common/common.h"
+#include "lib_grid/lg_base.h"
+
+// library intern headers
+#include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
 #include "lib_disc/spatial_disc/disc_util/geom_provider.h"
+#include "bridge/util_algebra_dependent.h"
 
 #include "diam_attachment_handler.h"	// attachment handling for diameter attachment
 #include "channel_interface.h"
@@ -202,6 +208,9 @@ class VMDisc
 
 		///	type of trial space for each function used
 		virtual void prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid);
+
+		/// prepare the timestep
+		virtual void prep_timestep(number time, VectorProxyBase* up);
 
 		/// prepares elements for time step assembling
 		virtual void prep_timestep_elem(const number time, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
