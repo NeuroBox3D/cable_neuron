@@ -75,12 +75,6 @@ size_t VMDisc<TDomain>::_ca_()
 	return m_ca_;
 }
 
-template<typename TDomain>
-number VMDisc<TDomain>::eleak()
-{
-	return m_eleak;
-}
-
 
 template<typename TDomain>
 number VMDisc<TDomain>::ca_out()
@@ -94,6 +88,7 @@ number VMDisc<TDomain>::na_out()
 {
         return m_na_out;
 }
+
 
 template<typename TDomain>
 number VMDisc<TDomain>::k_out()
@@ -163,6 +158,18 @@ number VMDisc<TDomain>::ena()
 	return m_ena;
 }
 
+template<typename TDomain>
+number VMDisc<TDomain>::eleak()
+{
+	return m_eleak;
+}
+
+template<typename TDomain>
+void VMDisc<TDomain>::
+set_eleak(number value)
+{
+	m_eleak = value;
+}
 
 template<typename TDomain>
 number VMDisc<TDomain>::

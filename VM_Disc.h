@@ -99,14 +99,16 @@ class VMDisc
 		number flux_na();
 
 
-		/// functions for different reversal potentials
+		/// functions for reversal potentials
 		number eca();
 		number ena();
 		number ek();
+		number eleak();
 
-		void set_eca(number value);
-		void set_ena(number value);
 		void set_ek(number value);
+		void set_ena(number value);
+		void set_eca(number value);
+		void set_eleak(number value);
 
 		/// functions for outer concentrations
 		number k_out();
@@ -118,9 +120,6 @@ class VMDisc
 		size_t _k_();
 		size_t _na_();
 		size_t _ca_();
-
-		/// function for leakeage Term
-	    number eleak();
 
 
 #ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED

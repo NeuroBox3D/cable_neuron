@@ -230,6 +230,8 @@ struct Functionality
 						"", "reversal potential for K | default | value=1e-6", "sets reversal potential for K")
 				.add_method("set_eca", static_cast<void (T::*)(number)>(&T::set_eca),
 						"", "reversal potential for Ca | default | value=1e-6", "sets reversal potential for Ca")
+				.add_method("set_eleak", static_cast<void (T::*)(number)>(&T::set_eleak),
+						"", "reversal potential for leakage current | default | value=1e-6", "sets reversal potential for leakage current")
 				.add_method("set_celsius", static_cast<void (T::*)(number)>(&T::set_celsius),
 						"", "new temperature value in degrees celsius | default | value=37", "sets new temperature")
 	#ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
