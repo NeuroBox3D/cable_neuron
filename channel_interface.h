@@ -194,7 +194,8 @@ class ChannelHHNernst
 		ChannelHHNernst(const char* functions, const char* subsets)
 		try : IChannel<TDomain>(functions, subsets),
 		m_g_K(3.6e-4), m_g_Na(1.2e-3), m_g_I(3.0e-6),
-		m_R(8.314), m_T(310.0), m_F(96485.0) {}
+		m_R(8.314), m_T(310.0), m_F(96485.0)
+		m_rev_pot_leak(-54.4) {}
 		UG_CATCH_THROW("Error in ChannelHHNernst initializer list.");
 
 
