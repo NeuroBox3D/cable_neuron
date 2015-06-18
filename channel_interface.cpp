@@ -45,6 +45,18 @@ void ChannelHH<TDomain>::vm_disc_available()
 	init_attachments();
 }
 
+template<typename TDomain>
+std::vector<Grid::AttachmentAccessor<Vertex, ADouble> > ChannelHH<TDomain>::allGatingAccesors()
+{
+	std::vector<Grid::AttachmentAccessor<Vertex, ADouble> > GatingAccesors;
+
+	GatingAccesors.push_back(m_aaMGate);
+	GatingAccesors.push_back(m_aaHGate);
+	GatingAccesors.push_back(m_aaNGate);
+
+	return GatingAccesors;
+}
+
 
 template<typename TDomain>
 void ChannelHH<TDomain>::init_attachments()
@@ -227,6 +239,18 @@ void ChannelHHNernst<TDomain>::vm_disc_available()
 	init_attachments();
 }
 
+
+template<typename TDomain>
+std::vector<Grid::AttachmentAccessor<Vertex, ADouble> > ChannelHHNernst<TDomain>::allGatingAccesors()
+{
+	std::vector<Grid::AttachmentAccessor<Vertex, ADouble> > GatingAccesors;
+
+	GatingAccesors.push_back(m_aaMGate);
+	GatingAccesors.push_back(m_aaHGate);
+	GatingAccesors.push_back(m_aaNGate);
+
+	return GatingAccesors;
+}
 
 template<typename TDomain>
 void ChannelHHNernst<TDomain>::init_attachments()
@@ -421,6 +445,14 @@ void ChannelLeak<TDomain>::init_attachments()
 
 }
 
+template<typename TDomain>
+std::vector<Grid::AttachmentAccessor<Vertex, ADouble> > ChannelLeak<TDomain>::allGatingAccesors()
+{
+	std::vector<Grid::AttachmentAccessor<Vertex, ADouble> > GatingAccesors;
+
+
+	return GatingAccesors;
+}
 
 // Methods for using gatings
 template<typename TDomain>

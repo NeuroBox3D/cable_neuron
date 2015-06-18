@@ -101,6 +101,9 @@ class IChannel
 		/// called when access to the root VM disc is possible (i.e. after call to set_vm_disc)
 		virtual void vm_disc_available() {};
 
+		/// Getting all accesors for Gattings
+		virtual std::vector<Grid::AttachmentAccessor<Vertex, ADouble> > allGatingAccesors() = 0;
+
 		/// adding some Jacobian infos at given vertex
 		//virtual void Jacobi_sets(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outJFlux) = 0;
 
@@ -159,6 +162,7 @@ class ChannelHH
 		virtual void update_gating(number newTime, const LocalVector& u, Edge* e);
 		virtual void ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues);
 		virtual void vm_disc_available();
+		virtual std::vector<Grid::AttachmentAccessor<Vertex, ADouble> > allGatingAccesors();
 		//virtual void Jacobi_sets(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outJFlux);
 
 	private:
@@ -220,6 +224,7 @@ class ChannelHHNernst
 		virtual void update_gating(number newTime, const LocalVector& u, Edge* e);
 		virtual void ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues);
 		virtual void vm_disc_available();
+		virtual std::vector<Grid::AttachmentAccessor<Vertex, ADouble> > allGatingAccesors();
 		//virtual void Jacobi_sets(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outJFlux);
 
 
@@ -283,6 +288,7 @@ class ChannelLeak
 		virtual void update_gating(number newTime, const LocalVector& u, Edge* e);
 		virtual void ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues);
 		virtual void vm_disc_available();
+		virtual std::vector<Grid::AttachmentAccessor<Vertex, ADouble> > allGatingAccesors();
 		//virtual void Jacobi_sets(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outJFlux);
 
 	private:
