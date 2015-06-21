@@ -102,7 +102,7 @@ class IChannel
 		virtual void vm_disc_available() {};
 
 		/// Getting all accesors for Gattings
-		virtual std::vector<Grid::AttachmentAccessor<Vertex, ADouble> > allGatingAccesors() = 0;
+		virtual std::vector<number> allGatingAccesors(number x, number y, number z) = 0;
 
 		/// adding some Jacobian infos at given vertex
 		//virtual void Jacobi_sets(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outJFlux) = 0;
@@ -162,7 +162,7 @@ class ChannelHH
 		virtual void update_gating(number newTime, const LocalVector& u, Edge* e);
 		virtual void ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues);
 		virtual void vm_disc_available();
-		virtual std::vector<Grid::AttachmentAccessor<Vertex, ADouble> > allGatingAccesors();
+		virtual std::vector<number> allGatingAccesors(number x, number y, number z);
 		//virtual void Jacobi_sets(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outJFlux);
 
 	private:
@@ -194,8 +194,7 @@ class ChannelHHNernst
 		ChannelHHNernst(const char* functions, const char* subsets)
 		try : IChannel<TDomain>(functions, subsets),
 		m_g_K(3.6e-4), m_g_Na(1.2e-3), m_g_I(3.0e-6),
-		m_R(8.314), m_T(310.0), m_F(96485.0),
-		m_rev_pot_leak(-54.4) {}
+		m_R(8.314), m_T(310.0), m_F(96485.0) {}
 		UG_CATCH_THROW("Error in ChannelHHNernst initializer list.");
 
 
@@ -225,7 +224,7 @@ class ChannelHHNernst
 		virtual void update_gating(number newTime, const LocalVector& u, Edge* e);
 		virtual void ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues);
 		virtual void vm_disc_available();
-		virtual std::vector<Grid::AttachmentAccessor<Vertex, ADouble> > allGatingAccesors();
+		virtual std::vector<number> allGatingAccesors(number x, number y, number z);
 		//virtual void Jacobi_sets(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outJFlux);
 
 
@@ -289,7 +288,7 @@ class ChannelLeak
 		virtual void update_gating(number newTime, const LocalVector& u, Edge* e);
 		virtual void ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues);
 		virtual void vm_disc_available();
-		virtual std::vector<Grid::AttachmentAccessor<Vertex, ADouble> > allGatingAccesors();
+		virtual std::vector<number> allGatingAccesors(number x, number y, number z);
 		//virtual void Jacobi_sets(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outJFlux);
 
 	private:

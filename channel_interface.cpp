@@ -46,13 +46,36 @@ void ChannelHH<TDomain>::vm_disc_available()
 }
 
 template<typename TDomain>
-std::vector<Grid::AttachmentAccessor<Vertex, ADouble> > ChannelHH<TDomain>::allGatingAccesors()
+std::vector<number> ChannelHH<TDomain>::allGatingAccesors(number x, number y, number z)
 {
-	std::vector<Grid::AttachmentAccessor<Vertex, ADouble> > GatingAccesors;
+	//var for output
+	std::vector<number> GatingAccesors;
 
-	GatingAccesors.push_back(m_aaMGate);
-	GatingAccesors.push_back(m_aaHGate);
-	GatingAccesors.push_back(m_aaNGate);
+	// Definitions for Iterating over all Elements
+	typedef typename DoFDistribution::traits<Vertex>::const_iterator itType;
+	SubsetGroup ssGrp;
+	try{ ssGrp = SubsetGroup(m_pVMDisc->approx_space()->domain()->subset_handler(), this->m_vSubset);}
+	UG_CATCH_THROW("Subset group creation failed.");
+
+	Grid::AttachmentAccessor< Vertex, APosition > aaPos;
+
+	// iterating over all elements
+	for (size_t si=0; si < ssGrp.size(); si++)
+	{
+		itType iterBegin = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]);
+		itType iterEnd = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template end<Vertex>(ssGrp[si]);
+
+		for (itType iter = iterBegin; iter!= iterEnd; ++iter)
+		{
+			// if the right vertex of needed Position is found write out values
+			if ((aaPos[*iter][0] == x) && (aaPos[*iter][1] == y) && (aaPos[*iter][2] == z))
+			{
+				GatingAccesors.push_back(m_aaMGate[*iter]);
+				GatingAccesors.push_back(m_aaHGate[*iter]);
+				GatingAccesors.push_back(m_aaNGate[*iter]);
+			}
+		}
+	}
 
 	return GatingAccesors;
 }
@@ -239,15 +262,40 @@ void ChannelHHNernst<TDomain>::vm_disc_available()
 	init_attachments();
 }
 
-
 template<typename TDomain>
-std::vector<Grid::AttachmentAccessor<Vertex, ADouble> > ChannelHHNernst<TDomain>::allGatingAccesors()
+std::vector<number> ChannelHHNernst<TDomain>::allGatingAccesors(number x, number y, number z)
 {
-	std::vector<Grid::AttachmentAccessor<Vertex, ADouble> > GatingAccesors;
+	//var for output
+	std::vector<number> GatingAccesors;
 
-	GatingAccesors.push_back(m_aaMGate);
-	GatingAccesors.push_back(m_aaHGate);
-	GatingAccesors.push_back(m_aaNGate);
+	// Definitions for Iterating over all Elements
+	typedef typename DoFDistribution::traits<Vertex>::const_iterator itType;
+	SubsetGroup ssGrp;
+	try{ ssGrp = SubsetGroup(m_pVMDisc->approx_space()->domain()->subset_handler(), this->m_vSubset);}
+	UG_CATCH_THROW("Subset group creation failed.");
+
+	Grid::AttachmentAccessor< Vertex, APosition > aaPos;
+
+	UG_LOG("Channel: Before iteration" << std::endl);
+
+	// iterating over all elements
+	for (size_t si=0; si < ssGrp.size(); si++)
+	{
+		itType iterBegin = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]);
+		itType iterEnd = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template end<Vertex>(ssGrp[si]);
+
+		for (itType iter = iterBegin; iter!= iterEnd; ++iter)
+		{
+			// if the right vertex of needed Position is found write out values
+			if ((aaPos[*iter][0] == x) && (aaPos[*iter][1] == y) && (aaPos[*iter][2] == z))
+			{
+				UG_LOG("Channel: in IF" << std::endl);
+				GatingAccesors.push_back(m_aaMGate[*iter]);
+				GatingAccesors.push_back(m_aaHGate[*iter]);
+				GatingAccesors.push_back(m_aaNGate[*iter]);
+			}
+		}
+	}
 
 	return GatingAccesors;
 }
@@ -446,9 +494,9 @@ void ChannelLeak<TDomain>::init_attachments()
 }
 
 template<typename TDomain>
-std::vector<Grid::AttachmentAccessor<Vertex, ADouble> > ChannelLeak<TDomain>::allGatingAccesors()
+std::vector<number> ChannelLeak<TDomain>::allGatingAccesors(number x, number y, number z)
 {
-	std::vector<Grid::AttachmentAccessor<Vertex, ADouble> > GatingAccesors;
+	std::vector<number> GatingAccesors;
 
 
 	return GatingAccesors;
