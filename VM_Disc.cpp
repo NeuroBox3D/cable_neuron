@@ -76,6 +76,7 @@ size_t VMDisc<TDomain>::_ca_()
 }
 
 
+
 template<typename TDomain>
 number VMDisc<TDomain>::ca_out()
 {
@@ -298,6 +299,62 @@ add_func(std::string func)
 	m_numb_funcs += 1;
 }
 #endif
+
+template<typename TDomain>
+void VMDisc<TDomain>::write_AllGattings_on_position(number x, number y, number z)
+{
+
+	// Vector with all needed Filename as ofstreams
+	std::vector<std::vector<SmartPtr<std::ofstream> > > Vec_ofstreams;
+
+	// Vector with all Gating Vectors of all Channels
+	std::vector<number> ChannelGate;
+
+	for (size_t i=0; i < m_channel.size(); i++)
+	{
+		UG_LOG("first all gating" << std::endl);
+		ChannelGate = m_channel[i]->allGatingAccesors(x, y, z);
+		UG_LOG("after first gating" << std::endl);
+		/*std::vector<SmartPtr<std::ofstream> > vec;
+		Vec_ofstreams.push_back(vec);
+		// getting all States from channel i
+		for (size_t j=0; j < ChannelGate[i].size(); j++)
+		{
+			// building char stream for gate
+			std::stringstream ssoStreamName;
+			ssoStreamName << "ChannelNumber_" << i << "_GateNumber_" << j << ".txt";
+			std::string soStream = ssoStreamName.str();
+			const char* CharStream = soStream.c_str();
+
+			//creates ofstream for every channel Gate
+			//std::ofstream NewStream(CharStream);
+			SmartPtr<std::ofstream> NewStreamm;
+			NewStreamm = make_sp(new std::ofstream(CharStream));
+
+			Vec_ofstreams[i].push_back(NewStreamm);
+
+
+			UG_LOG("before output" << std::endl);
+			*Vec_ofstreams[i][j] << (ChannelGate[i][j]) << "/n";
+			std::cout << (ChannelGate[i][j]) << std::endl;
+
+
+		}*/
+	}
+
+	// testing if it is working
+	/*for (size_t i=0; i < Vec_ofstreams.size(); i++)
+	{
+		for (size_t j=0; j < Vec_ofstreams[i].size(); j++)
+		{
+			std::cout << Vec_ofstreams[i][j] << std::endl;
+		}
+	}*/
+
+
+}
+
+
 
 
 template<typename TDomain>
@@ -777,6 +834,8 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 		//get Diameter from element later in attachment
 		number Diam = m_aaDiameter[pElem->vertex(co)];
+		//UG_COND_THROW(fabs(Diam) <= 1e-12, "Diam zero!\n");
+
 
 		//spec_capa has to be set later on in an varialbe
 

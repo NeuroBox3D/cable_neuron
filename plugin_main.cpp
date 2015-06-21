@@ -234,6 +234,7 @@ struct Functionality
 						"", "reversal potential for leakage current | default | value=1e-6", "sets reversal potential for leakage current")
 				.add_method("set_celsius", static_cast<void (T::*)(number)>(&T::set_celsius),
 						"", "new temperature value in degrees celsius | default | value=37", "sets new temperature")
+				.add_method("write_AllGattings_on_position", &T::write_AllGattings_on_position)
 	#ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
 				.add_method("set_synapse_handler", &T::set_synapse_handler)
 	#endif

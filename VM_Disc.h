@@ -88,6 +88,9 @@ class VMDisc
 		/// set influx position accuracy
 		void set_influx_ac(number influx_ac);
 
+		/// write all Gating values from one Position in a file
+		void write_AllGattings_on_position(number x, number y, number z);
+
 		/// setting write temperature
 		void set_celsius(number cels);
 
@@ -105,7 +108,7 @@ class VMDisc
 		number flux_na();
 
 
-		/// functions for reversal potentials
+		/// functions for different reversal potentials
 		number eca();
 		number ena();
 		number ek();
