@@ -225,13 +225,13 @@ struct Functionality
 						"duration time | default | 0 ",
 						"sets Position, duration, ending and influxvalue of an Influx")
 				.add_method("set_ena", static_cast<void (T::*)(number)>(&T::set_ena),
-						"", "reversal potential for Na | default | value=1e-6", "sets reversal potential for Na")
+						"", "reversal potential for Na | default | value=50.0", "sets reversal potential for Na")
 				.add_method("set_ek", static_cast<void (T::*)(number)>(&T::set_ek),
-						"", "reversal potential for K | default | value=1e-6", "sets reversal potential for K")
+						"", "reversal potential for K | default | value=-77.0", "sets reversal potential for K")
 				.add_method("set_eca", static_cast<void (T::*)(number)>(&T::set_eca),
-						"", "reversal potential for Ca | default | value=1e-6", "sets reversal potential for Ca")
+						"", "reversal potential for Ca | default | value=138.0", "sets reversal potential for Ca")
 				.add_method("set_eleak", static_cast<void (T::*)(number)>(&T::set_eleak),
-						"", "reversal potential for leakage current | default | value=1e-6", "sets reversal potential for leakage current")
+						"", "reversal potential for leakage current | default | value=-54.4", "sets reversal potential for leakage current")
 				.add_method("set_temperature_celsius", static_cast<void (T::*)(number)>(&T::set_temperature_celsius),
 						"", "new temperature value in degrees Celsius | default | value=37", "sets new temperature")
 				.add_method("write_gatings_for_position", &T::write_gatings_for_position)

@@ -172,13 +172,13 @@ class VMDisc
 		// ////////////////////////////////
 		// getters for functional values //
 		// ////////////////////////////////
-		/// TODO: Is this used anywhere? Are the corresponding members ever written to?
+		/// TODO: Writting function with position dependence
 		/// functions to get different ion fluxes
 		///	\{
-		number flux_k();
+		/*number flux_k();
 		number flux_na();
 		number flux_ca();
-		number flux_v();
+		number flux_v();*/
 		/// \}
 
 		/// get current time

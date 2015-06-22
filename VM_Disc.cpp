@@ -174,10 +174,10 @@ add_channel(SmartPtr<IChannel<TDomain> > Channel)
 // getters for functional values //
 // ////////////////////////////////
 
-template<typename TDomain> number VMDisc<TDomain>::flux_k() {return m_k;}
+/*template<typename TDomain> number VMDisc<TDomain>::flux_k() {return m_k;}
 template<typename TDomain> number VMDisc<TDomain>::flux_na() {return m_na;}
 template<typename TDomain> number VMDisc<TDomain>::flux_ca() {return m_ca;}
-template<typename TDomain> number VMDisc<TDomain>::flux_v() {return m_v;}
+template<typename TDomain> number VMDisc<TDomain>::flux_v() {return m_v;}*/
 
 template <typename TDomain> number VMDisc<TDomain>::time() {return m_time;}
 
