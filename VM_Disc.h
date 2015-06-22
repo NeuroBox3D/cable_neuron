@@ -235,10 +235,6 @@ class VMDisc
 		template <typename TElem, typename TFVGeom>
 		void fsh_elem_loop();
 
-	private:
-		/// determines the function index based on its name
-		//size_t get_index(std::string s);
-
 	protected:
 		///	register utils
 		///	\{

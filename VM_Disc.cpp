@@ -794,14 +794,6 @@ void VMDisc<TDomain>::fsh_elem_loop()
 	// nothing to do
 }
 
-/*
-template<typename TDomain>
-size_t VMDisc<TDomain>::get_index(std::string s)
-{
-	return this->approx_space()->fct_id_by_name(s.c_str());
-}
-*/
-
 
 // ///////////////////////////////
 //	register assemble functions //
