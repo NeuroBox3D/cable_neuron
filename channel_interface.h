@@ -134,13 +134,15 @@ class ChannelHH
 		/// @copydoc IChannel<TDomain>::IChannel(const char*)
 		ChannelHH(const char* functions, const char* subsets)
 		try : IChannel<TDomain>(functions, subsets),
-		m_g_K(3.6e-4), m_g_Na(1.2e-3), m_g_I(3.0e-6) {}
+		m_g_K(3.6e-4), m_g_Na(1.2e-3), m_g_I(3.0e-6),
+		m_log_nGate(false), m_log_hGate(false), m_log_mGate(false) {}
 		UG_CATCH_THROW("Error in ChannelHH initializer list.");
 
 		/// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&)
 		ChannelHH(const std::vector<std::string>& functions, const std::vector<std::string>& subsets)
 		try : IChannel<TDomain>(functions, subsets),
-		m_g_K(3.6e-4), m_g_Na(1.2e-3), m_g_I(3.0e-6) {}
+		m_g_K(3.6e-4), m_g_Na(1.2e-3), m_g_I(3.0e-6),
+		m_log_nGate(false), m_log_hGate(false), m_log_mGate(false) {}
 		UG_CATCH_THROW("Error in ChannelHH initializer list.");
 
 		/// destructor
@@ -152,6 +154,11 @@ class ChannelHH
 
 	/// functions for setting some HH params
 		void set_conductivities(number Na, number K, number L);
+
+		/// Methods for setting/getting Output of Gating-Vars
+		void set_log_nGate(bool bLogNGate);
+		void set_log_hGate(bool bLogHGate);
+		void set_log_mGate(bool bLogMGate);
 
 	private:
 		number vtrap(number x, number y);
@@ -179,6 +186,9 @@ class ChannelHH
 		Grid::AttachmentAccessor<Vertex, ANumber> m_aaMGate;
 		Grid::AttachmentAccessor<Vertex, ANumber> m_aaHGate;
 		Grid::AttachmentAccessor<Vertex, ANumber> m_aaNGate;
+
+		// attachment log_files
+		bool m_log_nGate, m_log_hGate, m_log_mGate;
 };
 
 
@@ -194,7 +204,8 @@ class ChannelHHNernst
 		ChannelHHNernst(const char* functions, const char* subsets)
 		try : IChannel<TDomain>(functions, subsets),
 		m_g_K(3.6e-4), m_g_Na(1.2e-3), m_g_I(3.0e-6),
-		m_R(8.314), m_T(310.0), m_F(96485.0) {}
+		m_R(8.314), m_T(310.0), m_F(96485.0),
+		m_log_nGate(false), m_log_hGate(false), m_log_mGate(false) {}
 		UG_CATCH_THROW("Error in ChannelHHNernst initializer list.");
 
 
@@ -202,7 +213,8 @@ class ChannelHHNernst
 		ChannelHHNernst(const std::vector<std::string>& functions, const std::vector<std::string>& subsets)
 		try : IChannel<TDomain>(functions, subsets),
 		m_g_K(3.6e-4), m_g_Na(1.2e-3), m_g_I(3.0e-6),
-		m_R(8.314), m_T(310.0), m_F(96485.0) {}
+		m_R(8.314), m_T(310.0), m_F(96485.0),
+		m_log_nGate(false), m_log_hGate(false), m_log_mGate(false) {}
 		UG_CATCH_THROW("Error in ChannelHHNernst initializer list.");
 
 		/// destructor
@@ -213,6 +225,11 @@ class ChannelHHNernst
 
 		// functions for setting some HH params
 		void set_conductivities(number Na, number K, number L);
+
+		/// Methods for setting/getting Output of Gating-Vars
+		void set_log_nGate(bool bLogNGate);
+		void set_log_hGate(bool bLogHGate);
+		void set_log_mGate(bool bLogMGate);
 
 	private:
 		number vtrap(number x, number y);
@@ -246,6 +263,9 @@ class ChannelHHNernst
 		Grid::AttachmentAccessor<Vertex, ANumber> m_aaMGate;
 		Grid::AttachmentAccessor<Vertex, ANumber> m_aaHGate;
 		Grid::AttachmentAccessor<Vertex, ANumber> m_aaNGate;
+
+		// attachment log_files
+		bool m_log_nGate, m_log_hGate, m_log_mGate;
 };
 
 

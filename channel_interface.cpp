@@ -15,6 +15,13 @@ namespace cable {
 ////////////////////////////////////////////////
 // Methods for HH-Channel-Class
 ////////////////////////////////////////////////
+
+
+template<typename TDomain> void ChannelHH<TDomain>::set_log_nGate(bool bLogNGate) { m_log_nGate = bLogNGate; }
+template<typename TDomain> void ChannelHH<TDomain>::set_log_hGate(bool bLogHGate) { m_log_hGate = bLogHGate; }
+template<typename TDomain> void ChannelHH<TDomain>::set_log_mGate(bool bLogMGate) { m_log_mGate = bLogMGate; }
+
+
 template<typename TDomain>
 void ChannelHH<TDomain>::
 set_conductivities(number Na, number K, number L)
@@ -51,28 +58,41 @@ std::vector<number> ChannelHH<TDomain>::allGatingAccesors(number x, number y, nu
 	//var for output
 	std::vector<number> GatingAccesors;
 
+	// accessors
+	typedef ug::MathVector<3> position_type;
+	typedef Attachment<position_type> position_attachment_type;
+	typedef Grid::VertexAttachmentAccessor<position_attachment_type> position_accessor_type;
+
 	// Definitions for Iterating over all Elements
 	typedef typename DoFDistribution::traits<Vertex>::const_iterator itType;
 	SubsetGroup ssGrp;
 	try{ ssGrp = SubsetGroup(m_pVMDisc->approx_space()->domain()->subset_handler(), this->m_vSubset);}
 	UG_CATCH_THROW("Subset group creation failed.");
 
-	Grid::AttachmentAccessor< Vertex, APosition > aaPos;
+	//UG_LOG("Channel: Before iteration" << std::endl);
 
-	// iterating over all elements
-	for (size_t si=0; si < ssGrp.size(); si++)
+	// Iterate only if there is one Gatting needed
+	if (m_log_mGate==true || m_log_hGate==true || m_log_nGate==true)
 	{
-		itType iterBegin = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]);
-		itType iterEnd = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template end<Vertex>(ssGrp[si]);
-
-		for (itType iter = iterBegin; iter!= iterEnd; ++iter)
+		// iterating over all elements
+		for (size_t si=0; si < ssGrp.size(); si++)
 		{
-			// if the right vertex of needed Position is found write out values
-			if ((aaPos[*iter][0] == x) && (aaPos[*iter][1] == y) && (aaPos[*iter][2] == z))
+			itType iterBegin = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]);
+			itType iterEnd = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template end<Vertex>(ssGrp[si]);
+
+			for (itType iter = iterBegin; iter!= iterEnd; ++iter)
 			{
-				GatingAccesors.push_back(m_aaMGate[*iter]);
-				GatingAccesors.push_back(m_aaHGate[*iter]);
-				GatingAccesors.push_back(m_aaNGate[*iter]);
+				const position_accessor_type& aaPos = m_pVMDisc->approx_space()->domain()->position_accessor();
+				// if the right vertex of needed Position is found write out values
+				if ((aaPos[*iter][0] == x) && (aaPos[*iter][1] == y) && (aaPos[*iter][2] == z))
+				{
+					if (m_log_mGate == true)
+						GatingAccesors.push_back(this->m_aaMGate[*iter]);
+					if (m_log_hGate == true)
+						GatingAccesors.push_back(this->m_aaHGate[*iter]);
+					if (m_log_nGate == true)
+						GatingAccesors.push_back(this->m_aaNGate[*iter]);
+				}
 			}
 		}
 	}
@@ -219,6 +239,14 @@ void ChannelHH<TDomain>::Jacobi_sets(Vertex* vrt, const std::vector<number>& vrt
 ////////////////////////////////////////////////
 // Methods for HH-Channel-Nernst-Class
 ////////////////////////////////////////////////
+
+
+template<typename TDomain> void ChannelHHNernst<TDomain>::set_log_nGate(bool bLogNGate) { m_log_nGate = bLogNGate; }
+template<typename TDomain> void ChannelHHNernst<TDomain>::set_log_hGate(bool bLogHGate) { m_log_hGate = bLogHGate; }
+template<typename TDomain> void ChannelHHNernst<TDomain>::set_log_mGate(bool bLogMGate) { m_log_mGate = bLogMGate; }
+
+
+
 template<typename TDomain>
 void ChannelHHNernst<TDomain>::
 set_conductivities(number Na, number K, number L)
@@ -255,31 +283,41 @@ std::vector<number> ChannelHHNernst<TDomain>::allGatingAccesors(number x, number
 	//var for output
 	std::vector<number> GatingAccesors;
 
+	// accessors
+	typedef ug::MathVector<3> position_type;
+	typedef Attachment<position_type> position_attachment_type;
+	typedef Grid::VertexAttachmentAccessor<position_attachment_type> position_accessor_type;
+
 	// Definitions for Iterating over all Elements
 	typedef typename DoFDistribution::traits<Vertex>::const_iterator itType;
 	SubsetGroup ssGrp;
 	try{ ssGrp = SubsetGroup(m_pVMDisc->approx_space()->domain()->subset_handler(), this->m_vSubset);}
 	UG_CATCH_THROW("Subset group creation failed.");
 
-	Grid::AttachmentAccessor< Vertex, APosition > aaPos;
+	//UG_LOG("Channel: Before iteration" << std::endl);
 
-	UG_LOG("Channel: Before iteration" << std::endl);
-
-	// iterating over all elements
-	for (size_t si=0; si < ssGrp.size(); si++)
+	// Iterate only if there is one Gatting needed
+	if (m_log_mGate==true || m_log_hGate==true || m_log_nGate==true)
 	{
-		itType iterBegin = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]);
-		itType iterEnd = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template end<Vertex>(ssGrp[si]);
-
-		for (itType iter = iterBegin; iter!= iterEnd; ++iter)
+		// iterating over all elements
+		for (size_t si=0; si < ssGrp.size(); si++)
 		{
-			// if the right vertex of needed Position is found write out values
-			if ((aaPos[*iter][0] == x) && (aaPos[*iter][1] == y) && (aaPos[*iter][2] == z))
+			itType iterBegin = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]);
+			itType iterEnd = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template end<Vertex>(ssGrp[si]);
+
+			for (itType iter = iterBegin; iter!= iterEnd; ++iter)
 			{
-				UG_LOG("Channel: in IF" << std::endl);
-				GatingAccesors.push_back(m_aaMGate[*iter]);
-				GatingAccesors.push_back(m_aaHGate[*iter]);
-				GatingAccesors.push_back(m_aaNGate[*iter]);
+				const position_accessor_type& aaPos = m_pVMDisc->approx_space()->domain()->position_accessor();
+				// if the right vertex of needed Position is found write out values
+				if ((aaPos[*iter][0] == x) && (aaPos[*iter][1] == y) && (aaPos[*iter][2] == z))
+				{
+					if (m_log_mGate == true)
+						GatingAccesors.push_back(this->m_aaMGate[*iter]);
+					if (m_log_hGate == true)
+						GatingAccesors.push_back(this->m_aaHGate[*iter]);
+					if (m_log_nGate == true)
+						GatingAccesors.push_back(this->m_aaNGate[*iter]);
+				}
 			}
 		}
 	}

@@ -161,6 +161,9 @@ struct Functionality
 				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
 				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
 				.add_method("set_conductivities", &T::set_conductivities)
+				.add_method("set_log_mGate", &T::set_log_mGate)
+				.add_method("set_log_nGate", &T::set_log_nGate)
+				.add_method("set_log_hGate", &T::set_log_hGate)
 				//.add_method("ionic_current", /*static_cast<void (TBase::*) (Vertex*, std::vector<double>&)> (&T::ionic_current) /*, "","", "doing flux")
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "ChannelHH", tag);
@@ -176,6 +179,9 @@ struct Functionality
 				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
 				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
 				.add_method("set_conductivities", &T::set_conductivities)
+				.add_method("set_log_mGate", &T::set_log_mGate)
+				.add_method("set_log_nGate", &T::set_log_nGate)
+				.add_method("set_log_hGate", &T::set_log_hGate)
 				//.add_method("ionic_current", /*static_cast<void (TBase::*) (Vertex*, std::vector<double>&)> (*/&T::ionic_current) /*, "","", "doing flux")*/
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "ChannelHHNernst", tag);

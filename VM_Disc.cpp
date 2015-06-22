@@ -200,15 +200,20 @@ void VMDisc<TDomain>::write_gatings_for_position(number x, number y, number z)
 	std::vector<std::vector<SmartPtr<std::ofstream> > > Vec_ofstreams;
 
 	// Vector with all Gating Vectors of all Channels
-	std::vector<number> ChannelGate;
+	std::vector<std::vector<number> > ChannelGate;
+
+
 
 	for (size_t i=0; i < m_channel.size(); i++)
 	{
-		UG_LOG("first all gating" << std::endl);
-		ChannelGate = m_channel[i]->allGatingAccesors(x, y, z);
-		UG_LOG("after first gating" << std::endl);
-		/*std::vector<SmartPtr<std::ofstream> > vec;
+		// temp vector for initialisation of every channel
+		std::vector<number> temp;
+		ChannelGate.push_back(temp);
+		std::vector<SmartPtr<std::ofstream> > vec;
 		Vec_ofstreams.push_back(vec);
+
+		// writing all Accesors of one Channel
+		ChannelGate[i] = m_channel[i]->allGatingAccesors(x, y, z);
 		// getting all States from channel i
 		for (size_t j=0; j < ChannelGate[i].size(); j++)
 		{
@@ -221,27 +226,16 @@ void VMDisc<TDomain>::write_gatings_for_position(number x, number y, number z)
 			//creates ofstream for every channel Gate
 			//std::ofstream NewStream(CharStream);
 			SmartPtr<std::ofstream> NewStreamm;
-			NewStreamm = make_sp(new std::ofstream(CharStream));
+			NewStreamm = make_sp(new std::ofstream(CharStream, std::ios::app));
 
 			Vec_ofstreams[i].push_back(NewStreamm);
 
+			*Vec_ofstreams[i][j] << (ChannelGate[i][j]) << "\n";
+			//std::cout << (ChannelGate[i][j]) << std::endl;
 
-			UG_LOG("before output" << std::endl);
-			*Vec_ofstreams[i][j] << (ChannelGate[i][j]) << "/n";
-			std::cout << (ChannelGate[i][j]) << std::endl;
-
-
-		}*/
+		}
 	}
 
-	// testing if it is working
-	/*for (size_t i=0; i < Vec_ofstreams.size(); i++)
-	{
-		for (size_t j=0; j < Vec_ofstreams[i].size(); j++)
-		{
-			std::cout << Vec_ofstreams[i][j] << std::endl;
-		}
-	}*/
 }
 
 
