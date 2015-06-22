@@ -111,81 +111,58 @@ void ChannelHH<TDomain>::init_attachments()
 
 // Methods for using gatings
 template<typename TDomain>
-void ChannelHH<TDomain>::init(const LocalVector& u, Edge* edge)
+void ChannelHH<TDomain>::init(Vertex* vrt, const std::vector<number>& vrt_values)
 {
-	typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list;
-	vrt_list vl;
-	m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge);
-	for (size_t k = 0; k < vl.size(); ++k)
-	{
-		Vertex* vrt = vl[k];
+	number VM = vrt_values[VMDisc<TDomain>::_v_];
 
-		// update Vm
-		number VM = u(m_pVMDisc->_v_(), k);
+	// values for m gate
+	number AlphaHm = 0.1 * vtrap(-(VM+40.0),10.0);
+	number BetaHm =  4.0 * exp(-(VM+65.0)/18.0);
 
-		// values for m gate
+	// values for n gate
+	number AlphaHn = 0.01*vtrap(-(VM+55.0),10.0);
+	number BetaHn = 0.125*exp(-(VM+65.0)/80.0);
 
-		number AlphaHm = 0.1 * vtrap(-(VM+40.0),10.0);
-		number BetaHm =  4 * exp(-(VM+65.0)/18.0);
+	// values for h gate
+	number AlphaHh = 0.07 * exp(-(VM+65.0)/20.0);
+	number BetaHh = 1.0 / (exp(-(VM+35.0)/10.0) + 1.0);
 
-		// values for n gate
-		number AlphaHn = 0.01*vtrap(-(VM+55.0),10.0);
-		number BetaHn = 0.125*exp(-(VM+65.0)/80);
-
-		// values for h gate
-		number AlphaHh = 0.07 * exp(-(VM+65.0)/20.0);
-		number BetaHh = 1.0 / (exp(-(VM+35.0)/10.0) + 1.0);
-
-		// setting initial gating params as equilibrium states
-		this->m_aaHGate[vrt] = AlphaHh / (AlphaHh + BetaHh);
-		this->m_aaMGate[vrt] = AlphaHm / (AlphaHm + BetaHm);
-		this->m_aaNGate[vrt] = AlphaHn / (AlphaHn + BetaHn);
-	}
+	// setting initial gating params as equilibrium states
+	this->m_aaHGate[vrt] = AlphaHh / (AlphaHh + BetaHh);
+	this->m_aaMGate[vrt] = AlphaHm / (AlphaHm + BetaHm);
+	this->m_aaNGate[vrt] = AlphaHn / (AlphaHn + BetaHn);
 }
 
 template<typename TDomain>
-void ChannelHH<TDomain>::update_gating(number newTime, const LocalVector& u, Edge* edge)
+void ChannelHH<TDomain>::update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values)
 {
-	typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list;
-	vrt_list vl;
-	m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge);
-	for (size_t k = 0; k < vl.size(); ++k)
-	{
-		Vertex* vrt = vl[k];
-		number dt = newTime - m_pVMDisc->m_aaTime[vrt];
+	number dt = newTime - m_pVMDisc->time();
+	number VM = vrt_values[VMDisc<TDomain>::_v_];
 
-		// only update vertices that are not yet updated
-		if (dt == 0.0) continue;
+	// values for m gate
+	number AlphaHm = 0.1 * vtrap(-(VM+40.0),10.0);
+	number BetaHm =  4.0 * exp(-(VM+65.0)/18.0);
+	number sumABHm = 4.5 * (AlphaHm+BetaHm);
 
-		// update Vm
-		number VM = u(m_pVMDisc->_v_(), k);
+	// values for n gate
+	number AlphaHn = 0.01 * vtrap(-(VM+55.0),10.0);
+	number BetaHn = 0.125 * exp(-(VM+65.0)/80.0);
+	number sumABHn = 4.5 * (AlphaHn+BetaHn);
 
+	// values for h gate
+	number AlphaHh = 0.07 * exp(-(VM+65.0)/20.0);
+	number BetaHh = 1.0 / (exp(-(VM+35.0)/10.0) + 1.0);
+	number sumABHh = 4.5 * (AlphaHh+BetaHh);
 
-		// values for m gate
-		number AlphaHm = 0.1 * vtrap(-(VM+40),10);
-		number BetaHm =  4 * exp(-(VM+65)/18);
-		number sumABHm = 4.5*(AlphaHm+BetaHm);
+	number rate_h = ((AlphaHh/((AlphaHh+BetaHh))) - m_aaHGate[vrt]) * sumABHh * dt;
+	number rate_m = ((AlphaHm/((AlphaHm+BetaHm))) - m_aaMGate[vrt]) * sumABHm * dt;
+	number rate_n = ((AlphaHn/((AlphaHn+BetaHn))) - m_aaNGate[vrt]) * sumABHn * dt;
 
-		// values for n gate
-		number AlphaHn = 0.01*vtrap(-(VM+55),10);
-		number BetaHn = 0.125*exp(-(VM+65)/80);
-		number sumABHn = 4.5*(AlphaHn+BetaHn);
-
-		// values for h gate
-		number AlphaHh = 0.07 * exp(-(VM+65)/20.0);
-		number BetaHh = 1.0 / (exp(-(VM+35.0)/10.0) + 1.0);
-		number sumABHh = 4.5*(AlphaHh+BetaHh);
-
-		number rate_h = ((AlphaHh/((AlphaHh+BetaHh))) - m_aaHGate[vrt]) / (1.0/sumABHh) * dt;
-		number rate_m = ((AlphaHm/((AlphaHm+BetaHm))) - m_aaMGate[vrt]) / (1.0/sumABHm) * dt;
-		number rate_n = ((AlphaHn/((AlphaHn+BetaHn))) - m_aaNGate[vrt]) / (1.0/sumABHn) * dt;
-
-		m_aaHGate[vrt] += rate_h;
-		m_aaMGate[vrt] += rate_m;
-		m_aaNGate[vrt] += rate_n;
-		//std::cout << "VM: " << (m_aaVm[*iter]) << "h: "<< m_aaHGate[*iter] << "m: "<< m_aaMGate[*iter] <<  "n: "<< m_aaNGate[*iter] <<std::endl;
-		//std::cout << "Rates: " << rate_h << " , " << rate_m << " , " << rate_n << std::endl;
-	}
+	m_aaHGate[vrt] += rate_h;
+	m_aaMGate[vrt] += rate_m;
+	m_aaNGate[vrt] += rate_n;
+	//std::cout << "VM: " << VM << "   h: "<< m_aaHGate[vrt] << "   m: "<< m_aaMGate[vrt] <<  "   n: "<< m_aaNGate[vrt] <<std::endl;
+	//std::cout << "Rates: " << rate_h << " , " << rate_m << " , " << rate_n << std::endl;
 }
 
 
@@ -196,17 +173,27 @@ void ChannelHH<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>& v
 	number NGate = m_aaNGate[vrt];
 	number MGate = m_aaMGate[vrt];
 	number HGate = m_aaHGate[vrt];
-	number VM 	 = vrt_values[m_pVMDisc->_v_()];
+	number VM 	 = vrt_values[VMDisc<TDomain>::_v_];
 
 	number rev_pot_K = m_pVMDisc->ek();
 	number rev_pot_Na = m_pVMDisc->ena();
 	number rev_pot_leak = m_pVMDisc->eleak();
 
-	// TODO Influx values needed
 	// single channel type fluxes
 	const number potassium_part_of_flux = m_g_K * pow(NGate,4) * (VM - rev_pot_K);
 	const number sodium_part_of_flux =  m_g_Na * pow(MGate,3) * HGate * (VM - rev_pot_Na);
 	const number leakage_part_of_flux = m_g_I * (VM - rev_pot_leak);
+
+	/*
+	std::cout << "VM: " << VM << std::endl;
+	std::cout << "NGate: " << NGate << std::endl;
+	std::cout << "MGate: " << MGate << std::endl;
+	std::cout << "HGate: " << HGate << std::endl;
+	std::cout << "potassium_part_of_flux: " << potassium_part_of_flux << std::endl;
+	std::cout << "sodium_part_of_flux: " << sodium_part_of_flux << std::endl;
+	std::cout << "leakage_part_of_flux: " << leakage_part_of_flux << std::endl;
+	std::cout << "flux: " << potassium_part_of_flux + sodium_part_of_flux + leakage_part_of_flux << std::endl;
+	*/
 
 	number flux_value = (potassium_part_of_flux + sodium_part_of_flux + leakage_part_of_flux);
 	outCurrentValues.push_back(flux_value);
@@ -331,75 +318,54 @@ void ChannelHHNernst<TDomain>::init_attachments()
 
 // Methods for using gatings
 template<typename TDomain>
-void ChannelHHNernst<TDomain>::init(const LocalVector& u, Edge* edge)
+void ChannelHHNernst<TDomain>::init(Vertex* vrt, const std::vector<number>& vrt_values)
 {
-	typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list;
-	vrt_list vl;
-	m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge);
-	for (size_t k = 0; k < vl.size(); ++k)
-	{
-		Vertex* vrt = vl[k];
+	number VM = vrt_values[VMDisc<TDomain>::_v_];
 
-		// update Vm
-		number VM = u(m_pVMDisc->_v_(), k);
+	// values for m gate
+	number AlphaHm = 0.1 * vtrap(-(VM+40.0),10.0);
+	number BetaHm =  4.0 * exp(-(VM+65.0)/18.0);
 
-		// values for m gate
-		number AlphaHm = 0.1 * vtrap(-(VM+40.0),10.0);
-		number BetaHm =  4.0 * exp(-(VM+65.0)/18.0);
+	// values for n gate
+	number AlphaHn = 0.01*vtrap(-(VM+55.0),10.0);
+	number BetaHn = 0.125*exp(-(VM+65.0)/80.0);
 
-		// values for n gate
-		number AlphaHn = 0.01*vtrap(-(VM+55.0),10.0);
-		number BetaHn = 0.125*exp(-(VM+65.0)/80.0);
+	// values for h gate
+	number AlphaHh = 0.07 * exp(-(VM+65.0)/20.0);
+	number BetaHh = 1.0 / (exp(-(VM+35.0)/10.0) + 1.0);
 
-		// values for h gate
-		number AlphaHh = 0.07 * exp(-(VM+65.0)/20.0);
-		number BetaHh = 1.0 / (exp(-(VM+35.0)/10.0) + 1.0);
-
-		// setting initial gating params as equilibrium states
-		this->m_aaHGate[vrt] = AlphaHh / (AlphaHh + BetaHh);
-		this->m_aaMGate[vrt] = AlphaHm / (AlphaHm + BetaHm);
-		this->m_aaNGate[vrt] = AlphaHn / (AlphaHn + BetaHn);
-	}
+	// setting initial gating params as equilibrium states
+	this->m_aaHGate[vrt] = AlphaHh / (AlphaHh + BetaHh);
+	this->m_aaMGate[vrt] = AlphaHm / (AlphaHm + BetaHm);
+	this->m_aaNGate[vrt] = AlphaHn / (AlphaHn + BetaHn);
 }
 
 template<typename TDomain>
-void ChannelHHNernst<TDomain>::update_gating(number newTime, const LocalVector& u, Edge* edge)
+void ChannelHHNernst<TDomain>::update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values)
 {
-	typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list;
-	vrt_list vl;
-	m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge);
-	for (size_t k = 0; k < vl.size(); ++k)
-	{
-		Vertex* vrt = vl[k];
-		number dt = newTime - m_pVMDisc->m_aaTime[vrt];
+	number dt = newTime - m_pVMDisc->time();
+	number VM = vrt_values[VMDisc<TDomain>::_v_];
 
-		// only update vertices that are not yet updated
-		if (dt == 0.0) continue;
+	// set new gating states
+	// values for m gate
+	number AlphaHm = 0.1 * vtrap(-(VM+40.0),10.0);
+	number BetaHm =  4.0 * exp(-(VM+65.0)/18.0);
 
-		// update Vm
-		number VM = u(m_pVMDisc->_v_(), k);
+	// values for n gate
+	number AlphaHn = 0.01 * vtrap(-(VM+55.0),10.0);
+	number BetaHn = 0.125 * exp(-(VM+65.0)/80.0);
 
-		// set new gating states
-		// values for m gate
-		number AlphaHm = 0.1 * vtrap(-(VM+40.0),10.0);
-		number BetaHm =  4.0 * exp(-(VM+65.0)/18.0);
+	// values for h gate
+	number AlphaHh = 0.07 * exp(-(VM+65.0)/20.0);
+	number BetaHh = 1.0 / (exp(-(VM+35.0)/10.0) + 1.0);
 
-		// values for n gate
-		number AlphaHn = 0.01*vtrap(-(VM+55.0),10.0);
-		number BetaHn = 0.125*exp(-(VM+65.0)/80.0);
+	number rate_h = ((AlphaHh/(AlphaHh+BetaHh)) - m_aaHGate[vrt]) / (1.0/(AlphaHh+BetaHh)) * dt;
+	number rate_m = ((AlphaHm/(AlphaHm+BetaHm)) - m_aaMGate[vrt]) / (1.0/(AlphaHm+BetaHm)) * dt;
+	number rate_n = ((AlphaHn/(AlphaHn+BetaHn)) - m_aaNGate[vrt]) / (1.0/(AlphaHn+BetaHn)) * dt;
 
-		// values for h gate
-		number AlphaHh = 0.07 * exp(-(VM+65.0)/20.0);
-		number BetaHh = 1.0 / (exp(-(VM+35.0)/10.0) + 1.0);
-
-		number rate_h = ((AlphaHh/(AlphaHh+BetaHh)) - m_aaHGate[vrt]) / (1.0/(AlphaHh+BetaHh)) * dt;
-		number rate_m = ((AlphaHm/(AlphaHm+BetaHm)) - m_aaMGate[vrt]) / (1.0/(AlphaHm+BetaHm)) * dt;
-		number rate_n = ((AlphaHn/(AlphaHn+BetaHn)) - m_aaNGate[vrt]) / (1.0/(AlphaHn+BetaHn)) * dt;
-
-		m_aaHGate[vrt] += rate_h;
-		m_aaMGate[vrt] += rate_m;
-		m_aaNGate[vrt] += rate_n;
-	}
+	m_aaHGate[vrt] += rate_h;
+	m_aaMGate[vrt] += rate_m;
+	m_aaNGate[vrt] += rate_n;
 }
 
 
@@ -410,24 +376,20 @@ void ChannelHHNernst<TDomain>::ionic_current(Vertex* vrt, const std::vector<numb
 	number NGate = m_aaNGate[vrt];
 	number MGate = m_aaMGate[vrt];
 	number HGate = m_aaHGate[vrt];
-	number v 	 = vrt_values[m_pVMDisc->_v_()];
-	number k 	 = vrt_values[m_pVMDisc->_k_()];
-	number na 	 = vrt_values[m_pVMDisc->_na_()];
+	number v 	 = vrt_values[m_pVMDisc->_v_];
+	number k 	 = vrt_values[m_pVMDisc->_k_];
+	number na 	 = vrt_values[m_pVMDisc->_na_];
 
 	//UG_ASSERT(m_pVMDisc->valid(), "Channel has not been assigned a vmDisc object yet!");
 	const number helpV = 1e3*(m_R*m_T)/m_F;
 	number potassium_nernst_eq 	= helpV*(std::log(m_pVMDisc->k_out()/k));
 	number sodium_nernst_eq	 	= helpV*(std::log(m_pVMDisc->na_out()/na));
+	number rev_pot_leak = m_pVMDisc->eleak();
 
 	// single channel ion fluxes
 	number potassium_part_of_flux = m_g_K * pow(NGate,4) * (v - potassium_nernst_eq);
 	number sodium_part_of_flux =  m_g_Na * pow(MGate,3) * HGate * (v - sodium_nernst_eq);
-	number leakage_part_of_flux = m_g_I * (v - m_rev_pot_leak);
-
-	//std::cout << "potassium_part_of_flux: " << potassium_part_of_flux << std::endl;
-	//std::cout << "sodium_part_of_flux: " << sodium_part_of_flux << std::endl;
-
-	//std::cout << " n: " << NGate << " m: "<< MGate << " h: " << HGate << std::endl;
+	number leakage_part_of_flux = m_g_I * (v - rev_pot_leak);
 
 	outCurrentValues.push_back(potassium_part_of_flux + sodium_part_of_flux + leakage_part_of_flux);
 	outCurrentValues.push_back(potassium_part_of_flux/m_F);
@@ -447,8 +409,8 @@ void ChannelHHNernst<TDomain>::Jacobi_sets(Vertex* vrt, const std::vector<number
 	number NGate = m_aaNGate[vrt];
 	number MGate = m_aaMGate[vrt];
 	number HGate = m_aaHGate[vrt];
-	number k 	 = vrt_values[VMDisc<TDomain>::_k_()];
-	number na 	 = vrt_values[VMDisc<TDomain>::_na_()];
+	number k 	 = vrt_values[VMDisc<TDomain>::_k_];
+	number na 	 = vrt_values[VMDisc<TDomain>::_na_];
 
 	UG_ASSERT(m_pVMDisc, "Channel has not been assigned a vmDisc object yet!");
 	const number helpV = (m_R*m_T)/m_F;
@@ -504,15 +466,15 @@ std::vector<number> ChannelLeak<TDomain>::allGatingAccesors(number x, number y, 
 
 // Methods for using gatings
 template<typename TDomain>
-void ChannelLeak<TDomain>::init(const LocalVector& u, Edge* edge)
+void ChannelLeak<TDomain>::init(Vertex* vrt, const std::vector<number>& vrt_values)
 {
-
+	// nothing to do
 }
 
 template<typename TDomain>
-void ChannelLeak<TDomain>::update_gating(number newTime, const LocalVector& u, Edge* edge)
+void ChannelLeak<TDomain>::update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values)
 {
-
+	// nothing to do
 }
 
 
@@ -520,7 +482,7 @@ template<typename TDomain>
 void ChannelLeak<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
 {
 	// getting attachments for vertex
-	number VM 	 = vrt_values[m_pVMDisc->_v_()];
+	number VM 	 = vrt_values[m_pVMDisc->_v_];
 	number leak_equilibrium = m_pVMDisc->eleak();
 
 	const number leakage_part_of_flux = m_g_I * (VM - leak_equilibrium);

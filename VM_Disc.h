@@ -59,77 +59,105 @@ class VMDisc
 		///	world dimension
 		static const int dim = IElemDisc<TDomain>::dim;
 
+		// indices for unknowns
+	    static const size_t _v_ = 0;
+	    static const size_t _k_ = 1;
+	    static const size_t _na_ = 2;
+	    static const size_t _ca_ = 3;
+
+	    static const size_t m_numb_ion_funcs = 3;
+
+	    // constants
+	    const number R;	///< universal gas constant
+	    const number F; ///< Faraday constant
 	
 	public:
-
 		///	constructor
-		// TODO: rework this?
-		// We generally only have the following functions: v, k, na, ca.
-		// We should begin with generating the necessary functions in a hard-coded way
-		// and might then check whether some of them are not in fact needed.
 		VMDisc(const char* subsets, const number init_time = 0.0);
 
 		///	destructor
 		virtual ~VMDisc() {};
 
-		// functions for setting params
-		/// set constant diameter for dendrites
+		// /////////////////////
+		// setting parameters //
+		// /////////////////////
+		/// set constant diameter in units of m
 		void set_diameter(const number d);
 
-		/// set spec_resistance
+		/// set specific resistance in units of mV/(C/ms)*m = 1e-6 Ohm*m
 		void set_spec_res(number val);
 
-		/// set specific capacity
+		/// set specific capacity in units of C/mV/m^2 = 1e-3 F/m^2
 		void set_spec_cap(number val);
 
-		/// set diffusion coefficients
+		/// set outer ion concentrations (in units of mol/m^3 = mM)
+		///	\{
+		void set_k_out(number value);
+		void set_na_out(number value);
+		void set_ca_out(number value);
+		/// \}
+
+		/// set diffusion coefficients in units of m^2/ms
 		void set_diff_coeffs(const std::vector<number>& diff_coeffs);
 
-		/// set influx position accuracy
-		void set_influx_ac(number influx_ac);
-
-		/// write all Gating values from one Position in a file
-		void write_AllGattings_on_position(number x, number y, number z);
-
-		/// setting write temperature
-		void set_celsius(number cels);
-
-		number celsius();
-
-		/// set influx params (flux value, coordinates, beginning, duration)
-		void set_influx(number Flux, number x, number y, number z, number beg, number dur);
-
-		VMDisc<TDomain>* get_VmDisc();
-
-		/// functions to get different ion fluxes
-		number flux_ca();
-		number flux_v();
-		number flux_k();
-		number flux_na();
-
-
-		/// functions for different reversal potentials
-		number eca();
-		number ena();
-		number ek();
-		number eleak();
-
+		/// set Nernst potentials for ion species in units of mV
+		///	\{
 		void set_ek(number value);
 		void set_ena(number value);
 		void set_eca(number value);
 		void set_eleak(number value);
+		/// \}
 
-		/// functions for outer concentrations
+		/// set temperature in units of K
+		void set_temperature(number kelvin);
+
+		/// set temperature in units of degrees C
+		void set_temperature_celsius(number cels);
+
+		// /////////////////////
+		// getting parameters //
+		// /////////////////////
+		/// get constant diameter in units of m
+		number diameter();
+
+		/// get specific resistance in units of mV/(C/ms)*m = 1e-6 Ohm*m
+		number spec_res();
+
+		/// get specific capacity in units of C/mV/m^2 = 1e-3 F/m^2
+		number spec_cap();
+
+		/// get outer ion concentrations (in units of mol/m^3 = mM)
+		///	\{
 		number k_out();
 		number na_out();
 		number ca_out();
+		/// \}
 
-		/// functions for Function size_t indexes
-		size_t _v_();
-		size_t _k_();
-		size_t _na_();
-		size_t _ca_();
+		/// get diffusion coefficients in units of m^2/ms
+		const std::vector<number>& diff_coeffs();
 
+		/// get Nernst potentials for ion species in units of mV
+		///	\{
+		number ek();
+		number ena();
+		number eca();
+		number eleak();
+		/// \}
+
+		/// get temperature in units of K
+		number temperature();
+
+		/// get temperature in units of degrees C
+		number temperature_celsius();
+
+		// ////////////////////////////
+		// setters for functionality //
+		// ////////////////////////////
+		/// set influx position accuracy
+		void set_influx_ac(number influx_ac);
+
+		/// set influx params (flux value, coordinates, beginning, duration)
+		void set_influx(number Flux, number x, number y, number z, number beg, number dur);
 
 #ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
 		void set_synapse_handler(SmartPtr<synapse_handler::NETISynapseHandler<TDomain> > sh);
@@ -137,86 +165,43 @@ class VMDisc
 #ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED
 		void set_synapse_distributor(SmartPtr<SynapseDistributor> sd);
 #endif
+
 		/// adding a channel
 		void add_channel(SmartPtr<IChannel<TDomain> > Channel);
-#if 0
-		/// add func
-		void add_func(std::string func);
-#endif
 
-	private:
+		// ////////////////////////////////
+		// getters for functional values //
+		// ////////////////////////////////
+		/// TODO: Is this used anywhere? Are the corresponding members ever written to?
+		/// functions to get different ion fluxes
+		///	\{
+		number flux_k();
+		number flux_na();
+		number flux_ca();
+		number flux_v();
+		/// \}
 
-	    // outer concentrations
-	    const number m_k_out;             // mol/m^3 = mM
-	    const number m_na_out;    // mol/m^3 = mM
-	    const number m_ca_out;    // mol/m^3 = mM
+		/// get current time
+		number time();
 
-	    // temperature [in degrees C]
-	    number m_celsius;
-
-	    number m_v, m_na, m_k, m_ca;
-
-	    // reversible potentials
-	    number m_ena, m_ek, m_eca;
-
-	    // leakeage Term
-	    number m_eleak;
-
-	    /// settings for dendrite
-	    number m_spec_res, m_spec_cap;
-
-	    number m_influx_ac;
-
-
-	/// values for influxes
-	std::vector<number> m_flux_value, m_beg_flux, m_dur_flux;
-
-	/// vector for influx coordinates x, y, z
-	std::vector<MathVector<dim> > m_coords;
-
-	/// vector for diffusion consts of k, na and ca
-	std::vector<number> m_diff;
-
-    /// List of Channels
-	std::vector<SmartPtr<TIChannel> > m_channel;
-
-    ///     world dimension
-    static const size_t m_v_ = 0;
-    static const size_t m_k_ = 1;
-    static const size_t m_na_ = 2;
-    static const size_t m_ca_ = 3;
-
-    //
-    static const size_t m_numb_funcs = 3;
-
-	private:
-		/// determines the function index based on its name
-		size_t get_index(std::string s);
-
-		/// update time in time attachments of an edge
-		void update_time(const number newTime, Edge* edge);
-
-		/// save old solution to attachments
-		void save_old_sol(const LocalVector& u, Edge* edge);
-
-	public:
-		/// get vm
-		void get_vm(std::vector<number>& outValues, Edge* edge) const;
+		/// get membrane potential at a vertex
 		number get_vm(Vertex* vrt) const;
 
-	// inherited from IElemDisc
+		/// write all gating values for a position to file
+		void write_gatings_for_position(number x, number y, number z);
+
 	public:
+		// ///////////////////////////
+		// inherited from IElemDisc //
+		// ///////////////////////////
 		/// @copydoc IElemDisc::approximation_space_changed()
 		virtual void approximation_space_changed();
 
 		///	type of trial space for each function used
 		virtual void prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid);
 
-		/// prepare the timestep
-		virtual void prep_timestep(number time, VectorProxyBase* up);
-
-		/// prepares elements for time step assembling
-		virtual void prep_timestep_elem(const number time, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+		/// prepare the time step
+		void prep_timestep(number time, VectorProxyBase* up);
 
 		///	prepares the loop over all elements
 		template <typename TElem, typename TFVGeom>
@@ -226,10 +211,6 @@ class VMDisc
 		template <typename TElem, typename TFVGeom>
 		void prep_elem(const LocalVector& u, GridObject* elem, ReferenceObjectID id, const MathVector<dim> vCornerCoords[]);
 
-		///	finishes the loop over all elements
-		template <typename TElem, typename TFVGeom>
-		void fsh_elem_loop();
-
 		///	assembles stiffness part of local defect
 		template <typename TElem, typename TFVGeom>
 		void add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
@@ -237,6 +218,10 @@ class VMDisc
 		///	assembles mass part of local defect
 		template <typename TElem, typename TFVGeom>
 		void add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+
+		///	assembles the local right hand side
+		template<typename TElem, typename TFVGeom>
+		void add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 		/// assembles jacobian of stiffness part
 		template<typename TElem, typename TFVGeom>
@@ -246,59 +231,15 @@ class VMDisc
 		template<typename TElem, typename TFVGeom>
 		void add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
-		///	assembles the local right hand side
-		template<typename TElem, typename TFVGeom>
-		void add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-
-	public:
-		// TODO: Is this really necessary?
-		// As far as I can tell, in every channel that we have, the time is only used to compute a time step dt
-		// which we could easily get by passing dt directly to update_gating() instead of newTime.
-		/// attachment and accessor for current time in each vertex (needs to be accessible by IChannel)
-		ANumber m_aTime;
-		Grid::AttachmentAccessor<Vertex, ANumber> m_aaTime;
-
-	protected:
-		/// dendritic radius attachment and accessor
-		ANumber m_aDiameter;
-		Grid::AttachmentAccessor<Vertex, ANumber> m_aaDiameter;
-
-		/// handler for multigrid usage of attachment
-		DiamAttachmentHandler m_dah;
-
-		number m_constDiam;
-		bool m_bConstDiamSet;
-
-		/// attachment and accessor for old solution in each vertex
-		AVector4 m_aUold;
-		Grid::AttachmentAccessor<Vertex, AVector4> m_aaUold;
-
-#ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
-		/// synapse handler
-		SmartPtr<synapse_handler::NETISynapseHandler<TDomain> > m_spSH;
-#endif
-
-#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED
-		/// synapse distributor
-		SmartPtr<SynapseDistributor> m_spSD;
-#endif
-
-		///	current regular grid flag
-		bool m_bNonRegularGrid;
-
-		/// init time
-		number m_init_time;
-
-		/// assembling time
-		number m_ass_time;
-
-		/// flag indicating whether approx space has been set
-		bool m_bLocked;
+		///	finishes the loop over all elements
+		template <typename TElem, typename TFVGeom>
+		void fsh_elem_loop();
 
 	private:
+		/// determines the function index based on its name
+		//size_t get_index(std::string s);
 
-
-
+	protected:
 		///	register utils
 		///	\{
 		void register_all_funcs(bool bHang);
@@ -306,6 +247,58 @@ class VMDisc
 		template <typename TElem, typename TFVGeom>
 		void register_func();
 		/// \}
+
+	protected:
+		ANumber m_aDiameter;										///< dendritic diameter attachment
+		Grid::AttachmentAccessor<Vertex, ANumber> m_aaDiameter;		///< dendritic diameter attachment accessor
+		DiamAttachmentHandler m_dah;								///< handler for multigrid usage of diameter attachment
+		number m_constDiam;											///< constant diameter (if set)
+		bool m_bConstDiamSet;										///< whether const diameter is set
+
+	private:
+		number m_spec_res;					///< specific resistance in units of mV/(C/ms)*m = 1e-6 Ohm*m
+		number m_spec_cap;					///< specific capacity in units of C/mV/m^2 = 1e-3 F/m^2
+
+		number m_k_out;     				///< outer [K] in units of  mol/m^3 = mM
+		number m_na_out;     				///< outer [Na] in units of  mol/m^3 = mM
+		number m_ca_out;     				///< outer [Ca] in units of  mol/m^3 = mM
+
+		std::vector<number> m_diff;			///< vector for diffusion constants of K, Na and Ca in units of m^2/ms
+
+		number m_ek;						///< reversal potential K in units of mV
+		number m_ena;						///< reversal potential Na in units of mV
+		number m_eca;						///< reversal potential Ca in units of mV
+		number m_eleak;						///< reversal potential in units of mV
+
+		number m_temperature;				///< temperature in units of K
+
+
+		number m_influx_ac;
+
+	protected:
+		std::vector<number> m_flux_value, m_beg_flux, m_dur_flux;		///< values describing influxes
+		std::vector<MathVector<dim> > m_coords;							///< vector for influx coordinates x, y, z
+
+#ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
+		SmartPtr<synapse_handler::NETISynapseHandler<TDomain> > m_spSH;	///< synapse handler
+#endif
+
+#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED
+		SmartPtr<SynapseDistributor> m_spSD;							///< synapse distributor
+#endif
+
+		std::vector<SmartPtr<TIChannel> > m_channel;					///< list of channels
+
+		number m_v, m_na, m_k, m_ca;
+
+		const number m_init_time;						///< time of initialization
+		number m_time;									///< current time (the old solution is valid for)
+
+		SmartPtr<CPUAlgebra::vector_type> m_spUOld;		///< old solution vector
+
+
+		bool m_bNonRegularGrid;				///< current regular grid flag
+		bool m_bLocked;						///< flag indicating whether approximation space has been set
 };
 
 

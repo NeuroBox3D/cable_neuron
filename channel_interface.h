@@ -90,10 +90,10 @@ class IChannel
 		 * @param time			initial time
 		 * @param spGridFct		initial solution (containing membrane potential and ion concentrations)
 		 */
-		virtual void init(const LocalVector& u, Edge* e) = 0;
+		virtual void init(Vertex* vrt, const std::vector<number>& vrt_values) = 0;
 
 		/// updates the gating parameters
-		virtual void update_gating(number newTime, const LocalVector& u, Edge* e) = 0;
+		virtual void update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values) = 0;
 
 		/// provides the ionic current (mol*s^-1) at a given vertex
 		virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues) = 0;
@@ -158,8 +158,8 @@ class ChannelHH
 
 	public:
 		// inherited from IChannel
-		virtual void init(const LocalVector& u, Edge* e);
-		virtual void update_gating(number newTime, const LocalVector& u, Edge* e);
+		virtual void init(Vertex* vrt, const std::vector<number>& vrt_values);
+		virtual void update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values);
 		virtual void ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues);
 		virtual void vm_disc_available();
 		virtual std::vector<number> allGatingAccesors(number x, number y, number z);
@@ -202,8 +202,7 @@ class ChannelHHNernst
 		ChannelHHNernst(const std::vector<std::string>& functions, const std::vector<std::string>& subsets)
 		try : IChannel<TDomain>(functions, subsets),
 		m_g_K(3.6e-4), m_g_Na(1.2e-3), m_g_I(3.0e-6),
-		m_R(8.314), m_T(310.0), m_F(96485.0),
-		m_rev_pot_leak(-54.4) {}
+		m_R(8.314), m_T(310.0), m_F(96485.0) {}
 		UG_CATCH_THROW("Error in ChannelHHNernst initializer list.");
 
 		/// destructor
@@ -220,8 +219,8 @@ class ChannelHHNernst
 
 	public:
 		// inherited from IChannel
-		virtual void init(const LocalVector& u, Edge* e);
-		virtual void update_gating(number newTime, const LocalVector& u, Edge* e);
+		virtual void init(Vertex* vrt, const std::vector<number>& vrt_values);
+		virtual void update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values);
 		virtual void ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues);
 		virtual void vm_disc_available();
 		virtual std::vector<number> allGatingAccesors(number x, number y, number z);
@@ -238,9 +237,6 @@ class ChannelHHNernst
 		number m_R;
 		number m_T;
 		number m_F;
-
-		// leakage reversal potential
-		number m_rev_pot_leak;
 
 		// one attachment per state variable
 		ANumber m_MGate;
@@ -284,8 +280,8 @@ class ChannelLeak
 		void set_leak_cond(number L);
 
 		// inherited from IChannel
-		virtual void init(const LocalVector& u, Edge* e);
-		virtual void update_gating(number newTime, const LocalVector& u, Edge* e);
+		virtual void init(Vertex* vrt, const std::vector<number>& vrt_values);
+		virtual void update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values);
 		virtual void ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues);
 		virtual void vm_disc_available();
 		virtual std::vector<number> allGatingAccesors(number x, number y, number z);
