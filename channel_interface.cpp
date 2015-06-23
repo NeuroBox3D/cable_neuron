@@ -59,7 +59,7 @@ std::vector<number> ChannelHH<TDomain>::allGatingAccesors(number x, number y, nu
 	std::vector<number> GatingAccesors;
 
 	// accessors
-	typedef ug::MathVector<3> position_type;
+	typedef ug::MathVector<TDomain::dim> position_type;
 	typedef Attachment<position_type> position_attachment_type;
 	typedef Grid::VertexAttachmentAccessor<position_attachment_type> position_accessor_type;
 
@@ -284,7 +284,7 @@ std::vector<number> ChannelHHNernst<TDomain>::allGatingAccesors(number x, number
 	std::vector<number> GatingAccesors;
 
 	// accessors
-	typedef ug::MathVector<3> position_type;
+	typedef ug::MathVector<TDomain::dim> position_type;
 	typedef Attachment<position_type> position_attachment_type;
 	typedef Grid::VertexAttachmentAccessor<position_attachment_type> position_accessor_type;
 
