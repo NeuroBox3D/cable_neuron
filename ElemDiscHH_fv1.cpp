@@ -215,7 +215,7 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		else
 			AlphaHn = 0.1;
 
-		number BetaHn = 0.125*exp((u(_VM_,co)+65.0)/80.0);
+		number BetaHn = 0.125*exp(-(u(_VM_,co)+65.0)/80.0);
 
 
 		number rate_h = -((AlphaHh * (1.0-u(_h_,co))) - BetaHh * u(_h_,co));
