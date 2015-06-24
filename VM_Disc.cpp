@@ -19,8 +19,8 @@
 #include "../neuronal_topology_importer/neuronal_topology_importer.h"
 
 /// Boost for creating directorys
-#include "boost/filesystem.hpp"
-#include "boost/system/error_code.hpp"
+//#include "boost/filesystem.hpp"
+//#include "boost/system/error_code.hpp"
 
 
 namespace ug {
@@ -225,8 +225,8 @@ void VMDisc<TDomain>::write_gatings_for_position(number x, number y, number z, s
 			ssoStreamName << pfad << "ChannelNumber_" << i << "_GateNumber_" << j << ".txt";
 
 			//creating pfad for outputs
-			boost::filesystem::path dir(pfad);
-			boost::filesystem::create_directory(dir);
+			//boost::filesystem::path dir(pfad);
+			//boost::filesystem::create_directory(dir);
 
 			std::string soStream = ssoStreamName.str();
 			const char* CharStream = soStream.c_str();
