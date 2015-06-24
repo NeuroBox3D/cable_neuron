@@ -112,11 +112,11 @@ std::vector<number> ChannelHH<TDomain>::allGatingAccesors(number x, number y, nu
 		}
 
 		if (m_log_mGate == true)
-			GatingAccesors.push_back(this->m_aaMGate[*iter]);
+			GatingAccesors.push_back(this->m_aaMGate[bestVrt]);
 		if (m_log_hGate == true)
-			GatingAccesors.push_back(this->m_aaHGate[*iter]);
+			GatingAccesors.push_back(this->m_aaHGate[bestVrt]);
 		if (m_log_nGate == true)
-			GatingAccesors.push_back(this->m_aaNGate[*iter]);
+			GatingAccesors.push_back(this->m_aaNGate[bestVrt]);
 	}
 
 
@@ -345,26 +345,26 @@ std::vector<number> ChannelHHNernst<TDomain>::allGatingAccesors(number x, number
 				bestVrt = *iterBegin;
 				bestDistSq = VecDistanceSq(coord, aaPos[bestVrt]);
 			}
-				iter = iterBegin;
-				iter++;
-				while(iter != iterEnd)
+			iter = iterBegin;
+			iter++;
+			while(iter != iterEnd)
+			{
+				distSq = VecDistanceSq(coord, aaPos[*iter]);
+				if(distSq < bestDistSq)
 				{
-					distSq = VecDistanceSq(coord, aaPos[*iter]);
-					if(distSq < bestDistSq)
-					{
-						bestDistSq = distSq;
-						bestVrt = *iter;
-					}
-					++iter;
+					bestDistSq = distSq;
+					bestVrt = *iter;
 				}
+				++iter;
+			}
 		}
 
 		if (m_log_mGate == true)
-			GatingAccesors.push_back(this->m_aaMGate[*iter]);
+			GatingAccesors.push_back(this->m_aaMGate[bestVrt]);
 		if (m_log_hGate == true)
-			GatingAccesors.push_back(this->m_aaHGate[*iter]);
+			GatingAccesors.push_back(this->m_aaHGate[bestVrt]);
 		if (m_log_nGate == true)
-			GatingAccesors.push_back(this->m_aaNGate[*iter]);
+			GatingAccesors.push_back(this->m_aaNGate[bestVrt]);
 	}
 
 
