@@ -39,22 +39,22 @@ std::vector<string> Converter::Read_i_value(std::vector<string> Neuron)
 	{
 		if (All_reads[i]=="ica")
 		{
-			erg.push_back("number ica = m_pVMDisc->get_flux_ca(); \n");
+			erg.push_back("number ica = m_pVMDisc->flux_ca(); \n");
 			written = true;
 		}
 		if (All_reads[i]=="ik")
 		{
-			erg.push_back("number ik = m_pVMDisc->get_flux_k(); \n");
+			erg.push_back("number ik = m_pVMDisc->flux_k(); \n");
 			written = true;
 		}
 		if (All_reads[i]=="ina")
 		{
-			erg.push_back("number ina = m_pVMDisc->get_flux_na(); \n");
+			erg.push_back("number ina = m_pVMDisc->flux_na(); \n");
 			written = true;
 		}
 		if (All_reads[i]=="i")
 		{
-			erg.push_back("number i = m_pVMDisc->get_flux_v(); \n");
+			erg.push_back("number i = m_pVMDisc->flux_v(); \n");
 			written = true;
 		}
 	}
@@ -854,7 +854,7 @@ std::vector<string> Converter::equali(std::vector<pair<int, int> > Pairs, std::v
 			if (version[j]==false)
 			{
 			std::cout << "read ion: " + ListIonRead[j] + "List ion: " + ListIon[j] << std::endl;
-			out.push_back("number " + ListIonRead[j] + " = helpV*(log(m_pVMDisc->" + ListIon[j] + "_out/" + ListIon[j] + "));");
+			out.push_back("number " + ListIonRead[j] + " = helpV*(log(m_pVMDisc->" + ListIon[j] + "_out()/" + ListIon[j] + "));");
 			}
 		}
 
@@ -864,7 +864,7 @@ std::vector<string> Converter::equali(std::vector<pair<int, int> > Pairs, std::v
 			if (version[j]==true)
 			{
 			std::cout << "read ion: " + ListIonRead[j] + "List ion: " + ListIon[j] << std::endl;
-			out.push_back("number " + ListIonRead[j] + " = helpV*(log(m_pVMDisc->" + ListIon[j] + "_out/" + ListIon[j] + "));");
+			out.push_back("number " + ListIonRead[j] + " = helpV*(log(m_pVMDisc->" + ListIon[j] + "_out()/" + ListIon[j] + "));");
 			}
 		}
 
@@ -1707,7 +1707,6 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  vector<string> HFile_added_Vars;
 
 
-
 	  m_class_name = filename;
 
 
@@ -1721,6 +1720,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  mycppfile << "#include \"lib_disc/function_spaces/grid_function.h\" \n";
 	  mycppfile << "#include \"lib_disc/function_spaces/local_transfer_interface.h\" \n";
 	  mycppfile << "#include <cmath> \n";
+
 
 	  mycppfile << "namespace ug { \n";
 	  mycppfile << "namespace cable { \n \n \n";
@@ -1919,7 +1919,6 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		  mycppfile << "} \n \n";
 
 	  }
-
 
 
 	  mycppfile << "// adding function which always inits_attachments \n";
@@ -2148,29 +2147,10 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		  }
 	  }
 
-
-
-	  // for all Parameters we need getter and setters (also for Pointers)
-	  std::vector<vector <string> > Getters;
-	  std::vector<vector <string> > Setters;
-
-	  // Preparing for all Parameters getters and setters
-	  for (size_t i = 0; i<Parameter.size(); i++)
-	  {
-		  std::cout << Parameter[i] << std::endl;
-		  Getters.push_back(buildgetter(Remove_all(Parameter[i]), filename));
-		  Setters.push_back(buildsetter(Remove_all(Parameter[i]), filename));
-	  }
-
-
-
-	  	//Setters
-
-	  //std::cout << "All Parameters set" << std::endl;
-
 //////////////////////////////////////////////////////////////////////////////////////////////
-// Writing all interface parts
+	  /// Writing all ions out
 //////////////////////////////////////////////////////////////////////////////////////////////
+
 
 	  size_t Ion, IonEnd;
 	  string IonS;
@@ -2206,12 +2186,131 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  vector<string> HFile_added_Vars_Init = HFile_added_Vars;
 
 
+//////////////////////////////////////////////////////////////////////////////////////////////
+	 /// Building State_Vars for beginning
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+  	  std::vector<string> STATE = GetBlock(Pairs, Zeilen, "STATE");
+
+	  // needed var for Gating params having same value of used Ion
+	  std::vector<string> SGating;
+
+  	  string addState;
+
+  	  // var in which all states and Non spec currents are saved
+  	  std::vector<string> State_vars;
+  	  size_t state, stateend, komm_beg;
+  	  size_t varSt = 0;
+  	  bool clip = false;
+  	 // size_t tabs;
+
+  	  if (STATE.size()>0)
+  	  {
+  		  for (size_t i=0; i<STATE.size(); i++)
+  		  {
+  			  state = pos_letter(STATE[i]);
+  			  if (state!=1000)
+  			  {
+  				  if (STATE[i].find("(")==STATE[i].npos)
+  				  {
+  					  varSt = number_(state, STATE[i]);
+  				  }
+  				  else
+  				  {
+  					  varSt = 1;
+  					  clip=true;
+  				  }
+  			  }
+  			  ////std::cout << "after doppelt if" << std::endl;
+  			  for (size_t j=0; j<varSt; j++)
+  			  {
+  				  ////std::cout << "in state " << std::endl;
+  				  komm_beg = STATE[i].find(":");
+  				  stateend = STATE[i].find(" ", state);
+  				  if (clip==true)
+  					  stateend = STATE[i].find("(", state);
+  				  clip = false;
+  				  ////std::cout << "ab: " << state << " anzahl: " << stateend-state << std::endl;
+  				  if (stateend==komm_beg+1)
+  				  {
+  					  stateend -= 1;
+  				  }
+  				  if ((stateend<=komm_beg) && (state<komm_beg))
+  				  {
+  					  if (STATE[i].find("}")!=STATE[i].npos)
+  		  			  {
+
+  						  if (stateend-state!=STATE[i].npos-state)
+  						  {
+  							  addState = Remove_all(STATE[i].substr(state, stateend-state));
+  						  }
+  						  else
+  						  {
+  							  ////std::cout << "not added!!" << std::endl;
+  							  addState = "";
+  						  }
+  		  			  }
+  					  else
+  		  			  {
+  						  ////std::cout << "vergleich: " << stateend << " - "<<komm_beg << std::endl;
+  						  addState = Remove_all(STATE[i].substr(state, stateend-state));
+  		  			  }
+
+  					  //writting in hfile
+  		  			  if ((addState!="}") && (addState!="") && (addState!="\n") &&(addState!="\n}") && (addState!="}\n"))
+  		  			  {
+  		  				// If State is already in Ion List we need another name for State
+  		  				// doing this by adding "S"
+  		  				  for (size_t k=0; k<ListIons.size(); k++)
+  		  				  {
+  		  					  if (Remove_all(addState)==Remove_all(ListIons[k]))
+  		  					  {
+  		  						  addState = addState+"S";
+  		  						  SGating.push_back(addState);
+  		  					  }
+  		  				  }
+  		  				  State_vars.push_back(addState);
+  		  			  }
+  		  		  }
+  				  state = stateend+1;
+  		  		  //////////////////
+  			  }
+  			  varSt = 0;
+
+  		  }
+  	  }
+
+
+
+
+	  // for all Parameters we need getter and setters (also for Pointers)
+	  std::vector<vector <string> > Getters;
+	  std::vector<vector <string> > Setters;
+
+	  // Preparing for all Parameters getters and setters
+	  for (size_t i = 0; i<Parameter.size(); i++)
+	  {
+		  std::cout << Parameter[i] << std::endl;
+		  Getters.push_back(buildgetter(Remove_all(Parameter[i]), filename));
+		  Setters.push_back(buildsetter(Remove_all(Parameter[i]), filename));
+	  }
+
+
+
+	  	//Setters
+
+	  //std::cout << "All Parameters set" << std::endl;
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+// Writing all interface parts
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+
 	  myhfile << "\n"; myhfile << "\n";
 
 	  myhfile << "/// @copydoc IChannel<TDomain>::IChannel(cont char*) \n";
 	  myhfile << filename + "(const char* functions, const char* subsets) \n";
 	  myhfile << "try : IChannel<TDomain>(functions, subsets), \n";
-	  myhfile << "m_R(8.314), m_T(293.0), m_F(96485.0), \n";
 	  /// adding all standard vals of Parameters
 	  size_t gleich;
 	  string add;
@@ -2222,15 +2321,26 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		  if (i+1<Params_Unit.size())
 			  add = add + ", \n";
 		  else
-			  add = add + " {} \n";
+		  {
+			  if (State_vars.size()==0)
+				  add = add + "{} \n";
+			  else
+				  add = add + ", \n";
+		  }
 		  myhfile << add;
 	  }
-	  myhfile << "UG_CATCH_THROW(\"Error in "+ filename + " initializer list. \") \n \n \n";
+	  for (size_t i=0; i<State_vars.size(); i++)
+	  {
+		  if (i+1<State_vars.size())
+			  myhfile << "m_log_" << State_vars[i] << "Gate(false), \n";
+		  else
+			  myhfile << "m_log_" << State_vars[i] << "Gate(false) {} \n";
+  	  }
+	  myhfile << "UG_CATCH_THROW(\"Error in "+ filename + " initializer list. \"); \n \n \n";
 
 	  myhfile << "/// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&) \n";
 	  myhfile << filename + "(const std::vector<std::string>& functions, const std::vector<std::string>& subsets) \n";
 	  myhfile << "try : IChannel<TDomain>(functions, subsets), \n";
-	  myhfile << "m_R(8.314), m_T(293.0), m_F(96485.0), \n";
 	  /// adding all standard vals of Parameters
 	  size_t gleich1;
 	  string add1;
@@ -2241,13 +2351,28 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  	if (i+1<Params_Unit.size())
 	  		add1 = add1 + ", \n";
 	  	else
-	  		add1 = add1 + " {} \n";
+	  	{
+	    if (State_vars.size()==0)
+	    	add1 = add1 + "{} \n";
+		else
+			add1 = add1 + ", \n";
+	  	}
 	  	myhfile << add1;
 	  }
-	  myhfile << "UG_CATCH_THROW(\"Error in "+ filename + " initializer list. \") \n";
+	  for (size_t i=0; i<State_vars.size(); i++)
+	  {
+		  if (i+1<State_vars.size())
+			  myhfile << "m_log_" << State_vars[i] << "Gate(false), \n";
+		  else
+			  myhfile << "m_log_" << State_vars[i] << "Gate(false) {} \n";
+  	  }
+	  myhfile << "UG_CATCH_THROW(\"Error in "+ filename + " initializer list. \"); \n";
 
 	  myhfile << "/// destructor \n \n";
 	  myhfile << "virtual ~"+ filename + "() {}; \n";
+
+
+
 
 	  string name;
 
@@ -2272,11 +2397,17 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  myhfile << "/// create attachments and accessors \n";
 	  myhfile << "void init_attachments(); \n";
 	  myhfile << "// inherited from IChannel \n \n";
-	  myhfile << "virtual void init(const LocalVector& u, Edge* e); \n";
-	  myhfile << "virtual void update_gating(number newTime, const LocalVector& u, Edge* e); \n";
+	  myhfile << "virtual void init(Vertex* vrt, const std::vector<number>& vrt_values); \n";
+	  myhfile << "virtual void update_gating(number newtime, Vertex* vrt, const std::vector<number>& vrt_values); \n";
 	  myhfile << "virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues); \n";
 	  myhfile << "virtual void vm_disc_available(); \n";
+	  myhfile << "virtual std::vector<number> allGatingAccesors(number x, number y, number z); \n";
 	  myhfile << "\n \n";
+
+
+
+
+
 
 	  // Writting all parameter getter and setters
 	  for (size_t i = 0; i<Parameter.size(); i++)
@@ -2289,6 +2420,11 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		  myhfile << Setters[i][0] + " \n";
 	  }
 
+	  // writing function for m_log_gates
+	  for (size_t i=0; i<State_vars.size(); i++)
+	  {
+  		  myhfile << "void set_log_" << State_vars[i] << "Gate(bool bLog" << State_vars[i] << "Gate); \n";
+  	  }
 
 	  myhfile << "\n \n";
 	  myhfile << "protected: \n";
@@ -2345,10 +2481,9 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 // Start Writting interface-main-functions
 //////////////////////////////////////////////////////////////////////////////
 
-	  std::vector<string> STATE = GetBlock(Pairs, Zeilen, "STATE");
 
-	  // needed var for Gating params having same value of used Ion
-	  std::vector<string> SGating;
+
+
 
 
 
@@ -2358,7 +2493,10 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  mycppfile << "void " + filename + "<TDomain>::init_attachments() \n";
 	  mycppfile << "{ \n";
 	  mycppfile << "// inits temperatur from kalvin to celsius and some other typical neuron values\n";
-	  mycppfile << "m_pVMDisc->celsius = m_T - 273; \n \n \n";
+	  // TodO rework this with right functions
+	  mycppfile << "m_T = m_pVMDisc->temperature(); \n";
+	  mycppfile << "m_R = m_pVMDisc->R; \n";
+	  mycppfile << "m_F = m_pVMDisc->F; \n \n \n";
 	  mycppfile << "SmartPtr<Grid> spGrid = m_pVMDisc->approx_space()->domain()->grid(); \n";
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -2367,13 +2505,8 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  /*size_t Ns_Current, Ns_CurrentEnd;
 	  string Ns_CurrentS;*/
 
-	  string addState;
-
-	  // var in which all states and Non spec currents are saved
-	  std::vector<string> State_vars;
-	  size_t state, stateend, komm_beg;
-	  size_t varSt = 0;
-	  bool clip = false;
+	  varSt = 0;
+	  clip = false;
 	 // size_t tabs;
 
 	  if (STATE.size()>0)
@@ -2441,7 +2574,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		  						  SGating.push_back(addState);
 		  					  }
 		  				  }
-		  				  State_vars.push_back(addState);
+		  				  //State_vars.push_back(addState);
 		  				  myhfile << "ADouble " + addState + "Gate; \n";
 		  				  myhfile << "Grid::AttachmentAccessor<Vertex, ADouble> aa" + addState + "Gate; \n";
 
@@ -2466,6 +2599,108 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  }
 	  mycppfile << "} \n \n \n \n";
 
+	  /// Writing function for State-Output
+	  mycppfile << "template<typename TDomain> \n";
+	  mycppfile << "std::vector<number> " + filename + "<TDomain>::allGatingAccesors(number x, number y, number z) \n";
+	  mycppfile << "{ \n";
+
+	  mycppfile << "\t //var for output \n";
+	  mycppfile << "\t std::vector<number> GatingAccesors; \n \n";
+
+	  mycppfile << "\t typedef ug::MathVector<TDomain::dim> position_type; \n \n";
+	  mycppfile << "\t position_type coord; \n \n";
+
+	  mycppfile << "\t if (coord.size()==1) \n";
+	  mycppfile << "\t \t coord[0]=x; \n";
+
+	  mycppfile << "\t if (coord.size()==2) \n";
+	  mycppfile << "\t { \n";
+	  mycppfile << "\t \t coord[0] = x;\n";
+	  mycppfile << "\t \t coord[1] = y;\n";
+	  mycppfile << "\t } \n";
+
+	  mycppfile << "\t if (coord.size()==3) \n";
+	  mycppfile << "\t { \n";
+  	  mycppfile << "\t \t coord[0] = x;\n";
+  	  mycppfile << "\t \t coord[1] = y;\n";
+  	  mycppfile << "\t \t coord[2] = z;\n";
+  	  mycppfile << "\t } \n";
+
+	  mycppfile << "\t //accesors \n";
+	  mycppfile << "\t typedef Attachment<position_type> position_attachment_type; \n";
+	  mycppfile << "\t typedef Grid::VertexAttachmentAccessor<position_attachment_type> position_accesor_type; \n \n";
+
+	  mycppfile << "\t // Definitions for Iteration over all Elements \n";
+	  mycppfile << "\t typedef typename DoFDistribution::traits<Vertex>::const_iterator itType; \n";
+	  mycppfile << "\t SubsetGroup ssGrp; \n";
+	  mycppfile << "\t try { ssGrp = SubsetGroup(m_pVMDisc->approx_space()->domain()->subset_handler(), this->m_vSubset);} \n";
+	  mycppfile << "\t UG_CATCH_THROW(\"Subset group creation failed.\"); \n \n";
+
+	  mycppfile << "\t itType iter; \n";
+	  mycppfile << "\t number bestDistSq, distSq; \n";
+	  mycppfile << "\t Vertex* bestVrt; \n \n";
+
+	  mycppfile << "\t // Iterate only if there is one Gtting needed \n";
+	  // Generating if line with all gatting logs
+	  std::string Gatingif = "";
+	  for (size_t i=0; i<State_vars.size(); i++)
+	  {
+		  std::cout << "state_sizes: "<< State_vars.size() << " - " << i+1 << std::endl;
+		  if (i+1 != State_vars.size())
+			  Gatingif = Gatingif + "m_log_" + State_vars[i] + "Gate == true || ";
+		  else
+			  Gatingif = Gatingif + "m_log_" + State_vars[i] + "Gate == true ";
+	  }
+
+	  mycppfile << "\t if (" << Gatingif << ")\n";
+	  mycppfile << "\t { \n";
+	  mycppfile << "\t \t // iterating over all elements \n";
+	  mycppfile << "\t \t for (size_t si=0; si < ssGrp.size(); si++) \n";
+	  mycppfile << "\t \t { \n";
+	  mycppfile << "\t \t \t itType iterBegin = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]); \n";
+	  mycppfile << "\t \t \t itType iterEnd = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template end<Vertex>(ssGrp[si]); \n \n";
+	  mycppfile << "\t \t \t const position_accesor_type& aaPos = m_pVMDisc->approx_space()->domain()->position_accessor(); \n";
+	  mycppfile << "\t \t \t if (si==0) \n";
+	  mycppfile << "\t \t \t { \n";
+	  mycppfile << "\t \t \t \t bestVrt = *iterBegin; \n";
+	  mycppfile << "\t \t \t \t bestDistSq = VecDistanceSq(coord, aaPos[bestVrt]); \n";
+	  mycppfile << "\t \t \t } \n";
+	  mycppfile << "\t \t \t iter = iterBegin; \n";
+	  mycppfile << "\t \t \t iter++; \n";
+	  mycppfile << "\t \t \t while(iter != iterEnd) \n";
+	  mycppfile << "\t \t \t { \n";
+	  mycppfile << "\t \t \t \t distSq = VecDistanceSq(coord, aaPos[*iter]); \n";
+	  mycppfile << "\t \t \t \t { \n";
+	  mycppfile << "\t \t \t \t \t bestDistSq = distSq; \n";
+	  mycppfile << "\t \t \t \t \t bestVrt = *iter; \n";
+	  mycppfile << "\t \t \t \t } \n";
+	  mycppfile << "\t \t \t \t ++iter; \n";
+	  mycppfile << "\t \t \t } \n";
+	  mycppfile << "\t \t } \n";
+
+	  // questioning which state should be outputted
+	  for (size_t i=0; i<State_vars.size(); i++)
+	  {
+		  mycppfile << "\t \t if (m_log_" << State_vars[i] << "Gate == true) \n";
+		  mycppfile << "\t \t \t GatingAccesors.push_back(this->aa" << State_vars[i] << "Gate[bestVrt]); \n";
+	  }
+	  mycppfile << "\t } \n";
+
+	  mycppfile << "\t return GatingAccesors; \n";
+	  mycppfile << "} \n \n";
+
+
+	  mycppfile << "//Setters for states_outputs \n";
+	  // Writing setters for Gates
+	  for (size_t i=0; i<State_vars.size(); i++)
+	  {
+		  mycppfile << "template<typename TDomain> void "<< filename << "<TDomain>::set_log_" << State_vars[i] << "Gate" <<
+				   "(bool bLog" << State_vars[i] << "Gate) { m_log_" << State_vars[i] << "Gate = " <<
+				   "bLog" << State_vars[i] << "Gate; }\n";
+	  }
+
+
+
 	  //get information if anyion_flux is needed
 	  std::vector<string> Ion_fluxes = Read_i_value(NEURON);
 
@@ -2473,10 +2708,11 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  // Method for initialization of States with values read out of Initial
 	  mycppfile << " // Init Method for using gatings \n";
 	  mycppfile << "template<typename TDomain> \n";
-	  mycppfile << "void " + filename + "<TDomain>::init(const LocalVector& u, Edge* edge) \n";
+	  mycppfile << "void " + filename + "<TDomain>::init(Vertex* vrt, const std::vector<number>& vrt_values) \n";
 	  mycppfile << "{ \n";
+	  // TODO rework that with right functions
 	  mycppfile << "//get celsius and time\n";
-	  mycppfile << "number celsius = m_pVMDisc->celsius; \n";
+	  mycppfile << "number celsius = m_pVMDisc->temperature_celsius(); \n";
 	  mycppfile << "number dt = m_pVMDisc->time(); \n";
 
 	  if (Ion_fluxes[0]!="")
@@ -2490,19 +2726,13 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 
 	  mycppfile << "// make preparing vor getting values of every edge \n";
-	  mycppfile << "typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; \n";
-	  mycppfile << "vrt_list vl; \n";
-	  mycppfile << "m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge); \n \n \n";
-	  mycppfile << "//over all edges \n";
-	  mycppfile << "for (size_t size_l = 0; size_l< vl.size(); size_l++) \n";
-	  mycppfile << "{ \n";
-	  mycppfile << "\t Vertex* vrt = vl[size_l]; \n \n \n";
-	  mycppfile << "number v = u(m_pVMDisc->_v_, size_l); \n";
+
+	  mycppfile << "number v = vrt_values[VMDisc<TDomain>::_v_]; \n";
 
 	  // TODO we only need read ions in right context
 	  for (size_t i=0; i<ListIons.size(); i++)
 	  {
-		  mycppfile << "number " + ListIons[i] +" = u(m_pVMDisc->_"+ ListIons[i] +"_, size_l); \n";
+		  mycppfile << "number " + ListIons[i] +" = vrt_values[VMDisc<TDomain>::_"+ ListIons[i] +"_]; \n";
 	  }
 	  mycppfile << "\n \n";
 
@@ -2751,7 +2981,6 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  }
 
 	  std::cout << "all init worked" << std::endl;
-	  mycppfile << "}  \n";
 	  mycppfile << "}  \n \n \n \n";
 
 	  std::cout << "Initial block written" << std::endl;
@@ -2766,10 +2995,11 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  std::cout << "Start writting update_gating function" << std::endl;
 
 	  mycppfile << "template<typename TDomain> \n";
-	  mycppfile << "void " + filename + "<TDomain>::update_gating(number newTime, const LocalVector& u, Edge* edge) \n";
+	  mycppfile << "void " + filename + "<TDomain>::update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values) \n";
 	  mycppfile << "{ \n";
-	  mycppfile << "number celsius = m_pVMDisc->celsius; \n ";
-	  mycppfile << "number FARADAY = m_F; \n ";
+	  // TODO working with right functions from VMDisc
+	  mycppfile << "number celsius = m_pVMDisc->temperature_celsius(); \n ";
+	  mycppfile << "number FARADAY = m_pVMDisc->F; \n ";
 
 	  if (Ion_fluxes[0]!="")
 	  {
@@ -2780,20 +3010,12 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 	  }
 
-	  mycppfile << "// make preparing vor getting values of every edge \n";
-	  mycppfile << "typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; \n";
-	  mycppfile << "vrt_list vl; \n";
-	  mycppfile << "m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge); \n \n \n";
-	  mycppfile << "//over all edges \n";
-	  mycppfile << "for (size_t size_l = 0; size_l< vl.size(); size_l++) \n";
-	  mycppfile << "{ \n";
-	  mycppfile << "\t Vertex* vrt = vl[size_l]; \n \n \n";
-	  mycppfile << "number dt = newTime - m_pVMDisc->m_aaTime[vrt]; \n";
-	  mycppfile << "number v = u(m_pVMDisc->_v_, size_l); \n";
+	  mycppfile << "number dt = newTime - m_pVMDisc->time(); \n";
+	  mycppfile << "number v = vrt_values[VMDisc<TDomain>::_v_]; \n";
 
 	  for (size_t i=0; i<ListIons.size(); i++)
 	  {
-		  mycppfile << "number " + ListIons[i] +" = u(m_pVMDisc->_"+ ListIons[i] +"_, size_l); \n";
+		  mycppfile << "number " + ListIons[i] +" = vrt_values[VMDisc<TDomain>::_"+ ListIons[i] +"_]; \n";
 	  }
 	  mycppfile << "\n \n";
 
@@ -2852,59 +3074,6 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  //mycppfile << "double v  = aavGate[*iter]; \n";
 
 	  mycppfile << "\n \n \n";
-
-////////////////////////////////////////////////////////////////////////////////
-//////// writting output of State-Files
-////////////////////////////////////////////////////////////////////////////////
-
-	  mycppfile << "Grid::AttachmentAccessor< Vertex, APosition > aaPos; \n";
-	  mycppfile << "std::cout << aaPos[0] << std::endl; \n";
-
-	  mycppfile << "number x=aaPos[0][1]; \n";
-	  mycppfile << "number y=aaPos[0][2]; \n";
-	  mycppfile << "number z=aaPos[0][3]; \n";
-
-
-string sh_file = "h_file.txt";
-string sm_file = "m_file.txt";
-string sn_file = "n_file.txt";
-
-const char* h_file = sh_file.c_str();
-const char* m_file = sm_file.c_str();
-const char* n_file = sn_file.c_str();
-
-//const char* filenameh = fnameh.c_str();
-
-ofstream myhfile;
-
-ofstream myh_file, mym_file, myn_file;
-
-
-
-if (x==0.0 && y==0.0 && z==0.0)
-{
-	myh_file.open (h_file, std::ios::app);
-	myh_file <<  h << "\n";
-	myh_file.close();
-
-	mym_file.open (m_file, std::ios::app);
-	mym_file <<  m << "\n";
-	mym_file.close();
-
-	myn_file.open (n_file, std::ios::app);
-	myn_file <<  n << "\n";
-	myn_file.close();
-}
-
-
-
-
-
-
-
-
-
-
 
 
 	  std::cout << "Working on Derivative-Block starts" << std::endl;
@@ -3565,7 +3734,6 @@ if (x==0.0 && y==0.0 && z==0.0)
 
 	  mycppfile << " \n \n \n";
 	  mycppfile << "} \n";
-	  mycppfile << "} \n";
 	  mycppfile << " \n \n \n";
 
 
@@ -3608,12 +3776,12 @@ if (x==0.0 && y==0.0 && z==0.0)
 		  // all ions
 		  for (size_t i=0; i<ListIons.size(); i++)
 		  {
-		 	  mycppfile << "number " + ListIons[i] + " = vrt_values[VMDisc<TDomain>::_" + ListIons[i] + "_]; \n";
+		 	  mycppfile << "number " + ListIons[i] + " = vrt_values[m_pVMDisc->_" + ListIons[i] + "_]; \n";
 		  }
 	  }
 
 	  // v needed every time
-	  mycppfile << "number v =  vrt_values[VMDisc<TDomain>::_v_]; \n";
+	  mycppfile << "number v =  vrt_values[m_pVMDisc->_v_]; \n";
 	  mycppfile << " \n";
 	  mycppfile << " \n";
 	  // adding current time as t
@@ -3691,13 +3859,13 @@ if (x==0.0 && y==0.0 && z==0.0)
 						  mycppfile << e_name + "; \n";
 						  eqs[i] = eqs[i].replace(eqs[i].find("number"), 6, "");
 						  e_name2 = e_name.replace(e_name.find("number"), 6, "");
-						  mycppfile << "if (m_pVMDisc->get_" + Remove_all(e_name2) + "() == 0) \n";
+						  mycppfile << "if (m_pVMDisc->" + Remove_all(e_name2) + "() == 0) \n";
 						  mycppfile << "{ \n";
 						  mycppfile << "\t " + eqs[i] + " \n";
 						  mycppfile << "} \n";
 						  mycppfile << "else \n";
 						  mycppfile << "{ \n";
-						  mycppfile << "\t " + e_name + " = m_pVMDisc->get_" + Remove_all(e_name2) + "(); \n";
+						  mycppfile << "\t " + e_name + " = m_pVMDisc->" + Remove_all(e_name2) + "(); \n";
 						  mycppfile << "} \n";
 					  }
 				  }
@@ -3967,7 +4135,7 @@ if (x==0.0 && y==0.0 && z==0.0)
 
 		 								 if (fluxes[i].find(right)!=fluxes[i].npos)
 		 								 {
-		 									 mycppfile << "number " + eqs[k+1] + "o = m_pVMDisc->" + eqs[k+1] + "_out; \n";
+		 									 mycppfile << "number " + eqs[k+1] + "o = m_pVMDisc->" + eqs[k+1] + "_out(); \n";
 		 									 mycppfile << "\n \n \n";
 		 								 }
 
@@ -4026,10 +4194,10 @@ if (x==0.0 && y==0.0 && z==0.0)
 				 }
 		 	  }
 	  }
+	  mycppfile << "} \n \n \n";
 
 	  std::cout << "Ionic_current Function is written" << std::endl;
 
-	  mycppfile << " } \n \n \n";
 
 
 
@@ -4129,6 +4297,12 @@ if (x==0.0 && y==0.0 && z==0.0)
 		  }
 	  }
 
+	  //TODO write all State_logs number m_log_mGate
+
+	  for (size_t i=0; i<State_vars.size(); i++)
+	  {
+		  myhfile << "bool m_log_" << State_vars[i] << "Gate; \n";
+	  }
 
 	  myhfile << "}; \n \n";
 
@@ -4219,6 +4393,9 @@ std::vector<string> Converter::WriteChannelFile(string Ch_Name, string filename)
 		mychannelfile << "\t reg.add_class_<T, TBase >(name, grp) \n";
 		mychannelfile << "\t \t .template add_constructor<void (*)(const char*, const char*)>(\"Function(s)#Subset(s)\") \n";
 		mychannelfile << "\t \t .template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>(\"Function(s)#Subset(s)\") \n";
+
+		//ToDO write log_states methodes
+
 
 		// Adding getters and setter
 		setters = Get_Set_Registry(Ch_Name+".h");
