@@ -9,7 +9,7 @@
 #define __UG__PLUGINS__EXPERIMENTAL__CABLE__CHANNEL_INTERFACE_H__
 
 
-#include "../../VM_Disc.h"
+#include "VM_Disc.h"
 
 
 namespace ug {
@@ -33,6 +33,8 @@ template <typename TDomain>
 class IChannel
 {
 	public:
+
+
 		///	constructor with comma-separated c-string
 		IChannel(const char* functions, const char* subsets)
 		: m_pVMDisc(NULL)
@@ -90,10 +92,10 @@ class IChannel
 		 * @param time			initial time
 		 * @param spGridFct		initial solution (containing membrane potential and ion concentrations)
 		 */
-		virtual void init(const LocalVector& u, Edge* e) = 0;
+		virtual void init(Vertex* vrt, const std::vector<number>& vrt_values) = 0;
 
 		/// updates the gating parameters
-		virtual void update_gating(number newTime, const LocalVector& u, Edge* e) = 0;
+		virtual void update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values) = 0;
 
 		/// provides the ionic current (mol*s^-1) at a given vertex
 		virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues) = 0;
@@ -101,8 +103,8 @@ class IChannel
 		/// called when access to the root VM disc is possible (i.e. after call to set_vm_disc)
 		virtual void vm_disc_available() {};
 
-		/// get all Gating accesors of one Gating
-		virtual std::vector<Grid::AttachmentAccessor<Vertex, ADouble> > allGatingAccesors();
+		/// Getting all accesors for Gattings
+		virtual std::vector<number> allGatingAccesors(number x, number y, number z) = 0;
 
 		/// adding some Jacobian infos at given vertex
 		//virtual void Jacobi_sets(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outJFlux) = 0;
@@ -121,6 +123,7 @@ class IChannel
 
 		/// joint VMDisc
 		VMDisc<TDomain>* m_pVMDisc;
+
 };
 
 
@@ -135,16 +138,14 @@ class ChannelHH
 		ChannelHH(const char* functions, const char* subsets)
 		try : IChannel<TDomain>(functions, subsets),
 		m_g_K(3.6e-4), m_g_Na(1.2e-3), m_g_I(3.0e-6),
-		m_rev_pot_K(-74.1266), m_rev_pot_Na(63.5129),
-		m_accuracy(1e-12) {}
+		m_log_nGate(false), m_log_hGate(false), m_log_mGate(false) {}
 		UG_CATCH_THROW("Error in ChannelHH initializer list.");
 
 		/// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&)
 		ChannelHH(const std::vector<std::string>& functions, const std::vector<std::string>& subsets)
 		try : IChannel<TDomain>(functions, subsets),
 		m_g_K(3.6e-4), m_g_Na(1.2e-3), m_g_I(3.0e-6),
-		m_rev_pot_K(-74.1266), m_rev_pot_Na(63.5129),
-		m_accuracy(1e-12) {}
+		m_log_nGate(false), m_log_hGate(false), m_log_mGate(false) {}
 		UG_CATCH_THROW("Error in ChannelHH initializer list.");
 
 		/// destructor
@@ -155,19 +156,23 @@ class ChannelHH
 
 
 	/// functions for setting some HH params
-		void set_accuracy(double ac);
-
 		void set_conductivities(number Na, number K, number L);
 
-		void set_rev_pot(number R_Na, number R_K);
+		/// Methods for setting/getting Output of Gating-Vars
+		void set_log_nGate(bool bLogNGate);
+		void set_log_hGate(bool bLogHGate);
+		void set_log_mGate(bool bLogMGate);
 
+	private:
 		number vtrap(number x, number y);
 
+	public:
 		// inherited from IChannel
-		virtual void init(const LocalVector& u, Edge* e);
-		virtual void update_gating(number newTime, const LocalVector& u, Edge* e);
+		virtual void init(Vertex* vrt, const std::vector<number>& vrt_values);
+		virtual void update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values);
 		virtual void ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues);
 		virtual void vm_disc_available();
+		virtual std::vector<number> allGatingAccesors(number x, number y, number z);
 		//virtual void Jacobi_sets(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outJFlux);
 
 	private:
@@ -176,21 +181,18 @@ class ChannelHH
 		number m_g_Na;		// C / (m^2 * mV * ms)
 		number m_g_I;		// C / (m^2 * mV * ms)
 
-		// reversal pot of sodium and potassium
-		number m_rev_pot_K;
-		number m_rev_pot_Na;
-
-		// params gating
-		number m_accuracy;
-
 		// one attachment per state variable
-		ADouble m_MGate;
-		ADouble m_HGate;
-		ADouble m_NGate;
+		ANumber m_MGate;
+		ANumber m_HGate;
+		ANumber m_NGate;
 
-		Grid::AttachmentAccessor<Vertex, ADouble> m_aaMGate;
-		Grid::AttachmentAccessor<Vertex, ADouble> m_aaHGate;
-		Grid::AttachmentAccessor<Vertex, ADouble> m_aaNGate;
+		Grid::AttachmentAccessor<Vertex, ANumber> m_aaMGate;
+		Grid::AttachmentAccessor<Vertex, ANumber> m_aaHGate;
+		Grid::AttachmentAccessor<Vertex, ANumber> m_aaNGate;
+
+		// attachment log_files
+		bool m_log_nGate, m_log_hGate, m_log_mGate;
+
 };
 
 
@@ -207,7 +209,7 @@ class ChannelHHNernst
 		try : IChannel<TDomain>(functions, subsets),
 		m_g_K(3.6e-4), m_g_Na(1.2e-3), m_g_I(3.0e-6),
 		m_R(8.314), m_T(310.0), m_F(96485.0),
-		m_accuracy(1e-12) {}
+		m_log_nGate(false), m_log_hGate(false), m_log_mGate(false) {}
 		UG_CATCH_THROW("Error in ChannelHHNernst initializer list.");
 
 
@@ -216,7 +218,7 @@ class ChannelHHNernst
 		try : IChannel<TDomain>(functions, subsets),
 		m_g_K(3.6e-4), m_g_Na(1.2e-3), m_g_I(3.0e-6),
 		m_R(8.314), m_T(310.0), m_F(96485.0),
-		m_accuracy(1e-12) {}
+		m_log_nGate(false), m_log_hGate(false), m_log_mGate(false) {}
 		UG_CATCH_THROW("Error in ChannelHHNernst initializer list.");
 
 		/// destructor
@@ -226,15 +228,23 @@ class ChannelHHNernst
 		void init_attachments();
 
 		// functions for setting some HH params
-		void set_accuracy(double ac);
-
 		void set_conductivities(number Na, number K, number L);
 
+		/// Methods for setting/getting Output of Gating-Vars
+		void set_log_nGate(bool bLogNGate);
+		void set_log_hGate(bool bLogHGate);
+		void set_log_mGate(bool bLogMGate);
+
+	private:
+		number vtrap(number x, number y);
+
+	public:
 		// inherited from IChannel
-		virtual void init(const LocalVector& u, Edge* e);
-		virtual void update_gating(number newTime, const LocalVector& u, Edge* e);
+		virtual void init(Vertex* vrt, const std::vector<number>& vrt_values);
+		virtual void update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values);
 		virtual void ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues);
 		virtual void vm_disc_available();
+		virtual std::vector<number> allGatingAccesors(number x, number y, number z);
 		//virtual void Jacobi_sets(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outJFlux);
 
 
@@ -249,17 +259,18 @@ class ChannelHHNernst
 		number m_T;
 		number m_F;
 
-		// params gating
-		number m_accuracy;
-
 		// one attachment per state variable
-		ADouble m_MGate;
-		ADouble m_HGate;
-		ADouble m_NGate;
+		ANumber m_MGate;
+		ANumber m_HGate;
+		ANumber m_NGate;
 
-		Grid::AttachmentAccessor<Vertex, ADouble> m_aaMGate;
-		Grid::AttachmentAccessor<Vertex, ADouble> m_aaHGate;
-		Grid::AttachmentAccessor<Vertex, ADouble> m_aaNGate;
+		Grid::AttachmentAccessor<Vertex, ANumber> m_aaMGate;
+		Grid::AttachmentAccessor<Vertex, ANumber> m_aaHGate;
+		Grid::AttachmentAccessor<Vertex, ANumber> m_aaNGate;
+
+		// attachment log_files
+		bool m_log_nGate, m_log_hGate, m_log_mGate;
+
 };
 
 
@@ -274,15 +285,13 @@ class ChannelLeak
 		/// @copydoc IChannel<TDomain>::IChannel(const char*)
 		ChannelLeak(const char* functions, const char* subsets)
 		try : IChannel<TDomain>(functions, subsets),
-		m_g_I(3.0e-6), m_leak_vm(0),
-		m_accuracy(1e-12) {}
+		m_g_I(3.0e-6) {}
 		UG_CATCH_THROW("Error in ChannelHH initializer list.");
 
 		/// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&)
 		ChannelLeak(const std::vector<std::string>& functions, const std::vector<std::string>& subsets)
 		try : IChannel<TDomain>(functions, subsets),
-		m_g_I(3.0e-6), m_leak_vm(0),
-		m_accuracy(1e-12) {}
+		m_g_I(3.0e-6) {}
 		UG_CATCH_THROW("Error in ChannelHH initializer list.");
 
 		/// destructor
@@ -293,31 +302,19 @@ class ChannelLeak
 
 
 	/// functions for setting some HH params
-		void set_accuracy(double ac);
-
 		void set_leak_cond(number L);
 
-		void set_leak_vm(number vm);
-
-
 		// inherited from IChannel
-		virtual void init(const LocalVector& u, Edge* e);
-		virtual void update_gating(number newTime, const LocalVector& u, Edge* e);
+		virtual void init(Vertex* vrt, const std::vector<number>& vrt_values);
+		virtual void update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values);
 		virtual void ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues);
 		virtual void vm_disc_available();
+		virtual std::vector<number> allGatingAccesors(number x, number y, number z);
 		//virtual void Jacobi_sets(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outJFlux);
 
 	private:
 		// membrane conductivities
 		number m_g_I;		// C / (m^2 * mV * ms)
-		number m_leak_vm;
-
-
-
-		// params gating
-		number m_accuracy;
-
-
 };
 
 
