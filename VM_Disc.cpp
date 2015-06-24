@@ -8,6 +8,7 @@
  *      Discretization of Kabelequatation depending on function called _VM_ needed
  */
 
+
 #include "VM_Disc.h"
 #include "lib_grid/lg_base.h"
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
@@ -17,7 +18,9 @@
 #include "lib_grid/global_attachments.h"
 #include "../neuronal_topology_importer/neuronal_topology_importer.h"
 
-
+/// Boost for creating directorys
+#include "boost/filesystem.hpp"
+#include "boost/system/error_code.hpp"
 
 
 namespace ug {
@@ -194,7 +197,7 @@ number VMDisc<TDomain>::get_vm(Vertex* vrt) const
 
 
 template<typename TDomain>
-void VMDisc<TDomain>::write_gatings_for_position(number x, number y, number z)
+void VMDisc<TDomain>::write_gatings_for_position(number x, number y, number z, std::string pfad)
 {
 	// Vector with all needed Filename as ofstreams
 	std::vector<std::vector<SmartPtr<std::ofstream> > > Vec_ofstreams;
@@ -219,7 +222,12 @@ void VMDisc<TDomain>::write_gatings_for_position(number x, number y, number z)
 		{
 			// building char stream for gate
 			std::stringstream ssoStreamName;
-			ssoStreamName << "ChannelNumber_" << i << "_GateNumber_" << j << ".txt";
+			ssoStreamName << pfad << "ChannelNumber_" << i << "_GateNumber_" << j << ".txt";
+
+			//creating pfad for outputs
+			boost::filesystem::path dir(pfad);
+			boost::filesystem::create_directory(dir);
+
 			std::string soStream = ssoStreamName.str();
 			const char* CharStream = soStream.c_str();
 
@@ -230,6 +238,7 @@ void VMDisc<TDomain>::write_gatings_for_position(number x, number y, number z)
 
 			Vec_ofstreams[i].push_back(NewStreamm);
 
+			*Vec_ofstreams[i][j] << this->time() <<" \t";
 			*Vec_ofstreams[i][j] << (ChannelGate[i][j]) << "\n";
 			//std::cout << (ChannelGate[i][j]) << std::endl;
 

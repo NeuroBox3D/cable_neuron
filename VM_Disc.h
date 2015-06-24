@@ -188,7 +188,7 @@ class VMDisc
 		number get_vm(Vertex* vrt) const;
 
 		/// write all gating values for a position to file
-		void write_gatings_for_position(number x, number y, number z);
+		void write_gatings_for_position(number x, number y, number z, std::string pfad);
 
 	public:
 		// ///////////////////////////
