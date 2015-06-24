@@ -52,7 +52,7 @@ class passive_converted_standard_UG
 passive_converted_standard_UG(const char* functions, const char* subsets) 
 try : IChannel<TDomain>(functions, subsets), 
 	g ( .001	*0.01), 
-	e ( -70	*1), 
+	e ( -70	*1) {}
 UG_CATCH_THROW("Error in passive_converted_standard_UG initializer list. "); 
  
  
@@ -60,7 +60,7 @@ UG_CATCH_THROW("Error in passive_converted_standard_UG initializer list. ");
 passive_converted_standard_UG(const std::vector<std::string>& functions, const std::vector<std::string>& subsets) 
 try : IChannel<TDomain>(functions, subsets), 
 	g ( .001	*0.01), 
-	e ( -70	*1), 
+	e ( -70	*1) {}
 UG_CATCH_THROW("Error in passive_converted_standard_UG initializer list. "); 
 /// destructor 
  

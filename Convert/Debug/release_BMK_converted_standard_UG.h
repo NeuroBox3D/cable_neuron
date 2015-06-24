@@ -53,7 +53,7 @@ release_BMK_converted_standard_UG(const char* functions, const char* subsets)
 try : IChannel<TDomain>(functions, subsets), 
 del ( 0), 
 dur ( 0), 
-amp ( 0), 
+amp ( 0) {}
 UG_CATCH_THROW("Error in release_BMK_converted_standard_UG initializer list. "); 
  
  
@@ -62,7 +62,7 @@ release_BMK_converted_standard_UG(const std::vector<std::string>& functions, con
 try : IChannel<TDomain>(functions, subsets), 
 del ( 0), 
 dur ( 0), 
-amp ( 0), 
+amp ( 0) {}
 UG_CATCH_THROW("Error in release_BMK_converted_standard_UG initializer list. "); 
 /// destructor 
  
