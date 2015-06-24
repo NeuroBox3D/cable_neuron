@@ -58,6 +58,11 @@ std::vector<number> ChannelHH<TDomain>::allGatingAccesors(number x, number y, nu
 	//var for output
 	std::vector<number> GatingAccesors;
 
+	MathVector<3, number> coord;
+	coord[0] = x;
+	coord[1] = y;
+	coord[2] = z;
+
 	// accessors
 	typedef ug::MathVector<TDomain::dim> position_type;
 	typedef Attachment<position_type> position_attachment_type;
@@ -71,6 +76,11 @@ std::vector<number> ChannelHH<TDomain>::allGatingAccesors(number x, number y, nu
 
 	//UG_LOG("Channel: Before iteration" << std::endl);
 
+	itType iter;
+	number bestDistSq, distSq;
+	Vertex* bestVrt;
+
+
 	// Iterate only if there is one Gatting needed
 	if (m_log_mGate==true || m_log_hGate==true || m_log_nGate==true)
 	{
@@ -80,22 +90,35 @@ std::vector<number> ChannelHH<TDomain>::allGatingAccesors(number x, number y, nu
 			itType iterBegin = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]);
 			itType iterEnd = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template end<Vertex>(ssGrp[si]);
 
-			for (itType iter = iterBegin; iter!= iterEnd; ++iter)
+			const position_accessor_type& aaPos = m_pVMDisc->approx_space()->domain()->position_accessor();
+			// if the right vertex of needed Position is found write out values
+			if (si==0)
 			{
-				const position_accessor_type& aaPos = m_pVMDisc->approx_space()->domain()->position_accessor();
-				// if the right vertex of needed Position is found write out values
-				if ((aaPos[*iter][0] == x) && (aaPos[*iter][1] == y) && (aaPos[*iter][2] == z))
-				{
-					if (m_log_mGate == true)
-						GatingAccesors.push_back(this->m_aaMGate[*iter]);
-					if (m_log_hGate == true)
-						GatingAccesors.push_back(this->m_aaHGate[*iter]);
-					if (m_log_nGate == true)
-						GatingAccesors.push_back(this->m_aaNGate[*iter]);
-				}
+				bestVrt = *iterBegin;
+				bestDistSq = VecDistanceSq(coord, aaPos[bestVrt]);
 			}
+				iter = iterBegin;
+				iter++;
+				while(iter != iterEnd)
+				{
+					distSq = VecDistanceSq(coord, aaPos[*iter]);
+					if(distSq < bestDistSq)
+					{
+						bestDistSq = distSq;
+						bestVrt = *iter;
+					}
+					++iter;
+				}
 		}
+
+		if (m_log_mGate == true)
+			GatingAccesors.push_back(this->m_aaMGate[*iter]);
+		if (m_log_hGate == true)
+			GatingAccesors.push_back(this->m_aaHGate[*iter]);
+		if (m_log_nGate == true)
+			GatingAccesors.push_back(this->m_aaNGate[*iter]);
 	}
+
 
 	return GatingAccesors;
 }
@@ -283,6 +306,11 @@ std::vector<number> ChannelHHNernst<TDomain>::allGatingAccesors(number x, number
 	//var for output
 	std::vector<number> GatingAccesors;
 
+	MathVector<3, number> coord;
+	coord[0] = x;
+	coord[1] = y;
+	coord[2] = z;
+
 	// accessors
 	typedef ug::MathVector<TDomain::dim> position_type;
 	typedef Attachment<position_type> position_attachment_type;
@@ -296,6 +324,11 @@ std::vector<number> ChannelHHNernst<TDomain>::allGatingAccesors(number x, number
 
 	//UG_LOG("Channel: Before iteration" << std::endl);
 
+	itType iter;
+	number bestDistSq, distSq;
+	Vertex* bestVrt;
+
+
 	// Iterate only if there is one Gatting needed
 	if (m_log_mGate==true || m_log_hGate==true || m_log_nGate==true)
 	{
@@ -305,22 +338,35 @@ std::vector<number> ChannelHHNernst<TDomain>::allGatingAccesors(number x, number
 			itType iterBegin = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]);
 			itType iterEnd = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template end<Vertex>(ssGrp[si]);
 
-			for (itType iter = iterBegin; iter!= iterEnd; ++iter)
+			const position_accessor_type& aaPos = m_pVMDisc->approx_space()->domain()->position_accessor();
+
+			if (si==0)
 			{
-				const position_accessor_type& aaPos = m_pVMDisc->approx_space()->domain()->position_accessor();
-				// if the right vertex of needed Position is found write out values
-				if ((aaPos[*iter][0] == x) && (aaPos[*iter][1] == y) && (aaPos[*iter][2] == z))
-				{
-					if (m_log_mGate == true)
-						GatingAccesors.push_back(this->m_aaMGate[*iter]);
-					if (m_log_hGate == true)
-						GatingAccesors.push_back(this->m_aaHGate[*iter]);
-					if (m_log_nGate == true)
-						GatingAccesors.push_back(this->m_aaNGate[*iter]);
-				}
+				bestVrt = *iterBegin;
+				bestDistSq = VecDistanceSq(coord, aaPos[bestVrt]);
 			}
+				iter = iterBegin;
+				iter++;
+				while(iter != iterEnd)
+				{
+					distSq = VecDistanceSq(coord, aaPos[*iter]);
+					if(distSq < bestDistSq)
+					{
+						bestDistSq = distSq;
+						bestVrt = *iter;
+					}
+					++iter;
+				}
 		}
+
+		if (m_log_mGate == true)
+			GatingAccesors.push_back(this->m_aaMGate[*iter]);
+		if (m_log_hGate == true)
+			GatingAccesors.push_back(this->m_aaHGate[*iter]);
+		if (m_log_nGate == true)
+			GatingAccesors.push_back(this->m_aaNGate[*iter]);
 	}
+
 
 	return GatingAccesors;
 }
