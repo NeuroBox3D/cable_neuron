@@ -54,8 +54,11 @@ try : IChannel<TDomain>(functions, subsets),
         gnabar ( .12 *0.01), 
         gkbar ( .036 *0.01), 
         gl ( .0003 *0.01), 
-        el ( -54.3 *1) {} 
-UG_CATCH_THROW("Error in hh_converted_standard_UG initializer list. ") 
+        el ( -54.3 *1), 
+m_log_mGate(false), 
+m_log_hGate(false), 
+m_log_nGate(false) {} 
+UG_CATCH_THROW("Error in hh_converted_standard_UG initializer list. "); 
  
  
 /// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&) 
@@ -64,8 +67,11 @@ try : IChannel<TDomain>(functions, subsets),
         gnabar ( .12 *0.01), 
         gkbar ( .036 *0.01), 
         gl ( .0003 *0.01), 
-        el ( -54.3 *1) {} 
-UG_CATCH_THROW("Error in hh_converted_standard_UG initializer list. ") 
+        el ( -54.3 *1), 
+m_log_mGate(false), 
+m_log_hGate(false), 
+m_log_nGate(false) {} 
+UG_CATCH_THROW("Error in hh_converted_standard_UG initializer list. "); 
 /// destructor 
  
 virtual ~hh_converted_standard_UG() {}; 
@@ -78,7 +84,7 @@ virtual void init(Vertex* vrt, const std::vector<number>& vrt_values);
 virtual void update_gating(number newtime, Vertex* vrt, const std::vector<number>& vrt_values); 
 virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues); 
 virtual void vm_disc_available(); 
-virtual std::vector<number> aallGaaatingAccesors(number x, number y, number z); 
+virtual std::vector<number> allGatingAccesors(number x, number y, number z); 
 
  
 double getgnabar(); 
@@ -89,6 +95,9 @@ void setgnabar(double val);
 void setgkbar(double val); 
 void setgl(double val); 
 void setel(double val); 
+set_log_mGate(bool bLogmGate); 
+set_log_hGate(bool bLoghGate); 
+set_log_nGate(bool bLognGate); 
 
  
 protected: 
@@ -111,6 +120,9 @@ number hinf;
 number ninf; 
 number mtau; 
 number htau; 
+bool m_log_mGate; 
+bool m_log_hGate; 
+bool m_log_nGate; 
 }; 
  
 } // namespace cable

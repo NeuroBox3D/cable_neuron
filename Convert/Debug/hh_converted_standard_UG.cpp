@@ -74,7 +74,9 @@ template<typename TDomain>
 void hh_converted_standard_UG<TDomain>::init_attachments() 
 { 
 // inits temperatur from kalvin to celsius and some other typical neuron values
-m_T = m_pVMDisc->celsius() + 273; 
+m_T = m_pVMDisc->celsius() + 273.15; 
+m_R = m_pVMDisc->R; 
+m_F = m_pVMDisc->F; 
  
  
 SmartPtr<Grid> spGrid = m_pVMDisc->approx_space()->domain()->grid(); 
@@ -104,10 +106,26 @@ template<typename TDomain>
 std::vector<number> hh_converted_standard_UG<TDomain>::allGatingAccesors(number x, number y, number z) 
 { 
 	 //var for output 
-	 std::vector<number> GatingAccesors;
+	 std::vector<number> GatingAccesors; 
  
+	 typedef ug::MathVecotr<TDomain::dim> position_type; 
+ 
+	 position_type coord; 
+ 
+	 if (coord.size()==1) 
+	 	 coord[0]=x; 
+	 if (coord.size()==2) 
+	 { 
+	 	 coord[0] = x;
+	 	 coord[1] = y;
+	 } 
+	 if (coord.size()==3) 
+	 { 
+	 	 coord[0] = x;
+	 	 coord[1] = y;
+	 	 coord[2] = z;
+	 } 
 	 //accesors 
-	 typedef ug::MathVecotr<3> position_type; 
 	 typedef Attachment<position_type> position_attachment_type; 
 	 typedef Grid::VertexAttachmentAccessor<position_attachment_type> position_accesor_type; 
  
@@ -149,11 +167,11 @@ std::vector<number> hh_converted_standard_UG<TDomain>::allGatingAccesors(number 
 	 	 	 } 
 	 	 } 
 	 	 if (m_log_mGate == true) 
-	 	 	 GatingAccesors.push_back(this->m_aam)
+	 	 	 GatingAccesors.push_back(this->m_aamGate); 
 	 	 if (m_log_hGate == true) 
-	 	 	 GatingAccesors.push_back(this->m_aah)
+	 	 	 GatingAccesors.push_back(this->m_aahGate); 
 	 	 if (m_log_nGate == true) 
-	 	 	 GatingAccesors.push_back(this->m_aan)
+	 	 	 GatingAccesors.push_back(this->m_aanGate); 
 	 } 
 	 return GatingAccesors; 
 } 
@@ -205,7 +223,7 @@ aanGate[vrt] = ninf;
  
  
 template<typename TDomain> 
-void hh_converted_standard_UG<TDomain>::update_gating(number newTime, const LocalVector& u, Edge* edge) 
+void hh_converted_standard_UG<TDomain>::update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values) 
 { 
 number celsius = m_pVMDisc->celsius(); 
  number FARADAY = m_F; 
