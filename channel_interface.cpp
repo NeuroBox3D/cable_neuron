@@ -58,10 +58,22 @@ std::vector<number> ChannelHH<TDomain>::allGatingAccesors(number x, number y, nu
 	//var for output
 	std::vector<number> GatingAccesors;
 
-	MathVector<3, number> coord;
-	coord[0] = x;
-	coord[1] = y;
-	coord[2] = z;
+	MathVector<dim, number> coord;
+	if (dim==1)
+		coord[0] = x;
+
+	if (dim==2)
+	{
+		coord[0] = x;
+		coord[1] = y;
+	}
+
+	if (dim==3)
+	{
+		coord[0] = x;
+		coord[1] = y;
+		coord[2] = z;
+	}
 
 	// accessors
 	typedef ug::MathVector<TDomain::dim> position_type;
@@ -306,10 +318,22 @@ std::vector<number> ChannelHHNernst<TDomain>::allGatingAccesors(number x, number
 	//var for output
 	std::vector<number> GatingAccesors;
 
-	MathVector<3, number> coord;
-	coord[0] = x;
-	coord[1] = y;
-	coord[2] = z;
+	MathVector<dim, number> coord;
+	if (dim==1)
+		coord[0] = x;
+
+	if (dim==2)
+	{
+		coord[0] = x;
+		coord[1] = y;
+	}
+
+	if (dim==3)
+	{
+		coord[0] = x;
+		coord[1] = y;
+		coord[2] = z;
+	}
 
 	// accessors
 	typedef ug::MathVector<TDomain::dim> position_type;
@@ -600,7 +624,7 @@ void ChannelLeak<TDomain>::Jacobi_sets(Vertex* vrt, const std::vector<number>& v
 //	explicit template instantiations
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifdef UG_DIM_1
+/*#ifdef UG_DIM_1
 	template class IChannel<Domain1d>;
 	template class ChannelHH<Domain1d>;
 	template class ChannelLeak<Domain1d>;
@@ -612,7 +636,7 @@ void ChannelLeak<TDomain>::Jacobi_sets(Vertex* vrt, const std::vector<number>& v
 	template class ChannelHH<Domain2d>;
 	template class ChannelLeak<Domain2d>;
 	template class ChannelHHNernst<Domain2d>;
-#endif
+#endif*/
 
 #ifdef UG_DIM_3
 	template class IChannel<Domain3d>;
