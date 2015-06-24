@@ -112,7 +112,9 @@ template<typename TDomain>
 void caL3d_converted_standard_UG<TDomain>::init_attachments() 
 { 
 // inits temperatur from kalvin to celsius and some other typical neuron values
-m_pVMDisc->celsius = m_T - 273; 
+m_T = m_pVMDisc->temperature(); 
+m_R = m_pVMDisc->R; 
+m_F = m_pVMDisc->F; 
  
  
 SmartPtr<Grid> spGrid = m_pVMDisc->approx_space()->domain()->grid(); 
@@ -132,55 +134,106 @@ this->aaOGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->OGate);
  
  
  
+template<typename TDomain> 
+std::vector<number> caL3d_converted_standard_UG<TDomain>::allGatingAccesors(number x, number y, number z) 
+{ 
+	 //var for output 
+	 std::vector<number> GatingAccesors; 
+ 
+	 typedef ug::MathVector<TDomain::dim> position_type; 
+ 
+	 position_type coord; 
+ 
+	 if (coord.size()==1) 
+	 	 coord[0]=x; 
+	 if (coord.size()==2) 
+	 { 
+	 	 coord[0] = x;
+	 	 coord[1] = y;
+	 } 
+	 if (coord.size()==3) 
+	 { 
+	 	 coord[0] = x;
+	 	 coord[1] = y;
+	 	 coord[2] = z;
+	 } 
+	 //accesors 
+	 typedef Attachment<position_type> position_attachment_type; 
+	 typedef Grid::VertexAttachmentAccessor<position_attachment_type> position_accesor_type; 
+ 
+	 // Definitions for Iteration over all Elements 
+	 typedef typename DoFDistribution::traits<Vertex>::const_iterator itType; 
+	 SubsetGroup ssGrp; 
+	 try { ssGrp = SubsetGroup(m_pVMDisc->approx_space()->domain()->subset_handler(), this->m_vSubset);} 
+	 UG_CATCH_THROW("Subset group creation failed."); 
+ 
+	 itType iter; 
+	 number bestDistSq, distSq; 
+	 Vertex* bestVrt; 
+ 
+	 // Iterate only if there is one Gtting needed 
+	 if (m_log_CGate == true || m_log_OGate == true )
+	 { 
+	 	 // iterating over all elements 
+	 	 for (size_t si=0; si < ssGrp.size(); si++) 
+	 	 { 
+	 	 	 itType iterBegin = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]); 
+	 	 	 itType iterEnd = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template end<Vertex>(ssGrp[si]); 
+ 
+	 	 	 const position_accesor_type& aaPos = m_pVMDisc->approx_space()->domain()->position_accessor(); 
+	 	 	 if (si==0) 
+	 	 	 { 
+	 	 	 	 bestVrt = *iterBegin; 
+	 	 	 	 bestDistSq = VecDistanceSq(coord, aaPos[bestVrt]); 
+	 	 	 } 
+	 	 	 iter = iterBegin; 
+	 	 	 iter++; 
+	 	 	 while(iter != iterEnd) 
+	 	 	 { 
+	 	 	 	 distSq = VecDistanceSq(coord, aaPos[*iter]); 
+	 	 	 	 { 
+	 	 	 	 	 bestDistSq = distSq; 
+	 	 	 	 	 bestVrt = *iter; 
+	 	 	 	 } 
+	 	 	 	 ++iter; 
+	 	 	 } 
+	 	 } 
+	 	 if (m_log_CGate == true) 
+	 	 	 GatingAccesors.push_back(this->aaCGate[bestVrt]); 
+	 	 if (m_log_OGate == true) 
+	 	 	 GatingAccesors.push_back(this->aaOGate[bestVrt]); 
+	 } 
+	 return GatingAccesors; 
+} 
+ 
+//Setters for states_outputs 
+template<typename TDomain> void caL3d_converted_standard_UG<TDomain>::set_log_CGate(bool bLogCGate) { m_log_CGate = bLogCGate; }
+template<typename TDomain> void caL3d_converted_standard_UG<TDomain>::set_log_OGate(bool bLogOGate) { m_log_OGate = bLogOGate; }
  // Init Method for using gatings 
 template<typename TDomain> 
-void caL3d_converted_standard_UG<TDomain>::init(const LocalVector& u, Edge* edge) 
+void caL3d_converted_standard_UG<TDomain>::init(Vertex* vrt, const std::vector<number>& vrt_values) 
 { 
 //get celsius and time
-number celsius = m_pVMDisc->celsius; 
+number celsius = m_pVMDisc->temperature_celsius(); 
 number dt = m_pVMDisc->time(); 
 // make preparing vor getting values of every edge 
-typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; 
-vrt_list vl; 
-m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge); 
- 
- 
-//over all edges 
-for (size_t size_l = 0; size_l< vl.size(); size_l++) 
-{ 
-	 Vertex* vrt = vl[size_l]; 
- 
- 
-number v = u(m_pVMDisc->_v_, size_l); 
-number ca = u(m_pVMDisc->_ca_, size_l); 
+number v = vrt_values[VMDisc<TDomain>::_v_]; 
+number ca = vrt_values[VMDisc<TDomain>::_ca_]; 
 
  
 aaCGate[vrt] = 1 ; 
 }  
-}  
  
  
  
 template<typename TDomain> 
-void caL3d_converted_standard_UG<TDomain>::update_gating(number newTime, const LocalVector& u, Edge* edge) 
+void caL3d_converted_standard_UG<TDomain>::update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values) 
 { 
-number celsius = m_pVMDisc->celsius; 
- number FARADAY = m_F; 
- // make preparing vor getting values of every edge 
-typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; 
-vrt_list vl; 
-m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge); 
- 
- 
-//over all edges 
-for (size_t size_l = 0; size_l< vl.size(); size_l++) 
-{ 
-	 Vertex* vrt = vl[size_l]; 
- 
- 
-number dt = newTime - m_pVMDisc->m_aaTime[vrt]; 
-number v = u(m_pVMDisc->_v_, size_l); 
-number ca = u(m_pVMDisc->_ca_, size_l); 
+number celsius = m_pVMDisc->temperature_celsius(); 
+ number FARADAY = m_pVMDisc->F; 
+ number dt = newTime - m_pVMDisc->time(); 
+number v = vrt_values[VMDisc<TDomain>::_v_]; 
+number ca = vrt_values[VMDisc<TDomain>::_ca_]; 
 
  
 double C = aaCGate[vrt]; 
@@ -191,14 +244,14 @@ double O = aaOGate[vrt];
 
  
  
-tadj= pow(q10 , ((celsius-temp)/10(celsius)));
+tadj= pow(q10 , ((celsius-temp)/10(degC))); 
 	a = Ra / (1 + exp(-(v-th)/q)) * tadj; 
 	b = Rb / (1 + exp((v-th)/q)) * tadj; 
  
  
  
 C+=(-C*a+O*b)*dt; 
-O+=(C*a-O*b)*dt;
+O+=(C*a+-O*b)*dt; 
  
  
  
@@ -207,7 +260,6 @@ aaOGate[vrt] = O;
  
  
  
-} 
 } 
  
  
@@ -218,8 +270,8 @@ void caL3d_converted_standard_UG<TDomain>::ionic_current(Vertex* ver, const std:
  
 number C = aaCGate[ver]; 
 number O = aaOGate[ver]; 
-number ca = vrt_values[VMDisc<TDomain>::_ca_]; 
-number v =  vrt_values[VMDisc<TDomain>::_v_]; 
+number ca = vrt_values[m_pVMDisc->_ca_]; 
+number v =  vrt_values[m_pVMDisc->_v_]; 
  
  
 number t = m_pVMDisc->time(); 
@@ -233,12 +285,12 @@ number cai =  ca;
  
  
 number rates(v); 
-number cao = m_pVMDisc->ca_out; 
+number cao = m_pVMDisc->ca_out(); 
 
  
  
 outCurrentValues.push_back( O * p * ghk(v,cai,cao)); 
- } 
+} 
  
  
 //////////////////////////////////////////////////////////////////////////////// 

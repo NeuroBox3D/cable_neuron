@@ -51,21 +51,19 @@ class release_BMK_converted_standard_UG
 /// @copydoc IChannel<TDomain>::IChannel(cont char*) 
 release_BMK_converted_standard_UG(const char* functions, const char* subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-m_R(8.314), m_T(293.0), m_F(96485.0), 
 del ( 0), 
 dur ( 0), 
-amp ( 0) {} 
-UG_CATCH_THROW("Error in release_BMK_converted_standard_UG initializer list. ") 
+amp ( 0), 
+UG_CATCH_THROW("Error in release_BMK_converted_standard_UG initializer list. "); 
  
  
 /// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&) 
 release_BMK_converted_standard_UG(const std::vector<std::string>& functions, const std::vector<std::string>& subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-m_R(8.314), m_T(293.0), m_F(96485.0), 
 del ( 0), 
 dur ( 0), 
-amp ( 0) {} 
-UG_CATCH_THROW("Error in release_BMK_converted_standard_UG initializer list. ") 
+amp ( 0), 
+UG_CATCH_THROW("Error in release_BMK_converted_standard_UG initializer list. "); 
 /// destructor 
  
 virtual ~release_BMK_converted_standard_UG() {}; 
@@ -73,10 +71,11 @@ virtual ~release_BMK_converted_standard_UG() {};
 void init_attachments(); 
 // inherited from IChannel 
  
-virtual void init(const LocalVector& u, Edge* e); 
-virtual void update_gating(number newTime, const LocalVector& u, Edge* e); 
+virtual void init(Vertex* vrt, const std::vector<number>& vrt_values); 
+virtual void update_gating(number newtime, Vertex* vrt, const std::vector<number>& vrt_values); 
 virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues); 
 virtual void vm_disc_available(); 
+virtual std::vector<number> allGatingAccesors(number x, number y, number z); 
 
  
 double getdel(); 

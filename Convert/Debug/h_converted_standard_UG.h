@@ -51,7 +51,6 @@ class h_converted_standard_UG
 /// @copydoc IChannel<TDomain>::IChannel(cont char*) 
 h_converted_standard_UG(const char* functions, const char* subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-m_R(8.314), m_T(293.0), m_F(96485.0), 
 ehd ( 0), 
     ghdbar(.0001 *1e-05), 
     vhalfl(-81   *1), 
@@ -61,14 +60,14 @@ ehd ( 0),
     zetat(2.2    *1), 
     gmt(.4   *1), 
     q10(4.5*1), 
-    qtl(1*1) {} 
-UG_CATCH_THROW("Error in h_converted_standard_UG initializer list. ") 
+    qtl(1*1), 
+m_log_lGate(false) {} 
+UG_CATCH_THROW("Error in h_converted_standard_UG initializer list. "); 
  
  
 /// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&) 
 h_converted_standard_UG(const std::vector<std::string>& functions, const std::vector<std::string>& subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-m_R(8.314), m_T(293.0), m_F(96485.0), 
 ehd ( 0), 
     ghdbar(.0001 *1e-05), 
     vhalfl(-81   *1), 
@@ -78,8 +77,9 @@ ehd ( 0),
     zetat(2.2    *1), 
     gmt(.4   *1), 
     q10(4.5*1), 
-    qtl(1*1) {} 
-UG_CATCH_THROW("Error in h_converted_standard_UG initializer list. ") 
+    qtl(1*1), 
+m_log_lGate(false) {} 
+UG_CATCH_THROW("Error in h_converted_standard_UG initializer list. "); 
 /// destructor 
  
 virtual ~h_converted_standard_UG() {}; 
@@ -89,10 +89,11 @@ double bett(double v);
 void init_attachments(); 
 // inherited from IChannel 
  
-virtual void init(const LocalVector& u, Edge* e); 
-virtual void update_gating(number newTime, const LocalVector& u, Edge* e); 
+virtual void init(Vertex* vrt, const std::vector<number>& vrt_values); 
+virtual void update_gating(number newtime, Vertex* vrt, const std::vector<number>& vrt_values); 
 virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues); 
 virtual void vm_disc_available(); 
+virtual std::vector<number> allGatingAccesors(number x, number y, number z); 
 
  
 double getehd(); 
@@ -115,6 +116,7 @@ void setzetat(double val);
 void setgmt(double val); 
 void setq10(double val); 
 void setqtl(double val); 
+void set_log_lGate(bool bLoglGate); 
 
  
 protected: 
@@ -135,6 +137,7 @@ number     q10;
 number     qtl; 
 number taul; 
 number linf; 
+bool m_log_lGate; 
 }; 
  
 } // namespace cable

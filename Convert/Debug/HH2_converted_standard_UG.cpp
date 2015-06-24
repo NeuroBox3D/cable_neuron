@@ -103,7 +103,9 @@ template<typename TDomain>
 void HH2_converted_standard_UG<TDomain>::init_attachments() 
 { 
 // inits temperatur from kalvin to celsius and some other typical neuron values
-m_pVMDisc->celsius = m_T - 273; 
+m_T = m_pVMDisc->temperature(); 
+m_R = m_pVMDisc->R; 
+m_F = m_pVMDisc->F; 
  
  
 SmartPtr<Grid> spGrid = m_pVMDisc->approx_space()->domain()->grid(); 
@@ -129,28 +131,95 @@ this->aanGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->nGate);
  
  
  
+template<typename TDomain> 
+std::vector<number> HH2_converted_standard_UG<TDomain>::allGatingAccesors(number x, number y, number z) 
+{ 
+	 //var for output 
+	 std::vector<number> GatingAccesors; 
+ 
+	 typedef ug::MathVector<TDomain::dim> position_type; 
+ 
+	 position_type coord; 
+ 
+	 if (coord.size()==1) 
+	 	 coord[0]=x; 
+	 if (coord.size()==2) 
+	 { 
+	 	 coord[0] = x;
+	 	 coord[1] = y;
+	 } 
+	 if (coord.size()==3) 
+	 { 
+	 	 coord[0] = x;
+	 	 coord[1] = y;
+	 	 coord[2] = z;
+	 } 
+	 //accesors 
+	 typedef Attachment<position_type> position_attachment_type; 
+	 typedef Grid::VertexAttachmentAccessor<position_attachment_type> position_accesor_type; 
+ 
+	 // Definitions for Iteration over all Elements 
+	 typedef typename DoFDistribution::traits<Vertex>::const_iterator itType; 
+	 SubsetGroup ssGrp; 
+	 try { ssGrp = SubsetGroup(m_pVMDisc->approx_space()->domain()->subset_handler(), this->m_vSubset);} 
+	 UG_CATCH_THROW("Subset group creation failed."); 
+ 
+	 itType iter; 
+	 number bestDistSq, distSq; 
+	 Vertex* bestVrt; 
+ 
+	 // Iterate only if there is one Gtting needed 
+	 if (m_log_mGate == true || m_log_hGate == true || m_log_nGate == true )
+	 { 
+	 	 // iterating over all elements 
+	 	 for (size_t si=0; si < ssGrp.size(); si++) 
+	 	 { 
+	 	 	 itType iterBegin = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]); 
+	 	 	 itType iterEnd = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template end<Vertex>(ssGrp[si]); 
+ 
+	 	 	 const position_accesor_type& aaPos = m_pVMDisc->approx_space()->domain()->position_accessor(); 
+	 	 	 if (si==0) 
+	 	 	 { 
+	 	 	 	 bestVrt = *iterBegin; 
+	 	 	 	 bestDistSq = VecDistanceSq(coord, aaPos[bestVrt]); 
+	 	 	 } 
+	 	 	 iter = iterBegin; 
+	 	 	 iter++; 
+	 	 	 while(iter != iterEnd) 
+	 	 	 { 
+	 	 	 	 distSq = VecDistanceSq(coord, aaPos[*iter]); 
+	 	 	 	 { 
+	 	 	 	 	 bestDistSq = distSq; 
+	 	 	 	 	 bestVrt = *iter; 
+	 	 	 	 } 
+	 	 	 	 ++iter; 
+	 	 	 } 
+	 	 } 
+	 	 if (m_log_mGate == true) 
+	 	 	 GatingAccesors.push_back(this->aamGate[bestVrt]); 
+	 	 if (m_log_hGate == true) 
+	 	 	 GatingAccesors.push_back(this->aahGate[bestVrt]); 
+	 	 if (m_log_nGate == true) 
+	 	 	 GatingAccesors.push_back(this->aanGate[bestVrt]); 
+	 } 
+	 return GatingAccesors; 
+} 
+ 
+//Setters for states_outputs 
+template<typename TDomain> void HH2_converted_standard_UG<TDomain>::set_log_mGate(bool bLogmGate) { m_log_mGate = bLogmGate; }
+template<typename TDomain> void HH2_converted_standard_UG<TDomain>::set_log_hGate(bool bLoghGate) { m_log_hGate = bLoghGate; }
+template<typename TDomain> void HH2_converted_standard_UG<TDomain>::set_log_nGate(bool bLognGate) { m_log_nGate = bLognGate; }
  // Init Method for using gatings 
 template<typename TDomain> 
-void HH2_converted_standard_UG<TDomain>::init(const LocalVector& u, Edge* edge) 
+void HH2_converted_standard_UG<TDomain>::init(Vertex* vrt, const std::vector<number>& vrt_values) 
 { 
 //get celsius and time
-number celsius = m_pVMDisc->celsius; 
+number celsius = m_pVMDisc->temperature_celsius(); 
 number dt = m_pVMDisc->time(); 
 // make preparing vor getting values of every edge 
-typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; 
-vrt_list vl; 
-m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge); 
- 
- 
-//over all edges 
-for (size_t size_l = 0; size_l< vl.size(); size_l++) 
-{ 
-	 Vertex* vrt = vl[size_l]; 
- 
- 
-number v = u(m_pVMDisc->_v_, size_l); 
-number na = u(m_pVMDisc->_na_, size_l); 
-number k = u(m_pVMDisc->_k_, size_l); 
+number v = vrt_values[VMDisc<TDomain>::_v_]; 
+number na = vrt_values[VMDisc<TDomain>::_na_]; 
+number k = vrt_values[VMDisc<TDomain>::_k_]; 
 
  
 tadj =  pow(3.0 , ((celsius-36)/10)); 
@@ -158,31 +227,18 @@ aamGate[vrt] = 0;
 aahGate[vrt] = 0; 
 aanGate[vrt] = 0; 
 }  
-}  
  
  
  
 template<typename TDomain> 
-void HH2_converted_standard_UG<TDomain>::update_gating(number newTime, const LocalVector& u, Edge* edge) 
+void HH2_converted_standard_UG<TDomain>::update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values) 
 { 
-number celsius = m_pVMDisc->celsius; 
- number FARADAY = m_F; 
- // make preparing vor getting values of every edge 
-typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; 
-vrt_list vl; 
-m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge); 
- 
- 
-//over all edges 
-for (size_t size_l = 0; size_l< vl.size(); size_l++) 
-{ 
-	 Vertex* vrt = vl[size_l]; 
- 
- 
-number dt = newTime - m_pVMDisc->m_aaTime[vrt]; 
-number v = u(m_pVMDisc->_v_, size_l); 
-number na = u(m_pVMDisc->_na_, size_l); 
-number k = u(m_pVMDisc->_k_, size_l); 
+number celsius = m_pVMDisc->temperature_celsius(); 
+ number FARADAY = m_pVMDisc->F; 
+ number dt = newTime - m_pVMDisc->time(); 
+number v = vrt_values[VMDisc<TDomain>::_v_]; 
+number na = vrt_values[VMDisc<TDomain>::_na_]; 
+number k = vrt_values[VMDisc<TDomain>::_k_]; 
 
  
 double m = aamGate[vrt]; 
@@ -224,7 +280,6 @@ aanGate[vrt] = n;
  
  
 } 
-} 
  
  
  
@@ -235,9 +290,9 @@ void HH2_converted_standard_UG<TDomain>::ionic_current(Vertex* ver, const std::v
 number m = aamGate[ver]; 
 number h = aahGate[ver]; 
 number n = aanGate[ver]; 
-number na = vrt_values[VMDisc<TDomain>::_na_]; 
-number k = vrt_values[VMDisc<TDomain>::_k_]; 
-number v =  vrt_values[VMDisc<TDomain>::_v_]; 
+number na = vrt_values[m_pVMDisc->_na_]; 
+number k = vrt_values[m_pVMDisc->_k_]; 
+number v =  vrt_values[m_pVMDisc->_v_]; 
  
  
 number t = m_pVMDisc->time(); 
@@ -250,7 +305,7 @@ const number helpV = 1e3*(m_R*m_T)/m_F;
  
  
 outCurrentValues.push_back( gnabar * m*m*m*h * (v - ena) +  gkbar * n*n*n*n * (v - ek)); 
- } 
+} 
  
  
 //////////////////////////////////////////////////////////////////////////////// 

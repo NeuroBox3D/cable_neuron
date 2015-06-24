@@ -51,23 +51,23 @@ class cad_converted_standard_UG
 /// @copydoc IChannel<TDomain>::IChannel(cont char*) 
 cad_converted_standard_UG(const char* functions, const char* subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-m_R(8.314), m_T(293.0), m_F(96485.0), 
 	depth	( .1	*1e+06), 
 	taur	( 200	*1), 
 	cainf	( 100e-6*1), 
-cai ( 0) {} 
-UG_CATCH_THROW("Error in cad_converted_standard_UG initializer list. ") 
+cai ( 0), 
+m_log_caSGate(false) {} 
+UG_CATCH_THROW("Error in cad_converted_standard_UG initializer list. "); 
  
  
 /// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&) 
 cad_converted_standard_UG(const std::vector<std::string>& functions, const std::vector<std::string>& subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-m_R(8.314), m_T(293.0), m_F(96485.0), 
 	depth	( .1	*1e+06), 
 	taur	( 200	*1), 
 	cainf	( 100e-6*1), 
-cai ( 0) {} 
-UG_CATCH_THROW("Error in cad_converted_standard_UG initializer list. ") 
+cai ( 0), 
+m_log_caSGate(false) {} 
+UG_CATCH_THROW("Error in cad_converted_standard_UG initializer list. "); 
 /// destructor 
  
 virtual ~cad_converted_standard_UG() {}; 
@@ -75,10 +75,11 @@ virtual ~cad_converted_standard_UG() {};
 void init_attachments(); 
 // inherited from IChannel 
  
-virtual void init(const LocalVector& u, Edge* e); 
-virtual void update_gating(number newTime, const LocalVector& u, Edge* e); 
+virtual void init(Vertex* vrt, const std::vector<number>& vrt_values); 
+virtual void update_gating(number newtime, Vertex* vrt, const std::vector<number>& vrt_values); 
 virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues); 
 virtual void vm_disc_available(); 
+virtual std::vector<number> allGatingAccesors(number x, number y, number z); 
 
  
 double getdepth(); 
@@ -89,6 +90,7 @@ void setdepth(double val);
 void settaur(double val); 
 void setcainf(double val); 
 void setcai(double val); 
+void set_log_caSGate(bool bLogcaSGate); 
 
  
 protected: 
@@ -101,6 +103,7 @@ number 	depth	;
 number 	taur	; 
 number 	cainf	; 
 number cai ; 
+bool m_log_caSGate; 
 }; 
  
 } // namespace cable

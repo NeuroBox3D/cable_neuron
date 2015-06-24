@@ -51,7 +51,6 @@ class CaT_converted_standard_UG
 /// @copydoc IChannel<TDomain>::IChannel(cont char*) 
 CaT_converted_standard_UG(const char* functions, const char* subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-m_R(8.314), m_T(293.0), m_F(96485.0), 
 	gbar ( 0.0008 *1e-05), 
 	vshift ( 0	*1), 
 	cao  ( 2.5	*1), 
@@ -71,14 +70,15 @@ cai ( 0),
 	wm1(20         	*1), 
 	wm2(15         	*1), 
 	wh1(4         	*1), 
-	wh2(50         	*1) {} 
-UG_CATCH_THROW("Error in CaT_converted_standard_UG initializer list. ") 
+	wh2(50         	*1), 
+m_log_mGate(false), 
+m_log_hGate(false) {} 
+UG_CATCH_THROW("Error in CaT_converted_standard_UG initializer list. "); 
  
  
 /// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&) 
 CaT_converted_standard_UG(const std::vector<std::string>& functions, const std::vector<std::string>& subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-m_R(8.314), m_T(293.0), m_F(96485.0), 
 	gbar ( 0.0008 *1e-05), 
 	vshift ( 0	*1), 
 	cao  ( 2.5	*1), 
@@ -98,8 +98,10 @@ cai ( 0),
 	wm1(20         	*1), 
 	wm2(15         	*1), 
 	wh1(4         	*1), 
-	wh2(50         	*1) {} 
-UG_CATCH_THROW("Error in CaT_converted_standard_UG initializer list. ") 
+	wh2(50         	*1), 
+m_log_mGate(false), 
+m_log_hGate(false) {} 
+UG_CATCH_THROW("Error in CaT_converted_standard_UG initializer list. "); 
 /// destructor 
  
 virtual ~CaT_converted_standard_UG() {}; 
@@ -107,10 +109,11 @@ virtual ~CaT_converted_standard_UG() {};
 void init_attachments(); 
 // inherited from IChannel 
  
-virtual void init(const LocalVector& u, Edge* e); 
-virtual void update_gating(number newTime, const LocalVector& u, Edge* e); 
+virtual void init(Vertex* vrt, const std::vector<number>& vrt_values); 
+virtual void update_gating(number newtime, Vertex* vrt, const std::vector<number>& vrt_values); 
 virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues); 
 virtual void vm_disc_available(); 
+virtual std::vector<number> allGatingAccesors(number x, number y, number z); 
 
  
 double getgbar(); 
@@ -153,6 +156,8 @@ void setwm1(double val);
 void setwm2(double val); 
 void setwh1(double val); 
 void setwh2(double val); 
+void set_log_mGate(bool bLogmGate); 
+void set_log_hGate(bool bLoghGate); 
 
  
 protected: 
@@ -183,6 +188,8 @@ number 	wm1;
 number 	wm2; 
 number 	wh1; 
 number 	wh2; 
+bool m_log_mGate; 
+bool m_log_hGate; 
 }; 
  
 } // namespace cable

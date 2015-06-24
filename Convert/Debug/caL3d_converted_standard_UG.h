@@ -51,29 +51,31 @@ class caL3d_converted_standard_UG
 /// @copydoc IChannel<TDomain>::IChannel(cont char*) 
 caL3d_converted_standard_UG(const char* functions, const char* subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-m_R(8.314), m_T(293.0), m_F(96485.0), 
 	p    ( 0.2e-3  	*100), 
 	th   ( 5	*1), 
 	q   ( 13	*1), 
 	Ra   ( 1.6	*1), 
 	Rb   ( 0.2	*1), 
 	temp ( 22	*1), 
-	q10  ( 3		*1) {} 
-UG_CATCH_THROW("Error in caL3d_converted_standard_UG initializer list. ") 
+	q10  ( 3		*1), 
+m_log_CGate(false), 
+m_log_OGate(false) {} 
+UG_CATCH_THROW("Error in caL3d_converted_standard_UG initializer list. "); 
  
  
 /// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&) 
 caL3d_converted_standard_UG(const std::vector<std::string>& functions, const std::vector<std::string>& subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-m_R(8.314), m_T(293.0), m_F(96485.0), 
 	p    ( 0.2e-3  	*100), 
 	th   ( 5	*1), 
 	q   ( 13	*1), 
 	Ra   ( 1.6	*1), 
 	Rb   ( 0.2	*1), 
 	temp ( 22	*1), 
-	q10  ( 3		*1) {} 
-UG_CATCH_THROW("Error in caL3d_converted_standard_UG initializer list. ") 
+	q10  ( 3		*1), 
+m_log_CGate(false), 
+m_log_OGate(false) {} 
+UG_CATCH_THROW("Error in caL3d_converted_standard_UG initializer list. "); 
 /// destructor 
  
 virtual ~caL3d_converted_standard_UG() {}; 
@@ -83,10 +85,11 @@ double efun(double z);
 void init_attachments(); 
 // inherited from IChannel 
  
-virtual void init(const LocalVector& u, Edge* e); 
-virtual void update_gating(number newTime, const LocalVector& u, Edge* e); 
+virtual void init(Vertex* vrt, const std::vector<number>& vrt_values); 
+virtual void update_gating(number newtime, Vertex* vrt, const std::vector<number>& vrt_values); 
 virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues); 
 virtual void vm_disc_available(); 
+virtual std::vector<number> allGatingAccesors(number x, number y, number z); 
 
  
 double getp(); 
@@ -103,6 +106,8 @@ void setRa(double val);
 void setRb(double val); 
 void settemp(double val); 
 void setq10(double val); 
+void set_log_CGate(bool bLogCGate); 
+void set_log_OGate(bool bLogOGate); 
 
  
 protected: 
@@ -121,6 +126,8 @@ number 	Rb   ;
 number 	temp ; 
 number 	q10  ; 
 number tadj; 
+bool m_log_CGate; 
+bool m_log_OGate; 
 }; 
  
 } // namespace cable

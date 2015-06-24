@@ -51,7 +51,6 @@ class NMDA_Mg_T_converted_standard_UG
 /// @copydoc IChannel<TDomain>::IChannel(cont char*) 
 NMDA_Mg_T_converted_standard_UG(const char* functions, const char* subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-m_R(8.314), m_T(293.0), m_F(96485.0), 
 	Erev	( 5    	*1), 
 	gmax	( 500  	*1e+15), 
 	mg	( 1  	*1), 
@@ -85,14 +84,24 @@ m_R(8.314), m_T(293.0), m_F(96485.0),
 	Rr1Mg		( 0.004002	*1), 
 	Rd2Mg		( 0.002678	*1), 
 	Rr2Mg		( 0.001932	*1), 
-C (0) {} 
-UG_CATCH_THROW("Error in NMDA_Mg_T_converted_standard_UG initializer list. ") 
+C (0), 
+m_log_UGate(false), 
+m_log_FGate(false), 
+m_log_ClGate(false), 
+m_log_D1Gate(false), 
+m_log_D2Gate(false), 
+m_log_OGate(false), 
+m_log_UMgGate(false), 
+m_log_ClMgGate(false), 
+m_log_D1MgGate(false), 
+m_log_D2MgGate(false), 
+m_log_OMgGate(false) {} 
+UG_CATCH_THROW("Error in NMDA_Mg_T_converted_standard_UG initializer list. "); 
  
  
 /// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&) 
 NMDA_Mg_T_converted_standard_UG(const std::vector<std::string>& functions, const std::vector<std::string>& subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-m_R(8.314), m_T(293.0), m_F(96485.0), 
 	Erev	( 5    	*1), 
 	gmax	( 500  	*1e+15), 
 	mg	( 1  	*1), 
@@ -126,8 +135,19 @@ m_R(8.314), m_T(293.0), m_F(96485.0),
 	Rr1Mg		( 0.004002	*1), 
 	Rd2Mg		( 0.002678	*1), 
 	Rr2Mg		( 0.001932	*1), 
-C (0) {} 
-UG_CATCH_THROW("Error in NMDA_Mg_T_converted_standard_UG initializer list. ") 
+C (0), 
+m_log_UGate(false), 
+m_log_FGate(false), 
+m_log_ClGate(false), 
+m_log_D1Gate(false), 
+m_log_D2Gate(false), 
+m_log_OGate(false), 
+m_log_UMgGate(false), 
+m_log_ClMgGate(false), 
+m_log_D1MgGate(false), 
+m_log_D2MgGate(false), 
+m_log_OMgGate(false) {} 
+UG_CATCH_THROW("Error in NMDA_Mg_T_converted_standard_UG initializer list. "); 
 /// destructor 
  
 virtual ~NMDA_Mg_T_converted_standard_UG() {}; 
@@ -135,10 +155,11 @@ virtual ~NMDA_Mg_T_converted_standard_UG() {};
 void init_attachments(); 
 // inherited from IChannel 
  
-virtual void init(const LocalVector& u, Edge* e); 
-virtual void update_gating(number newTime, const LocalVector& u, Edge* e); 
+virtual void init(Vertex* vrt, const std::vector<number>& vrt_values); 
+virtual void update_gating(number newtime, Vertex* vrt, const std::vector<number>& vrt_values); 
 virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues); 
 virtual void vm_disc_available(); 
+virtual std::vector<number> allGatingAccesors(number x, number y, number z); 
 
  
 double getErev(); 
@@ -209,6 +230,17 @@ void setRr1Mg(double val);
 void setRd2Mg(double val); 
 void setRr2Mg(double val); 
 void setC(double val); 
+void set_log_UGate(bool bLogUGate); 
+void set_log_FGate(bool bLogFGate); 
+void set_log_ClGate(bool bLogClGate); 
+void set_log_D1Gate(bool bLogD1Gate); 
+void set_log_D2Gate(bool bLogD2Gate); 
+void set_log_OGate(bool bLogOGate); 
+void set_log_UMgGate(bool bLogUMgGate); 
+void set_log_ClMgGate(bool bLogClMgGate); 
+void set_log_D1MgGate(bool bLogD1MgGate); 
+void set_log_D2MgGate(bool bLogD2MgGate); 
+void set_log_OMgGate(bool bLogOMgGate); 
 
  
 protected: 
@@ -271,6 +303,17 @@ number 	Rr1Mg		;
 number 	Rd2Mg		; 
 number 	Rr2Mg		; 
 number C ; 
+bool m_log_UGate; 
+bool m_log_FGate; 
+bool m_log_ClGate; 
+bool m_log_D1Gate; 
+bool m_log_D2Gate; 
+bool m_log_OGate; 
+bool m_log_UMgGate; 
+bool m_log_ClMgGate; 
+bool m_log_D1MgGate; 
+bool m_log_D2MgGate; 
+bool m_log_OMgGate; 
 }; 
  
 } // namespace cable

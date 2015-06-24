@@ -101,6 +101,9 @@ class IChannel
 		/// called when access to the root VM disc is possible (i.e. after call to set_vm_disc)
 		virtual void vm_disc_available() {};
 
+		/// get all Gating accesors of one Gating
+		virtual std::vector<Grid::AttachmentAccessor<Vertex, ADouble> > allGatingAccesors();
+
 		/// adding some Jacobian infos at given vertex
 		//virtual void Jacobi_sets(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outJFlux) = 0;
 

@@ -362,7 +362,9 @@ template<typename TDomain>
 void NMDA_Mg_converted_standard_UG<TDomain>::init_attachments() 
 { 
 // inits temperatur from kalvin to celsius and some other typical neuron values
-m_pVMDisc->celsius = m_T - 273; 
+m_T = m_pVMDisc->temperature(); 
+m_R = m_pVMDisc->R; 
+m_F = m_pVMDisc->F; 
  
  
 SmartPtr<Grid> spGrid = m_pVMDisc->approx_space()->domain()->grid(); 
@@ -430,53 +432,128 @@ this->aaOMgGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->OMgGa
  
  
  
+template<typename TDomain> 
+std::vector<number> NMDA_Mg_converted_standard_UG<TDomain>::allGatingAccesors(number x, number y, number z) 
+{ 
+	 //var for output 
+	 std::vector<number> GatingAccesors; 
+ 
+	 typedef ug::MathVector<TDomain::dim> position_type; 
+ 
+	 position_type coord; 
+ 
+	 if (coord.size()==1) 
+	 	 coord[0]=x; 
+	 if (coord.size()==2) 
+	 { 
+	 	 coord[0] = x;
+	 	 coord[1] = y;
+	 } 
+	 if (coord.size()==3) 
+	 { 
+	 	 coord[0] = x;
+	 	 coord[1] = y;
+	 	 coord[2] = z;
+	 } 
+	 //accesors 
+	 typedef Attachment<position_type> position_attachment_type; 
+	 typedef Grid::VertexAttachmentAccessor<position_attachment_type> position_accesor_type; 
+ 
+	 // Definitions for Iteration over all Elements 
+	 typedef typename DoFDistribution::traits<Vertex>::const_iterator itType; 
+	 SubsetGroup ssGrp; 
+	 try { ssGrp = SubsetGroup(m_pVMDisc->approx_space()->domain()->subset_handler(), this->m_vSubset);} 
+	 UG_CATCH_THROW("Subset group creation failed."); 
+ 
+	 itType iter; 
+	 number bestDistSq, distSq; 
+	 Vertex* bestVrt; 
+ 
+	 // Iterate only if there is one Gtting needed 
+	 if (m_log_UGate == true || m_log_ClGate == true || m_log_D1Gate == true || m_log_D2Gate == true || m_log_OGate == true || m_log_UMgGate == true || m_log_ClMgGate == true || m_log_D1MgGate == true || m_log_D2MgGate == true || m_log_OMgGate == true )
+	 { 
+	 	 // iterating over all elements 
+	 	 for (size_t si=0; si < ssGrp.size(); si++) 
+	 	 { 
+	 	 	 itType iterBegin = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]); 
+	 	 	 itType iterEnd = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template end<Vertex>(ssGrp[si]); 
+ 
+	 	 	 const position_accesor_type& aaPos = m_pVMDisc->approx_space()->domain()->position_accessor(); 
+	 	 	 if (si==0) 
+	 	 	 { 
+	 	 	 	 bestVrt = *iterBegin; 
+	 	 	 	 bestDistSq = VecDistanceSq(coord, aaPos[bestVrt]); 
+	 	 	 } 
+	 	 	 iter = iterBegin; 
+	 	 	 iter++; 
+	 	 	 while(iter != iterEnd) 
+	 	 	 { 
+	 	 	 	 distSq = VecDistanceSq(coord, aaPos[*iter]); 
+	 	 	 	 { 
+	 	 	 	 	 bestDistSq = distSq; 
+	 	 	 	 	 bestVrt = *iter; 
+	 	 	 	 } 
+	 	 	 	 ++iter; 
+	 	 	 } 
+	 	 } 
+	 	 if (m_log_UGate == true) 
+	 	 	 GatingAccesors.push_back(this->aaUGate[bestVrt]); 
+	 	 if (m_log_ClGate == true) 
+	 	 	 GatingAccesors.push_back(this->aaClGate[bestVrt]); 
+	 	 if (m_log_D1Gate == true) 
+	 	 	 GatingAccesors.push_back(this->aaD1Gate[bestVrt]); 
+	 	 if (m_log_D2Gate == true) 
+	 	 	 GatingAccesors.push_back(this->aaD2Gate[bestVrt]); 
+	 	 if (m_log_OGate == true) 
+	 	 	 GatingAccesors.push_back(this->aaOGate[bestVrt]); 
+	 	 if (m_log_UMgGate == true) 
+	 	 	 GatingAccesors.push_back(this->aaUMgGate[bestVrt]); 
+	 	 if (m_log_ClMgGate == true) 
+	 	 	 GatingAccesors.push_back(this->aaClMgGate[bestVrt]); 
+	 	 if (m_log_D1MgGate == true) 
+	 	 	 GatingAccesors.push_back(this->aaD1MgGate[bestVrt]); 
+	 	 if (m_log_D2MgGate == true) 
+	 	 	 GatingAccesors.push_back(this->aaD2MgGate[bestVrt]); 
+	 	 if (m_log_OMgGate == true) 
+	 	 	 GatingAccesors.push_back(this->aaOMgGate[bestVrt]); 
+	 } 
+	 return GatingAccesors; 
+} 
+ 
+//Setters for states_outputs 
+template<typename TDomain> void NMDA_Mg_converted_standard_UG<TDomain>::set_log_UGate(bool bLogUGate) { m_log_UGate = bLogUGate; }
+template<typename TDomain> void NMDA_Mg_converted_standard_UG<TDomain>::set_log_ClGate(bool bLogClGate) { m_log_ClGate = bLogClGate; }
+template<typename TDomain> void NMDA_Mg_converted_standard_UG<TDomain>::set_log_D1Gate(bool bLogD1Gate) { m_log_D1Gate = bLogD1Gate; }
+template<typename TDomain> void NMDA_Mg_converted_standard_UG<TDomain>::set_log_D2Gate(bool bLogD2Gate) { m_log_D2Gate = bLogD2Gate; }
+template<typename TDomain> void NMDA_Mg_converted_standard_UG<TDomain>::set_log_OGate(bool bLogOGate) { m_log_OGate = bLogOGate; }
+template<typename TDomain> void NMDA_Mg_converted_standard_UG<TDomain>::set_log_UMgGate(bool bLogUMgGate) { m_log_UMgGate = bLogUMgGate; }
+template<typename TDomain> void NMDA_Mg_converted_standard_UG<TDomain>::set_log_ClMgGate(bool bLogClMgGate) { m_log_ClMgGate = bLogClMgGate; }
+template<typename TDomain> void NMDA_Mg_converted_standard_UG<TDomain>::set_log_D1MgGate(bool bLogD1MgGate) { m_log_D1MgGate = bLogD1MgGate; }
+template<typename TDomain> void NMDA_Mg_converted_standard_UG<TDomain>::set_log_D2MgGate(bool bLogD2MgGate) { m_log_D2MgGate = bLogD2MgGate; }
+template<typename TDomain> void NMDA_Mg_converted_standard_UG<TDomain>::set_log_OMgGate(bool bLogOMgGate) { m_log_OMgGate = bLogOMgGate; }
  // Init Method for using gatings 
 template<typename TDomain> 
-void NMDA_Mg_converted_standard_UG<TDomain>::init(const LocalVector& u, Edge* edge) 
+void NMDA_Mg_converted_standard_UG<TDomain>::init(Vertex* vrt, const std::vector<number>& vrt_values) 
 { 
 //get celsius and time
-number celsius = m_pVMDisc->celsius; 
+number celsius = m_pVMDisc->temperature_celsius(); 
 number dt = m_pVMDisc->time(); 
 // make preparing vor getting values of every edge 
-typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; 
-vrt_list vl; 
-m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge); 
- 
- 
-//over all edges 
-for (size_t size_l = 0; size_l< vl.size(); size_l++) 
-{ 
-	 Vertex* vrt = vl[size_l]; 
- 
- 
-number v = u(m_pVMDisc->_v_, size_l); 
+number v = vrt_values[VMDisc<TDomain>::_v_]; 
 
  
 aaUGate[vrt] = 1; 
 }  
-}  
  
  
  
 template<typename TDomain> 
-void NMDA_Mg_converted_standard_UG<TDomain>::update_gating(number newTime, const LocalVector& u, Edge* edge) 
+void NMDA_Mg_converted_standard_UG<TDomain>::update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values) 
 { 
-number celsius = m_pVMDisc->celsius; 
- number FARADAY = m_F; 
- // make preparing vor getting values of every edge 
-typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; 
-vrt_list vl; 
-m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge); 
- 
- 
-//over all edges 
-for (size_t size_l = 0; size_l< vl.size(); size_l++) 
-{ 
-	 Vertex* vrt = vl[size_l]; 
- 
- 
-number dt = newTime - m_pVMDisc->m_aaTime[vrt]; 
-number v = u(m_pVMDisc->_v_, size_l); 
+number celsius = m_pVMDisc->temperature_celsius(); 
+ number FARADAY = m_pVMDisc->F; 
+ number dt = newTime - m_pVMDisc->time(); 
+number v = vrt_values[VMDisc<TDomain>::_v_]; 
 
  
 double U = aaUGate[vrt]; 
@@ -553,7 +630,6 @@ aaOMgGate[vrt] = OMg;
  
  
 } 
-} 
  
  
  
@@ -571,7 +647,7 @@ number ClMg = aaClMgGate[ver];
 number D1Mg = aaD1MgGate[ver]; 
 number D2Mg = aaD2MgGate[ver]; 
 number OMg = aaOMgGate[ver]; 
-number v =  vrt_values[VMDisc<TDomain>::_v_]; 
+number v =  vrt_values[m_pVMDisc->_v_]; 
  
  
 number t = m_pVMDisc->time(); 
@@ -585,7 +661,7 @@ number g = gmax * O;
  
  
 outCurrentValues.push_back( (1e-6) * g * (v - Erev)); 
- } 
+} 
  
  
 //////////////////////////////////////////////////////////////////////////////// 

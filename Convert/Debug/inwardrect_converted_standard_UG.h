@@ -51,7 +51,6 @@ class inwardrect_converted_standard_UG
 /// @copydoc IChannel<TDomain>::IChannel(cont char*) 
 inwardrect_converted_standard_UG(const char* functions, const char* subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-m_R(8.314), m_T(293.0), m_F(96485.0), 
 	gbar ( 5   	*1e+06), 
 	tha  ( 25	*1), 
 	qa   ( 9	*1), 
@@ -60,14 +59,14 @@ m_R(8.314), m_T(293.0), m_F(96485.0),
 	temp ( 23	*1), 
 	q10  ( 2.3		*1), 
 	vmin ( -120	*1), 
-	vmax ( 100	*1) {} 
-UG_CATCH_THROW("Error in inwardrect_converted_standard_UG initializer list. ") 
+	vmax ( 100	*1), 
+m_log_nGate(false) {} 
+UG_CATCH_THROW("Error in inwardrect_converted_standard_UG initializer list. "); 
  
  
 /// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&) 
 inwardrect_converted_standard_UG(const std::vector<std::string>& functions, const std::vector<std::string>& subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-m_R(8.314), m_T(293.0), m_F(96485.0), 
 	gbar ( 5   	*1e+06), 
 	tha  ( 25	*1), 
 	qa   ( 9	*1), 
@@ -76,8 +75,9 @@ m_R(8.314), m_T(293.0), m_F(96485.0),
 	temp ( 23	*1), 
 	q10  ( 2.3		*1), 
 	vmin ( -120	*1), 
-	vmax ( 100	*1) {} 
-UG_CATCH_THROW("Error in inwardrect_converted_standard_UG initializer list. ") 
+	vmax ( 100	*1), 
+m_log_nGate(false) {} 
+UG_CATCH_THROW("Error in inwardrect_converted_standard_UG initializer list. "); 
 /// destructor 
  
 virtual ~inwardrect_converted_standard_UG() {}; 
@@ -85,10 +85,11 @@ virtual ~inwardrect_converted_standard_UG() {};
 void init_attachments(); 
 // inherited from IChannel 
  
-virtual void init(const LocalVector& u, Edge* e); 
-virtual void update_gating(number newTime, const LocalVector& u, Edge* e); 
+virtual void init(Vertex* vrt, const std::vector<number>& vrt_values); 
+virtual void update_gating(number newtime, Vertex* vrt, const std::vector<number>& vrt_values); 
 virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues); 
 virtual void vm_disc_available(); 
+virtual std::vector<number> allGatingAccesors(number x, number y, number z); 
 
  
 double getgbar(); 
@@ -109,6 +110,7 @@ void settemp(double val);
 void setq10(double val); 
 void setvmin(double val); 
 void setvmax(double val); 
+void set_log_nGate(bool bLognGate); 
 
  
 protected: 
@@ -127,6 +129,7 @@ number 	q10  ;
 number 	vmin ; 
 number 	vmax ; 
 number tadj; 
+bool m_log_nGate; 
 }; 
  
 } // namespace cable
