@@ -33,6 +33,8 @@ template <typename TDomain>
 class IChannel
 {
 	public:
+
+
 		///	constructor with comma-separated c-string
 		IChannel(const char* functions, const char* subsets)
 		: m_pVMDisc(NULL)
@@ -121,6 +123,7 @@ class IChannel
 
 		/// joint VMDisc
 		VMDisc<TDomain>* m_pVMDisc;
+
 };
 
 
@@ -189,6 +192,7 @@ class ChannelHH
 
 		// attachment log_files
 		bool m_log_nGate, m_log_hGate, m_log_mGate;
+
 };
 
 
@@ -266,6 +270,7 @@ class ChannelHHNernst
 
 		// attachment log_files
 		bool m_log_nGate, m_log_hGate, m_log_mGate;
+
 };
 
 
@@ -280,7 +285,7 @@ class ChannelLeak
 		/// @copydoc IChannel<TDomain>::IChannel(const char*)
 		ChannelLeak(const char* functions, const char* subsets)
 		try : IChannel<TDomain>(functions, subsets),
-		m_g_I(3.0e-6){}
+		m_g_I(3.0e-6) {}
 		UG_CATCH_THROW("Error in ChannelHH initializer list.");
 
 		/// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&)

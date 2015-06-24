@@ -57,18 +57,20 @@ std::vector<number> ChannelHH<TDomain>::allGatingAccesors(number x, number y, nu
 {
 	//var for output
 	std::vector<number> GatingAccesors;
+	typedef ug::MathVector<TDomain::dim> position_type;
 
-	MathVector<dim, number> coord;
-	if (dim==1)
+	position_type coord;
+
+	if (coord.size()==1)
+	{
 		coord[0] = x;
-
-	if (dim==2)
+	}
+	if (coord.size()==2)
 	{
 		coord[0] = x;
 		coord[1] = y;
 	}
-
-	if (dim==3)
+	if (coord.size()==3)
 	{
 		coord[0] = x;
 		coord[1] = y;
@@ -76,7 +78,6 @@ std::vector<number> ChannelHH<TDomain>::allGatingAccesors(number x, number y, nu
 	}
 
 	// accessors
-	typedef ug::MathVector<TDomain::dim> position_type;
 	typedef Attachment<position_type> position_attachment_type;
 	typedef Grid::VertexAttachmentAccessor<position_attachment_type> position_accessor_type;
 
@@ -317,26 +318,28 @@ std::vector<number> ChannelHHNernst<TDomain>::allGatingAccesors(number x, number
 {
 	//var for output
 	std::vector<number> GatingAccesors;
+	typedef ug::MathVector<TDomain::dim> position_type;
 
-	MathVector<dim, number> coord;
-	if (dim==1)
+	position_type coord;
+	if (coord.size()==1)
+	{
 		coord[0] = x;
-
-	if (dim==2)
+	}
+	if (coord.size()==2)
 	{
 		coord[0] = x;
 		coord[1] = y;
 	}
-
-	if (dim==3)
+	if (coord.size()==3)
 	{
 		coord[0] = x;
 		coord[1] = y;
 		coord[2] = z;
 	}
 
+
+
 	// accessors
-	typedef ug::MathVector<TDomain::dim> position_type;
 	typedef Attachment<position_type> position_attachment_type;
 	typedef Grid::VertexAttachmentAccessor<position_attachment_type> position_accessor_type;
 
@@ -624,7 +627,7 @@ void ChannelLeak<TDomain>::Jacobi_sets(Vertex* vrt, const std::vector<number>& v
 //	explicit template instantiations
 ////////////////////////////////////////////////////////////////////////////////
 
-/*#ifdef UG_DIM_1
+#ifdef UG_DIM_1
 	template class IChannel<Domain1d>;
 	template class ChannelHH<Domain1d>;
 	template class ChannelLeak<Domain1d>;
@@ -636,7 +639,7 @@ void ChannelLeak<TDomain>::Jacobi_sets(Vertex* vrt, const std::vector<number>& v
 	template class ChannelHH<Domain2d>;
 	template class ChannelLeak<Domain2d>;
 	template class ChannelHHNernst<Domain2d>;
-#endif*/
+#endif
 
 #ifdef UG_DIM_3
 	template class IChannel<Domain3d>;
