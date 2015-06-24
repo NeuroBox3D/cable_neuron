@@ -177,9 +177,9 @@ std::vector<number> hh_converted_standard_UG<TDomain>::allGatingAccesors(number 
 } 
  
 //Setters for states_outputs 
-template<typename TDomain> void hh_converted_standard_UG::set_log_mGate(bool bLogmGate) { m_log_mGate = bLogmGate; }
-template<typename TDomain> void hh_converted_standard_UG::set_log_hGate(bool bLoghGate) { m_log_hGate = bLoghGate; }
-template<typename TDomain> void hh_converted_standard_UG::set_log_nGate(bool bLognGate) { m_log_nGate = bLognGate; }
+template<typename TDomain> void hh_converted_standard_UG<TDomain>::set_log_mGate(bool bLogmGate) { m_log_mGate = bLogmGate; }
+template<typename TDomain> void hh_converted_standard_UG<TDomain>::set_log_hGate(bool bLoghGate) { m_log_hGate = bLoghGate; }
+template<typename TDomain> void hh_converted_standard_UG<TDomain>::set_log_nGate(bool bLognGate) { m_log_nGate = bLognGate; }
  // Init Method for using gatings 
 template<typename TDomain> 
 void hh_converted_standard_UG<TDomain>::init(Vertex* vrt, const std::vector<number>& vrt_values) 
