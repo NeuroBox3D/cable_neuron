@@ -20,21 +20,6 @@ double hh_converted_standard_UG<TDomain>::vtrap(double x, double y)
 
  
  
-template<typename TDomain> 
-void hh_converted_standard_UG<TDomain>::set_out_x(number x){  
-	out_x = x;  
-}  
- 
-template<typename TDomain> 
-void hh_converted_standard_UG<TDomain>::set_out_y(number y){  
-	out_y = y;  
-}  
- 
-template<typename TDomain> 
-void hh_converted_standard_UG<TDomain>::set_out_z(number z){  
-	out_z = z;  
-}  
- 
 // adding function which always inits_attachments 
 template<typename TDomain> 
 void hh_converted_standard_UG<TDomain>::vm_disc_available()  
@@ -89,7 +74,7 @@ template<typename TDomain>
 void hh_converted_standard_UG<TDomain>::init_attachments() 
 { 
 // inits temperatur from kalvin to celsius and some other typical neuron values
-m_pVMDisc->celsius = m_T - 273; 
+m_T = m_pVMDisc->celsius() + 273; 
  
  
 SmartPtr<Grid> spGrid = m_pVMDisc->approx_space()->domain()->grid(); 
@@ -115,28 +100,79 @@ this->aanGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->nGate);
  
  
  
+template<typename TDomain> 
+std::vector<number> hh_converted_standard_UG<TDomain>::allGatingAccesors(number x, number y, number z) 
+{ 
+	 //var for output 
+	 std::vector<number> GatingAccesors;
+ 
+	 //accesors 
+	 typedef ug::MathVecotr<3> position_type; 
+	 typedef Attachment<position_type> position_attachment_type; 
+	 typedef Grid::VertexAttachmentAccessor<position_attachment_type> position_accesor_type; 
+ 
+	 // Definitions for Iteration over all Elements 
+	 typedef typename DoFDistribution::traits<Vertex>::const_iterator itType; 
+	 SubsetGroup ssGrp; 
+	 try { ssGrp = SubsetGroup(m_pVMDisc->approx_space()->domain()->subset_handler(), this->m_vSubset);} 
+	 UG_CATCH_THROW("Subset group creation failed."); 
+ 
+	 itType iter; 
+	 number bestDistSq, distSq; 
+	 Vertex* bestVrt; 
+ 
+	 // Iterate only if there is one Gtting needed 
+	 if (m_log_mGate == true || m_log_hGate == true || m_log_nGate == true )
+	 { 
+	 	 // iterating over all elements 
+	 	 for (size_t si=0; si < ssGrp.size(); si++) 
+	 	 { 
+	 	 	 itType iterBegin = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP->template) begin<Vertex>(ssGrp[si]); 
+	 	 	 itType iterEnd = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP->template) end<Vertex>(ssGrp[si]); 
+ 
+	 	 	 const position_accessor_typ& aaPos = m_pVMDisc->approx_space()->domain()->position_accessor(); 
+	 	 	 if (si==0) 
+	 	 	 { 
+	 	 	 	 bestVrt = *iterBegin; 
+	 	 	 	 bestDistSq = VecDistanceSq(coord, aaPos[bestVrt]); 
+	 	 	 } 
+	 	 	 iter = iterBegin; 
+	 	 	 iter++; 
+	 	 	 while(iter != iterEnd) 
+	 	 	 { 
+	 	 	 	 distSq = VecDistanceSq(coord, aaPos[*iter]); 
+	 	 	 	 { 
+	 	 	 	 	 bestDistSq = distSq; 
+	 	 	 	 	 bestVrt = *iter; 
+	 	 	 	 } 
+	 	 	 	 ++iter; 
+	 	 	 } 
+	 	 } 
+	 	 if (m_log_mGate == true) 
+	 	 	 GatingAccesors.push_back(this->m_aam)
+	 	 if (m_log_hGate == true) 
+	 	 	 GatingAccesors.push_back(this->m_aah)
+	 	 if (m_log_nGate == true) 
+	 	 	 GatingAccesors.push_back(this->m_aan)
+	 } 
+	 return GatingAccesors; 
+} 
+ 
+//Setters for states_outputs 
+template<typename TDomain> void hh_converted_standard_UG::set_log_mGate(bool bLogmGate) { m_log_mGate = bool bLogmGate; }
+template<typename TDomain> void hh_converted_standard_UG::set_log_hGate(bool bLoghGate) { m_log_hGate = bool bLoghGate; }
+template<typename TDomain> void hh_converted_standard_UG::set_log_nGate(bool bLognGate) { m_log_nGate = bool bLognGate; }
  // Init Method for using gatings 
 template<typename TDomain> 
-void hh_converted_standard_UG<TDomain>::init(const LocalVector& u, Edge* edge) 
+void hh_converted_standard_UG<TDomain>::init(Vertex* vrt, const std::vector<number>& vrt_values) 
 { 
 //get celsius and time
-number celsius = m_pVMDisc->celsius; 
+number celsius = m_pVMDisc->celsius(); 
 number dt = m_pVMDisc->time(); 
 // make preparing vor getting values of every edge 
-typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; 
-vrt_list vl; 
-m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge); 
- 
- 
-//over all edges 
-for (size_t size_l = 0; size_l< vl.size(); size_l++) 
-{ 
-	 Vertex* vrt = vl[size_l]; 
- 
- 
-number v = u(m_pVMDisc->_v_, size_l); 
-number na = u(m_pVMDisc->_na_, size_l); 
-number k = u(m_pVMDisc->_k_, size_l); 
+number v = vrt_values[VMDisc<TDomain>::_v_]; 
+number na = vrt_values[VMDisc<TDomain>::_na_]; 
+number k = vrt_values[VMDisc<TDomain>::_k_]; 
 
  
 double           alpha, beta, sum, q10; 
@@ -171,66 +207,17 @@ aanGate[vrt] = ninf;
 template<typename TDomain> 
 void hh_converted_standard_UG<TDomain>::update_gating(number newTime, const LocalVector& u, Edge* edge) 
 { 
-number celsius = m_pVMDisc->celsius; 
+number celsius = m_pVMDisc->celsius(); 
  number FARADAY = m_F; 
- // make preparing vor getting values of every edge 
-typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; 
-vrt_list vl; 
-m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge); 
- 
- 
-//over all edges 
-for (size_t size_l = 0; size_l< vl.size(); size_l++) 
-{ 
-	 Vertex* vrt = vl[size_l]; 
- 
- 
-number dt = newTime - m_pVMDisc->m_aaTime[vrt]; 
-number v = u(m_pVMDisc->_v_, size_l); 
-number na = u(m_pVMDisc->_na_, size_l); 
-number k = u(m_pVMDisc->_k_, size_l); 
+ number dt = newTime - m_pVMDisc->time(); 
+number v = vrt_values[VMDisc<TDomain>::_v_]; 
+number na = vrt_values[VMDisc<TDomain>::_na_]; 
+number k = vrt_values[VMDisc<TDomain>::_k_]; 
 
  
 double m = aamGate[vrt]; 
 double h = aahGate[vrt]; 
 double n = aanGate[vrt]; 
-
- 
- 
-Grid::AttachmentAccessor< Vertex, APosition > aaPos; 
-
-number x=aaPos[0][1]; 
-number y=aaPos[0][2]; 
-number z=aaPos[0][3]; 
-
-std::stringstream ssm_file, ssh_file, ssn_file;
-
-ssm_file << "m_file_pos_x_" << x << "_y_" << y << "_z_" << z << ".txt";
-std::string sm_file = ssm_file.str();
-const char* m_file = sm_file.c_str();
-
-ssh_file << "h_file_pos_x_" << x << "_y_" << y << "_z_" << z << ".txt";
-std::string sh_file = ssh_file.str();
-const char* h_file = sh_file.c_str();
-
-ssn_file << "n_file_pos_x_" << x << "_y_" << y << "_z_" << z << ".txt";
-std::string sn_file = ssn_file.str();
-const char* n_file = sn_file.c_str();
-
- 
-std::ofstream mym_file, myh_file, myn_file;
- if (x==out_x && y==out_y && z==out_z) 
-{ 
-	 mym_file.open(m_file, std::ios::app); 
-	 mym_file << m << " \n ";
-	 mym_file.close(); 
-	 myh_file.open(h_file, std::ios::app); 
-	 myh_file << h << " \n ";
-	 myh_file.close(); 
-	 myn_file.open(n_file, std::ios::app); 
-	 myn_file << n << " \n ";
-	 myn_file.close(); 
-}
 
  
  
@@ -285,9 +272,9 @@ void hh_converted_standard_UG<TDomain>::ionic_current(Vertex* ver, const std::ve
 number m = aamGate[ver]; 
 number h = aahGate[ver]; 
 number n = aanGate[ver]; 
-number na = vrt_values[VMDisc<TDomain>::_na_]; 
-number k = vrt_values[VMDisc<TDomain>::_k_]; 
-number v =  vrt_values[VMDisc<TDomain>::_v_]; 
+number na = vrt_values[m_pVMDisc->_na_]; 
+number k = vrt_values[m_pVMDisc->_k_]; 
+number v =  vrt_values[m_pVMDisc->_v_]; 
  
  
 number t = m_pVMDisc->time(); 
@@ -295,22 +282,22 @@ number t = m_pVMDisc->time();
  
 const number helpV = 1e3*(m_R*m_T)/m_F; 
 number ena; 
-if (m_pVMDisc->get_ena() == 0) 
+if (m_pVMDisc->ena() == 0) 
 { 
-	  ena = helpV*(log(m_pVMDisc->na_out/na)); 
+	  ena = helpV*(log(m_pVMDisc->na_out()/na)); 
 } 
 else 
 { 
-	  ena = m_pVMDisc->get_ena(); 
+	  ena = m_pVMDisc->ena(); 
 } 
 number ek; 
-if (m_pVMDisc->get_ek() == 0) 
+if (m_pVMDisc->ek() == 0) 
 { 
-	  ek = helpV*(log(m_pVMDisc->k_out/k)); 
+	  ek = helpV*(log(m_pVMDisc->k_out()/k)); 
 } 
 else 
 { 
-	  ek = m_pVMDisc->get_ek(); 
+	  ek = m_pVMDisc->ek(); 
 } 
  
  
@@ -320,32 +307,6 @@ number gk = gkbar*n*n*n*n;
  
  
 outCurrentValues.push_back( gna*(v - ena) +  gk*(v - ek)       +  gl*(v - el)); 
-
-Grid::AttachmentAccessor< Vertex, APosition > aaPos;
-
-number x=aaPos[0][1];
-number y=aaPos[0][2];
-number z=aaPos[0][3];
-
-std::stringstream ssVfile;
-ssVfile << "V_file_pos_x_" << x << "_y_" << y << "_z_" << z << ".txt";
-std::string sV_file = ssVfile.str();
-const char* V_file = sV_file.c_str();
-
-
-std::ofstream myV_file;
- if (x==out_x && y==out_y && z==out_z)
-{
-	 myV_file.open(V_file, std::ios::app);
-	 myV_file << outCurrentValues[0] << " \n ";
-	 myV_file.close();
-
-}
-
-
- } 
- 
- 
 //////////////////////////////////////////////////////////////////////////////// 
 //	explicit template instantiations 
 //////////////////////////////////////////////////////////////////////////////// 
