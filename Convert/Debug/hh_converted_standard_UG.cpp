@@ -74,7 +74,7 @@ template<typename TDomain>
 void hh_converted_standard_UG<TDomain>::init_attachments() 
 { 
 // inits temperatur from kalvin to celsius and some other typical neuron values
-m_T = m_pVMDisc->celsius() + 273.15; 
+m_T = m_pVMDisc->temperature(); 
 m_R = m_pVMDisc->R; 
 m_F = m_pVMDisc->F; 
  
@@ -108,7 +108,7 @@ std::vector<number> hh_converted_standard_UG<TDomain>::allGatingAccesors(number 
 	 //var for output 
 	 std::vector<number> GatingAccesors; 
  
-	 typedef ug::MathVecotr<TDomain::dim> position_type; 
+	 typedef ug::MathVector<TDomain::dim> position_type; 
  
 	 position_type coord; 
  
@@ -145,10 +145,10 @@ std::vector<number> hh_converted_standard_UG<TDomain>::allGatingAccesors(number 
 	 	 // iterating over all elements 
 	 	 for (size_t si=0; si < ssGrp.size(); si++) 
 	 	 { 
-	 	 	 itType iterBegin = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP->template) begin<Vertex>(ssGrp[si]); 
-	 	 	 itType iterEnd = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP->template) end<Vertex>(ssGrp[si]); 
+	 	 	 itType iterBegin = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]); 
+	 	 	 itType iterEnd = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template end<Vertex>(ssGrp[si]); 
  
-	 	 	 const position_accessor_typ& aaPos = m_pVMDisc->approx_space()->domain()->position_accessor(); 
+	 	 	 const position_accesor_type& aaPos = m_pVMDisc->approx_space()->domain()->position_accessor(); 
 	 	 	 if (si==0) 
 	 	 	 { 
 	 	 	 	 bestVrt = *iterBegin; 
@@ -167,25 +167,25 @@ std::vector<number> hh_converted_standard_UG<TDomain>::allGatingAccesors(number 
 	 	 	 } 
 	 	 } 
 	 	 if (m_log_mGate == true) 
-	 	 	 GatingAccesors.push_back(this->m_aamGate); 
+	 	 	 GatingAccesors.push_back(this->aamGate[bestVrt]); 
 	 	 if (m_log_hGate == true) 
-	 	 	 GatingAccesors.push_back(this->m_aahGate); 
+	 	 	 GatingAccesors.push_back(this->aahGate[bestVrt]); 
 	 	 if (m_log_nGate == true) 
-	 	 	 GatingAccesors.push_back(this->m_aanGate); 
+	 	 	 GatingAccesors.push_back(this->aanGate[bestVrt]); 
 	 } 
 	 return GatingAccesors; 
 } 
  
 //Setters for states_outputs 
-template<typename TDomain> void hh_converted_standard_UG::set_log_mGate(bool bLogmGate) { m_log_mGate = bool bLogmGate; }
-template<typename TDomain> void hh_converted_standard_UG::set_log_hGate(bool bLoghGate) { m_log_hGate = bool bLoghGate; }
-template<typename TDomain> void hh_converted_standard_UG::set_log_nGate(bool bLognGate) { m_log_nGate = bool bLognGate; }
+template<typename TDomain> void hh_converted_standard_UG::set_log_mGate(bool bLogmGate) { m_log_mGate = bLogmGate; }
+template<typename TDomain> void hh_converted_standard_UG::set_log_hGate(bool bLoghGate) { m_log_hGate = bLoghGate; }
+template<typename TDomain> void hh_converted_standard_UG::set_log_nGate(bool bLognGate) { m_log_nGate = bLognGate; }
  // Init Method for using gatings 
 template<typename TDomain> 
 void hh_converted_standard_UG<TDomain>::init(Vertex* vrt, const std::vector<number>& vrt_values) 
 { 
 //get celsius and time
-number celsius = m_pVMDisc->celsius(); 
+number celsius = m_pVMDisc->temperature_celsius(); 
 number dt = m_pVMDisc->time(); 
 // make preparing vor getting values of every edge 
 number v = vrt_values[VMDisc<TDomain>::_v_]; 
@@ -218,15 +218,14 @@ aamGate[vrt] = minf;
 aahGate[vrt] = hinf; 
 aanGate[vrt] = ninf; 
 }  
-}  
  
  
  
 template<typename TDomain> 
 void hh_converted_standard_UG<TDomain>::update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values) 
 { 
-number celsius = m_pVMDisc->celsius(); 
- number FARADAY = m_F; 
+number celsius = m_pVMDisc->temperature_celsius(); 
+ number FARADAY = m_pVMDisc->F; 
  number dt = newTime - m_pVMDisc->time(); 
 number v = vrt_values[VMDisc<TDomain>::_v_]; 
 number na = vrt_values[VMDisc<TDomain>::_na_]; 
@@ -279,7 +278,6 @@ aanGate[vrt] = n;
  
  
 } 
-} 
  
  
  
@@ -325,6 +323,9 @@ number gk = gkbar*n*n*n*n;
  
  
 outCurrentValues.push_back( gna*(v - ena) +  gk*(v - ek)       +  gl*(v - el)); 
+} 
+ 
+ 
 //////////////////////////////////////////////////////////////////////////////// 
 //	explicit template instantiations 
 //////////////////////////////////////////////////////////////////////////////// 

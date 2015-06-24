@@ -95,9 +95,9 @@ void setgnabar(double val);
 void setgkbar(double val); 
 void setgl(double val); 
 void setel(double val); 
-set_log_mGate(bool bLogmGate); 
-set_log_hGate(bool bLoghGate); 
-set_log_nGate(bool bLognGate); 
+void set_log_mGate(bool bLogmGate); 
+void set_log_hGate(bool bLoghGate); 
+void set_log_nGate(bool bLognGate); 
 
  
 protected: 
