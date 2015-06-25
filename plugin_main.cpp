@@ -10,6 +10,8 @@
 
 #include "lib_grid/global_attachments.h" // global attachments
 
+#include "lib_disc/function_spaces/grid_function.h"
+
 // Hodgkin & Huxley includes
 #include "channel_interface.h"
 #include "ElemDiscHH_base.h"
