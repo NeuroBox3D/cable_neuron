@@ -2652,42 +2652,50 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 			  Gatingif = Gatingif + "m_log_" + State_vars[i] + "Gate == true ";
 	  }
 
-	  mycppfile << "\t if (" << Gatingif << ")\n";
-	  mycppfile << "\t { \n";
-	  mycppfile << "\t \t // iterating over all elements \n";
-	  mycppfile << "\t \t for (size_t si=0; si < ssGrp.size(); si++) \n";
-	  mycppfile << "\t \t { \n";
-	  mycppfile << "\t \t \t itType iterBegin = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]); \n";
-	  mycppfile << "\t \t \t itType iterEnd = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template end<Vertex>(ssGrp[si]); \n \n";
-	  mycppfile << "\t \t \t const position_accesor_type& aaPos = m_pVMDisc->approx_space()->domain()->position_accessor(); \n";
-	  mycppfile << "\t \t \t if (si==0) \n";
-	  mycppfile << "\t \t \t { \n";
-	  mycppfile << "\t \t \t \t bestVrt = *iterBegin; \n";
-	  mycppfile << "\t \t \t \t bestDistSq = VecDistanceSq(coord, aaPos[bestVrt]); \n";
-	  mycppfile << "\t \t \t } \n";
-	  mycppfile << "\t \t \t iter = iterBegin; \n";
-	  mycppfile << "\t \t \t iter++; \n";
-	  mycppfile << "\t \t \t while(iter != iterEnd) \n";
-	  mycppfile << "\t \t \t { \n";
-	  mycppfile << "\t \t \t \t distSq = VecDistanceSq(coord, aaPos[*iter]); \n";
-	  mycppfile << "\t \t \t \t { \n";
-	  mycppfile << "\t \t \t \t \t bestDistSq = distSq; \n";
-	  mycppfile << "\t \t \t \t \t bestVrt = *iter; \n";
-	  mycppfile << "\t \t \t \t } \n";
-	  mycppfile << "\t \t \t \t ++iter; \n";
-	  mycppfile << "\t \t \t } \n";
-	  mycppfile << "\t \t } \n";
-
-	  // questioning which state should be outputted
-	  for (size_t i=0; i<State_vars.size(); i++)
+	  if (Gatingif!="")
 	  {
-		  mycppfile << "\t \t if (m_log_" << State_vars[i] << "Gate == true) \n";
-		  mycppfile << "\t \t \t GatingAccesors.push_back(this->aa" << State_vars[i] << "Gate[bestVrt]); \n";
-	  }
-	  mycppfile << "\t } \n";
+		  mycppfile << "\t if (" << Gatingif << ")\n";
+		  mycppfile << "\t { \n";
+		  mycppfile << "\t \t // iterating over all elements \n";
+		  mycppfile << "\t \t for (size_t si=0; si < ssGrp.size(); si++) \n";
+		  mycppfile << "\t \t { \n";
+		  mycppfile << "\t \t \t itType iterBegin = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]); \n";
+		  mycppfile << "\t \t \t itType iterEnd = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template end<Vertex>(ssGrp[si]); \n \n";
+		  mycppfile << "\t \t \t const position_accesor_type& aaPos = m_pVMDisc->approx_space()->domain()->position_accessor(); \n";
+		  mycppfile << "\t \t \t if (si==0) \n";
+		  mycppfile << "\t \t \t { \n";
+		  mycppfile << "\t \t \t \t bestVrt = *iterBegin; \n";
+		  mycppfile << "\t \t \t \t bestDistSq = VecDistanceSq(coord, aaPos[bestVrt]); \n";
+		  mycppfile << "\t \t \t } \n";
+		  mycppfile << "\t \t \t iter = iterBegin; \n";
+		  mycppfile << "\t \t \t iter++; \n";
+		  mycppfile << "\t \t \t while(iter != iterEnd) \n";
+		  mycppfile << "\t \t \t { \n";
+		  mycppfile << "\t \t \t \t distSq = VecDistanceSq(coord, aaPos[*iter]); \n";
+		  mycppfile << "\t \t \t \t { \n";
+		  mycppfile << "\t \t \t \t \t bestDistSq = distSq; \n";
+		  mycppfile << "\t \t \t \t \t bestVrt = *iter; \n";
+		  mycppfile << "\t \t \t \t } \n";
+		  mycppfile << "\t \t \t \t ++iter; \n";
+		  mycppfile << "\t \t \t } \n";
+		  mycppfile << "\t \t } \n";
 
-	  mycppfile << "\t return GatingAccesors; \n";
-	  mycppfile << "} \n \n";
+		  // questioning which state should be outputted
+		  for (size_t i=0; i<State_vars.size(); i++)
+		  {
+			  mycppfile << "\t \t if (m_log_" << State_vars[i] << "Gate == true) \n";
+			  mycppfile << "\t \t \t GatingAccesors.push_back(this->aa" << State_vars[i] << "Gate[bestVrt]); \n";
+		  }
+		  mycppfile << "\t } \n";
+
+		  mycppfile << "\t return GatingAccesors; \n";
+		  mycppfile << "} \n \n";
+	  }
+	  else
+	  {
+		  mycppfile << "\t return GatingAccesors; \n";
+		  mycppfile << "} \n \n";
+	  }
 
 
 	  mycppfile << "//Setters for states_outputs \n";
