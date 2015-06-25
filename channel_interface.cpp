@@ -110,18 +110,18 @@ std::vector<number> ChannelHH<TDomain>::allGatingAccesors(number x, number y, nu
 				bestVrt = *iterBegin;
 				bestDistSq = VecDistanceSq(coord, aaPos[bestVrt]);
 			}
-				iter = iterBegin;
-				iter++;
-				while(iter != iterEnd)
+			iter = iterBegin;
+			iter++;
+			while(iter != iterEnd)
+			{
+				distSq = VecDistanceSq(coord, aaPos[*iter]);
+				if(distSq < bestDistSq)
 				{
-					distSq = VecDistanceSq(coord, aaPos[*iter]);
-					if(distSq < bestDistSq)
-					{
-						bestDistSq = distSq;
-						bestVrt = *iter;
-					}
-					++iter;
+					bestDistSq = distSq;
+					bestVrt = *iter;
 				}
+				++iter;
+			}
 		}
 
 		if (m_log_mGate == true)

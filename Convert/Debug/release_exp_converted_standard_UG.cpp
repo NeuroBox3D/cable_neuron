@@ -156,7 +156,7 @@ aaAGate[vrt] = 0;
 aaBGate[vrt] = 0; 
 double tp =  (tau1*tau2)/(tau2 - tau1) * log(tau2/tau1); 
 double factor =  -exp(-tp/tau1) + exp(-tp/tau2); 
-double factor =  1/factor; 
+factor =  1/factor;
 }  
  
  

@@ -22,7 +22,7 @@
 //#ifdef HH_CONVERTED_CHANNELS_ENABLED
 #include "Convert/Debug/includefile.cpp"
 //#endif
-
+//#include "Convert/Debug/hh_converted_standard_UG.h"
 
 using namespace std;
 using namespace ug::bridge;
@@ -160,7 +160,11 @@ struct Functionality
 			reg.add_class_<T, TBase >(name, grp)
 				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
 				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
-				.add_method("set_conductivities", &T::set_conductivities)
+				.add_method("set_conductivities", static_cast<void (T::*)(number, number, number)>(&T::set_conductivities), "",
+						"Na conductance in c/m^2/mV/ms| default | value=1.2e-3"
+						"K conductance in c/m^2/mV/ms| default | value=3.6e-4"
+						"leak conductance in c/m^2/mV/ms| default | value=3.0e-6"
+						, "sets Na, K and leak conductance for ChannelHH")
 				.add_method("set_log_mGate", &T::set_log_mGate)
 				.add_method("set_log_nGate", &T::set_log_nGate)
 				.add_method("set_log_hGate", &T::set_log_hGate)
@@ -178,7 +182,11 @@ struct Functionality
 			reg.add_class_<T, TBase >(name, grp)
 				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
 				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
-				.add_method("set_conductivities", &T::set_conductivities)
+				.add_method("set_conductivities", static_cast<void (T::*)(number, number, number)>(&T::set_conductivities), "",
+						"Na conductance in c/m^2/mV/ms| default | value=1.2e-3"
+						"K conductance in c/m^2/mV/ms| default | value=3.6e-4"
+						"leak conductance in c/m^2/mV/ms| default | value=3.0e-6"
+						, "sets Na, K and leak conductance for ChannelHHNernst")
 				.add_method("set_log_mGate", &T::set_log_mGate)
 				.add_method("set_log_nGate", &T::set_log_nGate)
 				.add_method("set_log_hGate", &T::set_log_hGate)
@@ -196,7 +204,8 @@ struct Functionality
 			reg.add_class_<T, TBase >(name, grp)
 				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
 				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
-				.add_method("set_leak_cond", &T::set_leak_cond)
+				.add_method("set_leak_cond", static_cast<void (T::*)(number)>(&T::set_leak_cond),
+						"", "leak conductance in c/m^2/mV/ms| default | value=0.003e-3", "sets leak conductance for leak Channel")
 				//.add_method("ionic_current", /*static_cast<void (TBase::*) (Vertex*, std::vector<double>&)> (*/&T::ionic_current) /*, "","", "doing flux")*/
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "ChannelLeak", tag);
@@ -252,7 +261,7 @@ struct Functionality
 		}
 
 //#ifdef HH_CONVERTED_CHANNELS_ENABLED
-		//#include "Convert/Debug/channels.cpp"
+		#include "Convert/Debug/channels.cpp"
 //#endif
 	}
 

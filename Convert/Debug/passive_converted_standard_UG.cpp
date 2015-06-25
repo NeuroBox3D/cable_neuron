@@ -89,34 +89,7 @@ std::vector<number> passive_converted_standard_UG<TDomain>::allGatingAccesors(nu
 	 number bestDistSq, distSq; 
 	 Vertex* bestVrt; 
  
-	 // Iterate only if there is one Gtting needed 
-	 if ()
-	 { 
-	 	 // iterating over all elements 
-	 	 for (size_t si=0; si < ssGrp.size(); si++) 
-	 	 { 
-	 	 	 itType iterBegin = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]); 
-	 	 	 itType iterEnd = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template end<Vertex>(ssGrp[si]); 
- 
-	 	 	 const position_accesor_type& aaPos = m_pVMDisc->approx_space()->domain()->position_accessor(); 
-	 	 	 if (si==0) 
-	 	 	 { 
-	 	 	 	 bestVrt = *iterBegin; 
-	 	 	 	 bestDistSq = VecDistanceSq(coord, aaPos[bestVrt]); 
-	 	 	 } 
-	 	 	 iter = iterBegin; 
-	 	 	 iter++; 
-	 	 	 while(iter != iterEnd) 
-	 	 	 { 
-	 	 	 	 distSq = VecDistanceSq(coord, aaPos[*iter]); 
-	 	 	 	 { 
-	 	 	 	 	 bestDistSq = distSq; 
-	 	 	 	 	 bestVrt = *iter; 
-	 	 	 	 } 
-	 	 	 	 ++iter; 
-	 	 	 } 
-	 	 } 
-	 } 
+
 	 return GatingAccesors; 
 } 
  

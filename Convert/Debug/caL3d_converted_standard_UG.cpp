@@ -245,8 +245,8 @@ double O = aaOGate[vrt];
  
  
 tadj= pow(q10 , ((celsius-temp)/10(degC))); 
-	a = Ra / (1 + exp(-(v-th)/q)) * tadj; 
-	b = Rb / (1 + exp((v-th)/q)) * tadj; 
+double	a = Ra / (1 + exp(-(v-th)/q)) * tadj;
+double	b = Rb / (1 + exp((v-th)/q)) * tadj;
  
  
  
@@ -287,9 +287,9 @@ number cai =  ca;
 number rates(v); 
 number cao = m_pVMDisc->ca_out(); 
 
+number ghkf = ghk(v,cai,cao);
  
- 
-outCurrentValues.push_back( O * p * ghk(v,cai,cao)); 
+outCurrentValues.push_back( O * p * ghkf);
 } 
  
  

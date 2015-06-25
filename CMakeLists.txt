@@ -15,24 +15,27 @@ include("../../../cmake/ug_plugin_includes.cmake")
 
 # sources
 set(SOURCES	ElemDiscHH_base.cpp
-#Convert/Debug/release_exp_converted_standard_UG.cpp 
-#Convert/Debug/cad_converted_standard_UG.cpp 
-#Convert/Debug/ar_converted_standard_UG.cpp 
-#Convert/Debug/ca_converted_standard_UG.cpp 
-#Convert/Debug/kca_converted_standard_UG.cpp 
-#Convert/Debug/kir_converted_standard_UG.cpp 
-#Convert/Debug/km_converted_standard_UG.cpp 
-#Convert/Debug/inwardrect_converted_standard_UG.cpp 
-#Convert/Debug/CaT_converted_standard_UG.cpp 
-#Convert/Debug/kv_converted_standard_UG.cpp 
-#Convert/Debug/na_converted_standard_UG.cpp 
-#Convert/Debug/HH2_converted_standard_UG.cpp 
-#Convert/Debug/h_converted_standard_UG.cpp 
-#Convert/Debug/hh_converted_standard_UG.cpp 
-#Convert/Debug/NMDA_Mg_converted_standard_UG.cpp 
-#Convert/Debug/NMDA_Mg_T_converted_standard_UG.cpp 
-#Convert/Debug/passive_converted_standard_UG.cpp 
-#Convert/Debug/release_BMK_converted_standard_UG.cpp 
+Convert/Debug/cad_converted_standard_UG.cpp 
+Convert/Debug/ar_converted_standard_UG.cpp 
+Convert/Debug/ca_converted_standard_UG.cpp 
+Convert/Debug/kca_converted_standard_UG.cpp 
+Convert/Debug/kir_converted_standard_UG.cpp 
+Convert/Debug/km_converted_standard_UG.cpp 
+Convert/Debug/inwardrect_converted_standard_UG.cpp 
+Convert/Debug/CaT_converted_standard_UG.cpp 
+Convert/Debug/kv_converted_standard_UG.cpp 
+Convert/Debug/na_converted_standard_UG.cpp 
+Convert/Debug/HH2_converted_standard_UG.cpp 
+Convert/Debug/h_converted_standard_UG.cpp 
+Convert/Debug/hh_converted_standard_UG.cpp 
+Convert/Debug/NMDA_Mg_converted_standard_UG.cpp 
+Convert/Debug/NMDA_Mg_T_converted_standard_UG.cpp 
+Convert/Debug/passive_converted_standard_UG.cpp 
+Convert/Debug/release_BMK_converted_standard_UG.cpp 
+Convert/Debug/release_exp_converted_standard_UG.cpp
+#Convert/Debug/Kv4_csi_converted_standard_UG.cpp
+#Convert/Debug/Kv4_csiosi_converted_standard_UG.cpp
+#Convert/Debug/myseclamp_converted_standard_UG.cpp
 			ElemDiscHH_fv1.cpp
 			ElemDiscHH_Nernst_fv1.cpp
 			ElemDiscHH_Nernst_neuron_fv1.cpp

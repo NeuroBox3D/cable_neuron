@@ -157,7 +157,7 @@ void cad_converted_standard_UG<TDomain>::init(Vertex* vrt, const std::vector<num
 //get celsius and time
 number celsius = m_pVMDisc->temperature_celsius(); 
 number dt = m_pVMDisc->time(); 
-number ica = m_pVMDisc->flux_ca(); 
+number ica = 0;
 // make preparing vor getting values of every edge 
 number v = vrt_values[VMDisc<TDomain>::_v_]; 
 number ca = vrt_values[VMDisc<TDomain>::_ca_]; 
@@ -174,7 +174,7 @@ void cad_converted_standard_UG<TDomain>::update_gating(number newTime, Vertex* v
 { 
 number celsius = m_pVMDisc->temperature_celsius(); 
  number FARADAY = m_pVMDisc->F; 
- number ica = m_pVMDisc->flux_ca(); 
+ number ica = 0.0;
 number dt = newTime - m_pVMDisc->time(); 
 number v = vrt_values[VMDisc<TDomain>::_v_]; 
 number ca = vrt_values[VMDisc<TDomain>::_ca_]; 
@@ -212,7 +212,7 @@ template<typename TDomain>
 void cad_converted_standard_UG<TDomain>::ionic_current(Vertex* ver, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues) 
 { 
  
-number ica = m_pVMDisc->flux_ca(); 
+number ica = 0;
 number caS = aacaSGate[ver]; 
 number ca = vrt_values[m_pVMDisc->_ca_]; 
 number v =  vrt_values[m_pVMDisc->_v_]; 
