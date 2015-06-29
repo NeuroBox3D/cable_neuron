@@ -226,12 +226,36 @@ struct Functionality
 					("Subset(s)#ApproxSpace#InitTime")
 				.add_method("set_diameter", static_cast<void (T::*)(number)>(&T::set_diameter),
 						"", "new diameter | default | value=1e6", "sets a new diameter")
+
 				.add_method("set_spec_res", static_cast<void (T::*)(number)>(&T::set_spec_res),
 						"", "new specific resistance | default | value=1e6", "sets a new specific resistance")
 				.add_method("set_spec_cap", static_cast<void (T::*)(number)>(&T::set_spec_cap),
 						"", "new specific capacity | default | value=1e-5", "sets a new specific capacity")
+
+				.add_method("set_k_out", static_cast<void (T::*)(number)>(&T::set_k_out),
+						"", "extracellular [K] in units of mM | default | value=2.5", "sets extracellular [K]")
+				.add_method("set_na_out", static_cast<void (T::*)(number)>(&T::set_na_out),
+						"", "extracellular [Na] in units of mM | default | value=65.0", "sets extracellular [Na]")
+				.add_method("set_ca_out", static_cast<void (T::*)(number)>(&T::set_ca_out),
+						"", "extracellular [Ca] in units of mM | default | value=1.5", "sets extracellular [Ca]")
+
+				.add_method("set_ena", static_cast<void (T::*)(number)>(&T::set_ena),
+						"", "reversal potential for Na | default | value=50.0", "sets reversal potential for Na")
+				.add_method("set_ek", static_cast<void (T::*)(number)>(&T::set_ek),
+						"", "reversal potential for K | default | value=-77.0", "sets reversal potential for K")
+				.add_method("set_eca", static_cast<void (T::*)(number)>(&T::set_eca),
+						"", "reversal potential for Ca | default | value=138.0", "sets reversal potential for Ca")
+				.add_method("set_eleak", static_cast<void (T::*)(number)>(&T::set_eleak),
+						"", "reversal potential for leakage current | default | value=-54.4", "sets reversal potential for leakage current")
+
+				.add_method("set_temperature", static_cast<void (T::*)(number)>(&T::set_temperature),
+						"", "new temperature value in units of K | default | value=310", "sets new temperature")
+				.add_method("set_temperature_celsius", static_cast<void (T::*)(number)>(&T::set_temperature_celsius),
+						"", "new temperature value in degrees Celsius | default | value=37", "sets new temperature")
+
 				.add_method("set_diff_coeffs", static_cast<void (T::*)(const std::vector<number>&)> (&T::set_diff_coeffs), "",
-						"diffusion coeffizient of Kalium, Sodium and Calcium", "sets diffusion coeffizients")
+						"diffusion coefficient of K, Na and Ca", "sets diffusion coeffizients")
+
 				.add_method("add_channel", &T::add_channel)
 				.add_method("set_influx", static_cast<void (T::*)(number, number, number, number, number, number)>(&T::set_influx), "",
 						"flux value | default | value=1e-12 #"
@@ -241,16 +265,6 @@ struct Functionality
 						"begin time | default | 0 #"
 						"duration time | default | 0 ",
 						"sets Position, duration, ending and influxvalue of an Influx")
-				.add_method("set_ena", static_cast<void (T::*)(number)>(&T::set_ena),
-						"", "reversal potential for Na | default | value=50.0", "sets reversal potential for Na")
-				.add_method("set_ek", static_cast<void (T::*)(number)>(&T::set_ek),
-						"", "reversal potential for K | default | value=-77.0", "sets reversal potential for K")
-				.add_method("set_eca", static_cast<void (T::*)(number)>(&T::set_eca),
-						"", "reversal potential for Ca | default | value=138.0", "sets reversal potential for Ca")
-				.add_method("set_eleak", static_cast<void (T::*)(number)>(&T::set_eleak),
-						"", "reversal potential for leakage current | default | value=-54.4", "sets reversal potential for leakage current")
-				.add_method("set_temperature_celsius", static_cast<void (T::*)(number)>(&T::set_temperature_celsius),
-						"", "new temperature value in degrees Celsius | default | value=37", "sets new temperature")
 				.add_method("write_gatings_for_position", &T::write_gatings_for_position)
 	#ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
 				.add_method("set_synapse_handler", &T::set_synapse_handler)
