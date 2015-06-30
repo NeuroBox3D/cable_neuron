@@ -795,7 +795,7 @@ bool Converter::begG(string s)
 std::vector<string> Converter::equali(std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen)
 {
 	std::vector<string> out;
-	out.push_back("const number helpV = 1e3*(m_R*m_T)/m_F;");
+	out.push_back("const number helpV = 1e3*(m_pVMDisc->R*m_pVMDisc->Temperature())/m_pVMDisc->F;");
 
 	size_t Ion, IonRead, IonRend;
 	string IonS;
@@ -2433,7 +2433,6 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  myhfile << "private: \n \n";
 	  // Neuron-lines with use ion
 
-	  myhfile << "number m_R, m_T, m_F; \n";
 
 
 
@@ -2492,11 +2491,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  mycppfile << "template<typename TDomain> \n";
 	  mycppfile << "void " + filename + "<TDomain>::init_attachments() \n";
 	  mycppfile << "{ \n";
-	  mycppfile << "// inits temperatur from kalvin to celsius and some other typical neuron values\n";
-	  // TodO rework this with right functions
-	  mycppfile << "m_T = m_pVMDisc->temperature(); \n";
-	  mycppfile << "m_R = m_pVMDisc->R; \n";
-	  mycppfile << "m_F = m_pVMDisc->F; \n \n \n";
+
 	  mycppfile << "SmartPtr<Grid> spGrid = m_pVMDisc->approx_space()->domain()->grid(); \n";
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -2720,6 +2715,11 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  mycppfile << "{ \n";
 	  // TODO rework that with right functions
 	  mycppfile << "//get celsius and time\n";
+	  mycppfile << "// inits temperatur from kalvin to celsius and some other typical neuron values\n";
+	  mycppfile << "number m_T, m_R, m_F; \n";
+	  mycppfile << "m_T = m_pVMDisc->temperature(); \n";
+	  mycppfile << "m_R = m_pVMDisc->R; \n";
+	  mycppfile << "m_F = m_pVMDisc->F; \n \n \n";
 	  mycppfile << "number celsius = m_pVMDisc->temperature_celsius(); \n";
 	  mycppfile << "number dt = m_pVMDisc->time(); \n";
 
@@ -3006,6 +3006,11 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  mycppfile << "void " + filename + "<TDomain>::update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values) \n";
 	  mycppfile << "{ \n";
 	  // TODO working with right functions from VMDisc
+	  mycppfile << "// inits temperatur from kalvin to celsius and some other typical neuron values\n";
+	  mycppfile << "number m_T, m_R, m_F; \n";
+	  mycppfile << "m_T = m_pVMDisc->temperature(); \n";
+	  mycppfile << "m_R = m_pVMDisc->R; \n";
+	  mycppfile << "m_F = m_pVMDisc->F; \n \n \n";
 	  mycppfile << "number celsius = m_pVMDisc->temperature_celsius(); \n ";
 	  mycppfile << "number FARADAY = m_pVMDisc->F; \n ";
 
@@ -3758,6 +3763,12 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  mycppfile << "template<typename TDomain> \n";
 	  mycppfile << "void " + filename + "<TDomain>::ionic_current(Vertex* ver, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues) \n";
 	  mycppfile << "{ \n \n";
+
+	  mycppfile << "// inits temperatur from kalvin to celsius and some other typical neuron values\n";
+	  mycppfile << "number m_T, m_R, m_F; \n";
+	  mycppfile << "m_T = m_pVMDisc->temperature(); \n";
+	  mycppfile << "m_R = m_pVMDisc->R; \n";
+	  mycppfile << "m_F = m_pVMDisc->F; \n \n \n";
 
 	  // writing needed fluxes if any needed
 	  if (Ion_fluxes[0]!="")
