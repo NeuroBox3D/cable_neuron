@@ -14,6 +14,8 @@
 
 // Hodgkin & Huxley includes
 #include "channel_interface.h"
+#include "channel_hh.h"
+#include "leakage.h"
 #include "ElemDiscHH_base.h"
 #include "ElemDiscHH_fv1.h"
 #include "ElemDiscHH_Nernst_fv1.h"
@@ -162,11 +164,10 @@ struct Functionality
 			reg.add_class_<T, TBase >(name, grp)
 				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
 				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
-				.add_method("set_conductivities", static_cast<void (T::*)(number, number, number)>(&T::set_conductivities), "",
-						"Na conductance in c/m^2/mV/ms| default | value=1.2e-3"
-						"K conductance in c/m^2/mV/ms| default | value=3.6e-4"
-						"leak conductance in c/m^2/mV/ms| default | value=3.0e-6"
-						, "sets Na, K and leak conductance for ChannelHH")
+				.add_method("set_conductances", &T::set_conductances, "",
+						"K conductance [10^6 S/m^2]| default | value=3.6e-4#"
+						"Na conductance [10^6 S/m^2] | default | value=1.2e-3",
+						"sets Na and K conductance values for HH mechanism")
 				.add_method("set_log_mGate", &T::set_log_mGate)
 				.add_method("set_log_nGate", &T::set_log_nGate)
 				.add_method("set_log_hGate", &T::set_log_hGate)
@@ -184,11 +185,10 @@ struct Functionality
 			reg.add_class_<T, TBase >(name, grp)
 				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
 				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
-				.add_method("set_conductivities", static_cast<void (T::*)(number, number, number)>(&T::set_conductivities), "",
-						"Na conductance in c/m^2/mV/ms| default | value=1.2e-3"
-						"K conductance in c/m^2/mV/ms| default | value=3.6e-4"
-						"leak conductance in c/m^2/mV/ms| default | value=3.0e-6"
-						, "sets Na, K and leak conductance for ChannelHHNernst")
+				.add_method("set_conductances", &T::set_conductances, "",
+						"K conductance [10^6 S/m^2]| default | value=3.6e-4#"
+						"Na conductance [10^6 S/m^2] | default | value=1.2e-3",
+						"sets Na and K conductance values for HH mechanism")
 				.add_method("set_log_mGate", &T::set_log_mGate)
 				.add_method("set_log_nGate", &T::set_log_nGate)
 				.add_method("set_log_hGate", &T::set_log_hGate)
@@ -198,7 +198,7 @@ struct Functionality
 		}
 
 
-		// Only leakage Channel
+		// leakage "channel"
 		{
 			typedef ChannelLeak<TDomain> T;
 			typedef IChannel<TDomain> TBase;
@@ -206,9 +206,10 @@ struct Functionality
 			reg.add_class_<T, TBase >(name, grp)
 				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
 				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
-				.add_method("set_leak_cond", static_cast<void (T::*)(number)>(&T::set_leak_cond),
-						"", "leak conductance in c/m^2/mV/ms| default | value=0.003e-3", "sets leak conductance for leak Channel")
-				//.add_method("ionic_current", /*static_cast<void (TBase::*) (Vertex*, std::vector<double>&)> (*/&T::ionic_current) /*, "","", "doing flux")*/
+				.add_method("set_cond", static_cast<void (T::*)(number)>(&T::set_cond),
+						"", "leak conductance in C/m^2/mV/ms| default | value=3.0e-6", "sets leak conductance for leak channel")
+				.add_method("set_rev_pot", &T::set_rev_pot, "", "leakage equilibrium potential in mV | default | value=-65.0",
+							"sets leakage equilibrium potential")
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "ChannelLeak", tag);
 		}
@@ -245,8 +246,6 @@ struct Functionality
 						"", "reversal potential for K | default | value=-77.0", "sets reversal potential for K")
 				.add_method("set_eca", static_cast<void (T::*)(number)>(&T::set_eca),
 						"", "reversal potential for Ca | default | value=138.0", "sets reversal potential for Ca")
-				.add_method("set_eleak", static_cast<void (T::*)(number)>(&T::set_eleak),
-						"", "reversal potential for leakage current | default | value=-54.4", "sets reversal potential for leakage current")
 
 				.add_method("set_temperature", static_cast<void (T::*)(number)>(&T::set_temperature),
 						"", "new temperature value in units of K | default | value=310", "sets new temperature")

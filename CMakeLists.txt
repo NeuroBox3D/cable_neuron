@@ -39,9 +39,11 @@ set(SOURCES	ElemDiscHH_base.cpp
 			ElemDiscHH_fv1.cpp
 			ElemDiscHH_Nernst_fv1.cpp
 			ElemDiscHH_Nernst_neuron_fv1.cpp
-			channel_interface.cpp
 			diam_attachment_handler.cpp
 			VM_Disc.cpp
+			channel_interface.cpp
+			channel_hh.cpp
+			leakage.cpp
 			plugin_main.cpp
 			)
 

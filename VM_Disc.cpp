@@ -38,8 +38,8 @@ VMDisc<TDomain>::VMDisc(const char* subsets, const number init_time)
 	m_aDiameter(GlobalAttachments::attachment<ANumber>("diameter")),
 	m_constDiam(1e-6), m_bConstDiamSet(false),
 	m_spec_res(1.0e6), m_spec_cap(1.0e-5),
-	m_k_out(2.5), m_na_out(140.0), m_ca_out(1.5),
-	m_ek(-77.0), m_ena(50.0), m_eca(138.0), m_eleak(-54.4),
+	m_k_out(3.0), m_na_out(65.0), m_ca_out(1.5),
+	m_ek(-77.0), m_ena(50.0), m_eca(138.0),
 	m_temperature(310.0),
 	m_influx_ac(1e-9),
 #ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
@@ -89,7 +89,6 @@ template<typename TDomain> void VMDisc<TDomain>::set_diff_coeffs
 template<typename TDomain> void VMDisc<TDomain>::set_ek(number value) {m_ek = value;}
 template<typename TDomain> void VMDisc<TDomain>::set_ena(number value) {m_ena = value;}
 template<typename TDomain> void VMDisc<TDomain>::set_eca(number value) {m_eca = value;}
-template<typename TDomain> void VMDisc<TDomain>::set_eleak(number value){m_eleak = value;}
 
 template<typename TDomain> void VMDisc<TDomain>::set_temperature(number kelvin) {m_temperature = kelvin;}
 template<typename TDomain> void VMDisc<TDomain>::set_temperature_celsius
@@ -114,7 +113,6 @@ template<typename TDomain> const std::vector<number>& VMDisc<TDomain>::diff_coef
 template<typename TDomain> number VMDisc<TDomain>::ek() {return m_ek;}
 template<typename TDomain> number VMDisc<TDomain>::ena() {return m_ena;}
 template<typename TDomain> number VMDisc<TDomain>::eca() {return m_eca;}
-template<typename TDomain> number VMDisc<TDomain>::eleak() {return m_eleak;}
 
 template<typename TDomain> number VMDisc<TDomain>::temperature() {return m_temperature;}
 template<typename TDomain> number VMDisc<TDomain>::temperature_celsius() {return m_temperature - 273.15;}
@@ -216,7 +214,7 @@ void VMDisc<TDomain>::write_gatings_for_position(number x, number y, number z, s
 		Vec_ofstreams.push_back(vec);
 
 		// writing all Accesors of one Channel
-		ChannelGate[i] = m_channel[i]->allGatingAccesors(x, y, z);
+		ChannelGate[i] = m_channel[i]->state_values(x, y, z);
 		// getting all States from channel i
 		for (size_t j=0; j < ChannelGate[i].size(); j++)
 		{
@@ -807,8 +805,12 @@ void VMDisc<TDomain>::
 register_all_funcs(bool bHang)
 {
 	// register prepare_timestep functionality separately, only for CPU1
+#ifdef UG_CPU_1
 	size_t aid = bridge::AlgebraTypeIDProvider::instance().id<CPUAlgebra>();
 	this->set_prep_timestep_fct(aid, &VMDisc<TDomain>::prep_timestep);
+#else
+	UG_THROW("CPUAlgebra type not present. Please make sure that your UG4 compile options include it.");
+#endif
 
 	// register assembling functionality
 	register_func<RegularEdge, FV1Geometry<RegularEdge, dim> >();

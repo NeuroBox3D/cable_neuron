@@ -105,7 +105,6 @@ class VMDisc
 		void set_ek(number value);
 		void set_ena(number value);
 		void set_eca(number value);
-		void set_eleak(number value);
 		/// \}
 
 		/// set temperature in units of K
@@ -141,7 +140,6 @@ class VMDisc
 		number ek();
 		number ena();
 		number eca();
-		number eleak();
 		/// \}
 
 		/// get temperature in units of K
@@ -264,7 +262,6 @@ class VMDisc
 		number m_ek;						///< reversal potential K in units of mV
 		number m_ena;						///< reversal potential Na in units of mV
 		number m_eca;						///< reversal potential Ca in units of mV
-		number m_eleak;						///< reversal potential in units of mV
 
 		number m_temperature;				///< temperature in units of K
 
