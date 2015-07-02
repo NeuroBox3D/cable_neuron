@@ -189,7 +189,7 @@ class VMDisc
 		void write_gatings_for_position(number x, number y, number z, std::string pfad);
 
 		/// sets Vars for writing output
-		void set_output(bool output, number gating_x, number gating_y, number gating_z, std::string gating_pfad)
+		void set_output(bool output, number gating_x, number gating_y, number gating_z, std::string gating_pfad);
 
 	public:
 		// ///////////////////////////

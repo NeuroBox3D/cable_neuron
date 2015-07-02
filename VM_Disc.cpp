@@ -42,6 +42,9 @@ VMDisc<TDomain>::VMDisc(const char* subsets, const number init_time)
 	m_ek(-77.0), m_ena(50.0), m_eca(138.0),
 	m_temperature(310.0),
 	m_influx_ac(1e-9),
+	m_output(false),
+	m_gating_x(0), m_gating_y(0), m_gating_z(0),
+	m_gating_pfad(""),
 #ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
 	m_spSH(SPNULL),
 #endif
@@ -178,7 +181,7 @@ void VMDisc<TDomain>::set_output(bool output, number gating_x, number gating_y, 
 	m_gating_x = gating_x;
 	m_gating_y = gating_y;
 	m_gating_z = gating_z;
-	m_gating_pfad = gating_pfad
+	m_gating_pfad = gating_pfad;
 }
 
 
@@ -233,17 +236,14 @@ void VMDisc<TDomain>::write_gatings_for_position(number x, number y, number z, s
 			std::stringstream ssoStreamName;
 			ssoStreamName << pfad << "ChannelNumber_" << i << "_GateNumber_" << j << ".txt";
 
-			//creating pfad for outputs
-			//boost::filesystem::path dir(pfad);
-			//boost::filesystem::create_directory(dir);
 
 			std::string soStream = ssoStreamName.str();
 			const char* CharStream = soStream.c_str();
 
-			//creates ofstream for every channel Gate
-			//std::ofstream NewStream(CharStream);
+			//creates SmartPtr ofstream for every channel Gate
 			SmartPtr<std::ofstream> NewStreamm;
-			NewStreamm = make_sp(new std::ofstream(CharStream, std::ios::app));
+			try { NewStreamm = make_sp(new std::ofstream(CharStream, std::ios::app)); }
+			UG_CATCH_THROW("Can't create ofstream for State output. Perhaps Pfad is missing");
 
 			Vec_ofstreams[i].push_back(NewStreamm);
 
