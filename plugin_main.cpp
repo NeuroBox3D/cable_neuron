@@ -265,6 +265,8 @@ struct Functionality
 						"duration time | default | 0 ",
 						"sets Position, duration, ending and influxvalue of an Influx")
 				.add_method("write_gatings_for_position", &T::write_gatings_for_position)
+				.add_mehtod("set_output", static_cast<void (T::*)(bool, number, number, number, std::string)> (&T::set_output)
+
 	#ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
 				.add_method("set_synapse_handler", &T::set_synapse_handler)
 	#endif

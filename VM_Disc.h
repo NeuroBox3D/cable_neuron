@@ -188,6 +188,9 @@ class VMDisc
 		/// write all gating values for a position to file
 		void write_gatings_for_position(number x, number y, number z, std::string pfad);
 
+		/// sets Vars for writing output
+		void set_output(bool output, number gating_x, number gating_y, number gating_z, std::string gating_pfad)
+
 	public:
 		// ///////////////////////////
 		// inherited from IElemDisc //
@@ -267,6 +270,11 @@ class VMDisc
 
 
 		number m_influx_ac;
+
+		bool m_output;
+		number m_gating_x, m_gating_y, m_gating_z;
+		std::string m_gating_pfad;
+
 
 	protected:
 		std::vector<number> m_flux_value, m_beg_flux, m_dur_flux;		///< values describing influxes

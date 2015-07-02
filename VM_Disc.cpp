@@ -171,6 +171,17 @@ add_channel(SmartPtr<IChannel<TDomain> > Channel)
 }
 
 
+template <typename TDomain>
+void VMDisc<TDomain>::set_output(bool output, number gating_x, number gating_y, number gating_z, std::string gating_pfad)
+{
+	m_output = output;
+	m_gating_x = gating_x;
+	m_gating_y = gating_y;
+	m_gating_z = gating_z;
+	m_gating_pfad = gating_pfad
+}
+
+
 // ////////////////////////////////
 // getters for functional values //
 // ////////////////////////////////
@@ -317,6 +328,12 @@ template <typename TDomain>
 void VMDisc<TDomain>::
 prep_timestep(number time, VectorProxyBase* upb)
 {
+
+	//Write Gattings out
+	if (m_output==true)
+		write_gatings_for_position(m_gating_x, m_gating_y, m_gating_z, m_gating_pfad);
+
+
 	typedef CPUAlgebra::vector_type v_type;
 	typedef VectorProxy<v_type> vp_type;
 	vp_type* up = dynamic_cast<vp_type*>(upb);
