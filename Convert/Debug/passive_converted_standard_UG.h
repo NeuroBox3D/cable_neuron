@@ -52,7 +52,7 @@ class passive_converted_standard_UG
 passive_converted_standard_UG(const char* functions, const char* subsets) 
 try : IChannel<TDomain>(functions, subsets), 
 	g ( .001	*0.01), 
-	e ( -70	*1) {}
+	e ( -70	*1){} 
 UG_CATCH_THROW("Error in passive_converted_standard_UG initializer list. "); 
  
  
@@ -60,7 +60,7 @@ UG_CATCH_THROW("Error in passive_converted_standard_UG initializer list. ");
 passive_converted_standard_UG(const std::vector<std::string>& functions, const std::vector<std::string>& subsets) 
 try : IChannel<TDomain>(functions, subsets), 
 	g ( .001	*0.01), 
-	e ( -70	*1) {}
+	e ( -70	*1){} 
 UG_CATCH_THROW("Error in passive_converted_standard_UG initializer list. "); 
 /// destructor 
  
@@ -73,7 +73,7 @@ virtual void init(Vertex* vrt, const std::vector<number>& vrt_values);
 virtual void update_gating(number newtime, Vertex* vrt, const std::vector<number>& vrt_values); 
 virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues); 
 virtual void vm_disc_available(); 
-virtual std::vector<number> allGatingAccesors(number x, number y, number z); 
+virtual std::vector<number> state_values(number x, number y, number z); 
 
  
 double getg(); 
@@ -85,7 +85,6 @@ void sete(double val);
 protected: 
 private: 
  
-number m_R, m_T, m_F; 
 number 	g ; 
 number 	e ; 
 }; 

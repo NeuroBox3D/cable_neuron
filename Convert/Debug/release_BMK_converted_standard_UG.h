@@ -53,7 +53,7 @@ release_BMK_converted_standard_UG(const char* functions, const char* subsets)
 try : IChannel<TDomain>(functions, subsets), 
 del ( 0), 
 dur ( 0), 
-amp ( 0) {}
+amp ( 0){} 
 UG_CATCH_THROW("Error in release_BMK_converted_standard_UG initializer list. "); 
  
  
@@ -62,7 +62,7 @@ release_BMK_converted_standard_UG(const std::vector<std::string>& functions, con
 try : IChannel<TDomain>(functions, subsets), 
 del ( 0), 
 dur ( 0), 
-amp ( 0) {}
+amp ( 0){} 
 UG_CATCH_THROW("Error in release_BMK_converted_standard_UG initializer list. "); 
 /// destructor 
  
@@ -75,7 +75,7 @@ virtual void init(Vertex* vrt, const std::vector<number>& vrt_values);
 virtual void update_gating(number newtime, Vertex* vrt, const std::vector<number>& vrt_values); 
 virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues); 
 virtual void vm_disc_available(); 
-virtual std::vector<number> allGatingAccesors(number x, number y, number z); 
+virtual std::vector<number> state_values(number x, number y, number z); 
 
  
 double getdel(); 
@@ -89,7 +89,6 @@ void setamp(double val);
 protected: 
 private: 
  
-number m_R, m_T, m_F; 
 number del ; 
 number dur ; 
 number amp ; 

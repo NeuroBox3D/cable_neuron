@@ -134,12 +134,6 @@ qtl = val;
 template<typename TDomain> 
 void h_converted_standard_UG<TDomain>::init_attachments() 
 { 
-// inits temperatur from kalvin to celsius and some other typical neuron values
-m_T = m_pVMDisc->temperature(); 
-m_R = m_pVMDisc->R; 
-m_F = m_pVMDisc->F; 
- 
- 
 SmartPtr<Grid> spGrid = m_pVMDisc->approx_space()->domain()->grid(); 
 if (spGrid->has_vertex_attachment(this->lGate)) 
 UG_THROW("Attachment necessary (lGate) for h_converted_standard_UG channel dynamics "
@@ -152,7 +146,7 @@ this->aalGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->lGate);
  
  
 template<typename TDomain> 
-std::vector<number> h_converted_standard_UG<TDomain>::allGatingAccesors(number x, number y, number z) 
+std::vector<number> h_converted_standard_UG<TDomain>::state_values(number x, number y, number z) 
 { 
 	 //var for output 
 	 std::vector<number> GatingAccesors; 
@@ -228,6 +222,13 @@ template<typename TDomain>
 void h_converted_standard_UG<TDomain>::init(Vertex* vrt, const std::vector<number>& vrt_values) 
 { 
 //get celsius and time
+// inits temperatur from kalvin to celsius and some other typical neuron values
+number m_T, m_R, m_F; 
+m_T = m_pVMDisc->temperature(); 
+m_R = m_pVMDisc->R; 
+m_F = m_pVMDisc->F; 
+ 
+ 
 number celsius = m_pVMDisc->temperature_celsius(); 
 number dt = m_pVMDisc->time(); 
 // make preparing vor getting values of every edge 
@@ -248,6 +249,13 @@ aalGate[vrt] =linf;
 template<typename TDomain> 
 void h_converted_standard_UG<TDomain>::update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values) 
 { 
+// inits temperatur from kalvin to celsius and some other typical neuron values
+number m_T, m_R, m_F; 
+m_T = m_pVMDisc->temperature(); 
+m_R = m_pVMDisc->R; 
+m_F = m_pVMDisc->F; 
+ 
+ 
 number celsius = m_pVMDisc->temperature_celsius(); 
  number FARADAY = m_pVMDisc->F; 
  number dt = newTime - m_pVMDisc->time(); 
@@ -282,6 +290,13 @@ template<typename TDomain>
 void h_converted_standard_UG<TDomain>::ionic_current(Vertex* ver, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues) 
 { 
  
+// inits temperatur from kalvin to celsius and some other typical neuron values
+number m_T, m_R, m_F; 
+m_T = m_pVMDisc->temperature(); 
+m_R = m_pVMDisc->R; 
+m_F = m_pVMDisc->F; 
+ 
+ 
 number l = aalGate[ver]; 
 number v =  vrt_values[m_pVMDisc->_v_]; 
  
@@ -289,7 +304,7 @@ number v =  vrt_values[m_pVMDisc->_v_];
 number t = m_pVMDisc->time(); 
  
  
-const number helpV = 1e3*(m_R*m_T)/m_F; 
+const number helpV = 1e3*(m_pVMDisc->R*m_pVMDisc->temperature())/m_pVMDisc->F; 
  
  
 number ghd = ghdbar*l; 

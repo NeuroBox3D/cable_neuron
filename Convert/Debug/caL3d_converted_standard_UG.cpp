@@ -13,8 +13,14 @@ double caL3d_converted_standard_UG<TDomain>::ghk(double v, double  ci, double  c
 { 
 	double z; 
 
-	z = (0.001)*2*F*v/(R*(celsius+273.15)); 
-	return  (.001)*2*F*(ci*efun(-z) - co*efun(z)); 
+	number celsius = m_pVMDisc->temperature_celsius();
+
+	z = (0.001)*2*m_pVMDisc->F*v/(m_pVMDisc->R*(celsius+273.15));
+
+	number z2 = efun(-z);
+	number z3 = efun(z);
+
+	return  (.001)*2*m_pVMDisc->F*(ci*z2 - co*z3);
 }
 template<typename TDomain> 
 double caL3d_converted_standard_UG<TDomain>::efun(double z) 
@@ -111,12 +117,6 @@ q10 = val;
 template<typename TDomain> 
 void caL3d_converted_standard_UG<TDomain>::init_attachments() 
 { 
-// inits temperatur from kalvin to celsius and some other typical neuron values
-m_T = m_pVMDisc->temperature(); 
-m_R = m_pVMDisc->R; 
-m_F = m_pVMDisc->F; 
- 
- 
 SmartPtr<Grid> spGrid = m_pVMDisc->approx_space()->domain()->grid(); 
 if (spGrid->has_vertex_attachment(this->CGate)) 
 UG_THROW("Attachment necessary (CGate) for caL3d_converted_standard_UG channel dynamics "
@@ -135,7 +135,7 @@ this->aaOGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->OGate);
  
  
 template<typename TDomain> 
-std::vector<number> caL3d_converted_standard_UG<TDomain>::allGatingAccesors(number x, number y, number z) 
+std::vector<number> caL3d_converted_standard_UG<TDomain>::state_values(number x, number y, number z) 
 { 
 	 //var for output 
 	 std::vector<number> GatingAccesors; 
@@ -214,6 +214,13 @@ template<typename TDomain>
 void caL3d_converted_standard_UG<TDomain>::init(Vertex* vrt, const std::vector<number>& vrt_values) 
 { 
 //get celsius and time
+// inits temperatur from kalvin to celsius and some other typical neuron values
+number m_T, m_R, m_F; 
+m_T = m_pVMDisc->temperature(); 
+m_R = m_pVMDisc->R; 
+m_F = m_pVMDisc->F; 
+ 
+ 
 number celsius = m_pVMDisc->temperature_celsius(); 
 number dt = m_pVMDisc->time(); 
 // make preparing vor getting values of every edge 
@@ -229,6 +236,13 @@ aaCGate[vrt] = 1 ;
 template<typename TDomain> 
 void caL3d_converted_standard_UG<TDomain>::update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values) 
 { 
+// inits temperatur from kalvin to celsius and some other typical neuron values
+number m_T, m_R, m_F; 
+m_T = m_pVMDisc->temperature(); 
+m_R = m_pVMDisc->R; 
+m_F = m_pVMDisc->F; 
+ 
+ 
 number celsius = m_pVMDisc->temperature_celsius(); 
  number FARADAY = m_pVMDisc->F; 
  number dt = newTime - m_pVMDisc->time(); 
@@ -244,7 +258,7 @@ double O = aaOGate[vrt];
 
  
  
-tadj= pow(q10 , ((celsius-temp)/10(degC))); 
+tadj= pow(q10 , ((celsius-temp)/10));
 double	a = Ra / (1 + exp(-(v-th)/q)) * tadj;
 double	b = Rb / (1 + exp((v-th)/q)) * tadj;
  
@@ -268,6 +282,13 @@ template<typename TDomain>
 void caL3d_converted_standard_UG<TDomain>::ionic_current(Vertex* ver, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues) 
 { 
  
+// inits temperatur from kalvin to celsius and some other typical neuron values
+number m_T, m_R, m_F; 
+m_T = m_pVMDisc->temperature(); 
+m_R = m_pVMDisc->R; 
+m_F = m_pVMDisc->F; 
+ 
+ 
 number C = aaCGate[ver]; 
 number O = aaOGate[ver]; 
 number ca = vrt_values[m_pVMDisc->_ca_]; 
@@ -277,19 +298,17 @@ number v =  vrt_values[m_pVMDisc->_v_];
 number t = m_pVMDisc->time(); 
  
  
-const number helpV = 1e3*(m_R*m_T)/m_F; 
+const number helpV = 1e3*(m_pVMDisc->R*m_pVMDisc->temperature())/m_pVMDisc->F; 
 number cai =  ca; 
  
  
 
  
- 
-number rates(v); 
 number cao = m_pVMDisc->ca_out(); 
 
-number ghkf = ghk(v,cai,cao);
+double ghk2 = ghk(v,cai,cao);
  
-outCurrentValues.push_back( O * p * ghkf);
+outCurrentValues.push_back( O * p * ghk2);
 } 
  
  

@@ -108,7 +108,7 @@ virtual void init(Vertex* vrt, const std::vector<number>& vrt_values);
 virtual void update_gating(number newtime, Vertex* vrt, const std::vector<number>& vrt_values); 
 virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues); 
 virtual void vm_disc_available(); 
-virtual std::vector<number> allGatingAccesors(number x, number y, number z); 
+virtual std::vector<number> state_values(number x, number y, number z); 
 
  
 double getgbar(); 
@@ -152,7 +152,6 @@ void set_log_hGate(bool bLoghGate);
 protected: 
 private: 
  
-number m_R, m_T, m_F; 
 ADouble mGate; 
 Grid::AttachmentAccessor<Vertex, ADouble> aamGate; 
 ADouble hGate; 
