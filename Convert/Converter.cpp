@@ -795,7 +795,7 @@ bool Converter::begG(string s)
 std::vector<string> Converter::equali(std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen)
 {
 	std::vector<string> out;
-	out.push_back("const number helpV = 1e3*(m_pVMDisc->R*m_pVMDisc->Temperature())/m_pVMDisc->F;");
+	out.push_back("const number helpV = 1e3*(m_pVMDisc->R*m_pVMDisc->temperature())/m_pVMDisc->F;");
 
 	size_t Ion, IonRead, IonRend;
 	string IonS;
@@ -2401,7 +2401,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  myhfile << "virtual void update_gating(number newtime, Vertex* vrt, const std::vector<number>& vrt_values); \n";
 	  myhfile << "virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues); \n";
 	  myhfile << "virtual void vm_disc_available(); \n";
-	  myhfile << "virtual std::vector<number> allGatingAccesors(number x, number y, number z); \n";
+	  myhfile << "virtual std::vector<number> state_values(number x, number y, number z); \n";
 	  myhfile << "\n \n";
 
 
@@ -2596,7 +2596,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 	  /// Writing function for State-Output
 	  mycppfile << "template<typename TDomain> \n";
-	  mycppfile << "std::vector<number> " + filename + "<TDomain>::allGatingAccesors(number x, number y, number z) \n";
+	  mycppfile << "std::vector<number> " + filename + "<TDomain>::state_values(number x, number y, number z) \n";
 	  mycppfile << "{ \n";
 
 	  mycppfile << "\t //var for output \n";
