@@ -148,7 +148,7 @@ number na = vrt_values[VMDisc<TDomain>::_na_];
 number k = vrt_values[VMDisc<TDomain>::_k_]; 
 
  
-nai =  nainit}; 
+nai =  nainit;
 }  
  
  
@@ -204,7 +204,8 @@ number t = m_pVMDisc->time();
  
  
 const number helpV = 1e3*(m_pVMDisc->R*m_pVMDisc->temperature())/m_pVMDisc->F; 
-number ION = helpV*(log(m_pVMDisc->k  WRITE ik_out()/k  WRITE ik)); 
+
+number inapump = ipumpmax*(1/(1 + pow(km/nai,n)));
  
  
 number ina = 3.0*inapump; 
