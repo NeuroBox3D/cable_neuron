@@ -510,12 +510,6 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 			// scale by cross section and diff const
 			diff_flux = grad_normal * m_diff[k-1] * 0.25*PI * diam_fromTo*diam_fromTo;
 
-
-			if (diff_flux > 1.0 || diff_flux < -1.0)
-			{
-				UG_LOG("m_diff[" << k-1 << "]: " << m_diff[k-1] << std::endl);
-			}
-
 			d(k, scvf.from()) -= diff_flux;
 			d(k, scvf.to()  ) += diff_flux;
 		}
