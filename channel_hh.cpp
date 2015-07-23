@@ -35,6 +35,14 @@ m_log_nGate(false), m_log_hGate(false), m_log_mGate(false) {}
 UG_CATCH_THROW("Error in ChannelHH initializer list.");
 
 
+template<typename TDomain>
+std::string ChannelHH<TDomain>::
+name()
+{
+	return std::string("ChannelHH");
+}
+
+
 template<typename TDomain> void ChannelHH<TDomain>::set_log_nGate(bool bLogNGate) { m_log_nGate = bLogNGate; }
 template<typename TDomain> void ChannelHH<TDomain>::set_log_hGate(bool bLogHGate) { m_log_hGate = bLogHGate; }
 template<typename TDomain> void ChannelHH<TDomain>::set_log_mGate(bool bLogMGate) { m_log_mGate = bLogMGate; }
@@ -259,8 +267,7 @@ void ChannelHH<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>& v
 	std::cout << "HGate: " << HGate << std::endl;
 	std::cout << "potassium_part_of_flux: " << potassium_part_of_flux << std::endl;
 	std::cout << "sodium_part_of_flux: " << sodium_part_of_flux << std::endl;
-	std::cout << "leakage_part_of_flux: " << leakage_part_of_flux << std::endl;
-	std::cout << "flux: " << potassium_part_of_flux + sodium_part_of_flux + leakage_part_of_flux << std::endl;
+	std::cout << "flux: " << potassium_part_of_flux + sodium_part_of_flux << std::endl;
 	*/
 
 	number flux_value = (potassium_part_of_flux + sodium_part_of_flux);
@@ -308,6 +315,14 @@ try : IChannel<TDomain>(functions, subsets),
 m_g_K(3.6e-4), m_g_Na(1.2e-3),
 m_log_nGate(false), m_log_hGate(false), m_log_mGate(false) {}
 UG_CATCH_THROW("Error in ChannelHHNernst initializer list.");
+
+
+template<typename TDomain>
+std::string ChannelHHNernst<TDomain>::
+name()
+{
+	return std::string("ChannelHHNernst");
+}
 
 
 template<typename TDomain> void ChannelHHNernst<TDomain>::set_log_nGate(bool bLogNGate) { m_log_nGate = bLogNGate; }

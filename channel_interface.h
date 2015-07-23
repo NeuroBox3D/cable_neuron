@@ -34,6 +34,9 @@ class IChannel
 		///	destructor
 		virtual ~IChannel() {};
 
+		/// name
+		virtual std::string name() {return std::string("");};
+
 		/**
 		 * @brief Initializes the defined channel type.
 		 *

@@ -14,7 +14,7 @@ namespace cable {
 template<typename TDomain>
 ChannelLeak<TDomain>::ChannelLeak(const char* functions, const char* subsets)
 try : IChannel<TDomain>(functions, subsets),
-m_g(3.0e-6), m_E(-65.0) {}
+m_g(1.0e-6), m_E(-65.0) {}
 UG_CATCH_THROW("Error in ChannelHH initializer list.");
 
 template<typename TDomain>
@@ -24,8 +24,16 @@ ChannelLeak<TDomain>::ChannelLeak
 	const std::vector<std::string>& subsets
 )
 try : IChannel<TDomain>(functions, subsets),
-m_g(3.0e-6), m_E(-65.0) {}
+m_g(1.0e-6), m_E(-65.0) {}
 UG_CATCH_THROW("Error in ChannelHH initializer list.");
+
+
+template<typename TDomain>
+std::string ChannelLeak<TDomain>::
+name()
+{
+	return std::string("Leakage");
+}
 
 
 template<typename TDomain>

@@ -32,6 +32,9 @@ class ChannelHH
 		/// destructor
 		virtual ~ChannelHH() {};
 
+		/// name
+		virtual std::string name();
+
 		/// create attachments and accessors
 		void init_attachments();
 
@@ -90,6 +93,9 @@ class ChannelHHNernst
 
 		/// destructor
 		virtual ~ChannelHHNernst() {};
+
+		/// name
+		virtual std::string name();
 
 		/// create attachments and accessors
 		void init_attachments();

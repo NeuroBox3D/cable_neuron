@@ -32,6 +32,9 @@ class ChannelLeak
 		/// destructor
 		virtual ~ChannelLeak() {};
 
+		/// name
+		virtual std::string name();
+
 		/// create attachments and accessors
 		void init_attachments();
 
