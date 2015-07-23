@@ -38,8 +38,8 @@ VMDisc<TDomain>::VMDisc(const char* subsets, const number init_time)
 	m_aDiameter(GlobalAttachments::attachment<ANumber>("diameter")),
 	m_constDiam(1e-6), m_bConstDiamSet(false),
 	m_spec_res(1.0e6), m_spec_cap(1.0e-5),
-	m_k_out(3.0), m_na_out(65.0), m_ca_out(1.5),
-	m_ek(-77.0), m_ena(50.0), m_eca(138.0),
+	m_k_out(4.0), m_na_out(150.0), m_ca_out(1.5),
+	m_ek(-90.0), m_ena(60.0), m_eca(140.0),
 	m_temperature(310.0),
 	m_influx_ac(1e-9),
 	m_output(false),
@@ -381,7 +381,7 @@ prep_timestep(number time, VectorProxyBase* upb)
 
 				for (size_t l = 0; l < ch_subsets.size(); ++l)
 				{
-					if (sName == this->m_vSubset[l])
+					if (sName == ch_subsets[l])
 						goto update;
 				}
 			}
