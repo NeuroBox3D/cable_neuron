@@ -219,6 +219,8 @@ void ChannelHH<TDomain>::update_gating(number newTime, Vertex* vrt, const std::v
 {
 	number dt = newTime - m_pVMDisc->time();
 	number VM = vrt_values[VMDisc<TDomain>::_v_];
+	number tmp = m_pVMDisc->temperature_celsius();
+	number tmp_factor = std::pow(2.3, (tmp-23.0)/10.0);
 
 	// values for m gate
 	number AlphaHm = 0.1 * vtrap(-(VM+40.0),10.0);
@@ -232,9 +234,9 @@ void ChannelHH<TDomain>::update_gating(number newTime, Vertex* vrt, const std::v
 	number AlphaHh = 0.07 * exp(-(VM+65.0)/20.0);
 	number BetaHh = 1.0 / (exp(-(VM+35.0)/10.0) + 1.0);
 
-	number rate_h = 4.5 * (AlphaHh - m_aaHGate[vrt] * (AlphaHh+BetaHh));
-	number rate_m = 4.5 * (AlphaHm - m_aaMGate[vrt] * (AlphaHm+BetaHm));
-	number rate_n = 4.5 * (AlphaHn - m_aaNGate[vrt] * (AlphaHn+BetaHn));
+	number rate_h = tmp_factor * (AlphaHh - m_aaHGate[vrt] * (AlphaHh+BetaHh));
+	number rate_m = tmp_factor * (AlphaHm - m_aaMGate[vrt] * (AlphaHm+BetaHm));
+	number rate_n = tmp_factor * (AlphaHn - m_aaNGate[vrt] * (AlphaHn+BetaHn));
 
 	m_aaHGate[vrt] += rate_h * dt;
 	m_aaMGate[vrt] += rate_m * dt;
@@ -256,9 +258,12 @@ void ChannelHH<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>& v
 	number rev_pot_K = m_pVMDisc->ek();
 	number rev_pot_Na = m_pVMDisc->ena();
 
+	number tmp = m_pVMDisc->temperature_celsius();
+	number tmp_factor = std::pow(2.3, (tmp-23.0)/10.0);
+
 	// single channel type fluxes
-	const number potassium_part_of_flux = m_g_K * pow(NGate,4) * (VM - rev_pot_K);
-	const number sodium_part_of_flux =  m_g_Na * pow(MGate,3) * HGate * (VM - rev_pot_Na);
+	const number potassium_part_of_flux = tmp_factor * m_g_K * pow(NGate,4) * (VM - rev_pot_K);
+	const number sodium_part_of_flux =    tmp_factor * m_g_Na * pow(MGate,3) * HGate * (VM - rev_pot_Na);
 
 	/*
 	std::cout << "VM: " << VM << std::endl;
