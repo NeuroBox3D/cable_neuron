@@ -191,6 +191,10 @@ class VMDisc
 		/// sets Vars for writing output
 		void set_output(bool output, number gating_x, number gating_y, number gating_z, std::string gating_pfad);
 
+		/// estimate time step size for next step
+		template <typename TVector>
+		number estimate_cfl_cond(ConstSmartPtr<TVector> u);
+
 	public:
 		// ///////////////////////////
 		// inherited from IElemDisc //

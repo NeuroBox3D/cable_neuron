@@ -64,6 +64,21 @@ class IChannel
 		/// adding some Jacobian infos at given vertex
 		//virtual void Jacobi_sets(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outJFlux) = 0;
 
+		/**
+		 * 	@brief calculate (estimate) linear dependency on potential
+		 *
+		 *	This method is useful for automatic time step size calculation. It is supposed to calculate
+		 *	(or at least estimate) the linear dependency (first term in the taylor expansion)
+		 *	of the electric current through the mechanism on the given potential. This is used in
+		 *	the VMDisc to get an estimate for the CFL condition that has to be fulfilled by the
+		 *	time step size.
+		 *
+		 * @param vrt			vertex to compute dependency for
+		 * @param vrt_values	current solution at this vertex
+		 * @return				linear dependency
+		 */
+		virtual number lin_dep_on_pot(Vertex* vrt, const std::vector<number>& vrt_values) {return 0.0;}
+
 		const std::vector<std::string>& write_fcts() {return m_vWFct;}
 		const std::vector<std::string>& write_subsets() {return m_vSubset;}
 		void set_vm_disc(VMDisc<TDomain>*  vmdisc) {m_pVMDisc = vmdisc;}

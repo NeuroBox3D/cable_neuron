@@ -18,10 +18,6 @@
 #include "lib_grid/global_attachments.h"
 #include "../neuronal_topology_importer/neuronal_topology_importer.h"
 
-/// Boost for creating directorys
-//#include "boost/filesystem.hpp"
-//#include "boost/system/error_code.hpp"
-
 
 namespace ug {
 namespace cable {
@@ -254,6 +250,79 @@ void VMDisc<TDomain>::write_gatings_for_position(number x, number y, number z, s
 		}
 	}
 
+}
+
+
+template <typename TDomain>
+template <typename TVector>
+number VMDisc<TDomain>::
+estimate_cfl_cond(ConstSmartPtr<TVector> u)
+{
+	ConstSmartPtr<DoFDistribution> dd = this->approx_space()->dof_distribution(GridLevel(), false);
+	std::vector<DoFIndex> dofIndex;
+	MGSubsetHandler& ssh = *this->approx_space()->domain()->subset_handler();
+
+	std::vector<number> vrt_values(m_numb_ion_funcs+1);
+
+	// iterate over surface level
+	number maxLinDep = 0.0;
+	typedef DoFDistribution::traits<Vertex>::const_iterator it_type;
+	it_type it = dd->begin<Vertex>();
+	it_type it_end = dd->end<Vertex>();
+	for (; it != it_end; ++it)
+	{
+		Vertex* vrt = *it;
+
+		// fill vector with solution at vertex
+		for (size_t j = 0; j < m_numb_ion_funcs+1; ++j)
+		{
+			dd->dof_indices(vrt, j, dofIndex, false, true);
+			UG_COND_THROW(dofIndex.size() != 1, "Not exactly one DoF index found for vertex.");
+			vrt_values[j] = DoFRef(*m_spUOld, dofIndex[0]);
+		}
+
+		// iterate over channels
+		number linDep = 0.0;
+		for (size_t ch = 0; ch < m_channel.size(); ++ch)
+		{
+			// check that vertex belongs to an edge of a subset that this channel works on
+			const std::vector<std::string>& ch_subsets = m_channel[ch]->write_subsets();
+
+			typedef typename MultiGrid::traits<Edge>::secure_container edge_list;
+			edge_list el;
+			this->approx_space()->domain()->grid()->associated_elements(el, vrt);
+			for (size_t k = 0; k < el.size(); ++k)
+			{
+				Edge* edge = el[k];
+				size_t siEdge = ssh.get_subset_index(edge);
+				std::string sName = ssh.get_subset_name(siEdge);
+
+				for (size_t l = 0; l < ch_subsets.size(); ++l)
+				{
+					if (sName == ch_subsets[l])
+						goto compute_linDep;
+				}
+			}
+			continue;
+
+		compute_linDep:
+			linDep += m_channel[ch]->lin_dep_on_pot(vrt, vrt_values);
+		}
+
+		maxLinDep = std::max(maxLinDep, linDep);
+	}
+
+
+	double cfl = 2.0 * m_spec_cap / maxLinDep;
+	// communicate
+#ifdef UG_PARALLEL
+	if (pcl::NumProcs() > 1)
+	{
+		pcl::ProcessCommunicator com;
+		com.allreduce(&cfl, &cfl, 1, PCL_DT_DOUBLE, PCL_RO_MIN);
+	}
+#endif
+	return (number) cfl;
 }
 
 
@@ -853,14 +922,23 @@ register_func()
 
 #ifdef UG_DIM_1
 	template class VMDisc<Domain1d>;
+	#ifdef UG_CPU_1
+		template number VMDisc<Domain1d>::estimate_cfl_cond(ConstSmartPtr<CPUAlgebra::vector_type> u);
+	#endif
 #endif
 
 #ifdef UG_DIM_2
 	template class VMDisc<Domain2d>;
+	#ifdef UG_CPU_1
+		template number VMDisc<Domain2d>::estimate_cfl_cond(ConstSmartPtr<CPUAlgebra::vector_type> u);
+	#endif
 #endif
 
 #ifdef UG_DIM_3
 	template class VMDisc<Domain3d>;
+	#ifdef UG_CPU_1
+		template number VMDisc<Domain3d>::estimate_cfl_cond(ConstSmartPtr<CPUAlgebra::vector_type> u);
+	#endif
 #endif
 
 

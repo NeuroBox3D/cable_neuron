@@ -266,13 +266,15 @@ struct Functionality
 						"sets Position, duration, ending and influxvalue of an Influx")
 				.add_method("write_gatings_for_position", &T::write_gatings_for_position)
 				.add_method("set_output", static_cast<void (T::*)(bool, number, number, number, std::string)> (&T::set_output))
-
-	#ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
+#ifdef UG_CPU_1
+				.add_method("estimate_cfl_cond", &T::template estimate_cfl_cond<CPUAlgebra::vector_type>)
+#endif
+#ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
 				.add_method("set_synapse_handler", &T::set_synapse_handler)
-	#endif
-	#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED
+#endif
+#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED
 				.add_method("set_synapse_distributor", &T::set_synapse_distributor)
-	#endif
+#endif
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "VMDisc", tag);
 		}

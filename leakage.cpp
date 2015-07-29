@@ -119,6 +119,16 @@ void ChannelLeak<TDomain>::Jacobi_sets(Vertex* vrt, const std::vector<number>& v
 
 
 
+template<typename TDomain>
+number ChannelLeak<TDomain>::
+lin_dep_on_pot(Vertex* vrt, const std::vector<number>& vrt_values)
+{
+	return m_g;
+}
+
+
+
+
 ////////////////////////////////////////////////////////////////////////////////
 //	explicit template instantiations
 ////////////////////////////////////////////////////////////////////////////////

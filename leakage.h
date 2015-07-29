@@ -51,6 +51,7 @@ class ChannelLeak
 		virtual void vm_disc_available();
 		virtual std::vector<number> state_values(number x, number y, number z);
 		//virtual void Jacobi_sets(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outJFlux);
+		virtual number lin_dep_on_pot(Vertex* vrt, const std::vector<number>& vrt_values);
 
 	private:
 		// membrane conductivities

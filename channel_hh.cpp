@@ -299,6 +299,26 @@ void ChannelHH<TDomain>::Jacobi_sets(Vertex* vrt, const std::vector<number>& vrt
 
 
 
+template<typename TDomain>
+number ChannelHH<TDomain>::
+lin_dep_on_pot(Vertex* vrt, const std::vector<number>& vrt_values)
+{
+	// getting attachments for vertex
+	number NGate = m_aaNGate[vrt];
+	number MGate = m_aaMGate[vrt];
+	number HGate = m_aaHGate[vrt];
+
+	number tmp = m_pVMDisc->temperature_celsius();
+	number tmp_factor = std::pow(2.3, (tmp-23.0)/10.0);
+
+	// single channel type fluxes
+	const number potassium_part_of_flux = tmp_factor * m_g_K * pow(NGate,4);
+	const number sodium_part_of_flux =    tmp_factor * m_g_Na * pow(MGate,3) * HGate;
+
+	return potassium_part_of_flux + sodium_part_of_flux;
+}
+
+
 ////////////////////////////////////////////////
 // Methods for HH-Channel-Nernst-Class
 ////////////////////////////////////////////////
@@ -587,7 +607,6 @@ void ChannelHHNernst<TDomain>::Jacobi_sets(Vertex* vrt, const std::vector<number
 	//std::cout << "outJFlux: " << outJFlux[0] << ", " << outJFlux[1] << ", " << outJFlux[2] << ", " << std::endl;
 }
 #endif
-
 
 
 
