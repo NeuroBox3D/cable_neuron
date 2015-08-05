@@ -661,11 +661,18 @@ void VMDisc<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, const MathV
 			std::cout << "echtes erg: " << (vCornerCoords[0][2] - m_coords[i][2]) << std::endl;
 			std::cout << "abs erg: " << ((fabs((vCornerCoords[0][2] - m_coords[i][2])))) << std::endl;*/
 			// Time depending vars
+			// Influx to edge center
 			if (m_beg_flux[i] <= time && m_dur_flux[i] + m_beg_flux[i] >= time
 				&& fabs(0.5*(vCornerCoords[co][0]+vCornerCoords[(co+1)%2][0]) - m_coords[i][0]) < m_influx_ac
 				&& fabs(0.5*(vCornerCoords[co][1]+vCornerCoords[(co+1)%2][1]) - m_coords[i][1]) < m_influx_ac
 				&& fabs(0.5*(vCornerCoords[co][2]+vCornerCoords[(co+1)%2][2]) - m_coords[i][2]) < m_influx_ac
 			   )
+//			//	Influx to vertex
+//			if (m_beg_flux[i] <= time && m_dur_flux[i] + m_beg_flux[i] >= time
+//				&& fabs(vCornerCoords[co][0] - m_coords[i][0]) < m_influx_ac
+//				&& fabs(vCornerCoords[co][1] - m_coords[i][1]) < m_influx_ac
+//				&& fabs(vCornerCoords[co][2] - m_coords[i][2]) < m_influx_ac
+//			   )
 			{
 				// use real current here, thus the influx is independent from the geometry
 				d(_v_, co) += m_flux_value[i];
