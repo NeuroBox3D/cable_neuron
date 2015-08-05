@@ -2,7 +2,7 @@
  * leakage.cpp
  *
  *  Created on: 29.10.2014
- *      Author: pgottmann
+ *      Author: pgottmann, mbreit
  */
 
 #include "leakage.h"
@@ -117,8 +117,6 @@ void ChannelLeak<TDomain>::Jacobi_sets(Vertex* vrt, const std::vector<number>& v
 #endif
 
 
-
-
 template<typename TDomain>
 number ChannelLeak<TDomain>::
 lin_dep_on_pot(Vertex* vrt, const std::vector<number>& vrt_values)
@@ -126,6 +124,14 @@ lin_dep_on_pot(Vertex* vrt, const std::vector<number>& vrt_values)
 	return m_g;
 }
 
+
+template<typename TDomain>
+void ChannelLeak<TDomain>::
+specify_write_function_indices()
+{
+	// prepare vector containing VMDisc fct indices which this channel writes to
+	this->m_vWFctInd.push_back(VMDisc<TDomain>::_v_);
+}
 
 
 

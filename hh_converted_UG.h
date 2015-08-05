@@ -80,7 +80,7 @@ void init_attachments();
 virtual void init(const LocalVector& u, Edge* e); 
 virtual void update_gating(number newTime, const LocalVector& u, Edge* e); 
 virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues); 
-virtual void vm_disc_available(); 
+virtual void approx_space_available(); 
 
  
 protected: 

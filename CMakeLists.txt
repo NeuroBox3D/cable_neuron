@@ -1,7 +1,7 @@
 ################################################################################
-# HH_Kabel
+# cable
 #
-# Plugin for Hodkin und Huxley + Kabelgleichung
+# Plugin for cable equation and channel functionality
 ################################################################################
 
 cmake_minimum_required(VERSION 2.6)
@@ -40,10 +40,10 @@ set(SOURCES	ElemDiscHH_base.cpp
 			ElemDiscHH_Nernst_fv1.cpp
 			ElemDiscHH_Nernst_neuron_fv1.cpp
 			diam_attachment_handler.cpp
-			VM_Disc.cpp
 			channel_interface.cpp
 			channel_hh.cpp
 			leakage.cpp
+			VM_Disc.cpp
 			plugin_main.cpp
 			)
 

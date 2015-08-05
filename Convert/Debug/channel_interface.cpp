@@ -47,7 +47,7 @@ vtrap(number x, number y)
 
 
 template<typename TDomain>
-void ChannelHH<TDomain>::vm_disc_available()
+void ChannelHH<TDomain>::approx_space_available()
 {
 	init_attachments();
 }
@@ -308,7 +308,7 @@ vtrap(number x, number y)
 
 
 template<typename TDomain>
-void ChannelHHNernst<TDomain>::vm_disc_available()
+void ChannelHHNernst<TDomain>::approx_space_available()
 {
 	init_attachments();
 }
@@ -554,7 +554,7 @@ set_leak_cond(number L)
 
 
 template<typename TDomain>
-void ChannelLeak<TDomain>::vm_disc_available()
+void ChannelLeak<TDomain>::approx_space_available()
 {
 
 }

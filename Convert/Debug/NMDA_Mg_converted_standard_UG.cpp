@@ -10,7 +10,7 @@ namespace cable {
  
 // adding function which always inits_attachments 
 template<typename TDomain> 
-void NMDA_Mg_converted_standard_UG<TDomain>::vm_disc_available()  
+void NMDA_Mg_converted_standard_UG<TDomain>::approx_space_available()  
 {  
 	init_attachments();  
 }  

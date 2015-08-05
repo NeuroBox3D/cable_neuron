@@ -2,7 +2,7 @@
  * VM_Disc.cpp
  *
  *  Created on: 26.11.2014
- *      Author: Pgottmann
+ *      Author: Pgottmann, mbreit
  *
  *
  *      Discretization of Kabelequatation depending on function called _VM_ needed
@@ -10,10 +10,8 @@
 
 
 #include "VM_Disc.h"
-#include "lib_grid/lg_base.h"
-#include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
-#include "lib_disc/function_spaces/grid_function.h"
-#include "lib_disc/function_spaces/local_transfer_interface.h"
+//#include "lib_disc/function_spaces/grid_function.h"
+//#include "lib_disc/function_spaces/local_transfer_interface.h"
 
 #include "lib_grid/global_attachments.h"
 #include "../neuronal_topology_importer/neuronal_topology_importer.h"
@@ -21,6 +19,18 @@
 
 namespace ug {
 namespace cable {
+
+template <typename TDomain>
+const size_t VMDisc<TDomain>::_v_ = 0;
+template <typename TDomain>
+const size_t VMDisc<TDomain>::_k_ = 1;
+template <typename TDomain>
+const size_t VMDisc<TDomain>::_na_ = 2;
+template <typename TDomain>
+const size_t VMDisc<TDomain>::_ca_ = 3;
+
+template <typename TDomain>
+const size_t VMDisc<TDomain>::m_numb_ion_funcs = 3;
 
 
 // TODO: rework this?
@@ -361,7 +371,7 @@ void VMDisc<TDomain>::approximation_space_changed()
 
 	// call channel init functions
 	for (size_t i = 0; i < m_channel.size(); i++)
-		m_channel[i]->vm_disc_available();
+		m_channel[i]->approx_space_available();
 
 
 #ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
@@ -486,7 +496,18 @@ template<typename TDomain>
 template <typename TElem, typename TFVGeom>
 void VMDisc<TDomain>::prep_elem_loop(const ReferenceObjectID roid, const int si)
 {
-	// nothing to do
+	// decide which channels work on this subset
+	size_t ch_sz = m_channel.size();
+	for (size_t i = 0; i < ch_sz; ++i)
+	{
+		if (m_channel[i]->is_def_on_subset(si))
+			m_channelsOnCurrSubset.push_back(m_channel[i]);
+	}
+
+	// get the function indices those channels write currents to
+	ch_sz = m_channelsOnCurrSubset.size();
+	for (size_t i = 0; i < ch_sz; ++i)
+		m_vvCurrChWFctInd.push_back(m_channelsOnCurrSubset[i]->fct_indices());
 }
 
 
@@ -501,6 +522,26 @@ void VMDisc<TDomain>::prep_elem(const LocalVector& u, GridObject* elem, Referenc
 		geo.update(elem, vCornerCoords, &(this->subset_handler()));
 	}
 	UG_CATCH_THROW("Cannot update Finite Volume Geometry.\n");
+
+	// update current vertex values (for old solution) of elem
+	ConstSmartPtr<DoFDistribution> dd = this->approx_space()->dof_distribution(GridLevel(), false);
+
+	TElem* pElem = dynamic_cast<TElem*>(elem);
+	if (!pElem) {UG_THROW("Wrong element type.");}
+
+	std::vector<DoFIndex> dofIndex;
+
+	size_t nCo = pElem->num_vertices();
+	for (size_t co = 0; co < nCo; ++co)
+	{
+		m_currVrtValues[co].resize(m_numb_ion_funcs+1);
+		for (size_t i = 0; i < m_numb_ion_funcs+1; ++i)
+		{
+			dd->dof_indices(pElem->vertex(co), i, dofIndex, false, true);
+			UG_COND_THROW(dofIndex.size() != 1, "Not exactly one DoF index found for vertex.");
+			m_currVrtValues[co][i] = DoFRef(*m_spUOld, dofIndex[0]);
+		}
+	}
 }
 
 
@@ -627,13 +668,9 @@ void VMDisc<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, const MathV
 {
 	// dof distribution and DoFIndex vector (for accessing old solution)
 	ConstSmartPtr<DoFDistribution> dd = this->approx_space()->dof_distribution(GridLevel(), false);
-	std::vector<DoFIndex> dofIndex;
 
 	// get finite volume geometry
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
-
-	// get subset handler
-	MGSubsetHandler& ssh = *this->approx_space()->domain()->subset_handler();
 
 	// cast elem to appropriate type (in order to allow access to attachments)
 	TElem* pElem = dynamic_cast<TElem*>(elem);
@@ -650,7 +687,6 @@ void VMDisc<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, const MathV
 
 		// get diam from attachment
 		number diam = m_aaDiameter[pElem->vertex(co)];
-
 
 		// influx handling
 		number time = this->time();
@@ -712,45 +748,25 @@ void VMDisc<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, const MathV
 #endif
 
 		// membrane transport mechanisms (IChannels)
-		std::vector<number> allOutCurrentValues;
-		for (size_t i = 0; i < m_numb_ion_funcs+1; ++i)
-			allOutCurrentValues.push_back(0.0);
+		std::vector<number> allOutCurrentValues(m_numb_ion_funcs+1, 0.0);
 
-		for (size_t i = 0; i < m_channel.size(); i++)
+		size_t ch_sz = m_channelsOnCurrSubset.size();
+		for (size_t ch = 0; ch < ch_sz; ++ch)
 		{
-			// if channel working on right subset
-			const std::vector<std::string> Subsets = m_channel[i]->write_subsets();
+			std::vector<number> outCurrentValues;
 
-			// getting subset of vertex
-			size_t siElem = ssh.get_subset_index(pElem);
-			std::string sName = ssh.get_subset_name(siElem);
+			// values we are getting from ionic_flux function in channels
+			m_channelsOnCurrSubset[ch]->ionic_current(pElem->vertex(co), m_currVrtValues[co], outCurrentValues);
 
-			for (size_t j = 0; j<Subsets.size(); j++)
+			UG_ASSERT(outCurrentValues.size() == m_vvCurrChWFctInd[ch],
+					  "mismatch in number of currents in channel \"" << m_channelsOnCurrSubset[ch]->name() << "\"");
+
+			// adding defect for every ion species involved
+			for (size_t k = 0; k < outCurrentValues.size(); ++k)
 			{
-				// if channel works on provided subset
-				if (Subsets[j]==sName)
-				{
-					std::vector<number> outCurrentValues;
-
-					// values we are getting from ionic_flux function in channels
-					std::vector<number> vrt_values(m_numb_ion_funcs+1);
-					for (size_t j = 0; j < m_numb_ion_funcs+1; ++j)
-					{
-						dd->dof_indices(pElem->vertex(co), j, dofIndex, false, true);
-						UG_COND_THROW(dofIndex.size() != 1, "Not exactly one DoF index found for vertex.");
-						vrt_values[j] = DoFRef(*m_spUOld, dofIndex[0]);
-					}
-					m_channel[i]->ionic_current(pElem->vertex(co), vrt_values, outCurrentValues);
-
-					const std::vector<std::string>& functions = m_channel[i]->write_fcts();
-
-					// adding defect for every ion species involved
-					for (size_t k = 0; k < outCurrentValues.size(); k++)
-					{
-						size_t fct_index = this->approx_space()->fct_id_by_name(functions[k].c_str());
-						allOutCurrentValues[fct_index] += (outCurrentValues[k]);
-					}
-				}
+				UG_ASSERT(m_vvCurrChWFctInd[ch][k] < m_numb_ion_funcs+1,
+						  "wrong function index in channel \"" << m_channelsOnCurrSubset[ch]->name() << "\"");
+				allOutCurrentValues[m_vvCurrChWFctInd[ch][k]] += (outCurrentValues[k]);
 			}
 		}
 
@@ -758,7 +774,7 @@ void VMDisc<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, const MathV
 		d(_v_, co) -= scv.volume()*PI*diam * allOutCurrentValues[0];
 
 		// writing ion species defects
-		for (size_t k = 1; k < m_numb_ion_funcs+1; k++)
+		for (size_t k = 1; k < m_numb_ion_funcs+1; ++k)
 			d(k, co) -= scv.volume()*PI*diam * allOutCurrentValues[k];
 	}
 }
@@ -879,7 +895,11 @@ template<typename TDomain>
 template <typename TElem, typename TFVGeom>
 void VMDisc<TDomain>::fsh_elem_loop()
 {
-	// nothing to do
+	// clean vector holding channels on current subset
+	m_channelsOnCurrSubset.clear();
+
+	// clear vector holding return indices of those channels
+	m_vvCurrChWFctInd.clear();
 }
 
 

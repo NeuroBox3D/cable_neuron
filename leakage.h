@@ -2,7 +2,7 @@
  * leakage.h
  *
  *  Created on: 29.10.2014
- *      Author: ppgottmann
+ *      Author: ppgottmann, mbreit
  */
 
 #ifndef __UG__PLUGINS__EXPERIMENTAL__CABLE__LEAKAGE_H__
@@ -52,6 +52,9 @@ class ChannelLeak
 		virtual std::vector<number> state_values(number x, number y, number z);
 		//virtual void Jacobi_sets(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outJFlux);
 		virtual number lin_dep_on_pot(Vertex* vrt, const std::vector<number>& vrt_values);
+
+	private:
+		virtual void specify_write_function_indices();
 
 	private:
 		// membrane conductivities

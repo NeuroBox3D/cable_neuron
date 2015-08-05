@@ -101,7 +101,7 @@ class IChannel
 		virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues) = 0;
 
 		/// called when access to the root VM disc is possible (i.e. after call to set_vm_disc)
-		virtual void vm_disc_available() {};
+		virtual void approx_space_available() {};
 
 		/// Getting all accesors for Gattings
 		virtual std::vector<number> allGatingAccesors(number x, number y, number z) = 0;
@@ -171,7 +171,7 @@ class ChannelHH
 		virtual void init(Vertex* vrt, const std::vector<number>& vrt_values);
 		virtual void update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values);
 		virtual void ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues);
-		virtual void vm_disc_available();
+		virtual void approx_space_available();
 		virtual std::vector<number> allGatingAccesors(number x, number y, number z);
 		//virtual void Jacobi_sets(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outJFlux);
 
@@ -243,7 +243,7 @@ class ChannelHHNernst
 		virtual void init(Vertex* vrt, const std::vector<number>& vrt_values);
 		virtual void update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values);
 		virtual void ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues);
-		virtual void vm_disc_available();
+		virtual void approx_space_available();
 		virtual std::vector<number> allGatingAccesors(number x, number y, number z);
 		//virtual void Jacobi_sets(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outJFlux);
 
@@ -308,7 +308,7 @@ class ChannelLeak
 		virtual void init(Vertex* vrt, const std::vector<number>& vrt_values);
 		virtual void update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values);
 		virtual void ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues);
-		virtual void vm_disc_available();
+		virtual void approx_space_available();
 		virtual std::vector<number> allGatingAccesors(number x, number y, number z);
 		//virtual void Jacobi_sets(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outJFlux);
 

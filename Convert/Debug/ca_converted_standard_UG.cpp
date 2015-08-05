@@ -22,7 +22,7 @@ double ca_converted_standard_UG<TDomain>::efun(double z)
  
 // adding function which always inits_attachments 
 template<typename TDomain> 
-void ca_converted_standard_UG<TDomain>::vm_disc_available()  
+void ca_converted_standard_UG<TDomain>::approx_space_available()  
 {  
 	init_attachments();  
 }  

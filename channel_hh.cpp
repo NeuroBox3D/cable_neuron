@@ -2,11 +2,11 @@
  * channel_hh.cpp
  *
  *  Created on: 29.10.2014
- *      Author: pgottmann
+ *      Author: pgottmann, mbreit
  */
 
 #include "channel_hh.h"
-
+#include <limits> // numeric_limits
 
 namespace ug {
 namespace cable {
@@ -72,7 +72,7 @@ vtrap(number x, number y)
 
 
 template<typename TDomain>
-void ChannelHH<TDomain>::vm_disc_available()
+void ChannelHH<TDomain>::approx_space_available()
 {
 	init_attachments();
 }
@@ -319,6 +319,14 @@ lin_dep_on_pot(Vertex* vrt, const std::vector<number>& vrt_values)
 }
 
 
+template<typename TDomain>
+void ChannelHH<TDomain>::
+specify_write_function_indices()
+{
+	// prepare vector containing VMDisc fct indices which this channel writes to
+	this->m_vWFctInd.push_back(VMDisc<TDomain>::_v_);
+}
+
 ////////////////////////////////////////////////
 // Methods for HH-Channel-Nernst-Class
 ////////////////////////////////////////////////
@@ -379,7 +387,7 @@ vtrap(number x, number y)
 
 
 template<typename TDomain>
-void ChannelHHNernst<TDomain>::vm_disc_available()
+void ChannelHHNernst<TDomain>::approx_space_available()
 {
 	init_attachments();
 }
@@ -422,8 +430,9 @@ std::vector<number> ChannelHHNernst<TDomain>::state_values(number x, number y, n
 	//UG_LOG("Channel: Before iteration" << std::endl);
 
 	itType iter;
-	number bestDistSq, distSq;
-	Vertex* bestVrt;
+	number bestDistSq = std::numeric_limits<number>::max();
+	number distSq;
+	Vertex* bestVrt = NULL;
 
 
 	// Iterate only if there is one Gatting needed
@@ -455,6 +464,8 @@ std::vector<number> ChannelHHNernst<TDomain>::state_values(number x, number y, n
 				++iter;
 			}
 		}
+
+		if (!bestVrt) UG_THROW("No vertex found for coords.");
 
 		if (m_log_mGate == true)
 			GatingAccesors.push_back(this->m_aaMGate[bestVrt]);
@@ -557,9 +568,9 @@ void ChannelHHNernst<TDomain>::ionic_current(Vertex* vrt, const std::vector<numb
 	number NGate = m_aaNGate[vrt];
 	number MGate = m_aaMGate[vrt];
 	number HGate = m_aaHGate[vrt];
-	number v 	 = vrt_values[m_pVMDisc->_v_];
-	number k 	 = vrt_values[m_pVMDisc->_k_];
-	number na 	 = vrt_values[m_pVMDisc->_na_];
+	number v 	 = vrt_values[VMDisc<TDomain>::_v_];
+	number k 	 = vrt_values[VMDisc<TDomain>::_k_];
+	number na 	 = vrt_values[VMDisc<TDomain>::_na_];
 
 	const number R = m_pVMDisc->R;
 	const number F = m_pVMDisc->F;
@@ -601,13 +612,23 @@ void ChannelHHNernst<TDomain>::Jacobi_sets(Vertex* vrt, const std::vector<number
 	const number sodium_nernst_eq_dNa		=  -helpV * (-m_pVMDisc->na_out()/na)*0.003;
 
 	outJFlux.push_back(m_g_K*pow(NGate,4) + m_g_Na*pow(MGate,3)*HGate + m_g_I);
-	outJFlux.push_back(sodium_nernst_eq_dNa);
 	outJFlux.push_back(potassium_nernst_eq_dK);
+	outJFlux.push_back(sodium_nernst_eq_dNa);
 
 	//std::cout << "outJFlux: " << outJFlux[0] << ", " << outJFlux[1] << ", " << outJFlux[2] << ", " << std::endl;
 }
 #endif
 
+
+template<typename TDomain>
+void ChannelHHNernst<TDomain>::
+specify_write_function_indices()
+{
+	// prepare vector containing VMDisc fct indices which this channel writes to
+	this->m_vWFctInd.push_back(VMDisc<TDomain>::_v_);
+	this->m_vWFctInd.push_back(VMDisc<TDomain>::_k_);
+	this->m_vWFctInd.push_back(VMDisc<TDomain>::_na_);
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////

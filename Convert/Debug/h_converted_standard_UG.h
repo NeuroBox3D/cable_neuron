@@ -92,7 +92,7 @@ void init_attachments();
 virtual void init(Vertex* vrt, const std::vector<number>& vrt_values); 
 virtual void update_gating(number newtime, Vertex* vrt, const std::vector<number>& vrt_values); 
 virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues); 
-virtual void vm_disc_available(); 
+virtual void approx_space_available(); 
 virtual std::vector<number> state_values(number x, number y, number z); 
 
  

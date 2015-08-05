@@ -31,7 +31,7 @@ double HH2_converted_standard_UG<TDomain>::Exp(double x)
  
 // adding function which always inits_attachments 
 template<typename TDomain> 
-void HH2_converted_standard_UG<TDomain>::vm_disc_available()  
+void HH2_converted_standard_UG<TDomain>::approx_space_available()  
 {  
 	init_attachments();  
 }  

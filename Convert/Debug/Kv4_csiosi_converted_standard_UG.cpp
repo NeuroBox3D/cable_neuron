@@ -10,7 +10,7 @@ namespace cable {
  
 // adding function which always inits_attachments 
 template<typename TDomain> 
-void Kv4_csiosi_converted_standard_UG<TDomain>::vm_disc_available()  
+void Kv4_csiosi_converted_standard_UG<TDomain>::approx_space_available()  
 {  
 	init_attachments();  
 }  

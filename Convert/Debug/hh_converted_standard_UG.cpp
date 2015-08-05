@@ -22,7 +22,7 @@ double hh_converted_standard_UG<TDomain>::vtrap(double x, double y)
  
 // adding function which always inits_attachments 
 template<typename TDomain> 
-void hh_converted_standard_UG<TDomain>::vm_disc_available()  
+void hh_converted_standard_UG<TDomain>::approx_space_available()  
 {  
 	init_attachments();  
 }  
