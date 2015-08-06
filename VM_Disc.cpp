@@ -329,7 +329,8 @@ estimate_cfl_cond(ConstSmartPtr<TVector> u)
 	if (pcl::NumProcs() > 1)
 	{
 		pcl::ProcessCommunicator com;
-		com.allreduce(&cfl, &cfl, 1, PCL_DT_DOUBLE, PCL_RO_MIN);
+		double localCFL = cfl;
+		com.allreduce(&localCFL, &cfl, 1, PCL_DT_DOUBLE, PCL_RO_MIN);
 	}
 #endif
 	return (number) cfl;
