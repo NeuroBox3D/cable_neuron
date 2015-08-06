@@ -60,9 +60,7 @@ VMDisc<TDomain>::VMDisc(const char* subsets, const number init_time)
 	m_v(0), m_na(0), m_k(0), m_ca(0),
 	m_init_time(init_time), m_time(init_time),
 	m_bNonRegularGrid(false),
-	m_bLocked(false),
-	outputElem(NULL),
-	currSI(0)
+	m_bLocked(false)
 {
 	// set diff constants
 	m_diff.resize(3);
@@ -503,25 +501,13 @@ void VMDisc<TDomain>::prep_elem_loop(const ReferenceObjectID roid, const int si)
 	for (size_t i = 0; i < ch_sz; ++i)
 	{
 		if (m_channel[i]->is_def_on_subset(si))
-		{
-			UG_LOG(m_channel[i]->name() << "is def on subset " << si << std::endl);
 			m_channelsOnCurrSubset.push_back(m_channel[i]);
-		}
-		else
-			UG_LOG(m_channel[i]->name() << "is NOT def on subset " << si << std::endl);
 	}
 
 	// get the function indices those channels write currents to
 	ch_sz = m_channelsOnCurrSubset.size();
 	for (size_t i = 0; i < ch_sz; ++i)
 		m_vvCurrChWFctInd.push_back(m_channelsOnCurrSubset[i]->fct_indices());
-
-
-	if (si == 0)
-	{
-		currSI = 0;
-		UG_LOG("subset index: " << si << std::endl);
-	}
 }
 
 
@@ -765,18 +751,8 @@ void VMDisc<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, const MathV
 		std::vector<number> allOutCurrentValues(m_numb_ion_funcs+1, 0.0);
 
 		size_t ch_sz = m_channelsOnCurrSubset.size();
-		if (!co && currSI == 0 && (!outputElem || outputElem == reinterpret_cast<size_t*>(pElem)))
-		{
-			outputElem = reinterpret_cast<size_t*>(pElem);
-			UG_LOG("values = (" << m_currVrtValues[co][0] << ", " << m_currVrtValues[co][1]
-					   << ", " << m_currVrtValues[co][2] << ", " << m_currVrtValues[co][3] << ")" << std::endl);
-		}
 		for (size_t ch = 0; ch < ch_sz; ++ch)
 		{
-			if (!co && currSI == 0 && outputElem == reinterpret_cast<size_t*>(pElem))
-			{
-				UG_LOG(m_channelsOnCurrSubset[ch]->name() << " active!" << std::endl);
-			}
 			std::vector<number> outCurrentValues;
 
 			// values we are getting from ionic_flux function in channels

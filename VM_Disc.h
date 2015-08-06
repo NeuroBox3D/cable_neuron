@@ -307,10 +307,6 @@ class VMDisc
 		std::vector<SmartPtr<TIChannel> > m_channelsOnCurrSubset;
 		std::vector<std::vector<size_t> > m_vvCurrChWFctInd;
 		std::vector<number> m_currVrtValues[domain_traits<dim>::MaxNumVerticesOfElem];
-
-
-		size_t* outputElem;
-		int currSI;
 };
 
 
