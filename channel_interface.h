@@ -56,8 +56,11 @@ class IChannel
 		/// provides the ionic current (mol*s^-1) at a given vertex
 		virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues) = 0;
 
-		/// called when access to the root VM disc is possible (i.e. after call to set_vm_disc)
-		virtual void approx_space_available();
+		/// called when approximation space is available
+		void approx_space_available();
+
+		/// called when access to the root VM disc is possible
+		virtual void vm_disc_available() {};
 
 		/// getting values of internal channel states
 		virtual std::vector<number> state_values(number x, number y, number z) = 0;

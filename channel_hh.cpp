@@ -72,7 +72,7 @@ vtrap(number x, number y)
 
 
 template<typename TDomain>
-void ChannelHH<TDomain>::approx_space_available()
+void ChannelHH<TDomain>::vm_disc_available()
 {
 	init_attachments();
 }
@@ -387,7 +387,7 @@ vtrap(number x, number y)
 
 
 template<typename TDomain>
-void ChannelHHNernst<TDomain>::approx_space_available()
+void ChannelHHNernst<TDomain>::vmDisc_available()
 {
 	init_attachments();
 }
