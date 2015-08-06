@@ -115,8 +115,9 @@ std::vector<number> ChannelHH<TDomain>::state_values(number x, number y, number 
 	//UG_LOG("Channel: Before iteration" << std::endl);
 
 	itType iter;
-	number bestDistSq, distSq;
-	Vertex* bestVrt;
+	number bestDistSq = std::numeric_limits<number>::max();
+	number distSq;
+	Vertex* bestVrt = NULL;
 
 
 	// Iterate only if there is one Gatting needed
@@ -148,6 +149,8 @@ std::vector<number> ChannelHH<TDomain>::state_values(number x, number y, number 
 				++iter;
 			}
 		}
+
+		UG_COND_THROW(!bestVrt, "No vertex found.");
 
 		if (m_log_mGate == true)
 			GatingAccesors.push_back(this->m_aaMGate[bestVrt]);
