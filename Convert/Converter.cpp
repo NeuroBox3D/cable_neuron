@@ -2432,7 +2432,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  //myhfile << "void register_func(); \n \n \n";
 	  myhfile << "private: \n \n";
 	  // Neuron-lines with use ion
-
+	  myhfile << "virtual void specify_write_function_indices(); \n";
 
 
 
@@ -4014,7 +4014,8 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 
 
-
+	  vector<string> outsHelp;
+	  vector<bool> RealWrittenOuts;
 
 
 	  // writes Breakpoint if it is Standard BP
@@ -4066,7 +4067,6 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 		 	  vector<bool> Ion_outside;
 		 	  vector<string> outs;
-		 	  vector<string> outsHelp;
 		 	  // first every time v
 		 	  outs.push_back("");
 
@@ -4205,17 +4205,51 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 		 		 //std::cout << "optional: " << optional << " force " << force << std::endl;
 		 		 if (m_F_needed==true && (optional==true || force == true))
+		 		 {
 		 			 mycppfile << "outCurrentValues.push_back(" + outs[i] + "/m_F ); \n";
+		 			 RealWrittenOuts.push_back(true);
+		 		 }
 
 		 		 if (m_F_needed==false && (optional==true || force == true))
 				 {
 		 			 mycppfile << "outCurrentValues.push_back(" + outs[i] + " ); \n";
+		 			 RealWrittenOuts.push_back(true);
 				 }
 		 	  }
 	  }
 	  mycppfile << "} \n \n \n";
 
 	  std::cout << "Ionic_current Function is written" << std::endl;
+
+	  std::cout << "writting specify_write_functions_indices()..." << std::endl;
+
+	  mycppfile << "template<typename TDomain> \n";
+	  mycppfile << "void " + filename + "<TDomain>::specify_write_function_indices() \n";
+	  mycppfile << "{ \n \n";
+	  // First value is always for v reserved
+	  mycppfile << "this->m_vWFctInd.push_back(VMDisc<TDomain>::_v_); \n";
+	  // All other outs have to be checked
+ 	  for (size_t i=0; i<writes_Ions.size(); i++)
+ 	  {
+ 		 for (size_t j=0; j<outsHelp.size(); j++)
+ 		 {
+ 			 if (Remove_all(writes_Ions[i])==("i"+Remove_all(outsHelp[j])))
+ 			 {
+ 				if (RealWrittenOuts.size()>0)
+ 				{
+ 					if (RealWrittenOuts[i]==true)
+ 						mycppfile << "this->m_vWFctInd.push_back(VMDisc<TDomain>::_"<< writes_Ions[i].replace(writes_Ions[i].find("i"),1,"") <<"_); \n";
+ 				}
+ 			 }
+ 		 }
+ 	  }
+	  mycppfile << "} \n \n \n";
+
+	  std::cout << "specify_write_functions_indices() is written!" << std::endl;
+
+
+
+
 
 
 
