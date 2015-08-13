@@ -10,7 +10,7 @@ namespace cable {
  
 // adding function which always inits_attachments 
 template<typename TDomain> 
-void cad_converted_standard_UG<TDomain>::approx_space_available()  
+void cad_converted_standard_UG<TDomain>::vm_disc_available()  
 {  
 	init_attachments();  
 }  
@@ -158,7 +158,7 @@ m_F = m_pVMDisc->F;
  
 number celsius = m_pVMDisc->temperature_celsius(); 
 number dt = m_pVMDisc->time(); 
-number ica = m_pVMDisc->flux_ca(); 
+//number ica = m_pVMDisc->flux_ca();
 // make preparing vor getting values of every edge 
 number v = vrt_values[VMDisc<TDomain>::_v_]; 
 number ca = vrt_values[VMDisc<TDomain>::_ca_]; 
@@ -182,7 +182,7 @@ m_F = m_pVMDisc->F;
  
 number celsius = m_pVMDisc->temperature_celsius(); 
  number FARADAY = m_pVMDisc->F; 
- number ica = m_pVMDisc->flux_ca(); 
+//number ica = m_pVMDisc->flux_ca();
 number dt = newTime - m_pVMDisc->time(); 
 number v = vrt_values[VMDisc<TDomain>::_v_]; 
 number ca = vrt_values[VMDisc<TDomain>::_ca_]; 
@@ -192,7 +192,7 @@ double caS = aacaSGate[vrt];
 
  
  
-double 	drive_channel =  - (10000) * ica / (2 * FARADAY * depth); 
+double 	drive_channel =  - (10000) * 1 / (2 * FARADAY * depth);
 ; 
  
 if (drive_channel <= 0.)
@@ -227,7 +227,7 @@ m_R = m_pVMDisc->R;
 m_F = m_pVMDisc->F; 
  
  
-number ica = m_pVMDisc->flux_ca(); 
+//number ica = m_pVMDisc->flux_ca();
 number caS = aacaSGate[ver]; 
 number ca = vrt_values[m_pVMDisc->_ca_]; 
 number v =  vrt_values[m_pVMDisc->_v_]; 
@@ -243,7 +243,14 @@ const number helpV = 1e3*(m_pVMDisc->R*m_pVMDisc->temperature())/m_pVMDisc->F;
  
  
 outCurrentValues.push_back(   caS); 
-outCurrentValues.push_back(   caS ); 
+} 
+ 
+ 
+template<typename TDomain> 
+void cad_converted_standard_UG<TDomain>::specify_write_function_indices() 
+{ 
+ 
+this->m_vWFctInd.push_back(VMDisc<TDomain>::_v_); 
 } 
  
  

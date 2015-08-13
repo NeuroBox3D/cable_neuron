@@ -74,7 +74,7 @@ void init_attachments();
 virtual void init(Vertex* vrt, const std::vector<number>& vrt_values); 
 virtual void update_gating(number newtime, Vertex* vrt, const std::vector<number>& vrt_values); 
 virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues); 
-virtual void approx_space_available(); 
+virtual void vm_disc_available(); 
 virtual std::vector<number> state_values(number x, number y, number z); 
 
  
@@ -89,6 +89,7 @@ void setc(double val);
 protected: 
 private: 
  
+virtual void specify_write_function_indices(); 
 number          g0 ; 
 number          e ; 
 number          c ; 

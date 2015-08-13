@@ -31,7 +31,7 @@ double HH2_converted_standard_UG<TDomain>::Exp(double x)
  
 // adding function which always inits_attachments 
 template<typename TDomain> 
-void HH2_converted_standard_UG<TDomain>::approx_space_available()  
+void HH2_converted_standard_UG<TDomain>::vm_disc_available()  
 {  
 	init_attachments();  
 }  
@@ -320,6 +320,14 @@ const number helpV = 1e3*(m_pVMDisc->R*m_pVMDisc->temperature())/m_pVMDisc->F;
  
  
 outCurrentValues.push_back( gnabar * m*m*m*h * (v - ena) +  gkbar * n*n*n*n * (v - ek)); 
+} 
+ 
+ 
+template<typename TDomain> 
+void HH2_converted_standard_UG<TDomain>::specify_write_function_indices() 
+{ 
+ 
+this->m_vWFctInd.push_back(VMDisc<TDomain>::_v_); 
 } 
  
  

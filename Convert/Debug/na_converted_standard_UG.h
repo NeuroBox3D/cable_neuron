@@ -152,6 +152,7 @@ void set_log_hGate(bool bLoghGate);
 protected: 
 private: 
  
+virtual void specify_write_function_indices(); 
 ADouble mGate; 
 Grid::AttachmentAccessor<Vertex, ADouble> aamGate; 
 ADouble hGate; 

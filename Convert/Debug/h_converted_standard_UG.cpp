@@ -23,7 +23,7 @@ double h_converted_standard_UG<TDomain>::bett(double v)
  
 // adding function which always inits_attachments 
 template<typename TDomain> 
-void h_converted_standard_UG<TDomain>::approx_space_available()  
+void h_converted_standard_UG<TDomain>::vm_disc_available()  
 {  
 	init_attachments();  
 }  
@@ -312,6 +312,14 @@ number ghd = ghdbar*l;
  
  
 outCurrentValues.push_back( ghd*(v-ehd)); 
+} 
+ 
+ 
+template<typename TDomain> 
+void h_converted_standard_UG<TDomain>::specify_write_function_indices() 
+{ 
+ 
+this->m_vWFctInd.push_back(VMDisc<TDomain>::_v_); 
 } 
  
  

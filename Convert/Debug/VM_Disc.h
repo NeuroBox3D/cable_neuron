@@ -2,7 +2,7 @@
  * VM_Disc.cpp
  *
  *  Created on: 26.11.2014
- *      Author: Pgottmann
+ *      Author: Pgottmann, mbreit
  */
 
 
@@ -27,7 +27,6 @@
 #ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED
 	#include "../../../synapse_distributor/synapse_distributor.h"
 #endif
-
 
 
 namespace ug {
@@ -60,12 +59,12 @@ class VMDisc
 		static const int dim = IElemDisc<TDomain>::dim;
 
 		// indices for unknowns
-	    static const size_t _v_ = 0;
-	    static const size_t _k_ = 1;
-	    static const size_t _na_ = 2;
-	    static const size_t _ca_ = 3;
+	    static const size_t _v_;
+	    static const size_t _k_;
+	    static const size_t _na_;
+	    static const size_t _ca_;
 
-	    static const size_t m_numb_ion_funcs = 3;
+	    static const size_t m_numb_ion_funcs;
 
 	    // constants
 	    const number R;	///< universal gas constant
@@ -173,10 +172,10 @@ class VMDisc
 		/// TODO: Writting function with position dependence
 		/// functions to get different ion fluxes
 		///	\{
-		number flux_k();
+		/*number flux_k();
 		number flux_na();
 		number flux_ca();
-		number flux_v();
+		number flux_v();*/
 		/// \}
 
 		/// get current time
@@ -190,6 +189,10 @@ class VMDisc
 
 		/// sets Vars for writing output
 		void set_output(bool output, number gating_x, number gating_y, number gating_z, std::string gating_pfad);
+
+		/// estimate time step size for next step
+		template <typename TVector>
+		number estimate_cfl_cond(ConstSmartPtr<TVector> u);
 
 	public:
 		// ///////////////////////////
@@ -300,6 +303,10 @@ class VMDisc
 
 		bool m_bNonRegularGrid;				///< current regular grid flag
 		bool m_bLocked;						///< flag indicating whether approximation space has been set
+
+		std::vector<SmartPtr<TIChannel> > m_channelsOnCurrSubset;
+		std::vector<std::vector<size_t> > m_vvCurrChWFctInd;
+		std::vector<number> m_currVrtValues[domain_traits<dim>::MaxNumVerticesOfElem];
 };
 
 

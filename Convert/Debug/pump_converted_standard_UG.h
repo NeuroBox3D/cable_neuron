@@ -101,6 +101,7 @@ void setcelsius(double val);
 protected: 
 private: 
  
+virtual void specify_write_function_indices(); 
 number nai ; 
 number         ipumpmax  ; 
 number         km ; 

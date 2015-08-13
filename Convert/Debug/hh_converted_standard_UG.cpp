@@ -22,7 +22,7 @@ double hh_converted_standard_UG<TDomain>::vtrap(double x, double y)
  
 // adding function which always inits_attachments 
 template<typename TDomain> 
-void hh_converted_standard_UG<TDomain>::approx_space_available()  
+void hh_converted_standard_UG<TDomain>::vm_disc_available()  
 {  
 	init_attachments();  
 }  
@@ -338,6 +338,14 @@ number gk = gkbar*n*n*n*n;
  
  
 outCurrentValues.push_back( gna*(v - ena) +  gk*(v - ek)       +  gl*(v - el)); 
+} 
+ 
+ 
+template<typename TDomain> 
+void hh_converted_standard_UG<TDomain>::specify_write_function_indices() 
+{ 
+ 
+this->m_vWFctInd.push_back(VMDisc<TDomain>::_v_); 
 } 
  
  

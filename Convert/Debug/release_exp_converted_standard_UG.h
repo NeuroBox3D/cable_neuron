@@ -91,6 +91,7 @@ void set_log_BGate(bool bLogBGate);
 protected: 
 private: 
  
+virtual void specify_write_function_indices(); 
 ADouble AGate; 
 Grid::AttachmentAccessor<Vertex, ADouble> aaAGate; 
 ADouble BGate; 

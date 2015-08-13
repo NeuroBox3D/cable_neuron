@@ -156,7 +156,7 @@ tau1 =  .9999*tau2;
 aaAGate[vrt] = 0; 
 aaBGate[vrt] = 0; 
 double tp =  (tau1*tau2)/(tau2 - tau1) * log(tau2/tau1); 
-double factor =  -exp(-tp/tau1) + exp(-tp/tau2); 
+double factor =  -exp(-tp/tau1) + exp(-tp/tau2);
 factor =  1/factor;
 }  
  
@@ -225,6 +225,14 @@ const number helpV = 1e3*(m_pVMDisc->R*m_pVMDisc->temperature())/m_pVMDisc->F;
  
 number T = B - A; 
 outCurrentValues.push_back(0); 
+} 
+ 
+ 
+template<typename TDomain> 
+void release_exp_converted_standard_UG<TDomain>::specify_write_function_indices() 
+{ 
+ 
+this->m_vWFctInd.push_back(VMDisc<TDomain>::_v_); 
 } 
  
  

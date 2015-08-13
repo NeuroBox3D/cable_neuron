@@ -10,7 +10,7 @@ namespace cable {
  
 // adding function which always inits_attachments 
 template<typename TDomain> 
-void ar_converted_standard_UG<TDomain>::approx_space_available()  
+void ar_converted_standard_UG<TDomain>::vm_disc_available()  
 {  
 	init_attachments();  
 }  
@@ -182,6 +182,14 @@ g=1/sqrt(1/ pow(g0 , 2)+4*c*(v-e));
 		i = ( -1/g0 + 1/g)/(2*c); 
 }
 outCurrentValues.push_back(i); 
+} 
+ 
+ 
+template<typename TDomain> 
+void ar_converted_standard_UG<TDomain>::specify_write_function_indices() 
+{ 
+ 
+this->m_vWFctInd.push_back(VMDisc<TDomain>::_v_); 
 } 
  
  

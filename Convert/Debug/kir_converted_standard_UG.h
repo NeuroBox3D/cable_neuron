@@ -101,6 +101,7 @@ void set_log_mGate(bool bLogmGate);
 protected: 
 private: 
  
+virtual void specify_write_function_indices(); 
 ADouble mGate; 
 Grid::AttachmentAccessor<Vertex, ADouble> aamGate; 
 number 	gkbar  ; 

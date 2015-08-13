@@ -116,6 +116,7 @@ void set_log_nGate(bool bLognGate);
 protected: 
 private: 
  
+virtual void specify_write_function_indices(); 
 ADouble nGate; 
 Grid::AttachmentAccessor<Vertex, ADouble> aanGate; 
 number 	gbar ; 

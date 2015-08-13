@@ -10,7 +10,7 @@ namespace cable {
  
 // adding function which always inits_attachments 
 template<typename TDomain> 
-void NMDA_Mg_T_converted_standard_UG<TDomain>::approx_space_available()  
+void NMDA_Mg_T_converted_standard_UG<TDomain>::vm_disc_available()  
 {  
 	init_attachments();  
 }  
@@ -688,6 +688,14 @@ number g = gmax * O;
  
  
 outCurrentValues.push_back( (1e-6) * g * (v - Erev)); 
+} 
+ 
+ 
+template<typename TDomain> 
+void NMDA_Mg_T_converted_standard_UG<TDomain>::specify_write_function_indices() 
+{ 
+ 
+this->m_vWFctInd.push_back(VMDisc<TDomain>::_v_); 
 } 
  
  

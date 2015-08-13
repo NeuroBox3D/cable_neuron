@@ -85,6 +85,7 @@ void sete(double val);
 protected: 
 private: 
  
+virtual void specify_write_function_indices(); 
 number 	g ; 
 number 	e ; 
 }; 

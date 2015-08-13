@@ -166,6 +166,14 @@ outCurrentValues.push_back( g*(v - e));
 } 
  
  
+template<typename TDomain> 
+void passive_converted_standard_UG<TDomain>::specify_write_function_indices() 
+{ 
+ 
+this->m_vWFctInd.push_back(VMDisc<TDomain>::_v_); 
+} 
+ 
+ 
 //////////////////////////////////////////////////////////////////////////////// 
 //	explicit template instantiations 
 //////////////////////////////////////////////////////////////////////////////// 

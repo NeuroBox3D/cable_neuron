@@ -22,7 +22,7 @@ double ca_converted_standard_UG<TDomain>::efun(double z)
  
 // adding function which always inits_attachments 
 template<typename TDomain> 
-void ca_converted_standard_UG<TDomain>::approx_space_available()  
+void ca_converted_standard_UG<TDomain>::vm_disc_available()  
 {  
 	init_attachments();  
 }  
@@ -337,6 +337,14 @@ else
  
 number gca = tadj*gbar*m*m*h; 
 outCurrentValues.push_back( (1e-4) * gca * (v - eca)); 
+} 
+ 
+ 
+template<typename TDomain> 
+void ca_converted_standard_UG<TDomain>::specify_write_function_indices() 
+{ 
+ 
+this->m_vWFctInd.push_back(VMDisc<TDomain>::_v_); 
 } 
  
  

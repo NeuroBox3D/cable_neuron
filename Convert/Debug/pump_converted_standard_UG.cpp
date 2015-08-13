@@ -207,13 +207,24 @@ const number helpV = 1e3*(m_pVMDisc->R*m_pVMDisc->temperature())/m_pVMDisc->F;
 
 number inapump = ipumpmax*(1/(1 + pow(km/nai,n)));
  
- 
 number ina = 3.0*inapump; 
 number ik = -2.0*inapump; 
 
  
  
-outCurrentValues.push_back( ipumpmax*(1/(1 + pow(km/nai,n)))); 
+outCurrentValues.push_back( 0);
+outCurrentValues.push_back( ina);
+outCurrentValues.push_back( ik);
+} 
+ 
+ 
+template<typename TDomain> 
+void pump_converted_standard_UG<TDomain>::specify_write_function_indices() 
+{ 
+ 
+this->m_vWFctInd.push_back(VMDisc<TDomain>::_v_); 
+this->m_vWFctInd.push_back(VMDisc<TDomain>::_na_);
+this->m_vWFctInd.push_back(VMDisc<TDomain>::_k_);
 } 
  
  

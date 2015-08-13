@@ -1,3 +1,3 @@
-main.d: ../main.cpp ../Converter.h
+main.d main.o: ../main.cpp ../Converter.h
 
 ../Converter.h:

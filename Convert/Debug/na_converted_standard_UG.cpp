@@ -430,6 +430,14 @@ outCurrentValues.push_back( (1e-4) * gna * (v - ena));
 } 
  
  
+template<typename TDomain> 
+void na_converted_standard_UG<TDomain>::specify_write_function_indices() 
+{ 
+ 
+this->m_vWFctInd.push_back(VMDisc<TDomain>::_v_); 
+} 
+ 
+ 
 //////////////////////////////////////////////////////////////////////////////// 
 //	explicit template instantiations 
 //////////////////////////////////////////////////////////////////////////////// 

@@ -36,7 +36,7 @@ double caL3d_converted_standard_UG<TDomain>::efun(double z)
  
 // adding function which always inits_attachments 
 template<typename TDomain> 
-void caL3d_converted_standard_UG<TDomain>::approx_space_available()  
+void caL3d_converted_standard_UG<TDomain>::vm_disc_available()  
 {  
 	init_attachments();  
 }  
@@ -304,11 +304,20 @@ number cai =  ca;
  
 
  
+
 number cao = m_pVMDisc->ca_out(); 
 
-double ghk2 = ghk(v,cai,cao);
+double ghk2 = ghk(v, cai, cao);
  
 outCurrentValues.push_back( O * p * ghk2);
+} 
+ 
+ 
+template<typename TDomain> 
+void caL3d_converted_standard_UG<TDomain>::specify_write_function_indices() 
+{ 
+ 
+this->m_vWFctInd.push_back(VMDisc<TDomain>::_v_); 
 } 
  
  
