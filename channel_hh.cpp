@@ -390,7 +390,7 @@ vtrap(number x, number y)
 
 
 template<typename TDomain>
-void ChannelHHNernst<TDomain>::vmDisc_available()
+void ChannelHHNernst<TDomain>::vm_disc_available()
 {
 	init_attachments();
 }
