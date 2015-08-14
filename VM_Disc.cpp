@@ -268,20 +268,22 @@ template <typename TVector>
 number VMDisc<TDomain>::
 estimate_cfl_cond(ConstSmartPtr<TVector> u)
 {
+	PROFILE_BEGIN_GROUP(estimate_cfl_cond, "VMDisc");
+
 	ConstSmartPtr<DoFDistribution> dd = this->approx_space()->dof_distribution(GridLevel(), false);
 	std::vector<DoFIndex> dofIndex;
 	MGSubsetHandler& ssh = *this->approx_space()->domain()->subset_handler();
 
 	std::vector<number> vrt_values(m_numb_ion_funcs+1);
+	size_t ch_sz = m_channel.size();
 
 	// iterate over surface level
 	number maxLinDep = 0.0;
-	typedef DoFDistribution::traits<Vertex>::const_iterator it_type;
-	it_type it = dd->begin<Vertex>();
-	it_type it_end = dd->end<Vertex>();
-	for (; it != it_end; ++it)
+	size_t sv_sz = m_vSurfVrt.size();
+
+	for (size_t sv = 0; sv < sv_sz; ++sv)
 	{
-		Vertex* vrt = *it;
+		Vertex* vrt = m_vSurfVrt[sv];
 
 		// fill vector with solution at vertex
 		for (size_t j = 0; j < m_numb_ion_funcs+1; ++j)
@@ -291,39 +293,36 @@ estimate_cfl_cond(ConstSmartPtr<TVector> u)
 			vrt_values[j] = DoFRef(*m_spUOld, dofIndex[0]);
 		}
 
-		// iterate over channels
-		number linDep = 0.0;
-		for (size_t ch = 0; ch < m_channel.size(); ++ch)
+		// find channels active on this vertex
+		std::vector<bool> chActive(ch_sz);
+
+		typedef typename MultiGrid::traits<Edge>::secure_container edge_list;
+		edge_list el;
+		this->approx_space()->domain()->grid()->associated_elements(el, vrt);
+		for (size_t k = 0; k < el.size(); ++k)
 		{
-			// check that vertex belongs to an edge of a subset that this channel works on
-			const std::vector<std::string>& ch_subsets = m_channel[ch]->write_subsets();
+			Edge* edge = el[k];
+			size_t si = (size_t) ssh.get_subset_index(edge);
 
-			typedef typename MultiGrid::traits<Edge>::secure_container edge_list;
-			edge_list el;
-			this->approx_space()->domain()->grid()->associated_elements(el, vrt);
-			for (size_t k = 0; k < el.size(); ++k)
+			// iterate over channels and check whether they are defined on edge subset
+			for (size_t ch = 0; ch < m_channel.size(); ++ch)
 			{
-				Edge* edge = el[k];
-				size_t siEdge = ssh.get_subset_index(edge);
-				std::string sName = ssh.get_subset_name(siEdge);
-
-				for (size_t l = 0; l < ch_subsets.size(); ++l)
-				{
-					if (sName == ch_subsets[l])
-						goto compute_linDep;
-				}
+				if (!chActive[ch] && m_channel[ch]->is_def_on_subset(si))
+					chActive[ch] = true;
 			}
-			continue;
-
-		compute_linDep:
-			linDep += m_channel[ch]->lin_dep_on_pot(vrt, vrt_values);
 		}
+
+		// loop active channels and compute linear dependency
+		number linDep = 0.0;
+		for (size_t ch = 0; ch < ch_sz; ++ch)
+			if (chActive[ch])
+				linDep += m_channel[ch]->lin_dep_on_pot(vrt, vrt_values);
 
 		maxLinDep = std::max(maxLinDep, linDep);
 	}
 
-
 	double cfl = 2.0 * m_spec_cap / maxLinDep;
+
 	// communicate
 #ifdef UG_PARALLEL
 	if (pcl::NumProcs() > 1)
@@ -333,7 +332,16 @@ estimate_cfl_cond(ConstSmartPtr<TVector> u)
 		com.allreduce(&localCFL, &cfl, 1, PCL_DT_DOUBLE, PCL_RO_MIN);
 	}
 #endif
+
 	return (number) cfl;
+}
+
+
+template<typename TDomain>
+const std::vector<Vertex*>& VMDisc<TDomain>::
+surface_vertices() const
+{
+	return m_vSurfVrt;
 }
 
 
@@ -374,6 +382,13 @@ void VMDisc<TDomain>::approximation_space_changed()
 	for (size_t i = 0; i < m_channel.size(); i++)
 		m_channel[i]->approx_space_available();
 
+	// create a list of surface vertices as this takes forever later otherwise
+	ConstSmartPtr<DoFDistribution> dd = this->approx_space()->dof_distribution(GridLevel(), false);
+	typedef DoFDistribution::traits<Vertex>::const_iterator it_type;
+	it_type it = dd->begin<Vertex>(SurfaceView::MG_ALL);
+	it_type it_end = dd->end<Vertex>(SurfaceView::MG_ALL);
+	for (; it != it_end; ++it)
+		m_vSurfVrt.push_back(*it);
 
 #ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
 	// call init method for synapse handler
@@ -408,9 +423,10 @@ template <typename TDomain>
 void VMDisc<TDomain>::
 prep_timestep(number time, VectorProxyBase* upb)
 {
+	PROFILE_FUNC_GROUP("Discretization VMDisc");
 
-	//Write Gattings out
-	if (m_output==true)
+	// write out gatings
+	if (m_output)
 		write_gatings_for_position(m_gating_x, m_gating_y, m_gating_z, m_gating_pfad);
 
 
@@ -427,14 +443,14 @@ prep_timestep(number time, VectorProxyBase* upb)
 	MGSubsetHandler& ssh = *this->approx_space()->domain()->subset_handler();
 
 	std::vector<number> vrt_values(m_numb_ion_funcs+1);
+	size_t ch_sz = m_channel.size();
 
 	// iterate over surface level
-	typedef DoFDistribution::traits<Vertex>::const_iterator it_type;
-	it_type it = dd->begin<Vertex>();
-	it_type it_end = dd->end<Vertex>();
-	for (; it != it_end; ++it)
+	size_t sv_sz = m_vSurfVrt.size();
+
+	for (size_t sv = 0; sv < sv_sz; ++sv)
 	{
-		Vertex* vrt = *it;
+		Vertex* vrt = m_vSurfVrt[sv];
 
 		// fill vector with solution at vertex
 		for (size_t j = 0; j < m_numb_ion_funcs+1; ++j)
@@ -444,40 +460,40 @@ prep_timestep(number time, VectorProxyBase* upb)
 			vrt_values[j] = DoFRef(*m_spUOld, dofIndex[0]);
 		}
 
-		// iterate over channels
-		for (size_t ch = 0; ch < m_channel.size(); ++ch)
+		// find channels active on this vertex
+		std::vector<bool> chActive(ch_sz);
+
+		typedef typename MultiGrid::traits<Edge>::secure_container edge_list;
+		edge_list el;
+		this->approx_space()->domain()->grid()->associated_elements(el, vrt);
+		for (size_t k = 0; k < el.size(); ++k)
 		{
-			// check that vertex belongs to an edge of a subset that this channel works on
-			const std::vector<std::string>& ch_subsets = m_channel[ch]->write_subsets();
+			Edge* edge = el[k];
+			size_t si = (size_t) ssh.get_subset_index(edge);
 
-			typedef typename MultiGrid::traits<Edge>::secure_container edge_list;
-			edge_list el;
-			this->approx_space()->domain()->grid()->associated_elements(el, vrt);
-			for (size_t k = 0; k < el.size(); ++k)
+			// iterate over channels and check whether they are defined on edge subset
+			for (size_t ch = 0; ch < m_channel.size(); ++ch)
 			{
-				Edge* edge = el[k];
-				size_t siEdge = ssh.get_subset_index(edge);
-				std::string sName = ssh.get_subset_name(siEdge);
+				if (!chActive[ch] && m_channel[ch]->is_def_on_subset(si))
+					chActive[ch] = true;
+			}
+		}
 
-				for (size_t l = 0; l < ch_subsets.size(); ++l)
+		// loop active channels and init/update them
+		for (size_t ch = 0; ch < ch_sz; ++ch)
+		{
+			if (chActive[ch])
+			{
+				if (time == m_init_time)
 				{
-					if (sName == ch_subsets[l])
-						goto update;
+					// init channel
+					m_channel[ch]->init(vrt, vrt_values);
 				}
-			}
-			continue;
-
-
-		update:
-			if (time == m_init_time)
-			{
-				// init channel
-				m_channel[ch]->init(vrt, vrt_values);
-			}
-			else
-			{
-				// update channel
-				m_channel[ch]->update_gating(time, vrt, vrt_values);
+				else
+				{
+					// update channel
+					m_channel[ch]->update_gating(time, vrt, vrt_values);
+				}
 			}
 		}
 	}

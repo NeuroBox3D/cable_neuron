@@ -44,6 +44,7 @@ set(SOURCES	ElemDiscHH_base.cpp
 			channel_hh.cpp
 			leakage.cpp
 			VM_Disc.cpp
+			order.cpp
 			plugin_main.cpp
 			)
 

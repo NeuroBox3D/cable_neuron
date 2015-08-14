@@ -20,6 +20,7 @@
 
 #include "diam_attachment_handler.h"	// attachment handling for diameter attachment
 #include "channel_interface.h"
+#include "cable_ass_tuner.h"
 
 #ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
 	#include "../synapse_handler/synapse_handler.h"
@@ -194,6 +195,9 @@ class VMDisc
 		template <typename TVector>
 		number estimate_cfl_cond(ConstSmartPtr<TVector> u);
 
+		/// get a vector of all surface vertices
+		const std::vector<Vertex*>& surface_vertices() const;
+
 	public:
 		// ///////////////////////////
 		// inherited from IElemDisc //
@@ -304,9 +308,14 @@ class VMDisc
 		bool m_bNonRegularGrid;				///< current regular grid flag
 		bool m_bLocked;						///< flag indicating whether approximation space has been set
 
+		/// vector of subset indices this disc is declared on
+		std::vector<int> m_vSI;
+
 		std::vector<SmartPtr<TIChannel> > m_channelsOnCurrSubset;
 		std::vector<std::vector<size_t> > m_vvCurrChWFctInd;
 		std::vector<number> m_currVrtValues[domain_traits<dim>::MaxNumVerticesOfElem];
+
+		std::vector<Vertex*> m_vSurfVrt;
 };
 
 

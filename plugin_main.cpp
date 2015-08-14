@@ -7,6 +7,7 @@
 
 #include "bridge/util.h"
 #include "bridge/util_domain_dependent.h"
+#include "bridge/util_domain_algebra_dependent.h"
 
 #include "lib_grid/global_attachments.h" // global attachments
 
@@ -21,6 +22,8 @@
 #include "ElemDiscHH_Nernst_fv1.h"
 #include "ElemDiscHH_Nernst_neuron_fv1.h"
 #include "VM_Disc.h"
+#include "cable_ass_tuner.h"
+#include "order.h"
 
 // add converted channels
 #ifdef HH_CONVERTED_CHANNELS_ENABLED
@@ -282,6 +285,12 @@ struct Functionality
 #ifdef HH_CONVERTED_CHANNELS_ENABLED
 		#include "Convert/Debug/channels.cpp"
 #endif
+
+		// Cuthill McKee ordering
+		{
+			reg.add_function("order_cuthillmckee", &order_cuthillmckee<TDomain>, grp.c_str(),
+							 "", "approxSpace", "vertex ordering for solver optimization");
+		}
 	}
 
 	/**
@@ -296,11 +305,20 @@ struct Functionality
 	template <typename TDomain, typename TAlgebra>
 	static void DomainAlgebra(bridge::Registry& reg, string grp)
 	{
-		//static const int dim = TDomain::dim;
 		string suffix = GetDomainAlgebraSuffix<TDomain, TAlgebra>();
 		string tag = GetDomainAlgebraTag<TDomain, TAlgebra>();
 
-		typedef GridFunction<TDomain, TAlgebra> TFct;
+		// CableAssTuner
+		{
+			typedef CableAssTuner<TDomain, TAlgebra> T;
+			string name = string("CableAssTuner");
+			reg.add_class_<T>(name+suffix, grp)
+				.template add_constructor<void (*)(SmartPtr<DomainDiscretization<TDomain, TAlgebra> >,
+												   SmartPtr<ApproximationSpace<TDomain> >)>("domain disc")
+				.add_method("remove_ghosts_from_assembling_iterator", &T::template remove_ghosts_from_assembling_iterator<1>)
+				.set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name+suffix, name, tag);
+		}
 	}
 
 	/**
@@ -376,7 +394,7 @@ InitUGPlugin_HH_Kabelnew(Registry* reg, string grp)
 		//RegisterDimensionDependent<Functionality>(*reg,grp);
 		RegisterDomainDependent<Functionality>(*reg,grp);
 		//RegisterAlgebraDependent<Functionality>(*reg,grp);
-		//RegisterDomainAlgebraDependent<Functionality>(*reg,grp);
+		RegisterDomainAlgebraDependent<Functionality>(*reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
