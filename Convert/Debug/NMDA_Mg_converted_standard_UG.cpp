@@ -1,4 +1,4 @@
-#include "NMDA_MG_converted_standard_UG.h"	
+#include "NMDA_Mg_converted_standard_UG.h"
 #include "lib_grid/lg_base.h" 
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h" 
 #include "lib_disc/function_spaces/grid_function.h" 
