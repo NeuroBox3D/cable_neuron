@@ -225,9 +225,11 @@ struct Functionality
 			string name = string("VMDisc").append(suffix);
 			reg.add_class_<T, TBase >(name, grp)
 				.template add_constructor<void (*)(const char*)>
-					("Subset(s)#ApproxSpace")
-				.template add_constructor<void (*)(const char*, const number)>
-					("Subset(s)#ApproxSpace#InitTime")
+					("Subset(s)")
+				.template add_constructor<void (*)(const char*, bool)>
+					("Subset(s)#with ion concentrations?")
+				.template add_constructor<void (*)(const char*, bool, number)>
+					("Subset(s)#with ion concentrations?#InitTime")
 				.add_method("set_diameter", static_cast<void (T::*)(number)>(&T::set_diameter),
 						"", "new diameter | default | value=1e6", "sets a new diameter")
 

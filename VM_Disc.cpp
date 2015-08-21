@@ -29,23 +29,22 @@ const size_t VMDisc<TDomain>::_na_ = 2;
 template <typename TDomain>
 const size_t VMDisc<TDomain>::_ca_ = 3;
 
-template <typename TDomain>
-const size_t VMDisc<TDomain>::m_numb_ion_funcs = 3;
-
 
 // TODO: rework this?
 // We generally only have the following functions: v, k, na, ca.
 // We should begin with generating the necessary functions in a hard-coded way
 // and might then check whether some of them are not in fact needed.
 template<typename TDomain>
-VMDisc<TDomain>::VMDisc(const char* subsets, const number init_time)
-: 	IElemDisc<TDomain>("v, k, na, ca", subsets),
+VMDisc<TDomain>::VMDisc(const char* subsets, bool withConcs, number init_time)
+: 	IElemDisc<TDomain>(withConcs ? "v, k, na, ca" : "v", subsets),
+	m_numb_ion_funcs(withConcs ? 3 : 0),
 	R(8.314), F(96485.0),
 	m_aDiameter(GlobalAttachments::attachment<ANumber>("diameter")),
 	m_constDiam(1e-6), m_bConstDiamSet(false),
 	m_spec_res(1.0e6), m_spec_cap(1.0e-5),
 	m_k_out(4.0), m_na_out(150.0), m_ca_out(1.5),
 	m_ek(-90.0), m_ena(60.0), m_eca(140.0),
+	m_eqConc_ca(5e-5), m_reactionRate_ca(0.011),
 	m_temperature(310.0),
 	m_influx_ac(1e-9),
 	m_output(false),
@@ -63,10 +62,12 @@ VMDisc<TDomain>::VMDisc(const char* subsets, const number init_time)
 	m_bLocked(false)
 {
 	// set diff constants
-	m_diff.resize(3);
-	m_diff[0] = 1.0e-12;
-	m_diff[1] = 1.0e-12;
-	m_diff[2] = 2.2e-13;
+	if (withConcs)
+	{	m_diff.resize(3);
+		m_diff[0] = 1.0e-12;
+		m_diff[1] = 1.0e-12;
+		m_diff[2] = 2.2e-13;
+	}
 }
 
 
@@ -405,8 +406,8 @@ template<typename TDomain>
 void VMDisc<TDomain>::prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid)
 {
 	// check number
-	if (vLfeID.size() != 4)
-		UG_THROW("VMDisc: Wrong number of functions given. Needs exactly 4 functions ");
+	//if (vLfeID.size() != 4)
+	//	UG_THROW("VMDisc: Wrong number of functions given. Needs exactly 4 functions ");
 
 	if (vLfeID[0].order() != 1 || vLfeID[0].type() != LFEID::LAGRANGE)
 		UG_THROW("VMDisc FV scheme only implemented for 1st order.");
@@ -592,6 +593,9 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 
 		// add "pre_resistance" parts
 		pre_resistance += scv.volume() / (0.25*PI*diam*diam);
+
+		// calcium sink/source (without equilibrium constant which belongs on rhs!)
+		d(_ca_, co) += u(_ca_, co) * m_reactionRate_ca * scv.volume()*0.25*PI*diam*diam;
 	}
 
 	// diffusive parts
@@ -704,6 +708,9 @@ void VMDisc<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, const MathV
 
 		// get diam from attachment
 		number diam = m_aaDiameter[pElem->vertex(co)];
+
+		// calcium sink/source
+		d(_ca_, co) += m_eqConc_ca * m_reactionRate_ca * scv.volume()*0.25*PI*diam*diam;
 
 		// influx handling
 		number time = this->time();
@@ -830,6 +837,9 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 		// add "pre_resistance" parts
 		pre_resistance += scv.volume() / (0.25*PI*diam*diam);
+
+		// calcium sink/source
+		J(_ca_, co, _ca_, co) += m_reactionRate_ca * scv.volume()*0.25*PI*diam*diam;
 	}
 
 

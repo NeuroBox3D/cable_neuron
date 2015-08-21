@@ -65,7 +65,7 @@ class VMDisc
 	    static const size_t _na_;
 	    static const size_t _ca_;
 
-	    static const size_t m_numb_ion_funcs;
+	    const size_t m_numb_ion_funcs;
 
 	    // constants
 	    const number R;	///< universal gas constant
@@ -73,7 +73,7 @@ class VMDisc
 	
 	public:
 		///	constructor
-		VMDisc(const char* subsets, const number init_time = 0.0);
+		VMDisc(const char* subsets, bool withConcs = true, number init_time = 0.0);
 
 		///	destructor
 		virtual ~VMDisc() {};
@@ -170,7 +170,7 @@ class VMDisc
 		// ////////////////////////////////
 		// getters for functional values //
 		// ////////////////////////////////
-		/// TODO: Writting function with position dependence
+		/// TODO: Writing function with position dependence
 		/// functions to get different ion fluxes
 		///	\{
 		/*number flux_k();
@@ -272,6 +272,9 @@ class VMDisc
 		number m_ek;						///< reversal potential K in units of mV
 		number m_ena;						///< reversal potential Na in units of mV
 		number m_eca;						///< reversal potential Ca in units of mV
+
+		number m_eqConc_ca;					///< equilibrium concentration Ca
+		number m_reactionRate_ca;			///< reaction rate in Ca source/sink term (units of ms^-1)
 
 		number m_temperature;				///< temperature in units of K
 
