@@ -59,7 +59,8 @@ VMDisc<TDomain>::VMDisc(const char* subsets, bool withConcs, number init_time)
 	m_v(0), m_na(0), m_k(0), m_ca(0),
 	m_init_time(init_time), m_time(init_time),
 	m_bNonRegularGrid(false),
-	m_bLocked(false)
+	m_bLocked(false),
+	syn_counter_alpha(0), syn_counter_exp(0)
 {
 	// set diff constants
 	if (withConcs)
@@ -127,7 +128,7 @@ template<typename TDomain> number VMDisc<TDomain>::eca() {return m_eca;}
 template<typename TDomain> number VMDisc<TDomain>::temperature() {return m_temperature;}
 template<typename TDomain> number VMDisc<TDomain>::temperature_celsius() {return m_temperature - 273.15;}
 
-
+template<typename TDomain> void VMDisc<TDomain>::gets_syns() {std::cout << "AlphaSyn: " << syn_counter_alpha << "Exp2Syn: " << syn_counter_exp << std::endl;}
 // ////////////////////////////
 // setters for functionality //
 // ////////////////////////////
@@ -643,6 +644,7 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 
 			d(k, scvf.from()) -= diff_flux;
 			d(k, scvf.to()  ) += diff_flux;
+
 		}
 	}
 }
@@ -679,6 +681,8 @@ void VMDisc<TDomain>::add_def_M_elem(LocalVector& d, const LocalVector& u, GridO
 		// ion species time derivative
 		for (size_t k = 1; k < m_numb_ion_funcs+1; k++)
 			d(k, co) += u(k, co)*scv.volume()*0.25*PI*diam*diam;
+
+
 	}
 }
 
@@ -751,6 +755,15 @@ void VMDisc<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, const MathV
 				//UG_LOG_ALL_PROCS("Setting Current" << "!"<<std::endl);
 				//UG_LOG_ALL_PROCS("Current: " << current << std::endl);
 				d(_v_, co) -= 1e-12*current; // scaling from nA to C/ms
+
+				//TODO CALCIUM einstrom 4000 ionen
+				//Only for calciumdyns needed
+				number fac = 0.01 / (2*F);
+				fac *= 0.01;
+				d(_ca_, co) -= 1e-12*current*fac;
+
+				// syncounter
+				syn_counter_exp += 1;
 			}
 		}
 #endif
@@ -767,6 +780,15 @@ void VMDisc<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, const MathV
 				//UG_LOG_ALL_PROCS("Setting Current" << "!"<<std::endl);
 				//UG_LOG_ALL_PROCS("Current: " << current << std::endl);
 				d(_v_, co) -= current;
+
+				//Only for calciumdyns
+				number fac = 0.01 / (2*F);
+				//calcium buffering (99%)
+				fac *= 0.01;
+				d(_ca_, co) -= current*fac;
+
+				// syncounter
+				syn_counter_alpha +=1;
 			}
 		}
 #endif
@@ -872,6 +894,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 				d_diff_flux = grad_normal * m_diff[k-1] * 0.25*PI * diam_fromTo*diam_fromTo;
 				J(k, scvf.from(), k, sh) -= d_diff_flux;
 				J(k, scvf.to(), k, sh) += d_diff_flux;
+
 			}
 		}
 	}
@@ -903,8 +926,6 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		//UG_COND_THROW(fabs(Diam) <= 1e-12, "Diam zero!\n");
 
 
-		//spec_capa has to be set later on in an varialbe
-
 		// get spec capacity
 		number spec_capacity = m_spec_cap;
 		for (size_t k = 1; k < m_numb_ion_funcs+1; k++)
@@ -914,7 +935,7 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		// potential equation
 		J(_v_, co, _v_, co) += PI*diam*scv.volume()*spec_capacity;
 	}
-	//std::cout << "jac m elem ends" << std::endl;
+
 }
 
 

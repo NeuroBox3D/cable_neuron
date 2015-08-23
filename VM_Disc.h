@@ -148,6 +148,9 @@ class VMDisc
 		/// get temperature in units of degrees C
 		number temperature_celsius();
 
+		/// getting number of Synapses
+		void gets_syns();
+
 		// ////////////////////////////
 		// setters for functionality //
 		// ////////////////////////////
@@ -278,13 +281,13 @@ class VMDisc
 
 		number m_temperature;				///< temperature in units of K
 
-
 		number m_influx_ac;
 
 		bool m_output;
 		number m_gating_x, m_gating_y, m_gating_z;
 		std::string m_gating_pfad;
 
+		number syn_counter_alpha, syn_counter_exp;
 
 	protected:
 		std::vector<number> m_flux_value, m_beg_flux, m_dur_flux;		///< values describing influxes
