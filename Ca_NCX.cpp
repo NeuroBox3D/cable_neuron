@@ -50,7 +50,12 @@ set_IMAX_N(number IMAX)
 	IMAX_N = IMAX;
 }
 
-
+template<typename TDomain>
+void Ca_NCX<TDomain>::
+set_scaling(number scale)
+{
+	m_scaling = scale;
+}
 
 
 
@@ -105,7 +110,7 @@ void Ca_NCX<TDomain>::update_gating(number newTime, Vertex* vrt, const std::vect
 	number v = vrt_values[VMDisc<TDomain>::_v_];
 	number ca = vrt_values[VMDisc<TDomain>::_ca_];
 
-	aagatingFactorGate[vrt] += (KD_N / std::pow(KD_N + ca, 2))*dt;
+	aagatingFactorGate[vrt] += ((KD_N / std::pow(KD_N + ca, 2))*dt);
 
 
 }
@@ -119,7 +124,7 @@ void Ca_NCX<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>& vrt_
 
 	outCurrentValues.push_back(0);
 	// Ca flux   mol/s -> mol/ms
-	outCurrentValues.push_back(gatingFactor * IMAX_N * 1e-4);
+	outCurrentValues.push_back(gatingFactor * IMAX_N * m_scaling);
 }
 
 

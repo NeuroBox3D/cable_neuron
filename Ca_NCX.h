@@ -42,6 +42,8 @@ class Ca_NCX
 
 		void set_IMAX_N(number IMAX);
 
+		void set_scaling(number scale);
+
 		// inherited from IChannel
 		virtual void init(Vertex* vrt, const std::vector<number>& vrt_values);
 		virtual void update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values);
@@ -59,6 +61,7 @@ class Ca_NCX
 		//const number KD_P = 3.4e-04;		// mol*m^-3 (Graupner)
 		number IMAX_N;				// mol*s^-1
 
+		number m_scaling;
 
 		ADouble gatingFactorGate;
 		Grid::AttachmentAccessor<Vertex, ADouble> aagatingFactorGate;

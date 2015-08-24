@@ -50,7 +50,12 @@ set_IMAX_P(number IMAX)
 	IMAX_P = IMAX;
 }
 
-
+template<typename TDomain>
+void Ca_PMCA<TDomain>::
+set_scaling(number scale)
+{
+	m_scaling = scale;
+}
 
 
 
@@ -105,7 +110,7 @@ void Ca_PMCA<TDomain>::update_gating(number newTime, Vertex* vrt, const std::vec
 	number v = vrt_values[VMDisc<TDomain>::_v_];
 	number ca = vrt_values[VMDisc<TDomain>::_ca_];
 
-	aagatingFactorGate[vrt] = (2*KD_P*KD_P*ca / std::pow(KD_P*KD_P + ca*ca, 2))*dt;
+	aagatingFactorGate[vrt] += ((2*KD_P*KD_P*ca / std::pow(KD_P*KD_P + ca*ca, 2))*dt);
 
 
 }
@@ -118,7 +123,7 @@ void Ca_PMCA<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>& vrt
 	number gatingFactor = aagatingFactorGate[vrt];
 
 	outCurrentValues.push_back(0);
-	outCurrentValues.push_back(gatingFactor * IMAX_P * 1e-4);
+	outCurrentValues.push_back(gatingFactor * IMAX_P * m_scaling);
 }
 
 

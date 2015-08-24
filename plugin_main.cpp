@@ -232,6 +232,7 @@ struct Functionality
 				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
 				.add_method("set_IMAX_P", &T::set_IMAX_P)
 				.add_method("set_KD_P", &T::set_KD_P)
+				.add_method("set_scaling" &T::set_scaling)
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "Ca_PMCA", tag);
 		}
@@ -246,6 +247,7 @@ struct Functionality
 				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
 				.add_method("set_IMAX_N", &T::set_IMAX_N)
 				.add_method("set_KD_N", &T::set_KD_N)
+				.add_method("set_scaling" &T::set_scaling)
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "Ca_NCX", tag);
 		}
@@ -318,9 +320,9 @@ struct Functionality
 			reg.add_class_to_group(name, "VMDisc", tag);
 		}
 
-#ifdef HH_CONVERTED_CHANNELS_ENABLED
+//#ifdef HH_CONVERTED_CHANNELS_ENABLED
 		#include "Convert/Debug/channels.cpp"
-#endif
+//#endif
 
 		// Cuthill McKee ordering
 		{
