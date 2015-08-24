@@ -21,6 +21,8 @@
 #include "ElemDiscHH_fv1.h"
 #include "ElemDiscHH_Nernst_fv1.h"
 #include "ElemDiscHH_Nernst_neuron_fv1.h"
+
+// Solver includes
 #include "VM_Disc.h"
 #include "cable_ass_tuner.h"
 #include "order.h"
@@ -30,6 +32,9 @@
 #include "Convert/Debug/includefile.cpp"
 #endif
 //#include "Convert/Debug/hh_converted_standard_UG.h"
+//other channel includes
+#include "Ca_PMCA.h"
+#include "Ca_NCX.h"
 
 using namespace std;
 using namespace ug::bridge;
@@ -217,6 +222,34 @@ struct Functionality
 			reg.add_class_to_group(name, "ChannelLeak", tag);
 		}
 
+		// ca "channel"
+		{
+			typedef Ca_PMCA<TDomain> T;
+			typedef IChannel<TDomain> TBase;
+			string name = string("Ca_PMCA").append(suffix);
+			reg.add_class_<T, TBase >(name, grp)
+				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
+				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
+				.add_method("set_IMAX_P", &T::set_IMAX_P)
+				.add_method("set_KD_P", &T::set_KD_P)
+				.set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "Ca_PMCA", tag);
+		}
+
+		// ca "channel"
+		{
+			typedef Ca_NCX<TDomain> T;
+			typedef IChannel<TDomain> TBase;
+			string name = string("Ca_NCX").append(suffix);
+			reg.add_class_<T, TBase >(name, grp)
+				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
+				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
+				.add_method("set_IMAX_N", &T::set_IMAX_N)
+				.add_method("set_KD_N", &T::set_KD_N)
+				.set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "Ca_NCX", tag);
+		}
+
 		// VM-Disc class
 		{
 			typedef IChannel<TDomain> TIChannel;
@@ -271,6 +304,7 @@ struct Functionality
 						"sets Position, duration, ending and influxvalue of an Influx")
 				.add_method("write_gatings_for_position", &T::write_gatings_for_position)
 				.add_method("set_output", static_cast<void (T::*)(bool, number, number, number, std::string)> (&T::set_output))
+				.add_method("gets_syns", &T::gets_syns)
 #ifdef UG_CPU_1
 				.add_method("estimate_cfl_cond", &T::template estimate_cfl_cond<CPUAlgebra::vector_type>)
 #endif
