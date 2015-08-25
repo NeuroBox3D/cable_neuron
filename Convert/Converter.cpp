@@ -1937,7 +1937,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  myhfile << "#ifndef " + filename + "_H_\n";
 	  myhfile << "#define " + filename + "_H_\n";
 
-	  myhfile << "#include \"channel_interface.h\" \n";
+	  myhfile << "#include \"../../channel_interface.h\" \n";
 
 	  myhfile << "#include \"lib_grid/lg_base.h\" \n";
 	  myhfile << "#include \"lib_grid/grid/grid_base_objects.h\" \n";
@@ -2642,9 +2642,9 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  {
 		  std::cout << "state_sizes: "<< State_vars.size() << " - " << i+1 << std::endl;
 		  if (i+1 != State_vars.size())
-			  Gatingif = Gatingif + "m_log_" + State_vars[i] + "Gate == true || ";
+			  Gatingif = Gatingif + "m_log_" + State_vars[i] + "Gate || ";
 		  else
-			  Gatingif = Gatingif + "m_log_" + State_vars[i] + "Gate == true ";
+			  Gatingif = Gatingif + "m_log_" + State_vars[i] + "Gate ";
 	  }
 
 	  if (Gatingif!="")
@@ -4195,19 +4195,35 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 		 		  // write m_F only if there is a equilirium used!
 		 		 bool m_F_needed = false;
+		 		 bool m_F_needed_2 = false;
 		 		 for (size_t j=0; j<All_Eqs.size(); j++)
 		 		 {
 		 			 // if Nernst Pot used we need to add /m_F
 		 			 if (outs[i].find(Remove_all(All_Eqs[j]))!=outs[i].npos)
+		 			 {
+		 				 //calcium hast valence of two so we need 2*m_F
 		 				 m_F_needed = true;
+
+		 				 //if there is ca
+		 				 if (Remove_all(All_Eqs[j]).find("ca")!= Remove_all(All_Eqs[j]).npos)
+		 						 m_F_needed_2 = true;
+		 			 }
 		 		 }
 		 		 //std::cout << "whats in outs: " << outs[i] << " ahh thats in it" << std::endl;
 
 		 		 //std::cout << "optional: " << optional << " force " << force << std::endl;
 		 		 if (m_F_needed==true && (optional==true || force == true))
 		 		 {
-		 			 mycppfile << "outCurrentValues.push_back(" + outs[i] + "/m_F ); \n";
-		 			 RealWrittenOuts.push_back(true);
+		 			 if (m_F_needed_2 == true)
+		 			 {
+		 				 mycppfile << "outCurrentValues.push_back(" + outs[i] + "/2 * m_F ); \n";
+		 				 RealWrittenOuts.push_back(true);
+		 			 }
+		 			 else
+		 			 {
+		 				 mycppfile << "outCurrentValues.push_back(" + outs[i] + "/m_F ); \n";
+		 				 RealWrittenOuts.push_back(true);
+		 			 }
 		 		 }
 
 		 		 if (m_F_needed==false && (optional==true || force == true))
