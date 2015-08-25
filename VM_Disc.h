@@ -130,6 +130,7 @@ class VMDisc
 		number k_out();
 		number na_out();
 		number ca_out();
+		number conc_out(size_t ion_spec);
 		/// \}
 
 		/// get diffusion coefficients in units of m^2/ms

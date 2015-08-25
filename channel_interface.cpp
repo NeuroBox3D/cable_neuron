@@ -60,12 +60,11 @@ void IChannel<TDomain>::approx_space_available()
 	// sort for faster access
 	std::sort(m_vSI.begin(), m_vSI.end());
 
-	// fill write function index vector
-	// this could be done at an earlier point; however, not in the constructor,
-	// as this will not allow vtable lookup
-	specify_write_function_indices();
-
 	vm_disc_available();
+
+	// we want to do this _after_ vm_disc_available()
+	// as some implementations (e.g. IonLeakage) need this
+	specify_write_function_indices();
 }
 
 

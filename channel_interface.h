@@ -63,7 +63,7 @@ class IChannel
 		virtual void vm_disc_available() {};
 
 		/// getting values of internal channel states
-		virtual std::vector<number> state_values(number x, number y, number z) = 0;
+		virtual std::vector<number> state_values(number x, number y, number z) {return std::vector<number>(0);};
 
 		/// adding some Jacobian infos at given vertex
 		//virtual void Jacobi_sets(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outJFlux) = 0;

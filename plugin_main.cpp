@@ -28,13 +28,16 @@
 #include "order.h"
 
 // add converted channels
-//#ifdef HH_CONVERTED_CHANNELS_ENABLED
+#ifdef HH_CONVERTED_CHANNELS_ENABLED
 #include "Convert/Debug/includefile.cpp"
-//#endif
+#endif
 //#include "Convert/Debug/hh_converted_standard_UG.h"
 //other channel includes
+
+#include "vdcc_bg.h"
 #include "Ca_PMCA.h"
 #include "Ca_NCX.h"
+#include "ion_leakage.h"
 
 using namespace std;
 using namespace ug::bridge;
@@ -206,7 +209,7 @@ struct Functionality
 		}
 
 
-		// leakage "channel"
+		// charge leakage
 		{
 			typedef ChannelLeak<TDomain> T;
 			typedef IChannel<TDomain> TBase;
@@ -222,7 +225,38 @@ struct Functionality
 			reg.add_class_to_group(name, "ChannelLeak", tag);
 		}
 
-		// ca "channel"
+
+		// ion leakage
+		{
+			typedef IonLeakage<TDomain> T;
+			typedef IChannel<TDomain> TBase;
+			string name = string("IonLeakage").append(suffix);
+			reg.add_class_<T, TBase >(name, grp)
+				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
+				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
+				.add_method("set_perm", &T::set_perm, "", "flux at rest#inner concentration at rest# outer concentration at rest#potential at rest",
+						    "tunes the channel to equilibrate fluxes at resting conditions")
+				.add_method("set_leaking_quantity", &T::set_leaking_quantity, "", "", "")
+				.set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "IonLeakage", tag);
+		}
+
+
+		// VDCC BG
+		{
+			typedef VDCC_BG_Cable<TDomain> T;
+			typedef IChannel<TDomain> TBase;
+			string name = string("VDCC_BG_Cable").append(suffix);
+			reg.add_class_<T, TBase >(name, grp)
+				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
+				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
+				.add_method("set_log_mGate" , &T::set_log_mGate)
+				.add_method("set_log_hGate" , &T::set_log_hGate)
+				.set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "VDCC_BG_Cable", tag);
+		}
+
+		// ca "channel" (pump)
 		{
 			typedef Ca_PMCA<TDomain> T;
 			typedef IChannel<TDomain> TBase;
@@ -232,12 +266,11 @@ struct Functionality
 				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
 				.add_method("set_IMAX_P", &T::set_IMAX_P)
 				.add_method("set_KD_P", &T::set_KD_P)
-				.add_method("set_scaling", &T::set_scaling)
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "Ca_PMCA", tag);
 		}
 
-		// ca "channel"
+		// ca "channel" (pump)
 		{
 			typedef Ca_NCX<TDomain> T;
 			typedef IChannel<TDomain> TBase;
@@ -247,7 +280,6 @@ struct Functionality
 				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
 				.add_method("set_IMAX_N", &T::set_IMAX_N)
 				.add_method("set_KD_N", &T::set_KD_N)
-				.add_method("set_scaling", &T::set_scaling)
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "Ca_NCX", tag);
 		}
@@ -320,9 +352,9 @@ struct Functionality
 			reg.add_class_to_group(name, "VMDisc", tag);
 		}
 
-//#ifdef HH_CONVERTED_CHANNELS_ENABLED
+#ifdef HH_CONVERTED_CHANNELS_ENABLED
 		#include "Convert/Debug/channels.cpp"
-//#endif
+#endif
 
 		// Cuthill McKee ordering
 		{

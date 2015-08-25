@@ -50,6 +50,7 @@ VMDisc<TDomain>::VMDisc(const char* subsets, bool withConcs, number init_time)
 	m_output(false),
 	m_gating_x(0), m_gating_y(0), m_gating_z(0),
 	m_gating_pfad(""),
+	syn_counter_alpha(0), syn_counter_exp(0),
 #ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
 	m_spSH(SPNULL),
 #endif
@@ -59,8 +60,7 @@ VMDisc<TDomain>::VMDisc(const char* subsets, bool withConcs, number init_time)
 	m_v(0), m_na(0), m_k(0), m_ca(0),
 	m_init_time(init_time), m_time(init_time),
 	m_bNonRegularGrid(false),
-	m_bLocked(false),
-	syn_counter_alpha(0), syn_counter_exp(0)
+	m_bLocked(false)
 {
 	// set diff constants
 	if (withConcs)
@@ -118,6 +118,14 @@ template<typename TDomain> number VMDisc<TDomain>::spec_cap() {return m_spec_cap
 template<typename TDomain> number VMDisc<TDomain>::k_out() {return m_k_out;}
 template<typename TDomain> number VMDisc<TDomain>::na_out() {return m_na_out;}
 template<typename TDomain> number VMDisc<TDomain>::ca_out() {return m_ca_out;}
+template<typename TDomain> number VMDisc<TDomain>::conc_out(size_t ion_spec)
+{
+	if (ion_spec == 1) return m_k_out;
+	if (ion_spec == 2) return m_na_out;
+	if (ion_spec == 3) return m_ca_out;
+	UG_THROW("Tried to access outer concentration which is not available (index "<<ion_spec<<").");
+}
+
 
 template<typename TDomain> const std::vector<number>& VMDisc<TDomain>::diff_coeffs() {return m_diff;}
 
@@ -594,9 +602,6 @@ void VMDisc<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridO
 
 		// add "pre_resistance" parts
 		pre_resistance += scv.volume() / (0.25*PI*diam*diam);
-
-		// calcium sink/source (without equilibrium constant which belongs on rhs!)
-		d(_ca_, co) += u(_ca_, co) * m_reactionRate_ca * scv.volume()*0.25*PI*diam*diam;
 	}
 
 	// diffusive parts
@@ -681,8 +686,6 @@ void VMDisc<TDomain>::add_def_M_elem(LocalVector& d, const LocalVector& u, GridO
 		// ion species time derivative
 		for (size_t k = 1; k < m_numb_ion_funcs+1; k++)
 			d(k, co) += u(k, co)*scv.volume()*0.25*PI*diam*diam;
-
-
 	}
 }
 
@@ -712,9 +715,6 @@ void VMDisc<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, const MathV
 
 		// get diam from attachment
 		number diam = m_aaDiameter[pElem->vertex(co)];
-
-		// calcium sink/source
-		d(_ca_, co) += m_eqConc_ca * m_reactionRate_ca * scv.volume()*0.25*PI*diam*diam;
 
 		// influx handling
 		number time = this->time();
@@ -758,9 +758,12 @@ void VMDisc<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, const MathV
 
 				//TODO CALCIUM einstrom 4000 ionen
 				//Only for calciumdyns needed
-				number fac = 0.01 / (2*F);
-				fac *= 0.01;
-				d(_ca_, co) -= 1e-12*current*fac;
+				if (m_numb_ion_funcs >= 3)
+				{
+					number fac = 0.1 / (2*F);
+					fac *= 0.01; // 99% directly buffered
+					d(_ca_, co) -= 1e-12*current*fac;
+				}
 
 				// syncounter
 				syn_counter_exp += 1;
@@ -782,10 +785,13 @@ void VMDisc<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, const MathV
 				d(_v_, co) -= current;
 
 				//Only for calciumdyns
-				number fac = 0.01 / (2*F);
-				//calcium buffering (99%)
-				fac *= 0.01;
-				d(_ca_, co) -= current*fac;
+				if (m_numb_ion_funcs >= 3)
+				{
+					number fac = 0.1 / (2*F);
+					//calcium buffering (99%)
+					fac *= 0.01;
+					d(_ca_, co) -= current*fac;
+				}
 
 				// syncounter
 				syn_counter_alpha +=1;
@@ -859,9 +865,6 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 		// add "pre_resistance" parts
 		pre_resistance += scv.volume() / (0.25*PI*diam*diam);
-
-		// calcium sink/source
-		J(_ca_, co, _ca_, co) += m_reactionRate_ca * scv.volume()*0.25*PI*diam*diam;
 	}
 
 
@@ -928,12 +931,12 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 		// get spec capacity
 		number spec_capacity = m_spec_cap;
-		for (size_t k = 1; k < m_numb_ion_funcs+1; k++)
-		{
-			J(k, co, k, co) += scv.volume()*0.25*PI*diam*diam;
-		}
 		// potential equation
 		J(_v_, co, _v_, co) += PI*diam*scv.volume()*spec_capacity;
+
+		// mass part for ion diffusion
+		for (size_t k = 1; k < m_numb_ion_funcs+1; k++)
+			J(k, co, k, co) += scv.volume()*0.25*PI*diam*diam;
 	}
 
 }

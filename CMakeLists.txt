@@ -15,9 +15,12 @@ include("../../../cmake/ug_plugin_includes.cmake")
 
 # sources
 set(SOURCES	ElemDiscHH_base.cpp
+#Convert/Debug/ca_converted_allNernst_UG.cpp 
+#Convert/Debug/caL3d_converted_standard_UG.cpp 
+#Convert/Debug/pump_converted_standard_UG.cpp 
 #Convert/Debug/cad_converted_standard_UG.cpp 
 #Convert/Debug/ar_converted_standard_UG.cpp 
-#Convert/Debug/ca_converted_standard_UG.cpp 
+#Convert/Debug/ca_converted_allNernst_UG.cpp 
 #Convert/Debug/kca_converted_standard_UG.cpp 
 #Convert/Debug/kir_converted_standard_UG.cpp 
 #Convert/Debug/km_converted_standard_UG.cpp 
@@ -43,6 +46,10 @@ set(SOURCES	ElemDiscHH_base.cpp
 			channel_interface.cpp
 			channel_hh.cpp
 			leakage.cpp
+			ion_leakage.cpp
+			vdcc_bg.cpp
+			Ca_NCX.cpp
+			Ca_PMCA.cpp
 			VM_Disc.cpp
 			order.cpp
 			plugin_main.cpp
@@ -83,3 +90,6 @@ else(buildEmbeddedPlugins)
 	add_library(HH_Kabelnew SHARED ${SOURCES})
 	target_link_libraries (HH_Kabelnew ${pluginsToLink} ug4)
 endif(buildEmbeddedPlugins)
+
+
+

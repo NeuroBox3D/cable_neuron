@@ -42,14 +42,11 @@ class Ca_NCX
 
 		void set_IMAX_N(number IMAX);
 
-		void set_scaling(number scale);
-
 		// inherited from IChannel
 		virtual void init(Vertex* vrt, const std::vector<number>& vrt_values);
 		virtual void update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values);
 		virtual void ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues);
 		virtual void vm_disc_available();
-		virtual std::vector<number> state_values(number x, number y, number z);
 		//virtual void Jacobi_sets(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outJFlux);
 		virtual number lin_dep_on_pot(Vertex* vrt, const std::vector<number>& vrt_values);
 
@@ -60,11 +57,6 @@ class Ca_NCX
 		number KD_N;					// mol*m^-3 (Elwess et al.)
 		//const number KD_P = 3.4e-04;		// mol*m^-3 (Graupner)
 		number IMAX_N;				// mol*s^-1
-
-		number m_scaling;
-
-		ADouble gatingFactorGate;
-		Grid::AttachmentAccessor<Vertex, ADouble> aagatingFactorGate;
 };
 
 
