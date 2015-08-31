@@ -207,10 +207,18 @@ const number helpV = 1e3*(m_pVMDisc->R*m_pVMDisc->temperature())/m_pVMDisc->F;
 
 number inapump = ipumpmax*(1/(1 + pow(km/nai,n)));
  
-number ina = 3.0*inapump; 
-number ik = -2.0*inapump; 
+number fac = 1;
+
+if (na > 10.0)
+	fac = 2;
+
+
+number ina = 3.0*inapump*fac;
+number ik = -2.0*inapump*fac;
 
  
+//std::cout << "ina: " << ina << std::endl;
+//std::cout << "ik: " << ik << std::endl;
  
 outCurrentValues.push_back( 0);
 outCurrentValues.push_back( ina);
