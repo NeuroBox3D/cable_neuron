@@ -66,7 +66,7 @@ class VDCC_BG_Cable
 		number m_tau0_h;
 
 		// permeability
-		number m_perm;
+		number m_perm;	// in units of m/ms
 
 		// one attachment per state variable
 		ANumber m_MGate;
