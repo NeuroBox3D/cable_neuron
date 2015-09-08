@@ -207,13 +207,23 @@ const number helpV = 1e3*(m_pVMDisc->R*m_pVMDisc->temperature())/m_pVMDisc->F;
 
 number inapump = ipumpmax*(1/(1 + pow(km/nai,n)));
  
-number fac = 1;
+number fac = 0;
 
-if (na > 10.0)
-	fac = 2;
+//if (na > 10.0)
+//{
+//	fac = 1;
+//}
 
+if (k < 54.4)
+{
+	if (na>8.0)
+	{
+		fac = 1;
+	}
+}
+// factor written special
+number ina = 2.25*(3.0*inapump*fac);
 
-number ina = 3.0*inapump*fac;
 number ik = -2.0*inapump*fac;
 
  

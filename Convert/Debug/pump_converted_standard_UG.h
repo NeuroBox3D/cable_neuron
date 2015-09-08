@@ -64,7 +64,7 @@ UG_CATCH_THROW("Error in pump_converted_standard_UG initializer list. ");
 pump_converted_standard_UG(const std::vector<std::string>& functions, const std::vector<std::string>& subsets) 
 try : IChannel<TDomain>(functions, subsets), 
 nai ( 0), 
-        ipumpmax  ( 0.0036   *1e-05), 
+        ipumpmax  (0.0036   *1e-05),
         km ( 10.0        *1), 
         n(1.5*1), 
         nainit ( 4  *1), 
