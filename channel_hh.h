@@ -37,8 +37,13 @@ class ChannelHH
 		/// create attachments and accessors
 		void init_attachments();
 
-		/// set conductivities
+		/// set conductances
 		void set_conductances(number gK, number gNa);
+		/// set conductances on specific subsets
+		/// \{
+		void set_conductances(number gK, number gNa, const char* subsets);
+		void set_conductances(number gK, number gNa, const std::vector<std::string>& subsets);
+		/// \}
 
 		/// setter for output behavior of gatings
 		void set_log_nGate(bool bLogNGate);
@@ -62,9 +67,15 @@ class ChannelHH
 		virtual void specify_write_function_indices();
 
 	private:
-		// membrane conductivities
-		number m_g_K;		// C / (m^2 * mV * ms)
-		number m_g_Na;		// C / (m^2 * mV * ms)
+		struct Params
+		{
+			Params() : gK(3.6e-4), gNa(1.2e-3) {};
+			number gK; ///< potassium conductance [C / (m^2 * mV * ms)]
+			number gNa; ///< sodium conductance [C / (m^2 * mV * ms)]
+		};
+
+		std::map<std::string, Params> m_mSubsetParams2Save;
+		std::map<int, Params> m_mSubsetParams;
 
 		// one attachment per state variable
 		ANumber m_MGate;
@@ -105,6 +116,11 @@ class ChannelHHNernst
 
 		/// set conductivities
 		void set_conductances(number gK, number gNa);
+		/// set conductances on specific subsets
+		/// \{
+		void set_conductances(number gK, number gNa, const char* subsets);
+		void set_conductances(number gK, number gNa, const std::vector<std::string>& subsets);
+		/// \}
 
 		/// setter for output behavior of gatings
 		void set_log_nGate(bool bLogNGate);
@@ -122,14 +138,21 @@ class ChannelHHNernst
 		virtual void vm_disc_available();
 		virtual std::vector<number> state_values(number x, number y, number z);
 		//virtual void Jacobi_sets(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outJFlux);
+		virtual number lin_dep_on_pot(Vertex* vrt, const std::vector<number>& vrt_values);
 
 	private:
 		virtual void specify_write_function_indices();
 
 	private:
-		// membrane conductivities
-		number m_g_K;
-		number m_g_Na;
+		struct Params
+		{
+			Params() : gK(3.6e-4), gNa(1.2e-3) {};
+			number gK; ///< potassium conductance [C / (m^2 * mV * ms)]
+			number gNa; ///< sodium conductance [C / (m^2 * mV * ms)]
+		};
+
+		std::map<std::string, Params> m_mSubsetParams2Save;
+		std::map<int, Params> m_mSubsetParams;
 
 		// one attachment per state variable
 		ANumber m_MGate;

@@ -55,8 +55,14 @@ void IChannel<TDomain>::approx_space_available()
 	size_t sz = m_vSubset.size();
 	m_vSI.resize(sz);
 	for (size_t i = 0; i < sz; ++i)
+	{
 		m_vSI[i] = ssh->get_subset_index(m_vSubset[i].c_str());
-
+		if (m_vSI[i] == -1)
+		{
+			UG_THROW("Unknown subset '" << m_vSubset[i] << "' in '"
+					 << name() << "' channel mechanism.");
+		}
+	}
 	// sort for faster access
 	std::sort(m_vSI.begin(), m_vSI.end());
 
@@ -79,6 +85,40 @@ is_def_on_subset(int si) const
 	if (i == sz) return false;
 	if (m_vSI[i] == si) return true;
 	return false;
+}
+
+
+template<typename TDomain>
+void IChannel<TDomain>::
+subsetCString2Vector(std::vector<std::string>& outVec, const char* cstr)
+{
+	// tokenize
+	outVec = TokenizeString(cstr);
+
+	// remove white space
+	for (size_t i = 0; i < outVec.size(); ++i)
+		RemoveWhitespaceFromString(outVec[i]);
+
+	// if no subsets passed, clear
+	if (outVec.size() == 1 && outVec[0].empty()) outVec.clear();
+
+	// if subsets passed with separator, but not all tokens filled, throw error
+	for (size_t i = 0; i < outVec.size(); ++i)
+	{
+		if (outVec.empty())
+		{
+			UG_THROW("Passed subset string lacks a subset specification at position "
+					 << i << " (of " << outVec.size()-1 << ")");
+		}
+	}
+}
+
+
+template <typename TDomain>
+void IChannel<TDomain>::
+subsetNames2Indices(std::vector<int>& ind, const std::vector<std::string>& names)
+{
+	//
 }
 
 

@@ -60,7 +60,8 @@ VMDisc<TDomain>::VMDisc(const char* subsets, bool withConcs, number init_time)
 	m_v(0), m_na(0), m_k(0), m_ca(0),
 	m_init_time(init_time), m_time(init_time),
 	m_bNonRegularGrid(false),
-	m_bLocked(false)
+	m_bLocked(false),
+	m_si(-1)
 {
 	// set diff constants
 	if (withConcs)
@@ -221,6 +222,14 @@ number VMDisc<TDomain>::get_vm(Vertex* vrt) const
 	UG_COND_THROW(dofIndex.size() != 1, "Not exactly one DoF index found for vertex.");
 
 	return DoFRef(*m_spUOld, dofIndex[0]);
+}
+
+
+template<typename TDomain>
+int VMDisc<TDomain>::
+current_subset_index() const
+{
+	return m_si;
 }
 
 
@@ -523,6 +532,9 @@ template<typename TDomain>
 template <typename TElem, typename TFVGeom>
 void VMDisc<TDomain>::prep_elem_loop(const ReferenceObjectID roid, const int si)
 {
+	// save current subset index
+	m_si = si;
+
 	// decide which channels work on this subset
 	size_t ch_sz = m_channel.size();
 	for (size_t i = 0; i < ch_sz; ++i)
@@ -696,6 +708,7 @@ void VMDisc<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, const MathV
 {
 	// dof distribution and DoFIndex vector (for accessing old solution)
 	ConstSmartPtr<DoFDistribution> dd = this->approx_space()->dof_distribution(GridLevel(), false);
+	MGSubsetHandler& ssh = *this->approx_space()->domain()->subset_handler();
 
 	// get finite volume geometry
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();

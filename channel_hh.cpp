@@ -19,7 +19,6 @@ namespace cable {
 template<typename TDomain>
 ChannelHH<TDomain>::ChannelHH(const char* functions, const char* subsets)
 try : IChannel<TDomain>(functions, subsets),
-m_g_K(3.6e-4), m_g_Na(1.2e-3),
 m_log_nGate(false), m_log_hGate(false), m_log_mGate(false) {}
 UG_CATCH_THROW("Error in ChannelHH initializer list.");
 
@@ -30,7 +29,6 @@ ChannelHH<TDomain>::ChannelHH
 	const std::vector<std::string>& subsets
 )
 try : IChannel<TDomain>(functions, subsets),
-m_g_K(3.6e-4), m_g_Na(1.2e-3),
 m_log_nGate(false), m_log_hGate(false), m_log_mGate(false) {}
 UG_CATCH_THROW("Error in ChannelHH initializer list.");
 
@@ -52,8 +50,28 @@ template<typename TDomain>
 void ChannelHH<TDomain>::
 set_conductances(number gK, number gNa)
 {
-	m_g_K = gK;
-	m_g_Na = gNa;
+	set_conductances(gK, gNa, this->m_vSubset);
+}
+template<typename TDomain>
+void ChannelHH<TDomain>::
+set_conductances(number gK, number gNa, const char* subsets)
+{
+	std::vector<std::string> ssVec;
+	try	{this->subsetCString2Vector(ssVec, subsets);}
+	UG_CATCH_THROW("Error while setting conductance values for HH channel.");
+
+	set_conductances(gK, gNa, ssVec);
+}
+template<typename TDomain>
+void ChannelHH<TDomain>::
+set_conductances(number gK, number gNa, const std::vector<std::string>& subsets)
+{
+	size_t sz = subsets.size();
+	for (size_t i = 0; i < sz; ++i)
+	{
+		m_mSubsetParams2Save[subsets[i]].gK = gK;
+		m_mSubsetParams2Save[subsets[i]].gNa = gNa;
+	}
 }
 
 
@@ -74,6 +92,38 @@ vtrap(number x, number y)
 template<typename TDomain>
 void ChannelHH<TDomain>::vm_disc_available()
 {
+// save parameters for subset indices
+	ConstSmartPtr<MGSubsetHandler> ssh = m_pVMDisc->approx_space()->domain()->subset_handler();
+
+	// if special params saved for individual subsets, take these
+	typedef typename std::map<std::string, Params>::const_iterator MapIter;
+	MapIter it = m_mSubsetParams2Save.begin();
+	MapIter itEnd = m_mSubsetParams2Save.end();
+	for (; it != itEnd; ++it)
+	{
+		int si = ssh->get_subset_index(it->first.c_str());
+		if (si == -1)
+		{
+			UG_THROW("Unknown subset '" << it->first << "' in '"
+					 << name() << "' channel mechanism.");
+		}
+		m_mSubsetParams[si].gK = it->second.gK;
+		m_mSubsetParams[si].gNa = it->second.gNa;
+	}
+
+	// for the subsets this channel is defined on, but where no individual
+	// parameterization is given, take default params
+	size_t sz = this->m_vSI.size();
+	for (size_t i = 0; i < sz; ++i)
+	{
+		// set default params
+		m_mSubsetParams[this->m_vSI[i]];
+	}
+
+	m_mSubsetParams2Save.clear();
+
+
+	// init gating attachments
 	init_attachments();
 }
 
@@ -258,6 +308,11 @@ void ChannelHH<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>& v
 	number HGate = m_aaHGate[vrt];
 	number VM 	 = vrt_values[VMDisc<TDomain>::_v_];
 
+	// params for this subset
+	int si = m_pVMDisc->current_subset_index();
+	const number gK = m_mSubsetParams[si].gK;
+	const number gNa = m_mSubsetParams[si].gNa;
+
 	number rev_pot_K = m_pVMDisc->ek();
 	number rev_pot_Na = m_pVMDisc->ena();
 
@@ -265,8 +320,8 @@ void ChannelHH<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>& v
 	number tmp_factor = std::pow(2.3, (tmp-23.0)/10.0);
 
 	// single channel type fluxes
-	const number potassium_part_of_flux = tmp_factor * m_g_K * pow(NGate,4) * (VM - rev_pot_K);
-	const number sodium_part_of_flux =    tmp_factor * m_g_Na * pow(MGate,3) * HGate * (VM - rev_pot_Na);
+	const number potassium_part_of_flux = tmp_factor * gK * pow(NGate,4) * (VM - rev_pot_K);
+	const number sodium_part_of_flux =    tmp_factor * gNa * pow(MGate,3) * HGate * (VM - rev_pot_Na);
 
 	/*
 	std::cout << "VM: " << VM << std::endl;
@@ -311,12 +366,17 @@ lin_dep_on_pot(Vertex* vrt, const std::vector<number>& vrt_values)
 	number MGate = m_aaMGate[vrt];
 	number HGate = m_aaHGate[vrt];
 
+	// params for this subset
+	int si = m_pVMDisc->current_subset_index();
+	const number gK = m_mSubsetParams[si].gK;
+	const number gNa = m_mSubsetParams[si].gNa;
+
 	number tmp = m_pVMDisc->temperature_celsius();
 	number tmp_factor = std::pow(2.3, (tmp-23.0)/10.0);
 
 	// single channel type fluxes
-	const number potassium_part_of_flux = tmp_factor * m_g_K * pow(NGate,4);
-	const number sodium_part_of_flux =    tmp_factor * m_g_Na * pow(MGate,3) * HGate;
+	const number potassium_part_of_flux = tmp_factor * gK * pow(NGate,4);
+	const number sodium_part_of_flux =    tmp_factor * gNa * pow(MGate,3) * HGate;
 
 	return potassium_part_of_flux + sodium_part_of_flux;
 }
@@ -330,6 +390,10 @@ specify_write_function_indices()
 	this->m_vWFctInd.push_back(VMDisc<TDomain>::_v_);
 }
 
+
+
+
+
 ////////////////////////////////////////////////
 // Methods for HH-Channel-Nernst-Class
 ////////////////////////////////////////////////
@@ -337,7 +401,6 @@ specify_write_function_indices()
 template <typename TDomain>
 ChannelHHNernst<TDomain>::ChannelHHNernst(const char* functions, const char* subsets)
 try : IChannel<TDomain>(functions, subsets),
-m_g_K(3.6e-4), m_g_Na(1.2e-3),
 m_log_nGate(false), m_log_hGate(false), m_log_mGate(false) {}
 UG_CATCH_THROW("Error in ChannelHHNernst initializer list.");
 
@@ -348,7 +411,6 @@ ChannelHHNernst<TDomain>::ChannelHHNernst
 	const std::vector<std::string>& subsets
 )
 try : IChannel<TDomain>(functions, subsets),
-m_g_K(3.6e-4), m_g_Na(1.2e-3),
 m_log_nGate(false), m_log_hGate(false), m_log_mGate(false) {}
 UG_CATCH_THROW("Error in ChannelHHNernst initializer list.");
 
@@ -370,8 +432,28 @@ template<typename TDomain>
 void ChannelHHNernst<TDomain>::
 set_conductances(number gK, number gNa)
 {
-	m_g_K = gK;
-	m_g_Na = gNa;
+	set_conductances(gK, gNa, this->m_vSubset);
+}
+template<typename TDomain>
+void ChannelHHNernst<TDomain>::
+set_conductances(number gK, number gNa, const char* subsets)
+{
+	std::vector<std::string> ssVec;
+	try	{this->subsetCString2Vector(ssVec, subsets);}
+	UG_CATCH_THROW("Error while setting conductance values for HH channel.");
+
+	set_conductances(gK, gNa, ssVec);
+}
+template<typename TDomain>
+void ChannelHHNernst<TDomain>::
+set_conductances(number gK, number gNa, const std::vector<std::string>& subsets)
+{
+	size_t sz = subsets.size();
+	for (size_t i = 0; i < sz; ++i)
+	{
+		m_mSubsetParams2Save[subsets[i]].gK = gK;
+		m_mSubsetParams2Save[subsets[i]].gNa = gNa;
+	}
 }
 
 
@@ -392,6 +474,38 @@ vtrap(number x, number y)
 template<typename TDomain>
 void ChannelHHNernst<TDomain>::vm_disc_available()
 {
+// save parameters for subset indices
+	ConstSmartPtr<MGSubsetHandler> ssh = m_pVMDisc->approx_space()->domain()->subset_handler();
+
+	// if special params saved for individual subsets, take these
+	typedef typename std::map<std::string, Params>::const_iterator MapIter;
+	MapIter it = m_mSubsetParams2Save.begin();
+	MapIter itEnd = m_mSubsetParams2Save.end();
+	for (; it != itEnd; ++it)
+	{
+		int si = ssh->get_subset_index(it->first.c_str());
+		if (si == -1)
+		{
+			UG_THROW("Unknown subset '" << it->first << "' in '"
+					 << name() << "' channel mechanism.");
+		}
+		m_mSubsetParams[si].gK = it->second.gK;
+		m_mSubsetParams[si].gNa = it->second.gNa;
+	}
+
+	// for the subsets this channel is defined on, but where no individual
+	// parameterization is given, take default params
+	size_t sz = this->m_vSI.size();
+	for (size_t i = 0; i < sz; ++i)
+	{
+		// set default params
+		m_mSubsetParams[this->m_vSI[i]];
+	}
+
+	m_mSubsetParams2Save.clear();
+
+
+	// init gating attachments
 	init_attachments();
 }
 
@@ -575,6 +689,11 @@ void ChannelHHNernst<TDomain>::ionic_current(Vertex* vrt, const std::vector<numb
 	number k 	 = vrt_values[VMDisc<TDomain>::_k_];
 	number na 	 = vrt_values[VMDisc<TDomain>::_na_];
 
+	// params for this subset
+	int si = m_pVMDisc->current_subset_index();
+	const number gK = m_mSubsetParams[si].gK;
+	const number gNa = m_mSubsetParams[si].gNa;
+
 	const number R = m_pVMDisc->R;
 	const number F = m_pVMDisc->F;
 	const number T = m_pVMDisc->temperature();
@@ -585,8 +704,8 @@ void ChannelHHNernst<TDomain>::ionic_current(Vertex* vrt, const std::vector<numb
 	number sodium_nernst_eq	 	= helpV*(std::log(m_pVMDisc->na_out()/na));
 
 	// single channel ion fluxes
-	number potassium_part_of_flux = m_g_K * pow(NGate,4) * (v - potassium_nernst_eq);
-	number sodium_part_of_flux =  m_g_Na * pow(MGate,3) * HGate * (v - sodium_nernst_eq);
+	number potassium_part_of_flux = gK * pow(NGate,4) * (v - potassium_nernst_eq);
+	number sodium_part_of_flux =  gNa * pow(MGate,3) * HGate * (v - sodium_nernst_eq);
 
 	outCurrentValues.push_back(potassium_part_of_flux + sodium_part_of_flux);
 	outCurrentValues.push_back(potassium_part_of_flux / F);
@@ -621,6 +740,28 @@ void ChannelHHNernst<TDomain>::Jacobi_sets(Vertex* vrt, const std::vector<number
 	//std::cout << "outJFlux: " << outJFlux[0] << ", " << outJFlux[1] << ", " << outJFlux[2] << ", " << std::endl;
 }
 #endif
+
+
+template<typename TDomain>
+number ChannelHHNernst<TDomain>::
+lin_dep_on_pot(Vertex* vrt, const std::vector<number>& vrt_values)
+{
+	// getting attachments out of Vertex
+	number NGate = m_aaNGate[vrt];
+	number MGate = m_aaMGate[vrt];
+	number HGate = m_aaHGate[vrt];
+
+	// params for this subset
+	int si = m_pVMDisc->current_subset_index();
+	const number gK = m_mSubsetParams[si].gK;
+	const number gNa = m_mSubsetParams[si].gNa;
+
+	// single channel ion fluxes
+	number potassium_part_of_flux = gK * pow(NGate,4);
+	number sodium_part_of_flux =  gNa * pow(MGate,3) * HGate;
+
+	return potassium_part_of_flux + sodium_part_of_flux;
+}
 
 
 template<typename TDomain>

@@ -38,11 +38,20 @@ class ChannelLeak
 		/// create attachments and accessors
 		void init_attachments();
 
-		/// set leakage conductivity
+		/// set leakage conductance
 		void set_cond(number g);
+		/// set leakage conductance on specific subsets
+		/// \{
+		void set_cond(number g, const char* subsets);
+		void set_cond(number g, const std::vector<std::string>& subsets);
+		/// \}
 
 		/// set leakage equilibrium potential
 		void set_rev_pot(number e);
+		/// set leakage equilibrium potential on specific subsets
+		void set_rev_pot(number e, const char* subsets);
+		void set_rev_pot(number e, const std::vector<std::string>& subsets);
+
 
 		// inherited from IChannel
 		virtual void init(Vertex* vrt, const std::vector<number>& vrt_values);
@@ -57,11 +66,15 @@ class ChannelLeak
 		virtual void specify_write_function_indices();
 
 	private:
-		// membrane conductivities
-		number m_g;		// C / (m^2 * mV * ms)
+		struct Params
+		{
+			Params() : g(1.0e-6), E(-65.0) {};
+			number g; ///< membrane conductance [C / (m^2 * mV * ms)]
+			number E; ///< reversal potential [mV]
+		};
 
-		// equilibrium potential
-		number m_E;
+		std::map<std::string, Params> m_mSubsetParams2Save;
+		std::map<int, Params> m_mSubsetParams;
 };
 
 

@@ -189,6 +189,9 @@ class VMDisc
 		/// get membrane potential at a vertex
 		number get_vm(Vertex* vrt) const;
 
+		/// get current assembling subset
+		int current_subset_index() const;
+
 		/// write all gating values for a position to file
 		void write_gatings_for_position(number x, number y, number z, std::string pfad);
 
@@ -318,6 +321,7 @@ class VMDisc
 		/// vector of subset indices this disc is declared on
 		std::vector<int> m_vSI;
 
+		int m_si;
 		std::vector<SmartPtr<TIChannel> > m_channelsOnCurrSubset;
 		std::vector<std::vector<size_t> > m_vvCurrChWFctInd;
 		std::vector<number> m_currVrtValues[domain_traits<dim>::MaxNumVerticesOfElem];

@@ -36,7 +36,7 @@ class IChannel
 		virtual ~IChannel() {};
 
 		/// name
-		virtual std::string name() {return std::string("");};
+		virtual std::string name() {return std::string("unknown");};
 
 		/**
 		 * @brief Initializes the defined channel type.
@@ -99,6 +99,10 @@ class IChannel
 
 	private:
 		virtual void specify_write_function_indices() {UG_THROW("specify_write_function_indices() not implemented!");}
+
+	protected:
+		void subsetCString2Vector(std::vector<std::string>& outVec, const char* cstr);
+		void subsetNames2Indices(std::vector<int>& ind, const std::vector<std::string>& names);
 
 	protected:
 		/// indices in vmdisc for functions whose defect will be written to by this channel

@@ -175,9 +175,19 @@ struct Functionality
 			reg.add_class_<T, TBase >(name, grp)
 				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
 				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
-				.add_method("set_conductances", &T::set_conductances, "",
+				.add_method("set_conductances",  static_cast<void (T::*)(number, number)>(&T::set_conductances), "",
 						"K conductance [10^6 S/m^2]| default | value=3.6e-4#"
 						"Na conductance [10^6 S/m^2] | default | value=1.2e-3",
+						"sets Na and K conductance values for HH mechanism")
+				.add_method("set_conductances",  static_cast<void (T::*)(number, number, const char*)>(&T::set_conductances), "",
+						"K conductance [10^6 S/m^2]| default | value=3.6e-4#"
+						"Na conductance [10^6 S/m^2] | default | value=1.2e-3#"
+						"subset(s) as C-type string",
+						"sets Na and K conductance values for HH mechanism")
+				.add_method("set_conductances",  static_cast<void (T::*)(number, number, const std::vector<std::string>&)>(&T::set_conductances), "",
+						"K conductance [10^6 S/m^2]| default | value=3.6e-4#"
+						"Na conductance [10^6 S/m^2] | default | value=1.2e-3#"
+						"subset(s) as vector of string",
 						"sets Na and K conductance values for HH mechanism")
 				.add_method("set_log_mGate", &T::set_log_mGate)
 				.add_method("set_log_nGate", &T::set_log_nGate)
@@ -196,9 +206,19 @@ struct Functionality
 			reg.add_class_<T, TBase >(name, grp)
 				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
 				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
-				.add_method("set_conductances", &T::set_conductances, "",
+				.add_method("set_conductances",  static_cast<void (T::*)(number, number)>(&T::set_conductances), "",
 						"K conductance [10^6 S/m^2]| default | value=3.6e-4#"
 						"Na conductance [10^6 S/m^2] | default | value=1.2e-3",
+						"sets Na and K conductance values for HH mechanism")
+				.add_method("set_conductances",  static_cast<void (T::*)(number, number, const char*)>(&T::set_conductances), "",
+						"K conductance [10^6 S/m^2]| default | value=3.6e-4#"
+						"Na conductance [10^6 S/m^2] | default | value=1.2e-3#"
+						"subset(s) as C-type string",
+						"sets Na and K conductance values for HH mechanism")
+				.add_method("set_conductances",  static_cast<void (T::*)(number, number, const std::vector<std::string>&)>(&T::set_conductances), "",
+						"K conductance [10^6 S/m^2]| default | value=3.6e-4#"
+						"Na conductance [10^6 S/m^2] | default | value=1.2e-3#"
+						"subset(s) as vector of string",
 						"sets Na and K conductance values for HH mechanism")
 				.add_method("set_log_mGate", &T::set_log_mGate)
 				.add_method("set_log_nGate", &T::set_log_nGate)
@@ -218,8 +238,22 @@ struct Functionality
 				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
 				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
 				.add_method("set_cond", static_cast<void (T::*)(number)>(&T::set_cond),
-						"", "leak conductance in C/m^2/mV/ms| default | value=3.0e-6", "sets leak conductance for leak channel")
-				.add_method("set_rev_pot", &T::set_rev_pot, "", "leakage equilibrium potential in mV | default | value=-65.0",
+							"", "leak conductance in C/m^2/mV/ms| default | value=3.0e-6",
+							"sets leak conductance for leak channel")
+				.add_method("set_cond", static_cast<void (T::*)(number, const char*)>(&T::set_cond),
+							"", "leak conductance in C/m^2/mV/ms| default | value=3.0e-6 # subset(s) as C-type string",
+							"sets leak conductance for leak channel")
+				.add_method("set_cond", static_cast<void (T::*)(number, const std::vector<std::string>&)>(&T::set_cond),
+							"", "leak conductance in C/m^2/mV/ms| default | value=3.0e-6 # subset(s) as vector of strings",
+							"sets leak conductance for leak channel")
+				.add_method("set_rev_pot",  static_cast<void (T::*)(number)>(&T::set_rev_pot), "",
+							"leakage equilibrium potential in mV | default | value=-65.0",
+							"sets leakage equilibrium potential")
+				.add_method("set_rev_pot",  static_cast<void (T::*)(number, const char*)>(&T::set_rev_pot),
+							"", "leakage equilibrium potential in mV | default | value=-65.0 # subset(s) as C-type string",
+							"sets leakage equilibrium potential")
+				.add_method("set_rev_pot",  static_cast<void (T::*)(number, const std::vector<std::string>&)>(&T::set_rev_pot),
+							"", "leakage equilibrium potential in mV | default | value=-65.0 # subset(s) as vector of strings",
 							"sets leakage equilibrium potential")
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "ChannelLeak", tag);

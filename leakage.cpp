@@ -13,8 +13,7 @@ namespace cable {
 
 template<typename TDomain>
 ChannelLeak<TDomain>::ChannelLeak(const char* functions, const char* subsets)
-try : IChannel<TDomain>(functions, subsets),
-m_g(1.0e-6), m_E(-65.0) {}
+try : IChannel<TDomain>(functions, subsets) {}
 UG_CATCH_THROW("Error in ChannelHH initializer list.");
 
 template<typename TDomain>
@@ -23,8 +22,7 @@ ChannelLeak<TDomain>::ChannelLeak
 	const std::vector<std::string>& functions,
 	const std::vector<std::string>& subsets
 )
-try : IChannel<TDomain>(functions, subsets),
-m_g(1.0e-6), m_E(-65.0) {}
+try : IChannel<TDomain>(functions, subsets) {}
 UG_CATCH_THROW("Error in ChannelHH initializer list.");
 
 
@@ -40,20 +38,88 @@ template<typename TDomain>
 void ChannelLeak<TDomain>::
 set_cond(number g)
 {
-	m_g = g;
+	set_cond(g, this->m_vSubset);
+}
+template<typename TDomain>
+void ChannelLeak<TDomain>::
+set_cond(number g, const char* subsets)
+{
+	std::vector<std::string> ssVec;
+	try	{this->subsetCString2Vector(ssVec, subsets);}
+	UG_CATCH_THROW("Error while setting conductance value for leakage term.");
+
+	set_cond(g, ssVec);
+}
+template<typename TDomain>
+void ChannelLeak<TDomain>::
+set_cond(number g, const std::vector<std::string>& subsets)
+{
+	size_t sz = subsets.size();
+	for (size_t i = 0; i < sz; ++i)
+		m_mSubsetParams2Save[subsets[i]].g = g;
 }
 
 template<typename TDomain>
 void ChannelLeak<TDomain>::set_rev_pot(number e)
 {
-	m_E = e;
+	set_rev_pot(e, this->m_vSubset);
+}
+template<typename TDomain>
+void ChannelLeak<TDomain>::set_rev_pot(number e, const char* subsets)
+{
+	std::vector<std::string> ssVec;
+	try	{this->subsetCString2Vector(ssVec, subsets);}
+	UG_CATCH_THROW("Error while setting reversal potential value for leakage term.");
+
+	set_rev_pot(e, ssVec);
+}
+template<typename TDomain>
+void ChannelLeak<TDomain>::set_rev_pot(number e, const std::vector<std::string>& subsets)
+{
+	size_t sz = subsets.size();
+	for (size_t i = 0; i < sz; ++i)
+		m_mSubsetParams2Save[subsets[i]].E = e;
 }
 
 
 template<typename TDomain>
 void ChannelLeak<TDomain>::vm_disc_available()
 {
+// save parameters for subset indices
+	ConstSmartPtr<MGSubsetHandler> ssh = m_pVMDisc->approx_space()->domain()->subset_handler();
 
+	// if special params saved for individual subsets, take these
+	typedef typename std::map<std::string, Params>::const_iterator MapIter;
+	MapIter it = m_mSubsetParams2Save.begin();
+	MapIter itEnd = m_mSubsetParams2Save.end();
+	for (; it != itEnd; ++it)
+	{
+		int si = ssh->get_subset_index(it->first.c_str());
+		if (si == -1)
+		{
+			UG_THROW("Unknown subset '" << it->first << "' in '"
+					 << name() << "' channel mechanism.");
+		}
+		m_mSubsetParams[si].g = it->second.g;
+		m_mSubsetParams[si].E = it->second.E;
+	}
+
+	// for the subsets this channel is defined on, but where no individual
+	// parameterization is given, take default params, but warn
+	size_t sz = this->m_vSI.size();
+	for (size_t i = 0; i < sz; ++i)
+	{
+		if (m_mSubsetParams.find(this->m_vSI[i]) == m_mSubsetParams.end())
+
+		// warn
+		UG_LOG_ALL_PROCS("WARNING: Leakage defined on subset '" << ssh->get_subset_name(this->m_vSI[i])
+				<< "', but no parameterization provided there. Taking default parameters." << std::endl);
+
+		// set default params
+		m_mSubsetParams[this->m_vSI[i]];
+	}
+
+	m_mSubsetParams2Save.clear();
 }
 
 
@@ -92,10 +158,14 @@ void ChannelLeak<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>&
 	// getting attachments for vertex
 	number VM 	 = vrt_values[m_pVMDisc->_v_];
 
-	const number leakage_part_of_flux = m_g * (VM - m_E);
+	// params for this subset
+	int si = m_pVMDisc->current_subset_index();
+	const number g = m_mSubsetParams[si].g;
+	const number E = m_mSubsetParams[si].E;
 
-	number flux_value = (leakage_part_of_flux);
-	outCurrentValues.push_back(flux_value);
+	const number leakage_part_of_flux = g * (VM - E);
+
+	outCurrentValues.push_back(leakage_part_of_flux);
 }
 
 
@@ -121,7 +191,7 @@ template<typename TDomain>
 number ChannelLeak<TDomain>::
 lin_dep_on_pot(Vertex* vrt, const std::vector<number>& vrt_values)
 {
-	return m_g;
+	return m_mSubsetParams[m_pVMDisc->current_subset_index()].g;
 }
 
 
@@ -132,7 +202,6 @@ specify_write_function_indices()
 	// prepare vector containing VMDisc fct indices which this channel writes to
 	this->m_vWFctInd.push_back(VMDisc<TDomain>::_v_);
 }
-
 
 
 ////////////////////////////////////////////////////////////////////////////////
