@@ -74,6 +74,11 @@ void IonLeakage<TDomain>::vm_disc_available()
 
 	if (fabs(m_vm_rest) < 1e-8) m_perm = m_flux_at_rest / ((m_conc_out_rest - m_conc_in_rest) - F/(R*T) * (m_conc_out_rest + m_conc_in_rest)*m_vm_rest);
 	else m_perm = m_flux_at_rest / (2*F/(R*T) * m_vm_rest * (m_conc_out_rest - m_conc_in_rest*exp(2*F/(R*T)*m_vm_rest)) / (1.0 - exp(2*F/(R*T)*m_vm_rest)));
+
+	// check that permeability is positive (else: modeling error!)
+	UG_COND_THROW(m_perm < 0, "The permeability coefficient of your ion leakage term is negative.\n"
+				  "This is not allowed since this mechanism only represents passive fluxes. You may "
+				  "want to consider adding an active mechanism (pump) to your model.");
 }
 
 
