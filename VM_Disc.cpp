@@ -312,8 +312,8 @@ estimate_cfl_cond(ConstSmartPtr<TVector> u)
 			vrt_values[j] = DoFRef(*m_spUOld, dofIndex[0]);
 		}
 
-		// find channels active on this vertex
-		std::vector<bool> chActive(ch_sz);
+		// find channels active on this vertex (and save the corresponding subset)
+		std::vector<int> chActive(ch_sz, -2);	// -2 as code for "not defined here"
 
 		typedef typename MultiGrid::traits<Edge>::secure_container edge_list;
 		edge_list el;
@@ -321,22 +321,26 @@ estimate_cfl_cond(ConstSmartPtr<TVector> u)
 		for (size_t k = 0; k < el.size(); ++k)
 		{
 			Edge* edge = el[k];
-			size_t si = (size_t) ssh.get_subset_index(edge);
+			int si = ssh.get_subset_index(edge);
 
 			// iterate over channels and check whether they are defined on edge subset
 			for (size_t ch = 0; ch < m_channel.size(); ++ch)
 			{
-				if (!chActive[ch] && m_channel[ch]->is_def_on_subset(si))
-					chActive[ch] = true;
+				if (chActive[ch] == -2 && m_channel[ch]->is_def_on_subset(si))
+					chActive[ch] = si;
 			}
 		}
 
 		// loop active channels and compute linear dependency
 		number linDep = 0.0;
 		for (size_t ch = 0; ch < ch_sz; ++ch)
-			if (chActive[ch])
+		{
+			if (chActive[ch] != 2)
+			{
+				m_si = chActive[ch];
 				linDep += m_channel[ch]->lin_dep_on_pot(vrt, vrt_values);
-
+			}
+		}
 		maxLinDep = std::max(maxLinDep, linDep);
 	}
 
@@ -706,10 +710,6 @@ template<typename TDomain>
 template <typename TElem, typename TFVGeom>
 void VMDisc<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
-	// dof distribution and DoFIndex vector (for accessing old solution)
-	ConstSmartPtr<DoFDistribution> dd = this->approx_space()->dof_distribution(GridLevel(), false);
-	MGSubsetHandler& ssh = *this->approx_space()->domain()->subset_handler();
-
 	// get finite volume geometry
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
