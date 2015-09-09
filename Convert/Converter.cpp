@@ -837,19 +837,28 @@ std::vector<string> Converter::equali(std::vector<pair<int, int> > Pairs, std::v
 				version.push_back(false);
 				out.push_back("1");
 				IonRead = NEURON[i].find("READ", Ion+7);
-				IonRend = NEURON[i].find(" ", IonRead+5);
-				//std::cout << IonRend << ", " << Ion << std::endl;
-				IonS = NEURON[i].substr(Ion+7, IonRead-1-(Ion+7));
-				//std::cout << "Subion: "<< IonS << std::endl;
-				ListIonRead.push_back(NEURON[i].substr(IonRead+5 , IonRend-(IonRead+5)));
+				if (IonRead!=NEURON[i].npos)
+				{
+					IonRend = NEURON[i].find(" ", IonRead+5);
+					//std::cout << IonRend << ", " << Ion << std::endl;
+					IonS = NEURON[i].substr(Ion+7, IonRead-1-(Ion+7));
+					//std::cout << "Subion: "<< IonS << std::endl;
+					ListIonRead.push_back(NEURON[i].substr(IonRead+5 , IonRend-(IonRead+5)));
+				}
+				else
+				{
+					// if there is no read but a write we have also to add right way!
+					IonS = NEURON[i].find("WRITE");
+				}
 				// Only if there is a WRITE in
 				if (NEURON[i].find("WRITE")!=NEURON[i].npos)
 					ListIon.push_back(IonS);
+
 			}
 		}
 	}
 
-		for (size_t j=0; j<ListIon.size(); j++)
+		for (size_t j=0; j<ListIonRead.size(); j++)
 		{
 			if (version[j]==false)
 			{
@@ -859,7 +868,7 @@ std::vector<string> Converter::equali(std::vector<pair<int, int> > Pairs, std::v
 		}
 
 
-		for (size_t j=0; j<ListIon.size(); j++)
+		for (size_t j=0; j<ListIonRead.size(); j++)
 		{
 			if (version[j]==true)
 			{
@@ -3799,12 +3808,54 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		  }
 	  }
 
+
+
 	  // v needed every time
 	  mycppfile << "number v =  vrt_values[m_pVMDisc->_v_]; \n";
 	  mycppfile << " \n";
 	  mycppfile << " \n";
 	  // adding current time as t
 	  mycppfile << "number t = m_pVMDisc->time(); \n \n \n";
+
+
+
+
+	  // Adding all needed inside concentrations if some needed ki/nai/cai
+	  for (size_t i = 0; i<NEURON.size(); i++)
+	  {
+		  size_t Useion = NEURON[i].find("USEION");
+		  size_t Read = NEURON[i].find("READ");
+		  if (Useion!=NEURON[i].npos)
+		  {
+			  if (Read!=NEURON[i].npos)
+			  {
+				  string read = NEURON[i].substr(Read+4);
+				  // if there is any , or WRITE make string shorter
+				  if (read.find(",")!=read.npos)
+					  read = read.substr(0, read.find(","));
+				  if (read.find("WRITE")!=read.npos)
+					  read = read.substr(0, read.find("WRITE"));
+
+				  // for being ki/nai/cai setting to right concenktration k/na/ca
+				  read = Remove_all(read);
+				  if (read.find("ki")!=read.npos)
+					  mycppfile << read << " = " << read.substr(0, read.find("i")) << ";\n";
+				  if (read.find("nai")!=read.npos)
+					  mycppfile << read << " = " << read.substr(0, read.find("i")) << ";\n";
+				  if (read.find("cai")!=read.npos)
+					  mycppfile << read << " = " << read.substr(0, read.find("i")) << ";\n";
+
+			  }
+		  }
+
+	  }
+
+	  mycppfile << "\n \n \n";
+
+
+
+
+
 
 	  //writes Nernst Eqs
 	  std::vector<string> eqs = equali(Pairs, Zeilen);
@@ -3829,9 +3880,10 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 				  {
 					  comp_outs_right = eqs[i].substr(eqs[i].find("=")+1, eqs[i].npos - (eqs[i].find("=")+1));
 					  comp_outs_left = eqs[i].substr(0, eqs[i].find("=")-1);
-					  if ((comp_outs_left.find("ica")!=comp_outs_left.npos)
-					  ||  (comp_outs_left.find("ina")!=comp_outs_left.npos)
-					  ||  (comp_outs_left.find("ik")!= comp_outs_left.npos))
+					  // not only there have to be ica/ina/ik also there has to be next no letter
+					  if (((comp_outs_left.find("ica")!=comp_outs_left.npos) && ((is_single_letter(comp_outs_left[(comp_outs_left.find("ica"))+3]))==false))
+					  || ((comp_outs_left.find("ina")!=comp_outs_left.npos) && ((is_single_letter(comp_outs_left[(comp_outs_left.find("ina"))+3]))==false))
+					  || ((comp_outs_left.find("ik")!= comp_outs_left.npos) && ((is_single_letter(comp_outs_left[(comp_outs_left.find("ik"))+2]))==false)))
 					  {
 						  comp_outs_left = comp_outs_left.replace(comp_outs_left.find("number"), 6,"");
 						  comp_outs_left = Remove_all(comp_outs_left);
@@ -4036,13 +4088,15 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		 		  }
 
 		 	  }
+
+
 		 	  std::cout << "Breakpoint-Block Infos written in fluxes" << std::endl;
 
 		 	  for (size_t i=0; i<fluxes.size(); i++)
 		 	  {
 		 		  // make list with left handed vars
 		 		  B_vars.push_back(fluxes[i].substr(0, fluxes[i].find("=")-1));
-		 		  //std::cout << (B_vars[i]) << std::endl;
+		 		  //std::cout << "B_vars: " << (B_vars[i]) << std::endl;
 		 	  }
 		 	  // check if vars on right side an write down
 		 	  for (size_t i=0; i<fluxes.size(); i++)
@@ -4050,15 +4104,20 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		 		  for (size_t j=0; j<B_vars.size(); j++)
 		 		  {
 		 			  beg = fluxes[i].find("=");
+		 			  std::cout << "fluxi: " << fluxes[i] << " = bei: "<< beg <<std::endl;
+		 			  std::cout << "B_vars: " << (B_vars[j]) << std::endl;
 		 			  if (fluxes[i].find(B_vars[j], beg) != fluxes[i].npos)
 		 			  {
+		 				  std::cout << "var is on right side" << std::endl;
 		 				  size_t test = fluxes[i].find(B_vars[j], beg);
-		 				  if (pos_letterb(fluxes[i].substr(test+B_vars[j].size(), 1))==false)
+		 				  if (pos_letterb(fluxes[i].substr(test+B_vars[j].size(), 1))==true)
 		 				  {
-		 					  //hier sollte eigentlich geschrieben werden!!!
+		 					  std::cout << "not only part" << std::endl;
+		 					  //here we need part of B_vars as flux ranking are the same so we can use j flux instead of i
 		 					  //std::cout << "number " + fluxes[i] + "; \n" << std::endl;
-		 				  	  mycppfile << "number " + fluxes[i] + "; \n";
-		 				  	  fluxes[i] = "";
+		 				  	  mycppfile << "number " + fluxes[j] + "; \n";
+		 				  	  fluxes[j] = "";
+		 				  	  B_vars[j] = "ddddddddddddd";
 		 				  }
 		 			  }
 
@@ -4166,8 +4225,10 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 
 		 			  }
-		 			  // adding always in outs
-		 			  if ((fluxes[i].find("i"+ListIons[j])!=fluxes[i].npos))
+		 			  std::cout << "fluxes!!! " << fluxes[i] << "!!!!!!!!!!!" <<std::endl;
+		 			  // adding always in outs but only if there is afterwards no other letter
+		 			  if ((fluxes[i].find("i"+ListIons[j])!=fluxes[i].npos)
+		 			  && (is_single_letter(fluxes[i][fluxes[i].find("i"+ListIons[j]) + ListIons[j].size()+1])==false))
 		 			  {
 		 				  outs.push_back(fluxes[i].substr(fluxes[i].find("=")+1, fluxes[i].npos -fluxes[i].find("=")+1));
 		 				  outsHelp.push_back(ListIons[j]);
