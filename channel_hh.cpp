@@ -654,8 +654,9 @@ void ChannelHHNernst<TDomain>::update_gating(number newTime, Vertex* vrt, const 
 {
 	number dt = newTime - m_pVMDisc->time();
 	number VM = vrt_values[VMDisc<TDomain>::_v_];
+	number tmp = m_pVMDisc->temperature_celsius();
+	number tmp_factor = std::pow(2.3, (tmp-23.0)/10.0);
 
-	// set new gating states
 	// values for m gate
 	number AlphaHm = 0.1 * vtrap(-(VM+40.0),10.0);
 	number BetaHm =  4.0 * exp(-(VM+65.0)/18.0);
@@ -668,9 +669,9 @@ void ChannelHHNernst<TDomain>::update_gating(number newTime, Vertex* vrt, const 
 	number AlphaHh = 0.07 * exp(-(VM+65.0)/20.0);
 	number BetaHh = 1.0 / (exp(-(VM+35.0)/10.0) + 1.0);
 
-	number rate_h = AlphaHh - m_aaHGate[vrt]*(AlphaHh+BetaHh);
-	number rate_m = AlphaHm - m_aaMGate[vrt]*(AlphaHm+BetaHm);
-	number rate_n = AlphaHn - m_aaNGate[vrt]*(AlphaHn+BetaHn);
+	number rate_h = tmp_factor * (AlphaHh - m_aaHGate[vrt] * (AlphaHh+BetaHh));
+	number rate_m = tmp_factor * (AlphaHm - m_aaMGate[vrt] * (AlphaHm+BetaHm));
+	number rate_n = tmp_factor * (AlphaHn - m_aaNGate[vrt] * (AlphaHn+BetaHn));
 
 	m_aaHGate[vrt] += rate_h * dt;
 	m_aaMGate[vrt] += rate_m * dt;
@@ -703,9 +704,12 @@ void ChannelHHNernst<TDomain>::ionic_current(Vertex* vrt, const std::vector<numb
 	number potassium_nernst_eq 	= helpV*(std::log(m_pVMDisc->k_out()/k));
 	number sodium_nernst_eq	 	= helpV*(std::log(m_pVMDisc->na_out()/na));
 
+	number tmp = m_pVMDisc->temperature_celsius();
+	number tmp_factor = std::pow(2.3, (tmp-23.0)/10.0);
+
 	// single channel ion fluxes
-	number potassium_part_of_flux = gK * pow(NGate,4) * (v - potassium_nernst_eq);
-	number sodium_part_of_flux =  gNa * pow(MGate,3) * HGate * (v - sodium_nernst_eq);
+	number potassium_part_of_flux =	tmp_factor * gK * pow(NGate,4) * (v - potassium_nernst_eq);
+	number sodium_part_of_flux = 	tmp_factor * gNa * pow(MGate,3) * HGate * (v - sodium_nernst_eq);
 
 	outCurrentValues.push_back(potassium_part_of_flux + sodium_part_of_flux);
 	outCurrentValues.push_back(potassium_part_of_flux / F);
@@ -756,9 +760,12 @@ lin_dep_on_pot(Vertex* vrt, const std::vector<number>& vrt_values)
 	const number gK = m_mSubsetParams[si].gK;
 	const number gNa = m_mSubsetParams[si].gNa;
 
+	number tmp = m_pVMDisc->temperature_celsius();
+	number tmp_factor = std::pow(2.3, (tmp-23.0)/10.0);
+
 	// single channel ion fluxes
-	number potassium_part_of_flux = gK * pow(NGate,4);
-	number sodium_part_of_flux =  gNa * pow(MGate,3) * HGate;
+	number potassium_part_of_flux = tmp_factor * gK * pow(NGate,4);
+	number sodium_part_of_flux =  	tmp_factor * gNa * pow(MGate,3) * HGate;
 
 	return potassium_part_of_flux + sodium_part_of_flux;
 }
