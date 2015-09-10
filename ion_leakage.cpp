@@ -15,7 +15,7 @@ template<typename TDomain>
 IonLeakage<TDomain>::IonLeakage(const char* functions, const char* subsets)
 try : IChannel<TDomain>(functions, subsets),
 m_perm(1.0e-6), m_leaking_fct(std::string("v")), m_lfInd(0),
-m_flux_at_rest(0.0), m_conc_in_rest(5e-5), m_conc_out_rest(1.5), m_vm_rest(-65) {}
+m_flux_at_rest(0.0), m_conc_in_rest(5e-5), m_conc_out_rest(1.5), m_vm_rest(-65), m_valency(1) {}
 UG_CATCH_THROW("Error in ChannelHH initializer list.");
 
 template<typename TDomain>
@@ -26,7 +26,7 @@ IonLeakage<TDomain>::IonLeakage
 )
 try : IChannel<TDomain>(functions, subsets),
 m_perm(1.0e-6), m_leaking_fct(std::string("v")), m_lfInd(0),
-m_flux_at_rest(0.0), m_conc_in_rest(5e-5), m_conc_out_rest(1.5), m_vm_rest(-65) {}
+m_flux_at_rest(0.0), m_conc_in_rest(5e-5), m_conc_out_rest(1.5), m_vm_rest(-65), m_valency(1) {}
 UG_CATCH_THROW("Error in ChannelHH initializer list.");
 
 
@@ -48,13 +48,14 @@ set_leaking_quantity(const std::string& lq)
 
 template<typename TDomain>
 void IonLeakage<TDomain>::
-set_perm(number flux_at_rest, number conc_in_rest, number conc_out_rest, number vm_rest)
+set_perm(number flux_at_rest, number conc_in_rest, number conc_out_rest, number vm_rest, int valency)
 {
 	// save parameters for evaluation when VMDisc avail.
 	m_flux_at_rest = flux_at_rest;
 	m_conc_in_rest = conc_in_rest;
 	m_conc_out_rest = conc_out_rest;
 	m_vm_rest = 1e-3*vm_rest;	// scale from mV to V
+	m_valency = valency;
 }
 
 
@@ -71,9 +72,10 @@ void IonLeakage<TDomain>::vm_disc_available()
 	const number& R = m_pVMDisc->R;
 	const number& F = m_pVMDisc->F;
 	const number& T = m_pVMDisc->temperature();
+	const int z = m_valency;
 
-	if (fabs(m_vm_rest) < 1e-8) m_perm = m_flux_at_rest / ((m_conc_out_rest - m_conc_in_rest) - F/(R*T) * (m_conc_out_rest + m_conc_in_rest)*m_vm_rest);
-	else m_perm = m_flux_at_rest / (2*F/(R*T) * m_vm_rest * (m_conc_out_rest - m_conc_in_rest*exp(2*F/(R*T)*m_vm_rest)) / (1.0 - exp(2*F/(R*T)*m_vm_rest)));
+	if (fabs(m_vm_rest) < 1e-8) m_perm = m_flux_at_rest / ((m_conc_out_rest - m_conc_in_rest) - z*F/(2*R*T) * (m_conc_out_rest + m_conc_in_rest)*m_vm_rest);
+	else m_perm = m_flux_at_rest / (z*F/(R*T) * m_vm_rest * (m_conc_out_rest - m_conc_in_rest*exp(z*F/(R*T)*m_vm_rest)) / (1.0 - exp(z*F/(R*T)*m_vm_rest)));
 
 	// check that permeability is positive (else: modeling error!)
 	UG_COND_THROW(m_perm < 0, "The permeability coefficient of your ion leakage term is negative.\n"
@@ -114,11 +116,12 @@ void IonLeakage<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>& 
 	const number& R = m_pVMDisc->R;
 	const number& F = m_pVMDisc->F;
 	const number& T = m_pVMDisc->temperature();
+	const int z = m_valency;
 
 	number leak;
 
-	if (fabs(VM) < 1e-8) leak = -m_perm * ((conc_out - conc_in) - F/(R*T) * (conc_out + conc_in)*VM);
-		else leak = m_perm * 2*F/(R*T) * VM * (conc_out - conc_in*exp(2*F/(R*T)*VM)) / (1.0 - exp(2*F/(R*T)*VM));
+	if (fabs(VM) < 1e-8) leak = -m_perm * ((conc_out - conc_in) - z*F/(2*R*T) * (conc_out + conc_in)*VM);
+		else leak = m_perm * z*F/(R*T) * VM * (conc_out - conc_in*exp(z*F/(R*T)*VM)) / (1.0 - exp(z*F/(R*T)*VM));
 
 	outCurrentValues.push_back(leak);
 }

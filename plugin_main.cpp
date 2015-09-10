@@ -38,6 +38,7 @@
 #include "Ca_PMCA.h"
 #include "Ca_NCX.h"
 #include "ion_leakage.h"
+#include "Na_K_Pump.h"
 
 using namespace std;
 using namespace ug::bridge;
@@ -317,6 +318,24 @@ struct Functionality
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "Ca_NCX", tag);
 		}
+
+
+		// Na/K pump
+		{
+			typedef Na_K_Pump<TDomain> T;
+			typedef IChannel<TDomain> TBase;
+			string name = string("Na_K_Pump").append(suffix);
+			reg.add_class_<T, TBase >(name, grp)
+				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
+				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
+				.add_method("set_IMAX_P", &T::set_IMAX_P)
+				.add_method("set_K_K", &T::set_K_K)
+				.add_method("set_K_Na", &T::set_K_Na)
+				.set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "Na_K_Pump", tag);
+		}
+
+
 
 		// VM-Disc class
 		{

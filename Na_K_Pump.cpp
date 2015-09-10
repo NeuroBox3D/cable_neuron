@@ -18,7 +18,7 @@ namespace cable {
 template<typename TDomain>
 Na_K_Pump<TDomain>::Na_K_Pump(const char* functions, const char* subsets)
 try : IChannel<TDomain>(functions, subsets),
-K_Na(4.67), K_K(2.4), IMAX_P(1e-12) {}
+K_K(1.37), K_Na(5.74), IMAX_P(3.6e-5) {}
 UG_CATCH_THROW("Error in Na_K_Pump initializer list.");
 
 template<typename TDomain>
@@ -28,7 +28,7 @@ Na_K_Pump<TDomain>::Na_K_Pump
 	const std::vector<std::string>& subsets
 )
 try : IChannel<TDomain>(functions, subsets),
-K_Na(4.67), K_K(2.4), IMAX_P(1e-12) {}
+K_K(1.37), K_Na(5.74), IMAX_P(3.6e-5) {}
 UG_CATCH_THROW("Error in Na_K_Pump initializer list.");
 
 
@@ -43,14 +43,14 @@ template<typename TDomain>
 void Na_K_Pump<TDomain>::
 set_K_K(number K)
 {
-	K_K = K_K;
+	K_K = K;
 }
 
 template<typename TDomain>
 void Na_K_Pump<TDomain>::
 set_K_Na(number Na)
 {
-	K_Na = K_Na;
+	K_Na = Na;
 }
 
 template<typename TDomain>
@@ -97,7 +97,9 @@ void Na_K_Pump<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>& v
 	number na = vrt_values[VMDisc<TDomain>::_na_];
 	number k = vrt_values[VMDisc<TDomain>::_k_];
 
-	number napump = IMAX_P/(pow(((1 + K_Na/na * (1 + k/K_K))),3));
+	number napump = 1.0 /(1.0 + K_Na/na * (1.0 + k/K_K));
+	napump *= napump*napump;
+	napump *= IMAX_P;
 
 	//std::cout << "pumping: " << napump << std::endl;
 	//std::cout << "pumping: " << ((-0.66666666)*napump) << std::endl;

@@ -42,7 +42,7 @@ class IonLeakage
 		void set_leaking_quantity(const std::string& lq);
 
 		/// set permeability
-		void set_perm(number flux_at_rest, number conc_in_rest, number conc_out_rest, number vm_rest);
+		void set_perm(number flux_at_rest, number conc_in_rest, number conc_out_rest, number vm_rest, int valency);
 
 		// inherited from IChannel
 		virtual void init(Vertex* vrt, const std::vector<number>& vrt_values);
@@ -67,6 +67,7 @@ class IonLeakage
 		number m_conc_in_rest;
 		number m_conc_out_rest;
 		number m_vm_rest;
+		int m_valency;
 };
 
 

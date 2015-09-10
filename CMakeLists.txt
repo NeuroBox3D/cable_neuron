@@ -50,6 +50,7 @@ set(SOURCES	ElemDiscHH_base.cpp
 			vdcc_bg.cpp
 			Ca_NCX.cpp
 			Ca_PMCA.cpp
+			Na_K_Pump.cpp
 			VM_Disc.cpp
 			order.cpp
 			plugin_main.cpp
