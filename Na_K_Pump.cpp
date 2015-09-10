@@ -96,10 +96,15 @@ void Na_K_Pump<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>& v
 	//number ca = vrt_values[VMDisc<TDomain>::_ca_];
 	number na = vrt_values[VMDisc<TDomain>::_na_];
 	number k = vrt_values[VMDisc<TDomain>::_k_];
+
+	number napump = IMAX_P/(pow(((1 + K_Na/na * (1 + k/K_K))),3));
+
+	//std::cout << "pumping: " << napump << std::endl;
+	//std::cout << "pumping: " << ((-0.66666666)*napump) << std::endl;
 	//outCurrentValues.push_back(0);	// implement!?
-	outCurrentValues.push_back(IMAX_P/(pow(((1 + K_Na/na * (1 + k/K_K))),3))); // mol/(m^2*ms)
+	outCurrentValues.push_back(napump); // mol/(m^2*ms)
 	// 3na vs 2k
-	outCurrentValues.push_back((-2/3) *IMAX_P/(pow(((1 + K_Na/na * (1 + k/K_K))),3))); // mol/(m^2*ms)
+	outCurrentValues.push_back((-0.66666666) * napump); // mol/(m^2*ms)
 }
 
 
