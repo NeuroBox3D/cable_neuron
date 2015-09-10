@@ -104,7 +104,7 @@ void Na_K_Pump<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>& v
 	//outCurrentValues.push_back(0);	// implement!?
 	outCurrentValues.push_back(napump); // mol/(m^2*ms)
 	// 3na vs 2k
-	outCurrentValues.push_back((-0.66666666) * napump); // mol/(m^2*ms)
+	outCurrentValues.push_back((-2.0/3.0) * napump); // mol/(m^2*ms)
 }
 
 
