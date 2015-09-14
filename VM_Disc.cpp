@@ -744,7 +744,7 @@ void VMDisc<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, const MathV
 				&& fabs(0.5*(vCornerCoords[co][1]+vCornerCoords[(co+1)%2][1]) - m_coords[i][1]) < m_influx_ac
 				&& fabs(0.5*(vCornerCoords[co][2]+vCornerCoords[(co+1)%2][2]) - m_coords[i][2]) < m_influx_ac
 			   )
-//			//	Influx to vertex
+//			//	Influx to vertex x (if used, the specified influx has to be scaled by the valence of vertex x)
 //			if (m_beg_flux[i] <= time && m_dur_flux[i] + m_beg_flux[i] >= time
 //				&& fabs(vCornerCoords[co][0] - m_coords[i][0]) < m_influx_ac
 //				&& fabs(vCornerCoords[co][1] - m_coords[i][1]) < m_influx_ac
