@@ -1935,10 +1935,8 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  mycppfile << "void "+filename+"<TDomain>::vm_disc_available()  \n";
 	  mycppfile << "{  \n";
 	  mycppfile << "	init_attachments();  \n";
+	  mycppfile << " 	F = m_pVMDisc->F; \n R = m_pVMDisc->R; \n K = m_pVMDisc->temperature(); \n celsius = m_pVMDisc->temperature_celsius(); \n";
 	  mycppfile << "}  \n \n \n \n";
-
-
-
 	  mycppfile.close();
 
 	  ofstream myhfile;
@@ -2155,6 +2153,10 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 			  }
 		  }
 	  }
+
+
+
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 	  /// Writing all ions out
@@ -3194,7 +3196,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  									  Proc_vals[k].replace(Proc_vals[k].find(":"), 1, ";//");
 
 	  								  mycppfile << Proc_vals[k] + "; \n";
-	  								  //std::cout << Proc_vals[k] << std::endl;
+	  								  //std::cout << "Proc_vals[k]: " << Proc_vals[k] << std::endl;
 
 	  							  } else
 	  							  {
@@ -4427,12 +4429,14 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		  }
 	  }
 
-	  //TODO write all State_logs number m_log_mGate
-
 	  for (size_t i=0; i<State_vars.size(); i++)
 	  {
 		  myhfile << "bool m_log_" << State_vars[i] << "Gate; \n";
 	  }
+
+	  //Standard Neuron params
+	  myhfile << "// Standard-NModl-File-Params \n";
+	  myhfile << "number F, R, K, celsius; \n";
 
 	  myhfile << "}; \n \n";
 
