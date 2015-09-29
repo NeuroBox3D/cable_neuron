@@ -55,6 +55,9 @@ public:
 	bool pos_letterb(string s);
 	bool begG(string s);
 
+	// checking for if-loop
+	bool Check_if(string test);
+
 	// some different Search Beginnings
 	size_t find_beg(string beg);
 	size_t find_begg(string beg);
@@ -83,6 +86,7 @@ public:
 
 	// Get Blocks like "NEURON"-Block form openend NModl-File
 	std::vector<string> GetBlock(std::vector<pair<int, int> >, std::vector<string> Zeilen, string name);
+	std::vector<string> GetBlockFunction(std::vector<pair<int, int> >, std::vector<string> Zeilen, string name);
 
 
 	//testing if on ion is only read needed
