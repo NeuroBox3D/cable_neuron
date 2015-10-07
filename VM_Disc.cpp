@@ -137,6 +137,11 @@ template<typename TDomain> number VMDisc<TDomain>::eca() {return m_eca;}
 template<typename TDomain> number VMDisc<TDomain>::temperature() {return m_temperature;}
 template<typename TDomain> number VMDisc<TDomain>::temperature_celsius() {return m_temperature - 273.15;}
 
+template<typename TDomain> number VMDisc<TDomain>::flux_ca() {return 0.0;}
+template<typename TDomain> number VMDisc<TDomain>::flux_na() {return 0.0;}
+template<typename TDomain> number VMDisc<TDomain>::flux_k()  {return 0.0;}
+
+
 template<typename TDomain> void VMDisc<TDomain>::gets_syns() {std::cout << "AlphaSyn: " << syn_counter_alpha << "Exp2Syn: " << syn_counter_exp << std::endl;}
 // ////////////////////////////
 // setters for functionality //

@@ -133,6 +133,11 @@ class VMDisc
 		number conc_out(size_t ion_spec);
 		/// \}
 
+		/// get all flux-values
+		number flux_ca();
+		number flux_na();
+		number flux_k();
+
 		/// get diffusion coefficients in units of m^2/ms
 		const std::vector<number>& diff_coeffs();
 
