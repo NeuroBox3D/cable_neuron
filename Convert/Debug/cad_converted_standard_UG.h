@@ -1,6 +1,6 @@
 #ifndef cad_converted_standard_UG_H_
 #define cad_converted_standard_UG_H_
-#include "channel_interface.h" 
+#include "../../channel_interface.h" 
 #include "lib_grid/lg_base.h" 
 #include "lib_grid/grid/grid_base_objects.h" 
 
@@ -104,6 +104,8 @@ number 	taur	;
 number 	cainf	; 
 number cai ; 
 bool m_log_caSGate; 
+// Standard-NModl-File-Params 
+number F, R, K, celsius; 
 }; 
  
 } // namespace cable

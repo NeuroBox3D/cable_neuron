@@ -1,6 +1,6 @@
 #ifndef myseclamp_converted_standard_UG_H_
 #define myseclamp_converted_standard_UG_H_
-#include "channel_interface.h" 
+#include "../../channel_interface.h" 
 #include "lib_grid/lg_base.h" 
 #include "lib_grid/grid/grid_base_objects.h" 
 
@@ -51,25 +51,23 @@ class myseclamp_converted_standard_UG
 /// @copydoc IChannel<TDomain>::IChannel(cont char*) 
 myseclamp_converted_standard_UG(const char* functions, const char* subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-m_R(8.314), m_T(293.0), m_F(96485.0), 
 	rs ( 1 *1), 
 dur1 ( 0), 
 dur2 ( 0), 
 dur3 ( 0), 
-dur4 ( 0) {} 
-UG_CATCH_THROW("Error in myseclamp_converted_standard_UG initializer list. ") 
+dur4 ( 0){} 
+UG_CATCH_THROW("Error in myseclamp_converted_standard_UG initializer list. "); 
  
  
 /// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&) 
 myseclamp_converted_standard_UG(const std::vector<std::string>& functions, const std::vector<std::string>& subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-m_R(8.314), m_T(293.0), m_F(96485.0), 
 	rs ( 1 *1), 
 dur1 ( 0), 
 dur2 ( 0), 
 dur3 ( 0), 
-dur4 ( 0) {} 
-UG_CATCH_THROW("Error in myseclamp_converted_standard_UG initializer list. ") 
+dur4 ( 0){} 
+UG_CATCH_THROW("Error in myseclamp_converted_standard_UG initializer list. "); 
 /// destructor 
  
 virtual ~myseclamp_converted_standard_UG() {}; 
@@ -77,10 +75,11 @@ virtual ~myseclamp_converted_standard_UG() {};
 void init_attachments(); 
 // inherited from IChannel 
  
-virtual void init(const LocalVector& u, Edge* e); 
-virtual void update_gating(number newTime, const LocalVector& u, Edge* e); 
+virtual void init(Vertex* vrt, const std::vector<number>& vrt_values); 
+virtual void update_gating(number newtime, Vertex* vrt, const std::vector<number>& vrt_values); 
 virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues); 
 virtual void vm_disc_available(); 
+virtual std::vector<number> state_values(number x, number y, number z); 
 
  
 double getrs(); 
@@ -98,12 +97,14 @@ void setdur4(double val);
 protected: 
 private: 
  
-number m_R, m_T, m_F; 
+virtual void specify_write_function_indices(); 
 number 	rs ; 
 number dur1 ; 
 number dur2 ; 
 number dur3 ; 
 number dur4 ; 
+// Standard-NModl-File-Params 
+number F, R, K, celsius; 
 }; 
  
 } // namespace cable

@@ -13,6 +13,10 @@ template<typename TDomain>
 void CaT_converted_standard_UG<TDomain>::vm_disc_available()  
 {  
 	init_attachments();  
+ 	F = m_pVMDisc->F; 
+ R = m_pVMDisc->R; 
+ K = m_pVMDisc->temperature(); 
+ celsius = m_pVMDisc->temperature_celsius(); 
 }  
  
  
@@ -276,7 +280,7 @@ std::vector<number> CaT_converted_standard_UG<TDomain>::state_values(number x, n
 	 Vertex* bestVrt; 
  
 	 // Iterate only if there is one Gtting needed 
-	 if (m_log_mGate == true || m_log_hGate == true )
+	 if (m_log_mGate || m_log_hGate )
 	 { 
 	 	 // iterating over all elements 
 	 	 for (size_t si=0; si < ssGrp.size(); si++) 
@@ -414,6 +418,9 @@ number v =  vrt_values[m_pVMDisc->_v_];
 number t = m_pVMDisc->time(); 
  
  
+
+ 
+ 
 const number helpV = 1e3*(m_pVMDisc->R*m_pVMDisc->temperature())/m_pVMDisc->F; 
 number eca; 
 if (m_pVMDisc->eca() == 0) 
@@ -426,10 +433,10 @@ else
 } 
  
  
+number gca = gbar*m*m*h; 
 
  
  
-number gca = gbar*m*m*h; 
 outCurrentValues.push_back( gca * (v - eca)); 
 } 
  

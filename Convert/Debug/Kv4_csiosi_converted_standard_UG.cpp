@@ -5,14 +5,18 @@
 #include "lib_disc/function_spaces/local_transfer_interface.h" 
 #include <cmath> 
 namespace ug { 
-namespace cable {
+namespace cable { 
  
  
 // adding function which always inits_attachments 
 template<typename TDomain> 
-void Kv4_csiosi_converted_standard_UG<TDomain>::approx_space_available()  
+void Kv4_csiosi_converted_standard_UG<TDomain>::vm_disc_available()  
 {  
 	init_attachments();  
+ 	F = m_pVMDisc->F; 
+ R = m_pVMDisc->R; 
+ K = m_pVMDisc->temperature(); 
+ celsius = m_pVMDisc->temperature_celsius(); 
 }  
  
  
@@ -26,16 +30,6 @@ template<typename TDomain>
 double Kv4_csiosi_converted_standard_UG<TDomain>::getek() 
 { 
 return ek; 
-} 
-template<typename TDomain> 
-double Kv4_csiosi_converted_standard_UG<TDomain>::getF() 
-{ 
-return F; 
-} 
-template<typename TDomain> 
-double Kv4_csiosi_converted_standard_UG<TDomain>::getR() 
-{ 
-return R; 
 } 
 template<typename TDomain> 
 double Kv4_csiosi_converted_standard_UG<TDomain>::geta() 
@@ -148,16 +142,6 @@ void Kv4_csiosi_converted_standard_UG<TDomain>::setek(double val)
 ek = val; 
 } 
 template<typename TDomain> 
-void Kv4_csiosi_converted_standard_UG<TDomain>::setF(double val) 
-{ 
-F = val; 
-} 
-template<typename TDomain> 
-void Kv4_csiosi_converted_standard_UG<TDomain>::setR(double val) 
-{ 
-R = val; 
-} 
-template<typename TDomain> 
 void Kv4_csiosi_converted_standard_UG<TDomain>::seta(double val) 
 { 
 a = val; 
@@ -261,10 +245,6 @@ ki2i = val;
 template<typename TDomain> 
 void Kv4_csiosi_converted_standard_UG<TDomain>::init_attachments() 
 { 
-// inits temperatur from kalvin to celsius and some other typical neuron values
-m_pVMDisc->celsius = m_T - 273; 
- 
- 
 SmartPtr<Grid> spGrid = m_pVMDisc->approx_space()->domain()->grid(); 
 if (spGrid->has_vertex_attachment(this->C0Gate)) 
 UG_THROW("Attachment necessary (C0Gate) for Kv4_csiosi_converted_standard_UG channel dynamics "
@@ -360,54 +340,158 @@ this->aaI7Gate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->I7Gate
  
  
  
+template<typename TDomain> 
+std::vector<number> Kv4_csiosi_converted_standard_UG<TDomain>::state_values(number x, number y, number z) 
+{ 
+	 //var for output 
+	 std::vector<number> GatingAccesors; 
+ 
+	 typedef ug::MathVector<TDomain::dim> position_type; 
+ 
+	 position_type coord; 
+ 
+	 if (coord.size()==1) 
+	 	 coord[0]=x; 
+	 if (coord.size()==2) 
+	 { 
+	 	 coord[0] = x;
+	 	 coord[1] = y;
+	 } 
+	 if (coord.size()==3) 
+	 { 
+	 	 coord[0] = x;
+	 	 coord[1] = y;
+	 	 coord[2] = z;
+	 } 
+	 //accesors 
+	 typedef Attachment<position_type> position_attachment_type; 
+	 typedef Grid::VertexAttachmentAccessor<position_attachment_type> position_accesor_type; 
+ 
+	 // Definitions for Iteration over all Elements 
+	 typedef typename DoFDistribution::traits<Vertex>::const_iterator itType; 
+	 SubsetGroup ssGrp; 
+	 try { ssGrp = SubsetGroup(m_pVMDisc->approx_space()->domain()->subset_handler(), this->m_vSubset);} 
+	 UG_CATCH_THROW("Subset group creation failed."); 
+ 
+	 itType iter; 
+	 number bestDistSq, distSq; 
+	 Vertex* bestVrt; 
+ 
+	 // Iterate only if there is one Gtting needed 
+	 if (m_log_C0Gate || m_log_C1Gate || m_log_C2Gate || m_log_C3Gate || m_log_C4Gate || m_log_C5Gate || m_log_I0Gate || m_log_I1Gate || m_log_I2Gate || m_log_I3Gate || m_log_I4Gate || m_log_I5Gate || m_log_OGate || m_log_I6Gate || m_log_I7Gate )
+	 { 
+	 	 // iterating over all elements 
+	 	 for (size_t si=0; si < ssGrp.size(); si++) 
+	 	 { 
+	 	 	 itType iterBegin = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]); 
+	 	 	 itType iterEnd = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template end<Vertex>(ssGrp[si]); 
+ 
+	 	 	 const position_accesor_type& aaPos = m_pVMDisc->approx_space()->domain()->position_accessor(); 
+	 	 	 if (si==0) 
+	 	 	 { 
+	 	 	 	 bestVrt = *iterBegin; 
+	 	 	 	 bestDistSq = VecDistanceSq(coord, aaPos[bestVrt]); 
+	 	 	 } 
+	 	 	 iter = iterBegin; 
+	 	 	 iter++; 
+	 	 	 while(iter != iterEnd) 
+	 	 	 { 
+	 	 	 	 distSq = VecDistanceSq(coord, aaPos[*iter]); 
+	 	 	 	 { 
+	 	 	 	 	 bestDistSq = distSq; 
+	 	 	 	 	 bestVrt = *iter; 
+	 	 	 	 } 
+	 	 	 	 ++iter; 
+	 	 	 } 
+	 	 } 
+	 	 if (m_log_C0Gate == true) 
+	 	 	 GatingAccesors.push_back(this->aaC0Gate[bestVrt]); 
+	 	 if (m_log_C1Gate == true) 
+	 	 	 GatingAccesors.push_back(this->aaC1Gate[bestVrt]); 
+	 	 if (m_log_C2Gate == true) 
+	 	 	 GatingAccesors.push_back(this->aaC2Gate[bestVrt]); 
+	 	 if (m_log_C3Gate == true) 
+	 	 	 GatingAccesors.push_back(this->aaC3Gate[bestVrt]); 
+	 	 if (m_log_C4Gate == true) 
+	 	 	 GatingAccesors.push_back(this->aaC4Gate[bestVrt]); 
+	 	 if (m_log_C5Gate == true) 
+	 	 	 GatingAccesors.push_back(this->aaC5Gate[bestVrt]); 
+	 	 if (m_log_I0Gate == true) 
+	 	 	 GatingAccesors.push_back(this->aaI0Gate[bestVrt]); 
+	 	 if (m_log_I1Gate == true) 
+	 	 	 GatingAccesors.push_back(this->aaI1Gate[bestVrt]); 
+	 	 if (m_log_I2Gate == true) 
+	 	 	 GatingAccesors.push_back(this->aaI2Gate[bestVrt]); 
+	 	 if (m_log_I3Gate == true) 
+	 	 	 GatingAccesors.push_back(this->aaI3Gate[bestVrt]); 
+	 	 if (m_log_I4Gate == true) 
+	 	 	 GatingAccesors.push_back(this->aaI4Gate[bestVrt]); 
+	 	 if (m_log_I5Gate == true) 
+	 	 	 GatingAccesors.push_back(this->aaI5Gate[bestVrt]); 
+	 	 if (m_log_OGate == true) 
+	 	 	 GatingAccesors.push_back(this->aaOGate[bestVrt]); 
+	 	 if (m_log_I6Gate == true) 
+	 	 	 GatingAccesors.push_back(this->aaI6Gate[bestVrt]); 
+	 	 if (m_log_I7Gate == true) 
+	 	 	 GatingAccesors.push_back(this->aaI7Gate[bestVrt]); 
+	 } 
+	 return GatingAccesors; 
+} 
+ 
+//Setters for states_outputs 
+template<typename TDomain> void Kv4_csiosi_converted_standard_UG<TDomain>::set_log_C0Gate(bool bLogC0Gate) { m_log_C0Gate = bLogC0Gate; }
+template<typename TDomain> void Kv4_csiosi_converted_standard_UG<TDomain>::set_log_C1Gate(bool bLogC1Gate) { m_log_C1Gate = bLogC1Gate; }
+template<typename TDomain> void Kv4_csiosi_converted_standard_UG<TDomain>::set_log_C2Gate(bool bLogC2Gate) { m_log_C2Gate = bLogC2Gate; }
+template<typename TDomain> void Kv4_csiosi_converted_standard_UG<TDomain>::set_log_C3Gate(bool bLogC3Gate) { m_log_C3Gate = bLogC3Gate; }
+template<typename TDomain> void Kv4_csiosi_converted_standard_UG<TDomain>::set_log_C4Gate(bool bLogC4Gate) { m_log_C4Gate = bLogC4Gate; }
+template<typename TDomain> void Kv4_csiosi_converted_standard_UG<TDomain>::set_log_C5Gate(bool bLogC5Gate) { m_log_C5Gate = bLogC5Gate; }
+template<typename TDomain> void Kv4_csiosi_converted_standard_UG<TDomain>::set_log_I0Gate(bool bLogI0Gate) { m_log_I0Gate = bLogI0Gate; }
+template<typename TDomain> void Kv4_csiosi_converted_standard_UG<TDomain>::set_log_I1Gate(bool bLogI1Gate) { m_log_I1Gate = bLogI1Gate; }
+template<typename TDomain> void Kv4_csiosi_converted_standard_UG<TDomain>::set_log_I2Gate(bool bLogI2Gate) { m_log_I2Gate = bLogI2Gate; }
+template<typename TDomain> void Kv4_csiosi_converted_standard_UG<TDomain>::set_log_I3Gate(bool bLogI3Gate) { m_log_I3Gate = bLogI3Gate; }
+template<typename TDomain> void Kv4_csiosi_converted_standard_UG<TDomain>::set_log_I4Gate(bool bLogI4Gate) { m_log_I4Gate = bLogI4Gate; }
+template<typename TDomain> void Kv4_csiosi_converted_standard_UG<TDomain>::set_log_I5Gate(bool bLogI5Gate) { m_log_I5Gate = bLogI5Gate; }
+template<typename TDomain> void Kv4_csiosi_converted_standard_UG<TDomain>::set_log_OGate(bool bLogOGate) { m_log_OGate = bLogOGate; }
+template<typename TDomain> void Kv4_csiosi_converted_standard_UG<TDomain>::set_log_I6Gate(bool bLogI6Gate) { m_log_I6Gate = bLogI6Gate; }
+template<typename TDomain> void Kv4_csiosi_converted_standard_UG<TDomain>::set_log_I7Gate(bool bLogI7Gate) { m_log_I7Gate = bLogI7Gate; }
  // Init Method for using gatings 
 template<typename TDomain> 
-void Kv4_csiosi_converted_standard_UG<TDomain>::init(const LocalVector& u, Edge* edge) 
+void Kv4_csiosi_converted_standard_UG<TDomain>::init(Vertex* vrt, const std::vector<number>& vrt_values) 
 { 
 //get celsius and time
-number celsius = m_pVMDisc->celsius; 
+// inits temperatur from kalvin to celsius and some other typical neuron values
+number m_T, m_R, m_F; 
+m_T = m_pVMDisc->temperature(); 
+m_R = m_pVMDisc->R; 
+m_F = m_pVMDisc->F; 
+ 
+ 
+number celsius = m_pVMDisc->temperature_celsius(); 
 number dt = m_pVMDisc->time(); 
 // make preparing vor getting values of every edge 
-typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; 
-vrt_list vl; 
-m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge); 
- 
- 
-//over all edges 
-for (size_t size_l = 0; size_l< vl.size(); size_l++) 
-{ 
-	 Vertex* vrt = vl[size_l]; 
- 
- 
-number v = u(m_pVMDisc->_v_, size_l); 
-number k = u(m_pVMDisc->_k_, size_l); 
+number v = vrt_values[VMDisc<TDomain>::_v_]; 
+number k = vrt_values[VMDisc<TDomain>::_k_]; 
 
  
 }  
-}  
  
  
  
 template<typename TDomain> 
-void Kv4_csiosi_converted_standard_UG<TDomain>::update_gating(number newTime, const LocalVector& u, Edge* edge) 
+void Kv4_csiosi_converted_standard_UG<TDomain>::update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values) 
 { 
-number celsius = m_pVMDisc->celsius; 
- number FARADAY = m_F; 
- // make preparing vor getting values of every edge 
-typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; 
-vrt_list vl; 
-m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge); 
+// inits temperatur from kalvin to celsius and some other typical neuron values
+number m_T, m_R, m_F; 
+m_T = m_pVMDisc->temperature(); 
+m_R = m_pVMDisc->R; 
+m_F = m_pVMDisc->F; 
  
  
-//over all edges 
-for (size_t size_l = 0; size_l< vl.size(); size_l++) 
-{ 
-	 Vertex* vrt = vl[size_l]; 
- 
- 
-number dt = newTime - m_pVMDisc->m_aaTime[vrt]; 
-number v = u(m_pVMDisc->_v_, size_l); 
-number k = u(m_pVMDisc->_k_, size_l); 
+number celsius = m_pVMDisc->temperature_celsius(); 
+ number FARADAY = m_pVMDisc->F; 
+ number dt = newTime - m_pVMDisc->time(); 
+number v = vrt_values[VMDisc<TDomain>::_v_]; 
+number k = vrt_values[VMDisc<TDomain>::_k_]; 
 
  
 double C0 = aaC0Gate[vrt]; 
@@ -532,13 +616,19 @@ aaI7Gate[vrt] = I7;
  
  
 } 
-} 
  
  
  
 template<typename TDomain> 
 void Kv4_csiosi_converted_standard_UG<TDomain>::ionic_current(Vertex* ver, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues) 
 { 
+ 
+// inits temperatur from kalvin to celsius and some other typical neuron values
+number m_T, m_R, m_F; 
+m_T = m_pVMDisc->temperature(); 
+m_R = m_pVMDisc->R; 
+m_F = m_pVMDisc->F; 
+ 
  
 number C0 = aaC0Gate[ver]; 
 number C1 = aaC1Gate[ver]; 
@@ -555,14 +645,17 @@ number I5 = aaI5Gate[ver];
 number O = aaOGate[ver]; 
 number I6 = aaI6Gate[ver]; 
 number I7 = aaI7Gate[ver]; 
-number k = vrt_values[VMDisc<TDomain>::_k_]; 
-number v =  vrt_values[VMDisc<TDomain>::_v_]; 
+number k = vrt_values[m_pVMDisc->_k_]; 
+number v =  vrt_values[m_pVMDisc->_v_]; 
  
  
 number t = m_pVMDisc->time(); 
  
  
-const number helpV = 1e3*(m_R*m_T)/m_F; 
+
+ 
+ 
+const number helpV = 1e3*(m_pVMDisc->R*m_pVMDisc->temperature())/m_pVMDisc->F; 
  
  
 number g = gmax * O; 
@@ -570,7 +663,15 @@ number g = gmax * O;
  
  
 outCurrentValues.push_back( g * (v - ek)); 
- } 
+} 
+ 
+ 
+template<typename TDomain> 
+void Kv4_csiosi_converted_standard_UG<TDomain>::specify_write_function_indices() 
+{ 
+ 
+this->m_vWFctInd.push_back(VMDisc<TDomain>::_v_); 
+} 
  
  
 //////////////////////////////////////////////////////////////////////////////// 
@@ -593,5 +694,5 @@ template class Kv4_csiosi_converted_standard_UG<Domain3d>;
  
 } // namespace cable
 } // namespace ug
-  
-  
+
+

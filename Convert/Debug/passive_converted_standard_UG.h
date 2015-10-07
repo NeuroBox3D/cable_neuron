@@ -1,6 +1,6 @@
 #ifndef passive_converted_standard_UG_H_
 #define passive_converted_standard_UG_H_
-#include "channel_interface.h" 
+#include "../../channel_interface.h" 
 #include "lib_grid/lg_base.h" 
 #include "lib_grid/grid/grid_base_objects.h" 
 
@@ -51,7 +51,7 @@ class passive_converted_standard_UG
 /// @copydoc IChannel<TDomain>::IChannel(cont char*) 
 passive_converted_standard_UG(const char* functions, const char* subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-	g ( .001	*0.01), 
+	g ( .001	*0.1), 
 	e ( -70	*1){} 
 UG_CATCH_THROW("Error in passive_converted_standard_UG initializer list. "); 
  
@@ -59,7 +59,7 @@ UG_CATCH_THROW("Error in passive_converted_standard_UG initializer list. ");
 /// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&) 
 passive_converted_standard_UG(const std::vector<std::string>& functions, const std::vector<std::string>& subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-	g ( .001	*0.01), 
+	g ( .001	*0.1), 
 	e ( -70	*1){} 
 UG_CATCH_THROW("Error in passive_converted_standard_UG initializer list. "); 
 /// destructor 
@@ -88,6 +88,8 @@ private:
 virtual void specify_write_function_indices(); 
 number 	g ; 
 number 	e ; 
+// Standard-NModl-File-Params 
+number F, R, K, celsius; 
 }; 
  
 } // namespace cable

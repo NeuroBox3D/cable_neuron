@@ -1,6 +1,6 @@
 #ifndef NMDA_Mg_T_converted_standard_UG_H_
 #define NMDA_Mg_T_converted_standard_UG_H_
-#include "channel_interface.h" 
+#include "../../channel_interface.h" 
 #include "lib_grid/lg_base.h" 
 #include "lib_grid/grid/grid_base_objects.h" 
 
@@ -314,6 +314,8 @@ bool m_log_ClMgGate;
 bool m_log_D1MgGate; 
 bool m_log_D2MgGate; 
 bool m_log_OMgGate; 
+// Standard-NModl-File-Params 
+number F, R, K, celsius; 
 }; 
  
 } // namespace cable

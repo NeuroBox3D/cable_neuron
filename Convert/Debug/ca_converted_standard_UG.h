@@ -1,6 +1,6 @@
 #ifndef ca_converted_standard_UG_H_
 #define ca_converted_standard_UG_H_
-#include "channel_interface.h" 
+#include "../../channel_interface.h" 
 #include "lib_grid/lg_base.h" 
 #include "lib_grid/grid/grid_base_objects.h" 
 
@@ -51,7 +51,7 @@ class ca_converted_standard_UG
 /// @copydoc IChannel<TDomain>::IChannel(cont char*) 
 ca_converted_standard_UG(const char* functions, const char* subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-	gbar ( 0.1   	*10), 
+	gbar ( 0.1   	*100), 
 	vshift ( 0	*1), 
 	cao  ( 2.5	*1), 
 cai ( 0), 
@@ -67,7 +67,7 @@ UG_CATCH_THROW("Error in ca_converted_standard_UG initializer list. ");
 /// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&) 
 ca_converted_standard_UG(const std::vector<std::string>& functions, const std::vector<std::string>& subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-	gbar ( 0.1   	*10), 
+	gbar ( 0.1   	*100), 
 	vshift ( 0	*1), 
 	cao  ( 2.5	*1), 
 cai ( 0), 
@@ -132,6 +132,8 @@ number 	vmax ;
 number tadj; 
 bool m_log_mGate; 
 bool m_log_hGate; 
+// Standard-NModl-File-Params 
+number F, R, K, celsius; 
 }; 
  
 } // namespace cable

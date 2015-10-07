@@ -13,6 +13,10 @@ template<typename TDomain>
 void ar_converted_standard_UG<TDomain>::vm_disc_available()  
 {  
 	init_attachments();  
+ 	F = m_pVMDisc->F; 
+ R = m_pVMDisc->R; 
+ K = m_pVMDisc->temperature(); 
+ celsius = m_pVMDisc->temperature_celsius(); 
 }  
  
  
@@ -164,6 +168,9 @@ number v =  vrt_values[m_pVMDisc->_v_];
  
  
 number t = m_pVMDisc->time(); 
+ 
+ 
+
  
  
 const number helpV = 1e3*(m_pVMDisc->R*m_pVMDisc->temperature())/m_pVMDisc->F; 

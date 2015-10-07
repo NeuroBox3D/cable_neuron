@@ -1,6 +1,6 @@
 #ifndef kir_converted_standard_UG_H_
 #define kir_converted_standard_UG_H_
-#include "channel_interface.h" 
+#include "../../channel_interface.h" 
 #include "lib_grid/lg_base.h" 
 #include "lib_grid/grid/grid_base_objects.h" 
 
@@ -51,7 +51,7 @@ class kir_converted_standard_UG
 /// @copydoc IChannel<TDomain>::IChannel(cont char*) 
 kir_converted_standard_UG(const char* functions, const char* subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-	gkbar  ( 0.00015 		*0.01), 
+	gkbar  ( 0.00015 		*0.1), 
 	mvhalf ( -52		*1), 
 	mslope ( 13		*1), 
 	mshift ( 30			*1), 
@@ -63,7 +63,7 @@ UG_CATCH_THROW("Error in kir_converted_standard_UG initializer list. ");
 /// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&) 
 kir_converted_standard_UG(const std::vector<std::string>& functions, const std::vector<std::string>& subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-	gkbar  ( 0.00015 		*0.01), 
+	gkbar  ( 0.00015 		*0.1), 
 	mvhalf ( -52		*1), 
 	mslope ( 13		*1), 
 	mshift ( 30			*1), 
@@ -110,6 +110,8 @@ number 	mslope ;
 number 	mshift ; 
 number 	qfact ; 
 bool m_log_mGate; 
+// Standard-NModl-File-Params 
+number F, R, K, celsius; 
 }; 
  
 } // namespace cable

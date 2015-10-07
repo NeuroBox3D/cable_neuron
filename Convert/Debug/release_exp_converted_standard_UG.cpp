@@ -13,6 +13,10 @@ template<typename TDomain>
 void release_exp_converted_standard_UG<TDomain>::vm_disc_available()  
 {  
 	init_attachments();  
+ 	F = m_pVMDisc->F; 
+ R = m_pVMDisc->R; 
+ K = m_pVMDisc->temperature(); 
+ celsius = m_pVMDisc->temperature_celsius(); 
 }  
  
  
@@ -96,7 +100,7 @@ std::vector<number> release_exp_converted_standard_UG<TDomain>::state_values(num
 	 Vertex* bestVrt; 
  
 	 // Iterate only if there is one Gtting needed 
-	 if (m_log_AGate == true || m_log_BGate == true )
+	 if (m_log_AGate || m_log_BGate )
 	 { 
 	 	 // iterating over all elements 
 	 	 for (size_t si=0; si < ssGrp.size(); si++) 
@@ -152,12 +156,12 @@ number v = vrt_values[VMDisc<TDomain>::_v_];
 
  
 total =  0; 
-tau1 =  .9999*tau2; 
+if(tau1/tau2>.9999){tau1 =  .9999*tau2    ;};; 
 aaAGate[vrt] = 0; 
 aaBGate[vrt] = 0; 
 double tp =  (tau1*tau2)/(tau2 - tau1) * log(tau2/tau1); 
-double factor =  -exp(-tp/tau1) + exp(-tp/tau2);
-factor =  1/factor;
+double factor =  -exp(-tp/tau1) + exp(-tp/tau2); 
+factor =  1/factor; 
 }  
  
  
@@ -215,6 +219,9 @@ number v =  vrt_values[m_pVMDisc->_v_];
  
  
 number t = m_pVMDisc->time(); 
+ 
+ 
+
  
  
 const number helpV = 1e3*(m_pVMDisc->R*m_pVMDisc->temperature())/m_pVMDisc->F; 

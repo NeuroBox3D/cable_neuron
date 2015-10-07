@@ -1,6 +1,6 @@
 #ifndef hh_converted_standard_UG_H_
 #define hh_converted_standard_UG_H_
-#include "channel_interface.h" 
+#include "../../channel_interface.h" 
 #include "lib_grid/lg_base.h" 
 #include "lib_grid/grid/grid_base_objects.h" 
 
@@ -51,9 +51,9 @@ class hh_converted_standard_UG
 /// @copydoc IChannel<TDomain>::IChannel(cont char*) 
 hh_converted_standard_UG(const char* functions, const char* subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-        gnabar ( .12 *0.01), 
-        gkbar ( .036 *0.01), 
-        gl ( .0003 *0.01), 
+        gnabar ( .12 *0.1), 
+        gkbar ( .036 *0.1), 
+        gl ( .0003 *0.1), 
         el ( -54.3 *1), 
 m_log_mGate(false), 
 m_log_hGate(false), 
@@ -64,9 +64,9 @@ UG_CATCH_THROW("Error in hh_converted_standard_UG initializer list. ");
 /// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&) 
 hh_converted_standard_UG(const std::vector<std::string>& functions, const std::vector<std::string>& subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-        gnabar ( .12 *0.01), 
-        gkbar ( .036 *0.01), 
-        gl ( .0003 *0.01), 
+        gnabar ( .12 *0.1), 
+        gkbar ( .036 *0.1), 
+        gl ( .0003 *0.1), 
         el ( -54.3 *1), 
 m_log_mGate(false), 
 m_log_hGate(false), 
@@ -123,6 +123,8 @@ number htau;
 bool m_log_mGate; 
 bool m_log_hGate; 
 bool m_log_nGate; 
+// Standard-NModl-File-Params 
+number F, R, K, celsius; 
 }; 
  
 } // namespace cable

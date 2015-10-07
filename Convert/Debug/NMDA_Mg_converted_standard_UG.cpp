@@ -1,4 +1,4 @@
-#include "NMDA_Mg_converted_standard_UG.h"
+#include "NMDA_Mg_converted_standard_UG.h"	
 #include "lib_grid/lg_base.h" 
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h" 
 #include "lib_disc/function_spaces/grid_function.h" 
@@ -10,414 +10,418 @@ namespace cable {
  
 // adding function which always inits_attachments 
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::vm_disc_available()  
+void NMDA_Mg_converted_standard_UG<TDomain>::vm_disc_available()  
 {  
 	init_attachments();  
+ 	F = m_pVMDisc->F; 
+ R = m_pVMDisc->R; 
+ K = m_pVMDisc->temperature(); 
+ celsius = m_pVMDisc->temperature_celsius(); 
 }  
  
  
  
 template<typename TDomain> 
-double NMDA_MG_converted_standard_UG<TDomain>::getErev() 
+double NMDA_Mg_converted_standard_UG<TDomain>::getErev() 
 { 
 return Erev; 
 } 
 template<typename TDomain> 
-double NMDA_MG_converted_standard_UG<TDomain>::getgmax() 
+double NMDA_Mg_converted_standard_UG<TDomain>::getgmax() 
 { 
 return gmax; 
 } 
 template<typename TDomain> 
-double NMDA_MG_converted_standard_UG<TDomain>::getmg() 
+double NMDA_Mg_converted_standard_UG<TDomain>::getmg() 
 { 
 return mg; 
 } 
 template<typename TDomain> 
-double NMDA_MG_converted_standard_UG<TDomain>::getvmin() 
+double NMDA_Mg_converted_standard_UG<TDomain>::getvmin() 
 { 
 return vmin; 
 } 
 template<typename TDomain> 
-double NMDA_MG_converted_standard_UG<TDomain>::getvmax() 
+double NMDA_Mg_converted_standard_UG<TDomain>::getvmax() 
 { 
 return vmax; 
 } 
 template<typename TDomain> 
-double NMDA_MG_converted_standard_UG<TDomain>::getvalence() 
+double NMDA_Mg_converted_standard_UG<TDomain>::getvalence() 
 { 
 return valence; 
 } 
 template<typename TDomain> 
-double NMDA_MG_converted_standard_UG<TDomain>::getmemb_fraction() 
+double NMDA_Mg_converted_standard_UG<TDomain>::getmemb_fraction() 
 { 
 return memb_fraction; 
 } 
 template<typename TDomain> 
-double NMDA_MG_converted_standard_UG<TDomain>::getRb() 
+double NMDA_Mg_converted_standard_UG<TDomain>::getRb() 
 { 
 return Rb; 
 } 
 template<typename TDomain> 
-double NMDA_MG_converted_standard_UG<TDomain>::getRu() 
+double NMDA_Mg_converted_standard_UG<TDomain>::getRu() 
 { 
 return Ru; 
 } 
 template<typename TDomain> 
-double NMDA_MG_converted_standard_UG<TDomain>::getRo() 
+double NMDA_Mg_converted_standard_UG<TDomain>::getRo() 
 { 
 return Ro; 
 } 
 template<typename TDomain> 
-double NMDA_MG_converted_standard_UG<TDomain>::getRc() 
+double NMDA_Mg_converted_standard_UG<TDomain>::getRc() 
 { 
 return Rc; 
 } 
 template<typename TDomain> 
-double NMDA_MG_converted_standard_UG<TDomain>::getRd1() 
+double NMDA_Mg_converted_standard_UG<TDomain>::getRd1() 
 { 
 return Rd1; 
 } 
 template<typename TDomain> 
-double NMDA_MG_converted_standard_UG<TDomain>::getRr1() 
+double NMDA_Mg_converted_standard_UG<TDomain>::getRr1() 
 { 
 return Rr1; 
 } 
 template<typename TDomain> 
-double NMDA_MG_converted_standard_UG<TDomain>::getRd2() 
+double NMDA_Mg_converted_standard_UG<TDomain>::getRd2() 
 { 
 return Rd2; 
 } 
 template<typename TDomain> 
-double NMDA_MG_converted_standard_UG<TDomain>::getRr2() 
+double NMDA_Mg_converted_standard_UG<TDomain>::getRr2() 
 { 
 return Rr2; 
 } 
 template<typename TDomain> 
-double NMDA_MG_converted_standard_UG<TDomain>::getRmb() 
+double NMDA_Mg_converted_standard_UG<TDomain>::getRmb() 
 { 
 return Rmb; 
 } 
 template<typename TDomain> 
-double NMDA_MG_converted_standard_UG<TDomain>::getRmu() 
+double NMDA_Mg_converted_standard_UG<TDomain>::getRmu() 
 { 
 return Rmu; 
 } 
 template<typename TDomain> 
-double NMDA_MG_converted_standard_UG<TDomain>::getRmc1b() 
+double NMDA_Mg_converted_standard_UG<TDomain>::getRmc1b() 
 { 
 return Rmc1b; 
 } 
 template<typename TDomain> 
-double NMDA_MG_converted_standard_UG<TDomain>::getRmc1u() 
+double NMDA_Mg_converted_standard_UG<TDomain>::getRmc1u() 
 { 
 return Rmc1u; 
 } 
 template<typename TDomain> 
-double NMDA_MG_converted_standard_UG<TDomain>::getRmc2b() 
+double NMDA_Mg_converted_standard_UG<TDomain>::getRmc2b() 
 { 
 return Rmc2b; 
 } 
 template<typename TDomain> 
-double NMDA_MG_converted_standard_UG<TDomain>::getRmc2u() 
+double NMDA_Mg_converted_standard_UG<TDomain>::getRmc2u() 
 { 
 return Rmc2u; 
 } 
 template<typename TDomain> 
-double NMDA_MG_converted_standard_UG<TDomain>::getRmd1b() 
+double NMDA_Mg_converted_standard_UG<TDomain>::getRmd1b() 
 { 
 return Rmd1b; 
 } 
 template<typename TDomain> 
-double NMDA_MG_converted_standard_UG<TDomain>::getRmd1u() 
+double NMDA_Mg_converted_standard_UG<TDomain>::getRmd1u() 
 { 
 return Rmd1u; 
 } 
 template<typename TDomain> 
-double NMDA_MG_converted_standard_UG<TDomain>::getRmd2b() 
+double NMDA_Mg_converted_standard_UG<TDomain>::getRmd2b() 
 { 
 return Rmd2b; 
 } 
 template<typename TDomain> 
-double NMDA_MG_converted_standard_UG<TDomain>::getRmd2u() 
+double NMDA_Mg_converted_standard_UG<TDomain>::getRmd2u() 
 { 
 return Rmd2u; 
 } 
 template<typename TDomain> 
-double NMDA_MG_converted_standard_UG<TDomain>::getRbMg() 
+double NMDA_Mg_converted_standard_UG<TDomain>::getRbMg() 
 { 
 return RbMg; 
 } 
 template<typename TDomain> 
-double NMDA_MG_converted_standard_UG<TDomain>::getRuMg() 
+double NMDA_Mg_converted_standard_UG<TDomain>::getRuMg() 
 { 
 return RuMg; 
 } 
 template<typename TDomain> 
-double NMDA_MG_converted_standard_UG<TDomain>::getRoMg() 
+double NMDA_Mg_converted_standard_UG<TDomain>::getRoMg() 
 { 
 return RoMg; 
 } 
 template<typename TDomain> 
-double NMDA_MG_converted_standard_UG<TDomain>::getRcMg() 
+double NMDA_Mg_converted_standard_UG<TDomain>::getRcMg() 
 { 
 return RcMg; 
 } 
 template<typename TDomain> 
-double NMDA_MG_converted_standard_UG<TDomain>::getRd1Mg() 
+double NMDA_Mg_converted_standard_UG<TDomain>::getRd1Mg() 
 { 
 return Rd1Mg; 
 } 
 template<typename TDomain> 
-double NMDA_MG_converted_standard_UG<TDomain>::getRr1Mg() 
+double NMDA_Mg_converted_standard_UG<TDomain>::getRr1Mg() 
 { 
 return Rr1Mg; 
 } 
 template<typename TDomain> 
-double NMDA_MG_converted_standard_UG<TDomain>::getRd2Mg() 
+double NMDA_Mg_converted_standard_UG<TDomain>::getRd2Mg() 
 { 
 return Rd2Mg; 
 } 
 template<typename TDomain> 
-double NMDA_MG_converted_standard_UG<TDomain>::getRr2Mg() 
+double NMDA_Mg_converted_standard_UG<TDomain>::getRr2Mg() 
 { 
 return Rr2Mg; 
 } 
 template<typename TDomain> 
-double NMDA_MG_converted_standard_UG<TDomain>::getC() 
+double NMDA_Mg_converted_standard_UG<TDomain>::getC() 
 { 
 return C; 
 } 
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::setErev(double val) 
+void NMDA_Mg_converted_standard_UG<TDomain>::setErev(double val) 
 { 
 Erev = val; 
 } 
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::setgmax(double val) 
+void NMDA_Mg_converted_standard_UG<TDomain>::setgmax(double val) 
 { 
 gmax = val; 
 } 
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::setmg(double val) 
+void NMDA_Mg_converted_standard_UG<TDomain>::setmg(double val) 
 { 
 mg = val; 
 } 
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::setvmin(double val) 
+void NMDA_Mg_converted_standard_UG<TDomain>::setvmin(double val) 
 { 
 vmin = val; 
 } 
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::setvmax(double val) 
+void NMDA_Mg_converted_standard_UG<TDomain>::setvmax(double val) 
 { 
 vmax = val; 
 } 
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::setvalence(double val) 
+void NMDA_Mg_converted_standard_UG<TDomain>::setvalence(double val) 
 { 
 valence = val; 
 } 
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::setmemb_fraction(double val) 
+void NMDA_Mg_converted_standard_UG<TDomain>::setmemb_fraction(double val) 
 { 
 memb_fraction = val; 
 } 
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::setRb(double val) 
+void NMDA_Mg_converted_standard_UG<TDomain>::setRb(double val) 
 { 
 Rb = val; 
 } 
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::setRu(double val) 
+void NMDA_Mg_converted_standard_UG<TDomain>::setRu(double val) 
 { 
 Ru = val; 
 } 
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::setRo(double val) 
+void NMDA_Mg_converted_standard_UG<TDomain>::setRo(double val) 
 { 
 Ro = val; 
 } 
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::setRc(double val) 
+void NMDA_Mg_converted_standard_UG<TDomain>::setRc(double val) 
 { 
 Rc = val; 
 } 
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::setRd1(double val) 
+void NMDA_Mg_converted_standard_UG<TDomain>::setRd1(double val) 
 { 
 Rd1 = val; 
 } 
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::setRr1(double val) 
+void NMDA_Mg_converted_standard_UG<TDomain>::setRr1(double val) 
 { 
 Rr1 = val; 
 } 
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::setRd2(double val) 
+void NMDA_Mg_converted_standard_UG<TDomain>::setRd2(double val) 
 { 
 Rd2 = val; 
 } 
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::setRr2(double val) 
+void NMDA_Mg_converted_standard_UG<TDomain>::setRr2(double val) 
 { 
 Rr2 = val; 
 } 
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::setRmb(double val) 
+void NMDA_Mg_converted_standard_UG<TDomain>::setRmb(double val) 
 { 
 Rmb = val; 
 } 
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::setRmu(double val) 
+void NMDA_Mg_converted_standard_UG<TDomain>::setRmu(double val) 
 { 
 Rmu = val; 
 } 
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::setRmc1b(double val) 
+void NMDA_Mg_converted_standard_UG<TDomain>::setRmc1b(double val) 
 { 
 Rmc1b = val; 
 } 
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::setRmc1u(double val) 
+void NMDA_Mg_converted_standard_UG<TDomain>::setRmc1u(double val) 
 { 
 Rmc1u = val; 
 } 
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::setRmc2b(double val) 
+void NMDA_Mg_converted_standard_UG<TDomain>::setRmc2b(double val) 
 { 
 Rmc2b = val; 
 } 
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::setRmc2u(double val) 
+void NMDA_Mg_converted_standard_UG<TDomain>::setRmc2u(double val) 
 { 
 Rmc2u = val; 
 } 
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::setRmd1b(double val) 
+void NMDA_Mg_converted_standard_UG<TDomain>::setRmd1b(double val) 
 { 
 Rmd1b = val; 
 } 
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::setRmd1u(double val) 
+void NMDA_Mg_converted_standard_UG<TDomain>::setRmd1u(double val) 
 { 
 Rmd1u = val; 
 } 
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::setRmd2b(double val) 
+void NMDA_Mg_converted_standard_UG<TDomain>::setRmd2b(double val) 
 { 
 Rmd2b = val; 
 } 
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::setRmd2u(double val) 
+void NMDA_Mg_converted_standard_UG<TDomain>::setRmd2u(double val) 
 { 
 Rmd2u = val; 
 } 
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::setRbMg(double val) 
+void NMDA_Mg_converted_standard_UG<TDomain>::setRbMg(double val) 
 { 
 RbMg = val; 
 } 
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::setRuMg(double val) 
+void NMDA_Mg_converted_standard_UG<TDomain>::setRuMg(double val) 
 { 
 RuMg = val; 
 } 
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::setRoMg(double val) 
+void NMDA_Mg_converted_standard_UG<TDomain>::setRoMg(double val) 
 { 
 RoMg = val; 
 } 
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::setRcMg(double val) 
+void NMDA_Mg_converted_standard_UG<TDomain>::setRcMg(double val) 
 { 
 RcMg = val; 
 } 
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::setRd1Mg(double val) 
+void NMDA_Mg_converted_standard_UG<TDomain>::setRd1Mg(double val) 
 { 
 Rd1Mg = val; 
 } 
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::setRr1Mg(double val) 
+void NMDA_Mg_converted_standard_UG<TDomain>::setRr1Mg(double val) 
 { 
 Rr1Mg = val; 
 } 
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::setRd2Mg(double val) 
+void NMDA_Mg_converted_standard_UG<TDomain>::setRd2Mg(double val) 
 { 
 Rd2Mg = val; 
 } 
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::setRr2Mg(double val) 
+void NMDA_Mg_converted_standard_UG<TDomain>::setRr2Mg(double val) 
 { 
 Rr2Mg = val; 
 } 
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::setC(double val) 
+void NMDA_Mg_converted_standard_UG<TDomain>::setC(double val) 
 { 
 C = val; 
 } 
  // creating Method for attachments 
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::init_attachments() 
+void NMDA_Mg_converted_standard_UG<TDomain>::init_attachments() 
 { 
 SmartPtr<Grid> spGrid = m_pVMDisc->approx_space()->domain()->grid(); 
 if (spGrid->has_vertex_attachment(this->UGate)) 
-UG_THROW("Attachment necessary (UGate) for NMDA_MG_converted_standard_UG channel dynamics "
+UG_THROW("Attachment necessary (UGate) for NMDA_Mg_converted_standard_UG channel dynamics "
 "could not be made, since it already exists."); 
 spGrid->attach_to_vertices(this->UGate); 
 this->aaUGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->UGate); 
  
 if (spGrid->has_vertex_attachment(this->ClGate)) 
-UG_THROW("Attachment necessary (ClGate) for NMDA_MG_converted_standard_UG channel dynamics "
+UG_THROW("Attachment necessary (ClGate) for NMDA_Mg_converted_standard_UG channel dynamics "
 "could not be made, since it already exists."); 
 spGrid->attach_to_vertices(this->ClGate); 
 this->aaClGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->ClGate); 
  
 if (spGrid->has_vertex_attachment(this->D1Gate)) 
-UG_THROW("Attachment necessary (D1Gate) for NMDA_MG_converted_standard_UG channel dynamics "
+UG_THROW("Attachment necessary (D1Gate) for NMDA_Mg_converted_standard_UG channel dynamics "
 "could not be made, since it already exists."); 
 spGrid->attach_to_vertices(this->D1Gate); 
 this->aaD1Gate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->D1Gate); 
  
 if (spGrid->has_vertex_attachment(this->D2Gate)) 
-UG_THROW("Attachment necessary (D2Gate) for NMDA_MG_converted_standard_UG channel dynamics "
+UG_THROW("Attachment necessary (D2Gate) for NMDA_Mg_converted_standard_UG channel dynamics "
 "could not be made, since it already exists."); 
 spGrid->attach_to_vertices(this->D2Gate); 
 this->aaD2Gate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->D2Gate); 
  
 if (spGrid->has_vertex_attachment(this->OGate)) 
-UG_THROW("Attachment necessary (OGate) for NMDA_MG_converted_standard_UG channel dynamics "
+UG_THROW("Attachment necessary (OGate) for NMDA_Mg_converted_standard_UG channel dynamics "
 "could not be made, since it already exists."); 
 spGrid->attach_to_vertices(this->OGate); 
 this->aaOGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->OGate); 
  
 if (spGrid->has_vertex_attachment(this->UMgGate)) 
-UG_THROW("Attachment necessary (UMgGate) for NMDA_MG_converted_standard_UG channel dynamics "
+UG_THROW("Attachment necessary (UMgGate) for NMDA_Mg_converted_standard_UG channel dynamics "
 "could not be made, since it already exists."); 
 spGrid->attach_to_vertices(this->UMgGate); 
 this->aaUMgGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->UMgGate); 
  
 if (spGrid->has_vertex_attachment(this->ClMgGate)) 
-UG_THROW("Attachment necessary (ClMgGate) for NMDA_MG_converted_standard_UG channel dynamics "
+UG_THROW("Attachment necessary (ClMgGate) for NMDA_Mg_converted_standard_UG channel dynamics "
 "could not be made, since it already exists."); 
 spGrid->attach_to_vertices(this->ClMgGate); 
 this->aaClMgGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->ClMgGate); 
  
 if (spGrid->has_vertex_attachment(this->D1MgGate)) 
-UG_THROW("Attachment necessary (D1MgGate) for NMDA_MG_converted_standard_UG channel dynamics "
+UG_THROW("Attachment necessary (D1MgGate) for NMDA_Mg_converted_standard_UG channel dynamics "
 "could not be made, since it already exists."); 
 spGrid->attach_to_vertices(this->D1MgGate); 
 this->aaD1MgGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->D1MgGate); 
  
 if (spGrid->has_vertex_attachment(this->D2MgGate)) 
-UG_THROW("Attachment necessary (D2MgGate) for NMDA_MG_converted_standard_UG channel dynamics "
+UG_THROW("Attachment necessary (D2MgGate) for NMDA_Mg_converted_standard_UG channel dynamics "
 "could not be made, since it already exists."); 
 spGrid->attach_to_vertices(this->D2MgGate); 
 this->aaD2MgGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->D2MgGate); 
  
 if (spGrid->has_vertex_attachment(this->OMgGate)) 
-UG_THROW("Attachment necessary (OMgGate) for NMDA_MG_converted_standard_UG channel dynamics "
+UG_THROW("Attachment necessary (OMgGate) for NMDA_Mg_converted_standard_UG channel dynamics "
 "could not be made, since it already exists."); 
 spGrid->attach_to_vertices(this->OMgGate); 
 this->aaOMgGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->OMgGate); 
@@ -427,7 +431,7 @@ this->aaOMgGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->OMgGa
  
  
 template<typename TDomain> 
-std::vector<number> NMDA_MG_converted_standard_UG<TDomain>::state_values(number x, number y, number z) 
+std::vector<number> NMDA_Mg_converted_standard_UG<TDomain>::state_values(number x, number y, number z) 
 { 
 	 //var for output 
 	 std::vector<number> GatingAccesors; 
@@ -464,7 +468,7 @@ std::vector<number> NMDA_MG_converted_standard_UG<TDomain>::state_values(number 
 	 Vertex* bestVrt; 
  
 	 // Iterate only if there is one Gtting needed 
-	 if (m_log_UGate == true || m_log_ClGate == true || m_log_D1Gate == true || m_log_D2Gate == true || m_log_OGate == true || m_log_UMgGate == true || m_log_ClMgGate == true || m_log_D1MgGate == true || m_log_D2MgGate == true || m_log_OMgGate == true )
+	 if (m_log_UGate || m_log_ClGate || m_log_D1Gate || m_log_D2Gate || m_log_OGate || m_log_UMgGate || m_log_ClMgGate || m_log_D1MgGate || m_log_D2MgGate || m_log_OMgGate )
 	 { 
 	 	 // iterating over all elements 
 	 	 for (size_t si=0; si < ssGrp.size(); si++) 
@@ -515,19 +519,19 @@ std::vector<number> NMDA_MG_converted_standard_UG<TDomain>::state_values(number 
 } 
  
 //Setters for states_outputs 
-template<typename TDomain> void NMDA_MG_converted_standard_UG<TDomain>::set_log_UGate(bool bLogUGate) { m_log_UGate = bLogUGate; }
-template<typename TDomain> void NMDA_MG_converted_standard_UG<TDomain>::set_log_ClGate(bool bLogClGate) { m_log_ClGate = bLogClGate; }
-template<typename TDomain> void NMDA_MG_converted_standard_UG<TDomain>::set_log_D1Gate(bool bLogD1Gate) { m_log_D1Gate = bLogD1Gate; }
-template<typename TDomain> void NMDA_MG_converted_standard_UG<TDomain>::set_log_D2Gate(bool bLogD2Gate) { m_log_D2Gate = bLogD2Gate; }
-template<typename TDomain> void NMDA_MG_converted_standard_UG<TDomain>::set_log_OGate(bool bLogOGate) { m_log_OGate = bLogOGate; }
-template<typename TDomain> void NMDA_MG_converted_standard_UG<TDomain>::set_log_UMgGate(bool bLogUMgGate) { m_log_UMgGate = bLogUMgGate; }
-template<typename TDomain> void NMDA_MG_converted_standard_UG<TDomain>::set_log_ClMgGate(bool bLogClMgGate) { m_log_ClMgGate = bLogClMgGate; }
-template<typename TDomain> void NMDA_MG_converted_standard_UG<TDomain>::set_log_D1MgGate(bool bLogD1MgGate) { m_log_D1MgGate = bLogD1MgGate; }
-template<typename TDomain> void NMDA_MG_converted_standard_UG<TDomain>::set_log_D2MgGate(bool bLogD2MgGate) { m_log_D2MgGate = bLogD2MgGate; }
-template<typename TDomain> void NMDA_MG_converted_standard_UG<TDomain>::set_log_OMgGate(bool bLogOMgGate) { m_log_OMgGate = bLogOMgGate; }
+template<typename TDomain> void NMDA_Mg_converted_standard_UG<TDomain>::set_log_UGate(bool bLogUGate) { m_log_UGate = bLogUGate; }
+template<typename TDomain> void NMDA_Mg_converted_standard_UG<TDomain>::set_log_ClGate(bool bLogClGate) { m_log_ClGate = bLogClGate; }
+template<typename TDomain> void NMDA_Mg_converted_standard_UG<TDomain>::set_log_D1Gate(bool bLogD1Gate) { m_log_D1Gate = bLogD1Gate; }
+template<typename TDomain> void NMDA_Mg_converted_standard_UG<TDomain>::set_log_D2Gate(bool bLogD2Gate) { m_log_D2Gate = bLogD2Gate; }
+template<typename TDomain> void NMDA_Mg_converted_standard_UG<TDomain>::set_log_OGate(bool bLogOGate) { m_log_OGate = bLogOGate; }
+template<typename TDomain> void NMDA_Mg_converted_standard_UG<TDomain>::set_log_UMgGate(bool bLogUMgGate) { m_log_UMgGate = bLogUMgGate; }
+template<typename TDomain> void NMDA_Mg_converted_standard_UG<TDomain>::set_log_ClMgGate(bool bLogClMgGate) { m_log_ClMgGate = bLogClMgGate; }
+template<typename TDomain> void NMDA_Mg_converted_standard_UG<TDomain>::set_log_D1MgGate(bool bLogD1MgGate) { m_log_D1MgGate = bLogD1MgGate; }
+template<typename TDomain> void NMDA_Mg_converted_standard_UG<TDomain>::set_log_D2MgGate(bool bLogD2MgGate) { m_log_D2MgGate = bLogD2MgGate; }
+template<typename TDomain> void NMDA_Mg_converted_standard_UG<TDomain>::set_log_OMgGate(bool bLogOMgGate) { m_log_OMgGate = bLogOMgGate; }
  // Init Method for using gatings 
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::init(Vertex* vrt, const std::vector<number>& vrt_values) 
+void NMDA_Mg_converted_standard_UG<TDomain>::init(Vertex* vrt, const std::vector<number>& vrt_values) 
 { 
 //get celsius and time
 // inits temperatur from kalvin to celsius and some other typical neuron values
@@ -549,7 +553,7 @@ aaUGate[vrt] = 1;
  
  
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values) 
+void NMDA_Mg_converted_standard_UG<TDomain>::update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values) 
 { 
 // inits temperatur from kalvin to celsius and some other typical neuron values
 number m_T, m_R, m_F; 
@@ -642,7 +646,7 @@ aaOMgGate[vrt] = OMg;
  
  
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::ionic_current(Vertex* ver, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues) 
+void NMDA_Mg_converted_standard_UG<TDomain>::ionic_current(Vertex* ver, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues) 
 { 
  
 // inits temperatur from kalvin to celsius and some other typical neuron values
@@ -668,6 +672,9 @@ number v =  vrt_values[m_pVMDisc->_v_];
 number t = m_pVMDisc->time(); 
  
  
+
+ 
+ 
 const number helpV = 1e3*(m_pVMDisc->R*m_pVMDisc->temperature())/m_pVMDisc->F; 
  
  
@@ -680,7 +687,7 @@ outCurrentValues.push_back( (1e-6) * g * (v - Erev));
  
  
 template<typename TDomain> 
-void NMDA_MG_converted_standard_UG<TDomain>::specify_write_function_indices() 
+void NMDA_Mg_converted_standard_UG<TDomain>::specify_write_function_indices() 
 { 
  
 this->m_vWFctInd.push_back(VMDisc<TDomain>::_v_); 
@@ -691,17 +698,17 @@ this->m_vWFctInd.push_back(VMDisc<TDomain>::_v_);
 //	explicit template instantiations 
 //////////////////////////////////////////////////////////////////////////////// 
 #ifdef UG_DIM_1 
-template class NMDA_MG_converted_standard_UG<Domain1d>; 
+template class NMDA_Mg_converted_standard_UG<Domain1d>; 
 #endif 
  
  
 #ifdef UG_DIM_2 
-template class NMDA_MG_converted_standard_UG<Domain2d>; 
+template class NMDA_Mg_converted_standard_UG<Domain2d>; 
 #endif 
  
  
 #ifdef UG_DIM_3 
-template class NMDA_MG_converted_standard_UG<Domain3d>; 
+template class NMDA_Mg_converted_standard_UG<Domain3d>; 
 #endif 
  
  

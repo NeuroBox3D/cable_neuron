@@ -13,6 +13,10 @@ template<typename TDomain>
 void cad_converted_standard_UG<TDomain>::vm_disc_available()  
 {  
 	init_attachments();  
+ 	F = m_pVMDisc->F; 
+ R = m_pVMDisc->R; 
+ K = m_pVMDisc->temperature(); 
+ celsius = m_pVMDisc->temperature_celsius(); 
 }  
  
  
@@ -110,7 +114,7 @@ std::vector<number> cad_converted_standard_UG<TDomain>::state_values(number x, n
 	 Vertex* bestVrt; 
  
 	 // Iterate only if there is one Gtting needed 
-	 if (m_log_caSGate == true )
+	 if (m_log_caSGate )
 	 { 
 	 	 // iterating over all elements 
 	 	 for (size_t si=0; si < ssGrp.size(); si++) 
@@ -158,7 +162,7 @@ m_F = m_pVMDisc->F;
  
 number celsius = m_pVMDisc->temperature_celsius(); 
 number dt = m_pVMDisc->time(); 
-//number ica = m_pVMDisc->flux_ca();
+number ica = m_pVMDisc->flux_ca(); 
 // make preparing vor getting values of every edge 
 number v = vrt_values[VMDisc<TDomain>::_v_]; 
 number ca = vrt_values[VMDisc<TDomain>::_ca_]; 
@@ -182,7 +186,7 @@ m_F = m_pVMDisc->F;
  
 number celsius = m_pVMDisc->temperature_celsius(); 
  number FARADAY = m_pVMDisc->F; 
-//number ica = m_pVMDisc->flux_ca();
+ number ica = m_pVMDisc->flux_ca(); 
 number dt = newTime - m_pVMDisc->time(); 
 number v = vrt_values[VMDisc<TDomain>::_v_]; 
 number ca = vrt_values[VMDisc<TDomain>::_ca_]; 
@@ -192,12 +196,12 @@ double caS = aacaSGate[vrt];
 
  
  
-double 	drive_channel =  - (10000) * 1 / (2 * FARADAY * depth);
+double 	drive_channel =  - (10000) * ica / (2 * FARADAY * depth); 
 ; 
  
 if (drive_channel <= 0.)
 { 
- drive_channel = 0. ; 
+ drive_channel = 0. ;; 
 } 
 caS +=  drive_channel + (cainf-caS)/taur*dt; 
 ; 
@@ -227,13 +231,16 @@ m_R = m_pVMDisc->R;
 m_F = m_pVMDisc->F; 
  
  
-//number ica = m_pVMDisc->flux_ca();
+number ica = m_pVMDisc->flux_ca(); 
 number caS = aacaSGate[ver]; 
 number ca = vrt_values[m_pVMDisc->_ca_]; 
 number v =  vrt_values[m_pVMDisc->_v_]; 
  
  
 number t = m_pVMDisc->time(); 
+ 
+ 
+
  
  
 const number helpV = 1e3*(m_pVMDisc->R*m_pVMDisc->temperature())/m_pVMDisc->F; 
@@ -243,6 +250,7 @@ const number helpV = 1e3*(m_pVMDisc->R*m_pVMDisc->temperature())/m_pVMDisc->F;
  
  
 outCurrentValues.push_back(   caS); 
+outCurrentValues.push_back(   caS ); 
 } 
  
  

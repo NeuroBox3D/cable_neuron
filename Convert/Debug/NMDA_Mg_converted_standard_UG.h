@@ -1,6 +1,6 @@
-#ifndef NMDA_MG_converted_standard_UG_H_
-#define NMDA_MG_converted_standard_UG_H_
-#include "channel_interface.h" 
+#ifndef NMDA_Mg_converted_standard_UG_H_
+#define NMDA_Mg_converted_standard_UG_H_
+#include "../../channel_interface.h" 
 #include "lib_grid/lg_base.h" 
 #include "lib_grid/grid/grid_base_objects.h" 
 
@@ -36,7 +36,7 @@ template <typename TDomain>
 class VMDisc; 
  
 template <typename TDomain> 
-class NMDA_MG_converted_standard_UG
+class NMDA_Mg_converted_standard_UG
     : public IChannel<TDomain> 
 { 
     public: 
@@ -49,7 +49,7 @@ class NMDA_MG_converted_standard_UG
 
 
 /// @copydoc IChannel<TDomain>::IChannel(cont char*) 
-NMDA_MG_converted_standard_UG(const char* functions, const char* subsets) 
+NMDA_Mg_converted_standard_UG(const char* functions, const char* subsets) 
 try : IChannel<TDomain>(functions, subsets), 
 	Erev	( 5    	*1), 
 	gmax	( 500  	*1e+15), 
@@ -95,11 +95,11 @@ m_log_ClMgGate(false),
 m_log_D1MgGate(false), 
 m_log_D2MgGate(false), 
 m_log_OMgGate(false) {} 
-UG_CATCH_THROW("Error in NMDA_MG_converted_standard_UG initializer list. "); 
+UG_CATCH_THROW("Error in NMDA_Mg_converted_standard_UG initializer list. "); 
  
  
 /// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&) 
-NMDA_MG_converted_standard_UG(const std::vector<std::string>& functions, const std::vector<std::string>& subsets) 
+NMDA_Mg_converted_standard_UG(const std::vector<std::string>& functions, const std::vector<std::string>& subsets) 
 try : IChannel<TDomain>(functions, subsets), 
 	Erev	( 5    	*1), 
 	gmax	( 500  	*1e+15), 
@@ -145,10 +145,10 @@ m_log_ClMgGate(false),
 m_log_D1MgGate(false), 
 m_log_D2MgGate(false), 
 m_log_OMgGate(false) {} 
-UG_CATCH_THROW("Error in NMDA_MG_converted_standard_UG initializer list. "); 
+UG_CATCH_THROW("Error in NMDA_Mg_converted_standard_UG initializer list. "); 
 /// destructor 
  
-virtual ~NMDA_MG_converted_standard_UG() {}; 
+virtual ~NMDA_Mg_converted_standard_UG() {}; 
 /// create attachments and accessors 
 void init_attachments(); 
 // inherited from IChannel 
@@ -308,10 +308,12 @@ bool m_log_ClMgGate;
 bool m_log_D1MgGate; 
 bool m_log_D2MgGate; 
 bool m_log_OMgGate; 
+// Standard-NModl-File-Params 
+number F, R, K, celsius; 
 }; 
  
 } // namespace cable
 } // namespace ug
 
 
-#endif // NMDA_MG_converted_standard_UG_H_
+#endif // NMDA_Mg_converted_standard_UG_H_

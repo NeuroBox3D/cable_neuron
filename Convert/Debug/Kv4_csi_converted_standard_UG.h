@@ -1,6 +1,6 @@
 #ifndef Kv4_csi_converted_standard_UG_H_
 #define Kv4_csi_converted_standard_UG_H_
-#include "channel_interface.h" 
+#include "../../channel_interface.h" 
 #include "lib_grid/lg_base.h" 
 #include "lib_grid/grid/grid_base_objects.h" 
 
@@ -29,7 +29,8 @@
 #include "bindings/lua/lua_user_data.h" 
 namespace ug {
 namespace cable {
- 
+
+
 // forward declaration 
 template <typename TDomain> 
 class VMDisc; 
@@ -50,11 +51,8 @@ class Kv4_csi_converted_standard_UG
 /// @copydoc IChannel<TDomain>::IChannel(cont char*) 
 Kv4_csi_converted_standard_UG(const char* functions, const char* subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-m_R(8.314), m_T(293.0), m_F(96485.0), 
       	gmax ( 0.00     	*0.01), 
 	ek(-90                  *1), 
-	F ( 9.6485e4 			*1), 
-      	R ( 8.3145e3 			*1), 
 	a ( 7			*1), 
 	za ( 0.315646648				*1), 
       	b ( .090		*1), 
@@ -70,18 +68,28 @@ m_R(8.314), m_T(293.0), m_F(96485.0),
 	f ( 0.277130485			*1), 
 	q ( 1.01314807			*1), 
 	kci ( 0.121900093	*1), 
-	kic ( 0.0017935468 	*1) {} 
-UG_CATCH_THROW("Error in Kv4_csi_converted_standard_UG initializer list. ") 
+	kic ( 0.0017935468 	*1), 
+m_log_C0Gate(false), 
+m_log_C1Gate(false), 
+m_log_C2Gate(false), 
+m_log_C3Gate(false), 
+m_log_C4Gate(false), 
+m_log_C5Gate(false), 
+m_log_I0Gate(false), 
+m_log_I1Gate(false), 
+m_log_I2Gate(false), 
+m_log_I3Gate(false), 
+m_log_I4Gate(false), 
+m_log_I5Gate(false), 
+m_log_OGate(false) {} 
+UG_CATCH_THROW("Error in Kv4_csi_converted_standard_UG initializer list. "); 
  
  
 /// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&) 
 Kv4_csi_converted_standard_UG(const std::vector<std::string>& functions, const std::vector<std::string>& subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-m_R(8.314), m_T(293.0), m_F(96485.0), 
       	gmax ( 0.00     	*0.01), 
 	ek(-90                  *1), 
-	F ( 9.6485e4 			*1), 
-      	R ( 8.3145e3 			*1), 
 	a ( 7			*1), 
 	za ( 0.315646648				*1), 
       	b ( .090		*1), 
@@ -97,8 +105,21 @@ m_R(8.314), m_T(293.0), m_F(96485.0),
 	f ( 0.277130485			*1), 
 	q ( 1.01314807			*1), 
 	kci ( 0.121900093	*1), 
-	kic ( 0.0017935468 	*1) {} 
-UG_CATCH_THROW("Error in Kv4_csi_converted_standard_UG initializer list. ") 
+	kic ( 0.0017935468 	*1), 
+m_log_C0Gate(false), 
+m_log_C1Gate(false), 
+m_log_C2Gate(false), 
+m_log_C3Gate(false), 
+m_log_C4Gate(false), 
+m_log_C5Gate(false), 
+m_log_I0Gate(false), 
+m_log_I1Gate(false), 
+m_log_I2Gate(false), 
+m_log_I3Gate(false), 
+m_log_I4Gate(false), 
+m_log_I5Gate(false), 
+m_log_OGate(false) {} 
+UG_CATCH_THROW("Error in Kv4_csi_converted_standard_UG initializer list. "); 
 /// destructor 
  
 virtual ~Kv4_csi_converted_standard_UG() {}; 
@@ -106,16 +127,15 @@ virtual ~Kv4_csi_converted_standard_UG() {};
 void init_attachments(); 
 // inherited from IChannel 
  
-virtual void init(const LocalVector& u, Edge* e); 
-virtual void update_gating(number newTime, const LocalVector& u, Edge* e); 
+virtual void init(Vertex* vrt, const std::vector<number>& vrt_values); 
+virtual void update_gating(number newtime, Vertex* vrt, const std::vector<number>& vrt_values); 
 virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues); 
-virtual void approx_space_available(); 
+virtual void vm_disc_available(); 
+virtual std::vector<number> state_values(number x, number y, number z); 
 
  
 double getgmax(); 
 double getek(); 
-double getF(); 
-double getR(); 
 double geta(); 
 double getza(); 
 double getb(); 
@@ -134,8 +154,6 @@ double getkci();
 double getkic(); 
 void setgmax(double val); 
 void setek(double val); 
-void setF(double val); 
-void setR(double val); 
 void seta(double val); 
 void setza(double val); 
 void setb(double val); 
@@ -152,12 +170,25 @@ void setf(double val);
 void setq(double val); 
 void setkci(double val); 
 void setkic(double val); 
+void set_log_C0Gate(bool bLogC0Gate); 
+void set_log_C1Gate(bool bLogC1Gate); 
+void set_log_C2Gate(bool bLogC2Gate); 
+void set_log_C3Gate(bool bLogC3Gate); 
+void set_log_C4Gate(bool bLogC4Gate); 
+void set_log_C5Gate(bool bLogC5Gate); 
+void set_log_I0Gate(bool bLogI0Gate); 
+void set_log_I1Gate(bool bLogI1Gate); 
+void set_log_I2Gate(bool bLogI2Gate); 
+void set_log_I3Gate(bool bLogI3Gate); 
+void set_log_I4Gate(bool bLogI4Gate); 
+void set_log_I5Gate(bool bLogI5Gate); 
+void set_log_OGate(bool bLogOGate); 
 
  
 protected: 
 private: 
  
-number m_R, m_T, m_F; 
+virtual void specify_write_function_indices(); 
 ADouble C0Gate; 
 Grid::AttachmentAccessor<Vertex, ADouble> aaC0Gate; 
 ADouble C1Gate; 
@@ -186,8 +217,6 @@ ADouble OGate;
 Grid::AttachmentAccessor<Vertex, ADouble> aaOGate; 
 number       	gmax ; 
 number 	ek; 
-number 	F ; 
-number       	R ; 
 number 	a ; 
 number 	za ; 
 number       	b ; 
@@ -204,10 +233,25 @@ number 	f ;
 number 	q ; 
 number 	kci ; 
 number 	kic ; 
+bool m_log_C0Gate; 
+bool m_log_C1Gate; 
+bool m_log_C2Gate; 
+bool m_log_C3Gate; 
+bool m_log_C4Gate; 
+bool m_log_C5Gate; 
+bool m_log_I0Gate; 
+bool m_log_I1Gate; 
+bool m_log_I2Gate; 
+bool m_log_I3Gate; 
+bool m_log_I4Gate; 
+bool m_log_I5Gate; 
+bool m_log_OGate; 
+// Standard-NModl-File-Params 
+number F, R, K, celsius; 
 }; 
  
 } // namespace cable
 } // namespace ug
- 
- 
+
+
 #endif // Kv4_csi_converted_standard_UG_H_

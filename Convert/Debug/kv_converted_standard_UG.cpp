@@ -13,6 +13,10 @@ template<typename TDomain>
 void kv_converted_standard_UG<TDomain>::vm_disc_available()  
 {  
 	init_attachments();  
+ 	F = m_pVMDisc->F; 
+ R = m_pVMDisc->R; 
+ K = m_pVMDisc->temperature(); 
+ celsius = m_pVMDisc->temperature_celsius(); 
 }  
  
  
@@ -160,7 +164,7 @@ std::vector<number> kv_converted_standard_UG<TDomain>::state_values(number x, nu
 	 Vertex* bestVrt; 
  
 	 // Iterate only if there is one Gtting needed 
-	 if (m_log_nGate == true )
+	 if (m_log_nGate )
 	 { 
 	 	 // iterating over all elements 
 	 	 for (size_t si=0; si < ssGrp.size(); si++) 
@@ -292,6 +296,9 @@ number v =  vrt_values[m_pVMDisc->_v_];
 number t = m_pVMDisc->time(); 
  
  
+
+ 
+ 
 const number helpV = 1e3*(m_pVMDisc->R*m_pVMDisc->temperature())/m_pVMDisc->F; 
 number ek; 
 if (m_pVMDisc->ek() == 0) 
@@ -304,10 +311,10 @@ else
 } 
  
  
+number gk = tadj*gbar*n; 
 
  
  
-number gk = tadj*gbar*n; 
 outCurrentValues.push_back( (1e-4) * gk * (v - ek)); 
 } 
  

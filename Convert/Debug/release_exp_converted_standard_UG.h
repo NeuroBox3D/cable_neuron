@@ -1,6 +1,6 @@
 #ifndef release_exp_converted_standard_UG_H_
 #define release_exp_converted_standard_UG_H_
-#include "channel_interface.h" 
+#include "../../channel_interface.h" 
 #include "lib_grid/lg_base.h" 
 #include "lib_grid/grid/grid_base_objects.h" 
 
@@ -101,6 +101,8 @@ number     tau2 ;
 number total; 
 bool m_log_AGate; 
 bool m_log_BGate; 
+// Standard-NModl-File-Params 
+number F, R, K, celsius; 
 }; 
  
 } // namespace cable

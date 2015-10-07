@@ -34,6 +34,10 @@ template<typename TDomain>
 void HH2_converted_standard_UG<TDomain>::vm_disc_available()  
 {  
 	init_attachments();  
+ 	F = m_pVMDisc->F; 
+ R = m_pVMDisc->R; 
+ K = m_pVMDisc->temperature(); 
+ celsius = m_pVMDisc->temperature_celsius(); 
 }  
  
  
@@ -59,11 +63,6 @@ double HH2_converted_standard_UG<TDomain>::getek()
 return ek; 
 } 
 template<typename TDomain> 
-double HH2_converted_standard_UG<TDomain>::getcelsius() 
-{ 
-return celsius; 
-} 
-template<typename TDomain> 
 double HH2_converted_standard_UG<TDomain>::getvtraub() 
 { 
 return vtraub; 
@@ -87,11 +86,6 @@ template<typename TDomain>
 void HH2_converted_standard_UG<TDomain>::setek(double val) 
 { 
 ek = val; 
-} 
-template<typename TDomain> 
-void HH2_converted_standard_UG<TDomain>::setcelsius(double val) 
-{ 
-celsius = val; 
 } 
 template<typename TDomain> 
 void HH2_converted_standard_UG<TDomain>::setvtraub(double val) 
@@ -163,7 +157,7 @@ std::vector<number> HH2_converted_standard_UG<TDomain>::state_values(number x, n
 	 Vertex* bestVrt; 
  
 	 // Iterate only if there is one Gtting needed 
-	 if (m_log_mGate == true || m_log_hGate == true || m_log_nGate == true )
+	 if (m_log_mGate || m_log_hGate || m_log_nGate )
 	 { 
 	 	 // iterating over all elements 
 	 	 for (size_t si=0; si < ssGrp.size(); si++) 
@@ -311,6 +305,9 @@ number v =  vrt_values[m_pVMDisc->_v_];
  
  
 number t = m_pVMDisc->time(); 
+ 
+ 
+
  
  
 const number helpV = 1e3*(m_pVMDisc->R*m_pVMDisc->temperature())/m_pVMDisc->F; 

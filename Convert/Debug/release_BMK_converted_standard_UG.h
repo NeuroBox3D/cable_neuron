@@ -1,6 +1,6 @@
 #ifndef release_BMK_converted_standard_UG_H_
 #define release_BMK_converted_standard_UG_H_
-#include "channel_interface.h" 
+#include "../../channel_interface.h" 
 #include "lib_grid/lg_base.h" 
 #include "lib_grid/grid/grid_base_objects.h" 
 
@@ -93,6 +93,8 @@ virtual void specify_write_function_indices();
 number del ; 
 number dur ; 
 number amp ; 
+// Standard-NModl-File-Params 
+number F, R, K, celsius; 
 }; 
  
 } // namespace cable

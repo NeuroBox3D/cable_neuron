@@ -13,6 +13,10 @@ template<typename TDomain>
 void NMDA_Mg_T_converted_standard_UG<TDomain>::vm_disc_available()  
 {  
 	init_attachments();  
+ 	F = m_pVMDisc->F; 
+ R = m_pVMDisc->R; 
+ K = m_pVMDisc->temperature(); 
+ celsius = m_pVMDisc->temperature_celsius(); 
 }  
  
  
@@ -470,7 +474,7 @@ std::vector<number> NMDA_Mg_T_converted_standard_UG<TDomain>::state_values(numbe
 	 Vertex* bestVrt; 
  
 	 // Iterate only if there is one Gtting needed 
-	 if (m_log_UGate == true || m_log_FGate == true || m_log_ClGate == true || m_log_D1Gate == true || m_log_D2Gate == true || m_log_OGate == true || m_log_UMgGate == true || m_log_ClMgGate == true || m_log_D1MgGate == true || m_log_D2MgGate == true || m_log_OMgGate == true )
+	 if (m_log_UGate || m_log_FGate || m_log_ClGate || m_log_D1Gate || m_log_D2Gate || m_log_OGate || m_log_UMgGate || m_log_ClMgGate || m_log_D1MgGate || m_log_D2MgGate || m_log_OMgGate )
 	 { 
 	 	 // iterating over all elements 
 	 	 for (size_t si=0; si < ssGrp.size(); si++) 
@@ -678,6 +682,9 @@ number v =  vrt_values[m_pVMDisc->_v_];
  
  
 number t = m_pVMDisc->time(); 
+ 
+ 
+
  
  
 const number helpV = 1e3*(m_pVMDisc->R*m_pVMDisc->temperature())/m_pVMDisc->F; 

@@ -1,6 +1,6 @@
 #ifndef kv_converted_standard_UG_H_
 #define kv_converted_standard_UG_H_
-#include "channel_interface.h" 
+#include "../../channel_interface.h" 
 #include "lib_grid/lg_base.h" 
 #include "lib_grid/grid/grid_base_objects.h" 
 
@@ -130,6 +130,8 @@ number 	vmin ;
 number 	vmax ; 
 number tadj; 
 bool m_log_nGate; 
+// Standard-NModl-File-Params 
+number F, R, K, celsius; 
 }; 
  
 } // namespace cable

@@ -13,14 +13,8 @@ double caL3d_converted_standard_UG<TDomain>::ghk(double v, double  ci, double  c
 { 
 	double z; 
 
-	number celsius = m_pVMDisc->temperature_celsius();
-
-	z = (0.001)*2*m_pVMDisc->F*v/(m_pVMDisc->R*(celsius+273.15));
-
-	number z2 = efun(-z);
-	number z3 = efun(z);
-
-	return  (.001)*2*m_pVMDisc->F*(ci*z2 - co*z3);
+	z = (0.001)*2*F*v/(R*(celsius+273.15)); 
+	return  (.001)*2*F*(ci*efun(-z) - co*efun(z)); 
 }
 template<typename TDomain> 
 double caL3d_converted_standard_UG<TDomain>::efun(double z) 
@@ -39,6 +33,10 @@ template<typename TDomain>
 void caL3d_converted_standard_UG<TDomain>::vm_disc_available()  
 {  
 	init_attachments();  
+ 	F = m_pVMDisc->F; 
+ R = m_pVMDisc->R; 
+ K = m_pVMDisc->temperature(); 
+ celsius = m_pVMDisc->temperature_celsius(); 
 }  
  
  
@@ -172,7 +170,7 @@ std::vector<number> caL3d_converted_standard_UG<TDomain>::state_values(number x,
 	 Vertex* bestVrt; 
  
 	 // Iterate only if there is one Gtting needed 
-	 if (m_log_CGate == true || m_log_OGate == true )
+	 if (m_log_CGate || m_log_OGate )
 	 { 
 	 	 // iterating over all elements 
 	 	 for (size_t si=0; si < ssGrp.size(); si++) 
@@ -258,9 +256,9 @@ double O = aaOGate[vrt];
 
  
  
-tadj= pow(q10 , ((celsius-temp)/10));
-double	a = Ra / (1 + exp(-(v-th)/q)) * tadj;
-double	b = Rb / (1 + exp((v-th)/q)) * tadj;
+tadj= pow(q10 , ((celsius-temp)/10)); 
+number 	a = Ra / (1 + exp(-(v-th)/q)) * tadj; 
+number 	b = Rb / (1 + exp((v-th)/q)) * tadj; 
  
  
  
@@ -298,18 +296,22 @@ number v =  vrt_values[m_pVMDisc->_v_];
 number t = m_pVMDisc->time(); 
  
  
+number cai = ca;
+
+ 
+ 
 const number helpV = 1e3*(m_pVMDisc->R*m_pVMDisc->temperature())/m_pVMDisc->F; 
-number cai =  ca; 
  
  
 
  
-
+ 
+number rates(v); 
 number cao = m_pVMDisc->ca_out(); 
 
-double ghk2 = ghk(v, cai, cao);
  
-outCurrentValues.push_back( O * p * ghk2);
+ 
+outCurrentValues.push_back( O * p * ghk(v,cai,cao)); 
 } 
  
  

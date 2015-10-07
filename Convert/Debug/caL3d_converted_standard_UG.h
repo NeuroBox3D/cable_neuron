@@ -1,6 +1,6 @@
 #ifndef caL3d_converted_standard_UG_H_
 #define caL3d_converted_standard_UG_H_
-#include "channel_interface.h" 
+#include "../../channel_interface.h" 
 #include "lib_grid/lg_base.h" 
 #include "lib_grid/grid/grid_base_objects.h" 
 
@@ -51,7 +51,7 @@ class caL3d_converted_standard_UG
 /// @copydoc IChannel<TDomain>::IChannel(cont char*) 
 caL3d_converted_standard_UG(const char* functions, const char* subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-	p    ( 0.2e-3  	*100), 
+	p    ( 0.2e-3  	*10), 
 	th   ( 5	*1), 
 	q   ( 13	*1), 
 	Ra   ( 1.6	*1), 
@@ -66,7 +66,7 @@ UG_CATCH_THROW("Error in caL3d_converted_standard_UG initializer list. ");
 /// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&) 
 caL3d_converted_standard_UG(const std::vector<std::string>& functions, const std::vector<std::string>& subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-	p    ( 0.2e-3  	*100), 
+	p    ( 0.2e-3  	*10), 
 	th   ( 5	*1), 
 	q   ( 13	*1), 
 	Ra   ( 1.6	*1), 
@@ -128,6 +128,8 @@ number 	q10  ;
 number tadj; 
 bool m_log_CGate; 
 bool m_log_OGate; 
+// Standard-NModl-File-Params 
+number F, R, K, celsius; 
 }; 
  
 } // namespace cable

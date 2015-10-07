@@ -13,6 +13,10 @@ template<typename TDomain>
 void myseclamp_converted_standard_UG<TDomain>::vm_disc_available()  
 {  
 	init_attachments();  
+ 	F = m_pVMDisc->F; 
+ R = m_pVMDisc->R; 
+ K = m_pVMDisc->temperature(); 
+ celsius = m_pVMDisc->temperature_celsius(); 
 }  
  
  
@@ -71,35 +75,69 @@ dur4 = val;
 template<typename TDomain> 
 void myseclamp_converted_standard_UG<TDomain>::init_attachments() 
 { 
-// inits temperatur from kalvin to celsius and some other typical neuron values
-m_pVMDisc->celsius = m_T - 273; 
- 
- 
 SmartPtr<Grid> spGrid = m_pVMDisc->approx_space()->domain()->grid(); 
 } 
  
  
  
+template<typename TDomain> 
+std::vector<number> myseclamp_converted_standard_UG<TDomain>::state_values(number x, number y, number z) 
+{ 
+	 //var for output 
+	 std::vector<number> GatingAccesors; 
+ 
+	 typedef ug::MathVector<TDomain::dim> position_type; 
+ 
+	 position_type coord; 
+ 
+	 if (coord.size()==1) 
+	 	 coord[0]=x; 
+	 if (coord.size()==2) 
+	 { 
+	 	 coord[0] = x;
+	 	 coord[1] = y;
+	 } 
+	 if (coord.size()==3) 
+	 { 
+	 	 coord[0] = x;
+	 	 coord[1] = y;
+	 	 coord[2] = z;
+	 } 
+	 //accesors 
+	 typedef Attachment<position_type> position_attachment_type; 
+	 typedef Grid::VertexAttachmentAccessor<position_attachment_type> position_accesor_type; 
+ 
+	 // Definitions for Iteration over all Elements 
+	 typedef typename DoFDistribution::traits<Vertex>::const_iterator itType; 
+	 SubsetGroup ssGrp; 
+	 try { ssGrp = SubsetGroup(m_pVMDisc->approx_space()->domain()->subset_handler(), this->m_vSubset);} 
+	 UG_CATCH_THROW("Subset group creation failed."); 
+ 
+	 itType iter; 
+	 number bestDistSq, distSq; 
+	 Vertex* bestVrt; 
+ 
+	 // Iterate only if there is one Gtting needed 
+	 return GatingAccesors; 
+} 
+ 
+//Setters for states_outputs 
  // Init Method for using gatings 
 template<typename TDomain> 
-void myseclamp_converted_standard_UG<TDomain>::init(const LocalVector& u, Edge* edge) 
+void myseclamp_converted_standard_UG<TDomain>::init(Vertex* vrt, const std::vector<number>& vrt_values) 
 { 
 //get celsius and time
-number celsius = m_pVMDisc->celsius; 
+// inits temperatur from kalvin to celsius and some other typical neuron values
+number m_T, m_R, m_F; 
+m_T = m_pVMDisc->temperature(); 
+m_R = m_pVMDisc->R; 
+m_F = m_pVMDisc->F; 
+ 
+ 
+number celsius = m_pVMDisc->temperature_celsius(); 
 number dt = m_pVMDisc->time(); 
 // make preparing vor getting values of every edge 
-typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; 
-vrt_list vl; 
-m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge); 
- 
- 
-//over all edges 
-for (size_t size_l = 0; size_l< vl.size(); size_l++) 
-{ 
-	 Vertex* vrt = vl[size_l]; 
- 
- 
-number v = u(m_pVMDisc->_v_, size_l); 
+number v = vrt_values[VMDisc<TDomain>::_v_]; 
 
  
 double tc2 =  dur1 + dur2; 
@@ -107,29 +145,23 @@ double tc3 =  tc2 + dur3;
 double tc4 =  tc3 + dur4; 
 double on =  0; 
 }  
-}  
  
  
  
 template<typename TDomain> 
-void myseclamp_converted_standard_UG<TDomain>::update_gating(number newTime, const LocalVector& u, Edge* edge) 
+void myseclamp_converted_standard_UG<TDomain>::update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values) 
 { 
-number celsius = m_pVMDisc->celsius; 
- number FARADAY = m_F; 
- // make preparing vor getting values of every edge 
-typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; 
-vrt_list vl; 
-m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge); 
+// inits temperatur from kalvin to celsius and some other typical neuron values
+number m_T, m_R, m_F; 
+m_T = m_pVMDisc->temperature(); 
+m_R = m_pVMDisc->R; 
+m_F = m_pVMDisc->F; 
  
  
-//over all edges 
-for (size_t size_l = 0; size_l< vl.size(); size_l++) 
-{ 
-	 Vertex* vrt = vl[size_l]; 
- 
- 
-number dt = newTime - m_pVMDisc->m_aaTime[vrt]; 
-number v = u(m_pVMDisc->_v_, size_l); 
+number celsius = m_pVMDisc->temperature_celsius(); 
+ number FARADAY = m_pVMDisc->F; 
+ number dt = newTime - m_pVMDisc->time(); 
+number v = vrt_values[VMDisc<TDomain>::_v_]; 
 
  
 
@@ -141,7 +173,6 @@ number v = u(m_pVMDisc->_v_, size_l);
  
  
  
-} 
 } 
  
  
@@ -150,13 +181,23 @@ template<typename TDomain>
 void myseclamp_converted_standard_UG<TDomain>::ionic_current(Vertex* ver, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues) 
 { 
  
-number v =  vrt_values[VMDisc<TDomain>::_v_]; 
+// inits temperatur from kalvin to celsius and some other typical neuron values
+number m_T, m_R, m_F; 
+m_T = m_pVMDisc->temperature(); 
+m_R = m_pVMDisc->R; 
+m_F = m_pVMDisc->F; 
+ 
+ 
+number v =  vrt_values[m_pVMDisc->_v_]; 
  
  
 number t = m_pVMDisc->time(); 
  
  
-const number helpV = 1e3*(m_R*m_T)/m_F; 
+
+ 
+ 
+const number helpV = 1e3*(m_pVMDisc->R*m_pVMDisc->temperature())/m_pVMDisc->F; 
  
  
 
@@ -164,7 +205,15 @@ const number helpV = 1e3*(m_R*m_T)/m_F;
  
 number vstim(); 
 outCurrentValues.push_back(0); 
- } 
+} 
+ 
+ 
+template<typename TDomain> 
+void myseclamp_converted_standard_UG<TDomain>::specify_write_function_indices() 
+{ 
+ 
+this->m_vWFctInd.push_back(VMDisc<TDomain>::_v_); 
+} 
  
  
 //////////////////////////////////////////////////////////////////////////////// 
