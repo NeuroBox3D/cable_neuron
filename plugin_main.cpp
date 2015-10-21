@@ -335,8 +335,6 @@ struct Functionality
 			reg.add_class_to_group(name, "Na_K_Pump", tag);
 		}
 
-
-
 		// VM-Disc class
 		{
 			typedef IChannel<TDomain> TIChannel;
@@ -392,6 +390,7 @@ struct Functionality
 				.add_method("write_gatings_for_position", &T::write_gatings_for_position)
 				.add_method("set_output", static_cast<void (T::*)(bool, number, number, number, std::string)> (&T::set_output))
 				.add_method("gets_syns", &T::gets_syns)
+				.add_method("set_influx_subset", &T::set_influx_subset)
 #ifdef UG_CPU_1
 				.add_method("estimate_cfl_cond", &T::template estimate_cfl_cond<CPUAlgebra::vector_type>)
 #endif

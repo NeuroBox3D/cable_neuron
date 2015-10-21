@@ -141,9 +141,22 @@ template<typename TDomain> number VMDisc<TDomain>::flux_ca() {return 0.0;}
 template<typename TDomain> number VMDisc<TDomain>::flux_na() {return 0.0;}
 template<typename TDomain> number VMDisc<TDomain>::flux_k()  {return 0.0;}
 
-template<typename TDomain> size_t VMDisc<TDomain>::get_influx_subset()  {return m_influx_subset;}
-template<typename TDomain> void VMDisc<TDomain>::set_influx_subset(size_t influx_subset)  {m_influx_subset = influx_subset;}
 
+template<typename TDomain> void VMDisc<TDomain>::set_influx_subset(int influx_subset, double input, double dur, double start)
+{
+	std::cout << "is working" << std::endl;
+	//ConstSmartPtr<DoFDistribution> dd = this->approx_space()->dof_distribution(GridLevel(), false);
+	std::cout << "fehler in dd" << std::endl;
+
+	//const char* influx_sub = influx_subset.c_str();
+	std::cout << "before num id" << std::endl;
+	m_influx_subset = influx_subset; //char* ??
+	std::cout << "after num id" << std::endl;
+	m_subset_influx = input;
+	m_subset_influx_start = start;
+	m_subset_influx_dur = dur;
+	std::cout << "alls setted" << std::endl;
+}
 
 template<typename TDomain> void VMDisc<TDomain>::gets_syns() {std::cout << "AlphaSyn: " << syn_counter_alpha << "Exp2Syn: " << syn_counter_exp << std::endl;}
 // ////////////////////////////
@@ -767,10 +780,14 @@ void VMDisc<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, const MathV
 		}
 
 		// influx handling subset
-
 		int si = ssh.get_subset_index(elem);
-		if (m_subset_)
-
+		if (m_influx_subset == si)
+		{
+			//std::cout << "time: " << time << "influx_start: " << m_subset_influx_start << std::endl;
+			//std::cout << "influx dur: " << m_subset_influx_dur << std::endl;
+			if (m_subset_influx_start <= time && (m_subset_influx_dur + m_subset_influx_start) >= time)
+				d(_v_, co) += m_subset_influx;
+		}
 
 		// synapses handled by synapse_handler
 #ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED

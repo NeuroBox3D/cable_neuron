@@ -148,10 +148,6 @@ class VMDisc
 		number eca();
 		/// \}
 
-		/// getter and setter for influx via subset
-		size_t get_influx_subset();
-		void set_influx_subset(size_t influx_subset);
-
 		/// get temperature in units of K
 		number temperature();
 
@@ -164,6 +160,10 @@ class VMDisc
 		// ////////////////////////////
 		// setters for functionality //
 		// ////////////////////////////
+
+		/// setter for influx via subset
+		void set_influx_subset(int influx_subset, double input, double dur, double start);
+
 		/// set influx position accuracy
 		void set_influx_ac(number influx_ac);
 
@@ -302,7 +302,9 @@ class VMDisc
 
 		number syn_counter_alpha, syn_counter_exp;
 
-		size_t m_influx_subset;
+		// vars for influx via subset
+		int m_influx_subset;
+		double m_subset_influx, m_subset_influx_start, m_subset_influx_dur;
 
 	protected:
 		std::vector<number> m_flux_value, m_beg_flux, m_dur_flux;		///< values describing influxes
