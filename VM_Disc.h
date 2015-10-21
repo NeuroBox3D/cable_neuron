@@ -148,6 +148,10 @@ class VMDisc
 		number eca();
 		/// \}
 
+		/// getter and setter for influx via subset
+		size_t get_influx_subset();
+		void set_influx_subset(size_t influx_subset);
+
 		/// get temperature in units of K
 		number temperature();
 
@@ -297,6 +301,8 @@ class VMDisc
 		std::string m_gating_pfad;
 
 		number syn_counter_alpha, syn_counter_exp;
+
+		size_t m_influx_subset;
 
 	protected:
 		std::vector<number> m_flux_value, m_beg_flux, m_dur_flux;		///< values describing influxes

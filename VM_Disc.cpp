@@ -141,6 +141,9 @@ template<typename TDomain> number VMDisc<TDomain>::flux_ca() {return 0.0;}
 template<typename TDomain> number VMDisc<TDomain>::flux_na() {return 0.0;}
 template<typename TDomain> number VMDisc<TDomain>::flux_k()  {return 0.0;}
 
+template<typename TDomain> size_t VMDisc<TDomain>::get_influx_subset()  {return m_influx_subset;}
+template<typename TDomain> void VMDisc<TDomain>::set_influx_subset(size_t influx_subset)  {m_influx_subset = influx_subset;}
+
 
 template<typename TDomain> void VMDisc<TDomain>::gets_syns() {std::cout << "AlphaSyn: " << syn_counter_alpha << "Exp2Syn: " << syn_counter_exp << std::endl;}
 // ////////////////////////////
@@ -722,6 +725,8 @@ void VMDisc<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, const MathV
 	TElem* pElem = dynamic_cast<TElem*>(elem);
 	if (!pElem) {UG_THROW("Wrong element type.");}
 
+	MGSubsetHandler& ssh = *this->approx_space()->domain()->subset_handler();
+
 	// membrane transport mechanisms and forced influx
 	for (size_t ip = 0; ip < geo.num_scv(); ++ip)
 	{
@@ -734,7 +739,7 @@ void VMDisc<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, const MathV
 		// get diam from attachment
 		number diam = m_aaDiameter[pElem->vertex(co)];
 
-		// influx handling
+		// influx handling coordinates
 		number time = this->time();
 		for (size_t i = 0; i < m_flux_value.size(); i++)
 		{
@@ -760,6 +765,12 @@ void VMDisc<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, const MathV
 				d(_v_, co) += m_flux_value[i];
 			}
 		}
+
+		// influx handling subset
+
+		int si = ssh.get_subset_index(elem);
+		if (m_subset_)
+
 
 		// synapses handled by synapse_handler
 #ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
