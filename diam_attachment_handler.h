@@ -9,7 +9,7 @@
 
 
 #include "lib_grid/lib_grid.h"
-#include "lib_grid/copy_attachment_handler.h"
+#include "lib_grid/tools/copy_attachment_handler.h"
 
 #include <vector>
 
