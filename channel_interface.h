@@ -53,7 +53,7 @@ class IChannel
 		/// updates the gating parameters
 		virtual void update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values) = 0;
 
-		/// provides the ionic current (mol*s^-1) at a given vertex
+		/// provides the electric current density (C/(m^2*ms)) at a given vertex
 		virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues) = 0;
 
 		/// called when approximation space is available

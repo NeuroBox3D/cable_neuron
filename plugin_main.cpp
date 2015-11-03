@@ -168,7 +168,7 @@ struct Functionality
 		}
 
 
-		// Channel Interface HH
+		// HH
 		{
 			typedef ChannelHH<TDomain> T;
 			typedef IChannel<TDomain> TBase;
@@ -199,7 +199,7 @@ struct Functionality
 		}
 
 
-		// Channel Interface HH-with-Nernst
+		// HH-with-Nernst
 		{
 			typedef ChannelHHNernst<TDomain> T;
 			typedef IChannel<TDomain> TBase;
