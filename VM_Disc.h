@@ -303,8 +303,8 @@ class VMDisc
 		number syn_counter_alpha, syn_counter_exp;
 
 		// vars for influx via subset
-		vector<int> m_influx_subset;
-		vector<double> m_subset_influx, m_subset_influx_start, m_subset_influx_dur;
+		std::vector<int> m_influx_subset;
+		std::vector<double> m_subset_influx, m_subset_influx_start, m_subset_influx_dur;
 
 	protected:
 		std::vector<number> m_flux_value, m_beg_flux, m_dur_flux;		///< values describing influxes
