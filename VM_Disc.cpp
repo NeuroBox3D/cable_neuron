@@ -14,7 +14,7 @@
 //#include "lib_disc/function_spaces/local_transfer_interface.h"
 
 #include "lib_grid/global_attachments.h"
-#include "../neuronal_topology_importer/neuronal_topology_importer.h"
+#include "../NeuronalTopologyImporter/neuronal_topology_importer.h"
 
 
 namespace ug {
