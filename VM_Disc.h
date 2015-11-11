@@ -23,10 +23,10 @@
 #include "cable_ass_tuner.h"
 
 #ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
-	#include "../synapse_handler/synapse_handler.h"
+	#include "../SynapseHandler/synapse_handler.h"
 #endif
 #ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED
-	#include "../synapse_distributor/synapse_distributor.h"
+	#include "../SynapseDistributor/synapse_distributor.h"
 #endif
 
 
