@@ -51,7 +51,7 @@ class kir_converted_standard_UG
 /// @copydoc IChannel<TDomain>::IChannel(cont char*) 
 kir_converted_standard_UG(const char* functions, const char* subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-	gkbar  ( 0.00015 		*0.1), 
+	gkbar  ( 0.00015 		*0.01), 
 	mvhalf ( -52		*1), 
 	mslope ( 13		*1), 
 	mshift ( 30			*1), 
@@ -63,7 +63,7 @@ UG_CATCH_THROW("Error in kir_converted_standard_UG initializer list. ");
 /// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&) 
 kir_converted_standard_UG(const std::vector<std::string>& functions, const std::vector<std::string>& subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-	gkbar  ( 0.00015 		*0.1), 
+	gkbar  ( 0.00015 		*0.01), 
 	mvhalf ( -52		*1), 
 	mslope ( 13		*1), 
 	mshift ( 30			*1), 

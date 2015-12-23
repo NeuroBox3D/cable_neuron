@@ -140,10 +140,6 @@ number dt = m_pVMDisc->time();
 number v = vrt_values[VMDisc<TDomain>::_v_]; 
 
  
-double tc2 =  dur1 + dur2; 
-double tc3 =  tc2 + dur3; 
-double tc4 =  tc3 + dur4; 
-double on =  0; 
 }  
  
  

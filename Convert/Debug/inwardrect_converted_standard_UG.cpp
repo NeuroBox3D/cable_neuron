@@ -219,12 +219,12 @@ number k = vrt_values[VMDisc<TDomain>::_k_];
  
 double          tinc; 
 v = v; 
-                      ;//Call once from HOC to initialize inf at resting v.
+                      //--//Call once from HOC to initialize inf at resting v.
 double         b = Ra * (v - tha) / (1 - exp(-(v - tha)/qa)); 
 double         a = -Rb * (v - tha) / (1 - exp((v - tha)/qa)); 
 double         ntau = 1/(a+b); 
 double 	ninf = a*ntau; 
-                      ;//Call once from HOC to initialize inf at resting v.
+                      //--//Call once from HOC to initialize inf at resting v.
 tadj= pow(q10 , ((celsius-temp)/10)); 
         tinc = -dt * tadj; 
 double         nexp = 1 - exp(tinc/ntau); 
@@ -259,7 +259,6 @@ double n = aanGate[vrt];
  
 v = v; 
 v = v; 
-                      //Call once from HOC to initialize inf at resting v.
 double         b = Ra * (v - tha) / (1 - exp(-(v - tha)/qa)); 
 double         a = -Rb * (v - tha) / (1 - exp((v - tha)/qa)); 
 double         ntau = 1/(a+b); 

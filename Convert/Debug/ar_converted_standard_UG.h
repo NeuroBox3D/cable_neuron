@@ -51,18 +51,18 @@ class ar_converted_standard_UG
 /// @copydoc IChannel<TDomain>::IChannel(cont char*) 
 ar_converted_standard_UG(const char* functions, const char* subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-         g0 ( .0001      *0.1), 
+         g0 ( .0001      *0.01), 
          e ( -75 	  	 *1), 
-         c ( 1000000 	 *1e+10){} 
+         c ( 1000000 	 *1e+11){} 
 UG_CATCH_THROW("Error in ar_converted_standard_UG initializer list. "); 
  
  
 /// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&) 
 ar_converted_standard_UG(const std::vector<std::string>& functions, const std::vector<std::string>& subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-         g0 ( .0001      *0.1), 
+         g0 ( .0001      *0.01), 
          e ( -75 	  	 *1), 
-         c ( 1000000 	 *1e+10){} 
+         c ( 1000000 	 *1e+11){} 
 UG_CATCH_THROW("Error in ar_converted_standard_UG initializer list. "); 
 /// destructor 
  

@@ -105,6 +105,10 @@ number dur3 ;
 number dur4 ; 
 // Standard-NModl-File-Params 
 number F, R, K, celsius; 
+const double 	tc2 = dur1 + dur2; 
+const double 	tc3 = tc2 + dur3; 
+const double 	tc4 = tc3 + dur4; 
+const double 	on = 0; 
 }; 
  
 } // namespace cable

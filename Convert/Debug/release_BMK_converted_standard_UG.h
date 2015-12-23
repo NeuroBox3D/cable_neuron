@@ -95,6 +95,7 @@ number dur ;
 number amp ; 
 // Standard-NModl-File-Params 
 number F, R, K, celsius; 
+const double 	T = 0; 
 }; 
  
 } // namespace cable

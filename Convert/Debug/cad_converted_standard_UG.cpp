@@ -66,6 +66,12 @@ template<typename TDomain>
 void cad_converted_standard_UG<TDomain>::init_attachments() 
 { 
 SmartPtr<Grid> spGrid = m_pVMDisc->approx_space()->domain()->grid(); 
+if (spGrid->has_vertex_attachment(this->SGate)) 
+UG_THROW("Attachment necessary (SGate) for cad_converted_standard_UG channel dynamics "
+"could not be made, since it already exists."); 
+spGrid->attach_to_vertices(this->SGate); 
+this->aaSGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->SGate); 
+ 
 if (spGrid->has_vertex_attachment(this->caSGate)) 
 UG_THROW("Attachment necessary (caSGate) for cad_converted_standard_UG channel dynamics "
 "could not be made, since it already exists."); 
@@ -114,7 +120,7 @@ std::vector<number> cad_converted_standard_UG<TDomain>::state_values(number x, n
 	 Vertex* bestVrt; 
  
 	 // Iterate only if there is one Gtting needed 
-	 if (m_log_caSGate )
+	 if (m_log_SGate || m_log_caSGate )
 	 { 
 	 	 // iterating over all elements 
 	 	 for (size_t si=0; si < ssGrp.size(); si++) 
@@ -140,6 +146,8 @@ std::vector<number> cad_converted_standard_UG<TDomain>::state_values(number x, n
 	 	 	 	 ++iter; 
 	 	 	 } 
 	 	 } 
+	 	 if (m_log_SGate == true) 
+	 	 	 GatingAccesors.push_back(this->aaSGate[bestVrt]); 
 	 	 if (m_log_caSGate == true) 
 	 	 	 GatingAccesors.push_back(this->aacaSGate[bestVrt]); 
 	 } 
@@ -147,6 +155,7 @@ std::vector<number> cad_converted_standard_UG<TDomain>::state_values(number x, n
 } 
  
 //Setters for states_outputs 
+template<typename TDomain> void cad_converted_standard_UG<TDomain>::set_log_SGate(bool bLogSGate) { m_log_SGate = bLogSGate; }
 template<typename TDomain> void cad_converted_standard_UG<TDomain>::set_log_caSGate(bool bLogcaSGate) { m_log_caSGate = bLogcaSGate; }
  // Init Method for using gatings 
 template<typename TDomain> 
@@ -168,8 +177,6 @@ number v = vrt_values[VMDisc<TDomain>::_v_];
 number ca = vrt_values[VMDisc<TDomain>::_ca_]; 
 
  
-aacaSGate[vrt] =  cainf; 
-cai =  ca; 
 }  
  
  
@@ -192,26 +199,15 @@ number v = vrt_values[VMDisc<TDomain>::_v_];
 number ca = vrt_values[VMDisc<TDomain>::_ca_]; 
 
  
+double S = aaSGate[vrt]; 
 double caS = aacaSGate[vrt]; 
 
  
  
-double 	drive_channel =  - (10000) * ica / (2 * FARADAY * depth); 
-; 
- 
-if (drive_channel <= 0.)
-{ 
- drive_channel = 0. ;; 
-} 
-caS +=  drive_channel + (cainf-caS)/taur*dt; 
-; 
- 
-	cai = ca; 
-; 
- 
 
  
  
+aaSGate[vrt] = S; 
 aacaSGate[vrt] = caS; 
  
  
@@ -232,6 +228,7 @@ m_F = m_pVMDisc->F;
  
  
 number ica = m_pVMDisc->flux_ca(); 
+number S = aaSGate[ver]; 
 number caS = aacaSGate[ver]; 
 number ca = vrt_values[m_pVMDisc->_ca_]; 
 number v =  vrt_values[m_pVMDisc->_v_]; 

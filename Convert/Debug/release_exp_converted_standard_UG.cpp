@@ -46,6 +46,12 @@ template<typename TDomain>
 void release_exp_converted_standard_UG<TDomain>::init_attachments() 
 { 
 SmartPtr<Grid> spGrid = m_pVMDisc->approx_space()->domain()->grid(); 
+if (spGrid->has_vertex_attachment(this->SGate)) 
+UG_THROW("Attachment necessary (SGate) for release_exp_converted_standard_UG channel dynamics "
+"could not be made, since it already exists."); 
+spGrid->attach_to_vertices(this->SGate); 
+this->aaSGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->SGate); 
+ 
 if (spGrid->has_vertex_attachment(this->AGate)) 
 UG_THROW("Attachment necessary (AGate) for release_exp_converted_standard_UG channel dynamics "
 "could not be made, since it already exists."); 
@@ -100,7 +106,7 @@ std::vector<number> release_exp_converted_standard_UG<TDomain>::state_values(num
 	 Vertex* bestVrt; 
  
 	 // Iterate only if there is one Gtting needed 
-	 if (m_log_AGate || m_log_BGate )
+	 if (m_log_SGate || m_log_AGate || m_log_BGate )
 	 { 
 	 	 // iterating over all elements 
 	 	 for (size_t si=0; si < ssGrp.size(); si++) 
@@ -126,6 +132,8 @@ std::vector<number> release_exp_converted_standard_UG<TDomain>::state_values(num
 	 	 	 	 ++iter; 
 	 	 	 } 
 	 	 } 
+	 	 if (m_log_SGate == true) 
+	 	 	 GatingAccesors.push_back(this->aaSGate[bestVrt]); 
 	 	 if (m_log_AGate == true) 
 	 	 	 GatingAccesors.push_back(this->aaAGate[bestVrt]); 
 	 	 if (m_log_BGate == true) 
@@ -135,6 +143,7 @@ std::vector<number> release_exp_converted_standard_UG<TDomain>::state_values(num
 } 
  
 //Setters for states_outputs 
+template<typename TDomain> void release_exp_converted_standard_UG<TDomain>::set_log_SGate(bool bLogSGate) { m_log_SGate = bLogSGate; }
 template<typename TDomain> void release_exp_converted_standard_UG<TDomain>::set_log_AGate(bool bLogAGate) { m_log_AGate = bLogAGate; }
 template<typename TDomain> void release_exp_converted_standard_UG<TDomain>::set_log_BGate(bool bLogBGate) { m_log_BGate = bLogBGate; }
  // Init Method for using gatings 
@@ -155,13 +164,6 @@ number dt = m_pVMDisc->time();
 number v = vrt_values[VMDisc<TDomain>::_v_]; 
 
  
-total =  0; 
-if(tau1/tau2>.9999){tau1 =  .9999*tau2    ;};; 
-aaAGate[vrt] = 0; 
-aaBGate[vrt] = 0; 
-double tp =  (tau1*tau2)/(tau2 - tau1) * log(tau2/tau1); 
-double factor =  -exp(-tp/tau1) + exp(-tp/tau2); 
-factor =  1/factor; 
 }  
  
  
@@ -182,17 +184,16 @@ number celsius = m_pVMDisc->temperature_celsius();
 number v = vrt_values[VMDisc<TDomain>::_v_]; 
 
  
+double S = aaSGate[vrt]; 
 double A = aaAGate[vrt]; 
 double B = aaBGate[vrt]; 
 
  
  
-    B  +=  -B/tau2*dt; 
-; 
- 
 
  
  
+aaSGate[vrt] = S; 
 aaAGate[vrt] = A; 
 aaBGate[vrt] = B; 
  
@@ -213,6 +214,7 @@ m_R = m_pVMDisc->R;
 m_F = m_pVMDisc->F; 
  
  
+number S = aaSGate[ver]; 
 number A = aaAGate[ver]; 
 number B = aaBGate[ver]; 
 number v =  vrt_values[m_pVMDisc->_v_]; 

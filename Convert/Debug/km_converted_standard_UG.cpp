@@ -218,15 +218,15 @@ number k = vrt_values[VMDisc<TDomain>::_k_];
 
  
 v = v; 
-                      ;//Call once from HOC to initialize inf at resting v.
+                      //--//Call once from HOC to initialize inf at resting v.
 double         a = Ra * (v - tha) / (1 - exp(-(v - tha)/qa)); 
 double         b = -Rb * (v - tha) / (1 - exp((v - tha)/qa)); 
 tadj= pow(q10 , ((celsius-temp)/10)); 
 double         ntau = 1/tadj/(a+b); 
 double 	ninf = a/(a+b); 
-                      ;//Call once from HOC to initialize inf at resting v.
-;//        tinc = -dt * tadj
-;//        nexp = 1 - exp(tinc/ntau)
+                      //--//Call once from HOC to initialize inf at resting v.
+//--//        tinc = -dt * tadj
+//--//        nexp = 1 - exp(tinc/ntau)
 aanGate[vrt] = ninf; 
 }  
  
@@ -254,15 +254,15 @@ double n = aanGate[vrt];
  
  
 v = v; 
-                      //Call once from HOC to initialize inf at resting v.
+                      //--//Call once from HOC to initialize inf at resting v.; 
 double         a = Ra * (v - tha) / (1 - exp(-(v - tha)/qa)); 
 double         b = -Rb * (v - tha) / (1 - exp((v - tha)/qa)); 
 tadj= pow(q10 , ((celsius-temp)/10)); 
 double         ntau = 1/tadj/(a+b); 
 double 	ninf = a/(a+b); 
-                      //Call once from HOC to initialize inf at resting v.
-//        tinc = -dt * tadj
-//        nexp = 1 - exp(tinc/ntau)
+                      //--//Call once from HOC to initialize inf at resting v.; 
+//--//        tinc = -dt * tadj; 
+//--//        nexp = 1 - exp(tinc/ntau); 
         n  +=  (ninf-n)/ntau*dt; 
 ; 
  

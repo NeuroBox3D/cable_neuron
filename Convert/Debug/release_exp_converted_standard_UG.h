@@ -53,6 +53,7 @@ release_exp_converted_standard_UG(const char* functions, const char* subsets)
 try : IChannel<TDomain>(functions, subsets), 
     tau1(.1 *1), 
     tau2 ( 10 *1), 
+m_log_SGate(false), 
 m_log_AGate(false), 
 m_log_BGate(false) {} 
 UG_CATCH_THROW("Error in release_exp_converted_standard_UG initializer list. "); 
@@ -63,6 +64,7 @@ release_exp_converted_standard_UG(const std::vector<std::string>& functions, con
 try : IChannel<TDomain>(functions, subsets), 
     tau1(.1 *1), 
     tau2 ( 10 *1), 
+m_log_SGate(false), 
 m_log_AGate(false), 
 m_log_BGate(false) {} 
 UG_CATCH_THROW("Error in release_exp_converted_standard_UG initializer list. "); 
@@ -84,6 +86,7 @@ double gettau1();
 double gettau2(); 
 void settau1(double val); 
 void settau2(double val); 
+void set_log_SGate(bool bLogSGate); 
 void set_log_AGate(bool bLogAGate); 
 void set_log_BGate(bool bLogBGate); 
 
@@ -92,6 +95,8 @@ protected:
 private: 
  
 virtual void specify_write_function_indices(); 
+ADouble SGate; 
+Grid::AttachmentAccessor<Vertex, ADouble> aaSGate; 
 ADouble AGate; 
 Grid::AttachmentAccessor<Vertex, ADouble> aaAGate; 
 ADouble BGate; 
@@ -99,10 +104,14 @@ Grid::AttachmentAccessor<Vertex, ADouble> aaBGate;
 number     tau1; 
 number     tau2 ; 
 number total; 
+bool m_log_SGate; 
 bool m_log_AGate; 
 bool m_log_BGate; 
 // Standard-NModl-File-Params 
 number F, R, K, celsius; 
+const double     tp = (tau1*tau2)/(tau2 - tau1) * log(tau2/tau1); 
+const double     factor = 1/(-exp(-tp/tau1) + exp(-tp/tau2));
+
 }; 
  
 } // namespace cable

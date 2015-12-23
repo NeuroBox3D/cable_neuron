@@ -15,8 +15,8 @@ INDEPENDENT {v FROM -100 TO 50 WITH 50 (mV)}
 
 NEURON {
 	SUFFIX pump
-	USEION na READ nai  WRITE ina
-	USEION k  WRITE ik
+	USEION na READ nai WRITE ina
+	USEION k WRITE ik
 	RANGE  inapump,ipumpmax,n,km
  
 }
@@ -49,7 +49,4 @@ BREAKPOINT {
 }
 
 
-COMMENT
-INITIAL{
-       nai = nainit}
-ENDCOMMENT
+

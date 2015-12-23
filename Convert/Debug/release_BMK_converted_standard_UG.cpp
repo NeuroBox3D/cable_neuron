@@ -120,7 +120,6 @@ number dt = m_pVMDisc->time();
 number v = vrt_values[VMDisc<TDomain>::_v_]; 
 
  
-double T =  0; 
 }  
  
  

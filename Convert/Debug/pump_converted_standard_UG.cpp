@@ -13,6 +13,10 @@ template<typename TDomain>
 void pump_converted_standard_UG<TDomain>::vm_disc_available()  
 {  
 	init_attachments();  
+ 	F = m_pVMDisc->F; 
+ R = m_pVMDisc->R; 
+ K = m_pVMDisc->temperature(); 
+ celsius = m_pVMDisc->temperature_celsius(); 
 }  
  
  
@@ -43,11 +47,6 @@ double pump_converted_standard_UG<TDomain>::getnainit()
 return nainit; 
 } 
 template<typename TDomain> 
-double pump_converted_standard_UG<TDomain>::getcelsius() 
-{ 
-return celsius; 
-} 
-template<typename TDomain> 
 void pump_converted_standard_UG<TDomain>::setnai(double val) 
 { 
 nai = val; 
@@ -71,11 +70,6 @@ template<typename TDomain>
 void pump_converted_standard_UG<TDomain>::setnainit(double val) 
 { 
 nainit = val; 
-} 
-template<typename TDomain> 
-void pump_converted_standard_UG<TDomain>::setcelsius(double val) 
-{ 
-celsius = val; 
 } 
  // creating Method for attachments 
 template<typename TDomain> 
@@ -148,7 +142,6 @@ number na = vrt_values[VMDisc<TDomain>::_na_];
 number k = vrt_values[VMDisc<TDomain>::_k_]; 
 
  
-nai =  nainit;
 }  
  
  
@@ -203,36 +196,18 @@ number v =  vrt_values[m_pVMDisc->_v_];
 number t = m_pVMDisc->time(); 
  
  
+number nai = na;
+
+ 
+ 
 const number helpV = 1e3*(m_pVMDisc->R*m_pVMDisc->temperature())/m_pVMDisc->F; 
-
-number inapump = ipumpmax*(1/(1 + pow(km/nai,n)));
  
-number fac = 0;
-
-//if (na > 10.0)
-//{
-//	fac = 1;
-//}
-
-if (k < 54.4)
-{
-	if (na>8.0)
-	{
-		fac = 1;
-	}
-}
-// factor written special
-number ina = 2.25*(3.0*inapump*fac);
-
-number ik = -2.0*inapump*fac;
+ 
+number inapump = ipumpmax*(1/(1 + pow(km/nai,n))); 
 
  
-//std::cout << "ina: " << ina << std::endl;
-//std::cout << "ik: " << ik << std::endl;
  
-outCurrentValues.push_back( 0);
-outCurrentValues.push_back( ina);
-outCurrentValues.push_back( ik);
+outCurrentValues.push_back( 3.0*inapump +  -2.0*inapump); 
 } 
  
  
@@ -241,8 +216,6 @@ void pump_converted_standard_UG<TDomain>::specify_write_function_indices()
 { 
  
 this->m_vWFctInd.push_back(VMDisc<TDomain>::_v_); 
-this->m_vWFctInd.push_back(VMDisc<TDomain>::_na_);
-this->m_vWFctInd.push_back(VMDisc<TDomain>::_k_);
 } 
  
  

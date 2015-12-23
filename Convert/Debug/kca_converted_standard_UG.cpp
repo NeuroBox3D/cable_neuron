@@ -225,8 +225,8 @@ double         b = Rb;
 tadj= pow(q10 , ((celsius-temp)/10)); 
 double         ntau = 1/tadj/(a+b); 
 double 	ninf = a/(a+b); 
-;//        tinc = -dt * tadj
-;//        nexp = 1 - exp(tinc/ntau)
+//--//        tinc = -dt * tadj
+//--//        nexp = 1 - exp(tinc/ntau)
 aanGate[vrt] = ninf; 
 }  
  
@@ -261,8 +261,8 @@ double         b = Rb;
 tadj= pow(q10 , ((celsius-temp)/10)); 
 double         ntau = 1/tadj/(a+b); 
 double 	ninf = a/(a+b); 
-//        tinc = -dt * tadj
-//        nexp = 1 - exp(tinc/ntau)
+//--//        tinc = -dt * tadj; 
+//--//        nexp = 1 - exp(tinc/ntau); 
         n  +=   (ninf-n)/ntau*dt; 
 ; 
  

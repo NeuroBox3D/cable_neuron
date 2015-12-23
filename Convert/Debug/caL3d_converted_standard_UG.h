@@ -51,7 +51,7 @@ class caL3d_converted_standard_UG
 /// @copydoc IChannel<TDomain>::IChannel(cont char*) 
 caL3d_converted_standard_UG(const char* functions, const char* subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-	p    ( 0.2e-3  	*10), 
+	p    ( 0.2e-3  	*100), 
 	th   ( 5	*1), 
 	q   ( 13	*1), 
 	Ra   ( 1.6	*1), 
@@ -66,7 +66,7 @@ UG_CATCH_THROW("Error in caL3d_converted_standard_UG initializer list. ");
 /// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&) 
 caL3d_converted_standard_UG(const std::vector<std::string>& functions, const std::vector<std::string>& subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-	p    ( 0.2e-3  	*10), 
+	p    ( 0.2e-3  	*100), 
 	th   ( 5	*1), 
 	q   ( 13	*1), 
 	Ra   ( 1.6	*1), 

@@ -168,7 +168,7 @@ std::vector<number> ca_converted_allNernst_UG<TDomain>::state_values(number x, n
 	 Vertex* bestVrt; 
  
 	 // Iterate only if there is one Gtting needed 
-	 if (m_log_mGate == true || m_log_hGate == true )
+	 if (m_log_mGate || m_log_hGate )
 	 { 
 	 	 // iterating over all elements 
 	 	 for (size_t si=0; si < ssGrp.size(); si++) 
@@ -337,7 +337,7 @@ else
  
 number gca = tadj*gbar*m*m*h; 
 outCurrentValues.push_back( (1e-4) * gca * (v - eca)); 
-outCurrentValues.push_back( (1e-4) * gca * (v - eca)/m_F ); 
+outCurrentValues.push_back( (1e-4) * gca * (v - eca)/2 * m_F ); 
 } 
  
  

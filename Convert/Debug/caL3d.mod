@@ -110,7 +110,7 @@ PROCEDURE rates(v(mV)) {
 	DEPEND Ra, Rb, th, celsius, temp, q10
 	FROM -100 TO 100 WITH 200
 
-	tadj = q10 ^ ((celsius - temp)/10 (degC))
+	tadj = q10 ^ ((celsius - temp)/10 )
 
 	a = Ra / (1 + exp(-(v-th)/q)) * tadj
 	b = Rb / (1 + exp((v-th)/q)) * tadj

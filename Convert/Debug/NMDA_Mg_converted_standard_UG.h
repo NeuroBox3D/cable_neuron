@@ -85,6 +85,7 @@ try : IChannel<TDomain>(functions, subsets),
 	Rd2Mg		( 0.26e-3	*1), 
 	Rr2Mg		( 0.42e-3	*1), 
 C (0), 
+m_log_SGate(false), 
 m_log_UGate(false), 
 m_log_ClGate(false), 
 m_log_D1Gate(false), 
@@ -135,6 +136,7 @@ try : IChannel<TDomain>(functions, subsets),
 	Rd2Mg		( 0.26e-3	*1), 
 	Rr2Mg		( 0.42e-3	*1), 
 C (0), 
+m_log_SGate(false), 
 m_log_UGate(false), 
 m_log_ClGate(false), 
 m_log_D1Gate(false), 
@@ -228,6 +230,7 @@ void setRr1Mg(double val);
 void setRd2Mg(double val); 
 void setRr2Mg(double val); 
 void setC(double val); 
+void set_log_SGate(bool bLogSGate); 
 void set_log_UGate(bool bLogUGate); 
 void set_log_ClGate(bool bLogClGate); 
 void set_log_D1Gate(bool bLogD1Gate); 
@@ -244,6 +247,8 @@ protected:
 private: 
  
 virtual void specify_write_function_indices(); 
+ADouble SGate; 
+Grid::AttachmentAccessor<Vertex, ADouble> aaSGate; 
 ADouble UGate; 
 Grid::AttachmentAccessor<Vertex, ADouble> aaUGate; 
 ADouble ClGate; 
@@ -298,6 +303,7 @@ number 	Rr1Mg		;
 number 	Rd2Mg		; 
 number 	Rr2Mg		; 
 number C ; 
+bool m_log_SGate; 
 bool m_log_UGate; 
 bool m_log_ClGate; 
 bool m_log_D1Gate; 

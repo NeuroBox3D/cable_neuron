@@ -11,14 +11,14 @@ namespace cable {
 template<typename TDomain> 
 double caL3d_converted_standard_UG<TDomain>::ghk(double v, double  ci, double  co) 
 { 
-	double z; 
 
-	z = (0.001)*2*F*v/(R*(celsius+273.15)); 
+double 	z = (0.001)*2*F*v/(R*(celsius+273.15)); 
 	return  (.001)*2*F*(ci*efun(-z) - co*efun(z)); 
 }
 template<typename TDomain> 
 double caL3d_converted_standard_UG<TDomain>::efun(double z) 
 { 
+double efun; 
 	if (fabs(z) < 1e-4) {
 		return  1 - z/2; 
 	}else{
@@ -226,7 +226,6 @@ number v = vrt_values[VMDisc<TDomain>::_v_];
 number ca = vrt_values[VMDisc<TDomain>::_ca_]; 
 
  
-aaCGate[vrt] = 1 ; 
 }  
  
  
@@ -303,14 +302,14 @@ number cai = ca;
 const number helpV = 1e3*(m_pVMDisc->R*m_pVMDisc->temperature())/m_pVMDisc->F; 
  
  
-
- 
- 
-number rates(v); 
 number cao = m_pVMDisc->ca_out(); 
 
  
  
+
+ 
+ 
+number rates(v); 
 outCurrentValues.push_back( O * p * ghk(v,cai,cao)); 
 } 
  

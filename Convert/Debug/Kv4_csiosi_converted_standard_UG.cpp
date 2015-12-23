@@ -246,6 +246,12 @@ template<typename TDomain>
 void Kv4_csiosi_converted_standard_UG<TDomain>::init_attachments() 
 { 
 SmartPtr<Grid> spGrid = m_pVMDisc->approx_space()->domain()->grid(); 
+if (spGrid->has_vertex_attachment(this->SGate)) 
+UG_THROW("Attachment necessary (SGate) for Kv4_csiosi_converted_standard_UG channel dynamics "
+"could not be made, since it already exists."); 
+spGrid->attach_to_vertices(this->SGate); 
+this->aaSGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->SGate); 
+ 
 if (spGrid->has_vertex_attachment(this->C0Gate)) 
 UG_THROW("Attachment necessary (C0Gate) for Kv4_csiosi_converted_standard_UG channel dynamics "
 "could not be made, since it already exists."); 
@@ -378,7 +384,7 @@ std::vector<number> Kv4_csiosi_converted_standard_UG<TDomain>::state_values(numb
 	 Vertex* bestVrt; 
  
 	 // Iterate only if there is one Gtting needed 
-	 if (m_log_C0Gate || m_log_C1Gate || m_log_C2Gate || m_log_C3Gate || m_log_C4Gate || m_log_C5Gate || m_log_I0Gate || m_log_I1Gate || m_log_I2Gate || m_log_I3Gate || m_log_I4Gate || m_log_I5Gate || m_log_OGate || m_log_I6Gate || m_log_I7Gate )
+	 if (m_log_SGate || m_log_C0Gate || m_log_C1Gate || m_log_C2Gate || m_log_C3Gate || m_log_C4Gate || m_log_C5Gate || m_log_I0Gate || m_log_I1Gate || m_log_I2Gate || m_log_I3Gate || m_log_I4Gate || m_log_I5Gate || m_log_OGate || m_log_I6Gate || m_log_I7Gate )
 	 { 
 	 	 // iterating over all elements 
 	 	 for (size_t si=0; si < ssGrp.size(); si++) 
@@ -404,6 +410,8 @@ std::vector<number> Kv4_csiosi_converted_standard_UG<TDomain>::state_values(numb
 	 	 	 	 ++iter; 
 	 	 	 } 
 	 	 } 
+	 	 if (m_log_SGate == true) 
+	 	 	 GatingAccesors.push_back(this->aaSGate[bestVrt]); 
 	 	 if (m_log_C0Gate == true) 
 	 	 	 GatingAccesors.push_back(this->aaC0Gate[bestVrt]); 
 	 	 if (m_log_C1Gate == true) 
@@ -439,6 +447,7 @@ std::vector<number> Kv4_csiosi_converted_standard_UG<TDomain>::state_values(numb
 } 
  
 //Setters for states_outputs 
+template<typename TDomain> void Kv4_csiosi_converted_standard_UG<TDomain>::set_log_SGate(bool bLogSGate) { m_log_SGate = bLogSGate; }
 template<typename TDomain> void Kv4_csiosi_converted_standard_UG<TDomain>::set_log_C0Gate(bool bLogC0Gate) { m_log_C0Gate = bLogC0Gate; }
 template<typename TDomain> void Kv4_csiosi_converted_standard_UG<TDomain>::set_log_C1Gate(bool bLogC1Gate) { m_log_C1Gate = bLogC1Gate; }
 template<typename TDomain> void Kv4_csiosi_converted_standard_UG<TDomain>::set_log_C2Gate(bool bLogC2Gate) { m_log_C2Gate = bLogC2Gate; }
@@ -494,6 +503,7 @@ number v = vrt_values[VMDisc<TDomain>::_v_];
 number k = vrt_values[VMDisc<TDomain>::_k_]; 
 
  
+double S = aaSGate[vrt]; 
 double C0 = aaC0Gate[vrt]; 
 double C1 = aaC1Gate[vrt]; 
 double C2 = aaC2Gate[vrt]; 
@@ -597,6 +607,7 @@ I7+=(I6*kII2f+-I7*kII2b)*dt;
  
  
  
+aaSGate[vrt] = S; 
 aaC0Gate[vrt] = C0; 
 aaC1Gate[vrt] = C1; 
 aaC2Gate[vrt] = C2; 
@@ -630,6 +641,7 @@ m_R = m_pVMDisc->R;
 m_F = m_pVMDisc->F; 
  
  
+number S = aaSGate[ver]; 
 number C0 = aaC0Gate[ver]; 
 number C1 = aaC1Gate[ver]; 
 number C2 = aaC2Gate[ver]; 

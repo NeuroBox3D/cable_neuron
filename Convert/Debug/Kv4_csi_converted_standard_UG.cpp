@@ -589,11 +589,11 @@ number t = m_pVMDisc->time();
 const number helpV = 1e3*(m_pVMDisc->R*m_pVMDisc->temperature())/m_pVMDisc->F; 
  
  
-number g = gmax * O; 
+number ko = m_pVMDisc->k_out(); 
 
  
  
-number ko = m_pVMDisc->k_out(); 
+number g = gmax * O; 
 
  
  

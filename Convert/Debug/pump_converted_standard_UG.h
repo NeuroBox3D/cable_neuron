@@ -1,6 +1,6 @@
 #ifndef pump_converted_standard_UG_H_
 #define pump_converted_standard_UG_H_
-#include "channel_interface.h" 
+#include "../../channel_interface.h" 
 #include "lib_grid/lg_base.h" 
 #include "lib_grid/grid/grid_base_objects.h" 
 
@@ -55,8 +55,7 @@ nai ( 0),
         ipumpmax  ( 0.0036   *1e-05), 
         km ( 10.0        *1), 
         n(1.5*1), 
-        nainit ( 4  *1), 
-        celsius ( 35  *1){} 
+        nainit ( 4  *1){} 
 UG_CATCH_THROW("Error in pump_converted_standard_UG initializer list. "); 
  
  
@@ -64,11 +63,10 @@ UG_CATCH_THROW("Error in pump_converted_standard_UG initializer list. ");
 pump_converted_standard_UG(const std::vector<std::string>& functions, const std::vector<std::string>& subsets) 
 try : IChannel<TDomain>(functions, subsets), 
 nai ( 0), 
-        ipumpmax  (0.0036   *1e-05),
+        ipumpmax  ( 0.0036   *1e-05), 
         km ( 10.0        *1), 
         n(1.5*1), 
-        nainit ( 4  *1), 
-        celsius ( 35  *1){} 
+        nainit ( 4  *1){} 
 UG_CATCH_THROW("Error in pump_converted_standard_UG initializer list. "); 
 /// destructor 
  
@@ -89,13 +87,11 @@ double getipumpmax();
 double getkm(); 
 double getn(); 
 double getnainit(); 
-double getcelsius(); 
 void setnai(double val); 
 void setipumpmax(double val); 
 void setkm(double val); 
 void setn(double val); 
 void setnainit(double val); 
-void setcelsius(double val); 
 
  
 protected: 
@@ -107,7 +103,8 @@ number         ipumpmax  ;
 number         km ; 
 number         n; 
 number         nainit ; 
-number         celsius ; 
+// Standard-NModl-File-Params 
+number F, R, K, celsius; 
 }; 
  
 } // namespace cable

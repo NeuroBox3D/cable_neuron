@@ -366,6 +366,12 @@ template<typename TDomain>
 void NMDA_Mg_T_converted_standard_UG<TDomain>::init_attachments() 
 { 
 SmartPtr<Grid> spGrid = m_pVMDisc->approx_space()->domain()->grid(); 
+if (spGrid->has_vertex_attachment(this->SGate)) 
+UG_THROW("Attachment necessary (SGate) for NMDA_Mg_T_converted_standard_UG channel dynamics "
+"could not be made, since it already exists."); 
+spGrid->attach_to_vertices(this->SGate); 
+this->aaSGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->SGate); 
+ 
 if (spGrid->has_vertex_attachment(this->UGate)) 
 UG_THROW("Attachment necessary (UGate) for NMDA_Mg_T_converted_standard_UG channel dynamics "
 "could not be made, since it already exists."); 
@@ -474,7 +480,7 @@ std::vector<number> NMDA_Mg_T_converted_standard_UG<TDomain>::state_values(numbe
 	 Vertex* bestVrt; 
  
 	 // Iterate only if there is one Gtting needed 
-	 if (m_log_UGate || m_log_FGate || m_log_ClGate || m_log_D1Gate || m_log_D2Gate || m_log_OGate || m_log_UMgGate || m_log_ClMgGate || m_log_D1MgGate || m_log_D2MgGate || m_log_OMgGate )
+	 if (m_log_SGate || m_log_UGate || m_log_FGate || m_log_ClGate || m_log_D1Gate || m_log_D2Gate || m_log_OGate || m_log_UMgGate || m_log_ClMgGate || m_log_D1MgGate || m_log_D2MgGate || m_log_OMgGate )
 	 { 
 	 	 // iterating over all elements 
 	 	 for (size_t si=0; si < ssGrp.size(); si++) 
@@ -500,6 +506,8 @@ std::vector<number> NMDA_Mg_T_converted_standard_UG<TDomain>::state_values(numbe
 	 	 	 	 ++iter; 
 	 	 	 } 
 	 	 } 
+	 	 if (m_log_SGate == true) 
+	 	 	 GatingAccesors.push_back(this->aaSGate[bestVrt]); 
 	 	 if (m_log_UGate == true) 
 	 	 	 GatingAccesors.push_back(this->aaUGate[bestVrt]); 
 	 	 if (m_log_FGate == true) 
@@ -527,6 +535,7 @@ std::vector<number> NMDA_Mg_T_converted_standard_UG<TDomain>::state_values(numbe
 } 
  
 //Setters for states_outputs 
+template<typename TDomain> void NMDA_Mg_T_converted_standard_UG<TDomain>::set_log_SGate(bool bLogSGate) { m_log_SGate = bLogSGate; }
 template<typename TDomain> void NMDA_Mg_T_converted_standard_UG<TDomain>::set_log_UGate(bool bLogUGate) { m_log_UGate = bLogUGate; }
 template<typename TDomain> void NMDA_Mg_T_converted_standard_UG<TDomain>::set_log_FGate(bool bLogFGate) { m_log_FGate = bLogFGate; }
 template<typename TDomain> void NMDA_Mg_T_converted_standard_UG<TDomain>::set_log_ClGate(bool bLogClGate) { m_log_ClGate = bLogClGate; }
@@ -556,7 +565,6 @@ number dt = m_pVMDisc->time();
 number v = vrt_values[VMDisc<TDomain>::_v_]; 
 
  
-aaUGate[vrt] = 1; 
 }  
  
  
@@ -577,6 +585,7 @@ number celsius = m_pVMDisc->temperature_celsius();
 number v = vrt_values[VMDisc<TDomain>::_v_]; 
 
  
+double S = aaSGate[vrt]; 
 double U = aaUGate[vrt]; 
 double F = aaFGate[vrt]; 
 double Cl = aaClGate[vrt]; 
@@ -638,6 +647,7 @@ D2Mg+=(D2*rmd2b+-D2Mg*rmd2u)*dt;
  
  
  
+aaSGate[vrt] = S; 
 aaUGate[vrt] = U; 
 aaFGate[vrt] = F; 
 aaClGate[vrt] = Cl; 
@@ -667,6 +677,7 @@ m_R = m_pVMDisc->R;
 m_F = m_pVMDisc->F; 
  
  
+number S = aaSGate[ver]; 
 number U = aaUGate[ver]; 
 number F = aaFGate[ver]; 
 number Cl = aaClGate[ver]; 

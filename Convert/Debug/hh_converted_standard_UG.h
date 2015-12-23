@@ -51,10 +51,11 @@ class hh_converted_standard_UG
 /// @copydoc IChannel<TDomain>::IChannel(cont char*) 
 hh_converted_standard_UG(const char* functions, const char* subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-        gnabar ( .12 *0.1), 
-        gkbar ( .036 *0.1), 
-        gl ( .0003 *0.1), 
+        gnabar ( .12 *0.01), 
+        gkbar ( .036 *0.01), 
+        gl ( .0003 *0.01), 
         el ( -54.3 *1), 
+m_log_SGate(false), 
 m_log_mGate(false), 
 m_log_hGate(false), 
 m_log_nGate(false) {} 
@@ -64,10 +65,11 @@ UG_CATCH_THROW("Error in hh_converted_standard_UG initializer list. ");
 /// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&) 
 hh_converted_standard_UG(const std::vector<std::string>& functions, const std::vector<std::string>& subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-        gnabar ( .12 *0.1), 
-        gkbar ( .036 *0.1), 
-        gl ( .0003 *0.1), 
+        gnabar ( .12 *0.01), 
+        gkbar ( .036 *0.01), 
+        gl ( .0003 *0.01), 
         el ( -54.3 *1), 
+m_log_SGate(false), 
 m_log_mGate(false), 
 m_log_hGate(false), 
 m_log_nGate(false) {} 
@@ -95,6 +97,7 @@ void setgnabar(double val);
 void setgkbar(double val); 
 void setgl(double val); 
 void setel(double val); 
+void set_log_SGate(bool bLogSGate); 
 void set_log_mGate(bool bLogmGate); 
 void set_log_hGate(bool bLoghGate); 
 void set_log_nGate(bool bLognGate); 
@@ -104,6 +107,8 @@ protected:
 private: 
  
 virtual void specify_write_function_indices(); 
+ADouble SGate; 
+Grid::AttachmentAccessor<Vertex, ADouble> aaSGate; 
 ADouble mGate; 
 Grid::AttachmentAccessor<Vertex, ADouble> aamGate; 
 ADouble hGate; 
@@ -120,6 +125,7 @@ number hinf;
 number ninf; 
 number mtau; 
 number htau; 
+bool m_log_SGate; 
 bool m_log_mGate; 
 bool m_log_hGate; 
 bool m_log_nGate; 

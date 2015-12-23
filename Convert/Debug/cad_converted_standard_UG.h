@@ -55,6 +55,7 @@ try : IChannel<TDomain>(functions, subsets),
 	taur	( 200	*1), 
 	cainf	( 100e-6*1), 
 cai ( 0), 
+m_log_SGate(false), 
 m_log_caSGate(false) {} 
 UG_CATCH_THROW("Error in cad_converted_standard_UG initializer list. "); 
  
@@ -66,6 +67,7 @@ try : IChannel<TDomain>(functions, subsets),
 	taur	( 200	*1), 
 	cainf	( 100e-6*1), 
 cai ( 0), 
+m_log_SGate(false), 
 m_log_caSGate(false) {} 
 UG_CATCH_THROW("Error in cad_converted_standard_UG initializer list. "); 
 /// destructor 
@@ -90,6 +92,7 @@ void setdepth(double val);
 void settaur(double val); 
 void setcainf(double val); 
 void setcai(double val); 
+void set_log_SGate(bool bLogSGate); 
 void set_log_caSGate(bool bLogcaSGate); 
 
  
@@ -97,15 +100,19 @@ protected:
 private: 
  
 virtual void specify_write_function_indices(); 
+ADouble SGate; 
+Grid::AttachmentAccessor<Vertex, ADouble> aaSGate; 
 ADouble caSGate; 
 Grid::AttachmentAccessor<Vertex, ADouble> aacaSGate; 
 number 	depth	; 
 number 	taur	; 
 number 	cainf	; 
 number cai ; 
+bool m_log_SGate; 
 bool m_log_caSGate; 
 // Standard-NModl-File-Params 
 number F, R, K, celsius; 
+const double 	ca = cainf; 
 }; 
  
 } // namespace cable

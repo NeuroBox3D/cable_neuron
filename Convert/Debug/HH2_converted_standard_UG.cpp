@@ -11,6 +11,7 @@ namespace cable {
 template<typename TDomain> 
 double HH2_converted_standard_UG<TDomain>::vtrap(double x, double y) 
 { 
+double vtrap; 
 	if (fabs(x/y) < 1e-6) {
 		return  y*(1 - x/y/2); 
 	}else{
@@ -20,6 +21,7 @@ double HH2_converted_standard_UG<TDomain>::vtrap(double x, double y)
 template<typename TDomain> 
 double HH2_converted_standard_UG<TDomain>::Exp(double x) 
 { 
+double Exp; 
 	if (x < -100) {
 		return  0; 
 	}else{
@@ -97,6 +99,12 @@ template<typename TDomain>
 void HH2_converted_standard_UG<TDomain>::init_attachments() 
 { 
 SmartPtr<Grid> spGrid = m_pVMDisc->approx_space()->domain()->grid(); 
+if (spGrid->has_vertex_attachment(this->SGate)) 
+UG_THROW("Attachment necessary (SGate) for HH2_converted_standard_UG channel dynamics "
+"could not be made, since it already exists."); 
+spGrid->attach_to_vertices(this->SGate); 
+this->aaSGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->SGate); 
+ 
 if (spGrid->has_vertex_attachment(this->mGate)) 
 UG_THROW("Attachment necessary (mGate) for HH2_converted_standard_UG channel dynamics "
 "could not be made, since it already exists."); 
@@ -157,7 +165,7 @@ std::vector<number> HH2_converted_standard_UG<TDomain>::state_values(number x, n
 	 Vertex* bestVrt; 
  
 	 // Iterate only if there is one Gtting needed 
-	 if (m_log_mGate || m_log_hGate || m_log_nGate )
+	 if (m_log_SGate || m_log_mGate || m_log_hGate || m_log_nGate )
 	 { 
 	 	 // iterating over all elements 
 	 	 for (size_t si=0; si < ssGrp.size(); si++) 
@@ -183,6 +191,8 @@ std::vector<number> HH2_converted_standard_UG<TDomain>::state_values(number x, n
 	 	 	 	 ++iter; 
 	 	 	 } 
 	 	 } 
+	 	 if (m_log_SGate == true) 
+	 	 	 GatingAccesors.push_back(this->aaSGate[bestVrt]); 
 	 	 if (m_log_mGate == true) 
 	 	 	 GatingAccesors.push_back(this->aamGate[bestVrt]); 
 	 	 if (m_log_hGate == true) 
@@ -194,6 +204,7 @@ std::vector<number> HH2_converted_standard_UG<TDomain>::state_values(number x, n
 } 
  
 //Setters for states_outputs 
+template<typename TDomain> void HH2_converted_standard_UG<TDomain>::set_log_SGate(bool bLogSGate) { m_log_SGate = bLogSGate; }
 template<typename TDomain> void HH2_converted_standard_UG<TDomain>::set_log_mGate(bool bLogmGate) { m_log_mGate = bLogmGate; }
 template<typename TDomain> void HH2_converted_standard_UG<TDomain>::set_log_hGate(bool bLoghGate) { m_log_hGate = bLoghGate; }
 template<typename TDomain> void HH2_converted_standard_UG<TDomain>::set_log_nGate(bool bLognGate) { m_log_nGate = bLognGate; }
@@ -217,10 +228,6 @@ number na = vrt_values[VMDisc<TDomain>::_na_];
 number k = vrt_values[VMDisc<TDomain>::_k_]; 
 
  
-tadj =  pow(3.0 , ((celsius-36)/10)); 
-aamGate[vrt] = 0; 
-aahGate[vrt] = 0; 
-aanGate[vrt] = 0; 
 }  
  
  
@@ -243,6 +250,7 @@ number na = vrt_values[VMDisc<TDomain>::_na_];
 number k = vrt_values[VMDisc<TDomain>::_k_]; 
 
  
+double S = aaSGate[vrt]; 
 double m = aamGate[vrt]; 
 double h = aahGate[vrt]; 
 double n = aanGate[vrt]; 
@@ -254,9 +262,9 @@ double n = aanGate[vrt];
  
 v = v; 
 double 	v2 = v - vtraub ;// convert to traub convention; 
-//       a = 0.32 * (13-v2) / ( Exp((13-v2)/4) - 1)
+//--//       a = 0.32 * (13-v2) / ( Exp((13-v2)/4) - 1); 
 double 	a = 0.32 * vtrap(13-v2, 4); 
-//       b = 0.28 * (v2-40) / ( Exp((v2-40)/5) - 1)
+//--//       b = 0.28 * (v2-40) / ( Exp((v2-40)/5) - 1); 
 double 	b = 0.28 * vtrap(v2-40, 5); 
 double 	tau_m = 1 / (a + b) / tadj; 
 double 	m_inf = a / (a + b); 
@@ -264,7 +272,7 @@ double 	m_inf = a / (a + b);
 	b = 4 / ( 1 + Exp((40-v2)/5) ); 
 double 	tau_h = 1 / (a + b) / tadj; 
 double 	h_inf = a / (a + b); 
-//       a = 0.032 * (15-v2) / ( Exp((15-v2)/5) - 1)
+//--//       a = 0.032 * (15-v2) / ( Exp((15-v2)/5) - 1); 
 	a = 0.032 * vtrap(15-v2, 5); 
 	b = 0.5 * Exp((10-v2)/40); 
 double 	tau_n = 1 / (a + b) / tadj; 
@@ -275,6 +283,7 @@ double 	n_exp = 1 - Exp(-dt/tau_n);
 	m = m + m_exp * (m_inf - m); 
 	h = h + h_exp * (h_inf - h); 
 	n = n + n_exp * (n_inf - n); 
+aaSGate[vrt] = S; 
 aamGate[vrt] = m; 
 aahGate[vrt] = h; 
 aanGate[vrt] = n; 
@@ -296,6 +305,7 @@ m_R = m_pVMDisc->R;
 m_F = m_pVMDisc->F; 
  
  
+number S = aaSGate[ver]; 
 number m = aamGate[ver]; 
 number h = aahGate[ver]; 
 number n = aanGate[ver]; 

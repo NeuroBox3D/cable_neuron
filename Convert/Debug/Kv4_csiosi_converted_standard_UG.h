@@ -73,6 +73,7 @@ try : IChannel<TDomain>(functions, subsets),
 		kio ( 0.0436		*1), 
 		kii2 ( 0.1475		*1), 
 		ki2i ( 0.0333		*1), 
+m_log_SGate(false), 
 m_log_C0Gate(false), 
 m_log_C1Gate(false), 
 m_log_C2Gate(false), 
@@ -116,6 +117,7 @@ try : IChannel<TDomain>(functions, subsets),
 		kio ( 0.0436		*1), 
 		kii2 ( 0.1475		*1), 
 		ki2i ( 0.0333		*1), 
+m_log_SGate(false), 
 m_log_C0Gate(false), 
 m_log_C1Gate(false), 
 m_log_C2Gate(false), 
@@ -190,6 +192,7 @@ void setkoi(double val);
 void setkio(double val); 
 void setkii2(double val); 
 void setki2i(double val); 
+void set_log_SGate(bool bLogSGate); 
 void set_log_C0Gate(bool bLogC0Gate); 
 void set_log_C1Gate(bool bLogC1Gate); 
 void set_log_C2Gate(bool bLogC2Gate); 
@@ -211,6 +214,8 @@ protected:
 private: 
  
 virtual void specify_write_function_indices(); 
+ADouble SGate; 
+Grid::AttachmentAccessor<Vertex, ADouble> aaSGate; 
 ADouble C0Gate; 
 Grid::AttachmentAccessor<Vertex, ADouble> aaC0Gate; 
 ADouble C1Gate; 
@@ -263,6 +268,7 @@ number 		koi ;
 number 		kio ; 
 number 		kii2 ; 
 number 		ki2i ; 
+bool m_log_SGate; 
 bool m_log_C0Gate; 
 bool m_log_C1Gate; 
 bool m_log_C2Gate; 

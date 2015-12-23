@@ -873,6 +873,7 @@ std::vector<string> Converter::equali(std::vector<pair<int, int> > Pairs, std::v
 
 		for (size_t j=0; j<ListIonRead.size(); j++)
 		{
+			std::cout << "number of lists: " << j << std::endl;
 			if (version[j]==false)
 			{
 			std::cout << "read ion: " + ListIonRead[j] + "List ion: " + ListIon[j] << std::endl;
@@ -992,6 +993,9 @@ std::vector<string> Converter::get_local_proc_block(std::vector<pair<int, int> >
 				{
 				if (PROCEDURE[j].find("LOCAL")!=PROCEDURE[j].npos)
 				{
+					if (PROCEDURE[j].find("{")<PROCEDURE[j].find("LOCAL"))
+						PROCEDURE[j].replace(0, PROCEDURE[j].find("{")+1, "");
+
 					PROCEDURE[j].replace(PROCEDURE[j].find("LOCAL"), 5, "");
 					locals.push_back(PROCEDURE[j]);
 				}
@@ -1355,11 +1359,18 @@ std::vector<string> Converter::Openfile(string filename)
 	{
 		////std::cout << "while" << std::endl;
 	    getline(ModFile, zeile);        // Lese eine Zeile
-	    /*if (zeile.find(":")!=zeile.npos)
+	    if (zeile.find(":")!=zeile.npos)
 	    {
-	    	//std::cout << "replace happens" << std::endl;
-	    	zeile.replace(zeile.find(":"), 1,";//");
-	    }// replace : with // as comment*/
+	    	if (Remove_all(zeile).find(":")<=3)
+	    		zeile.replace(zeile.find(":"), 1,"//--//");
+	    	else
+	    		zeile.replace(zeile.find(":"), 1,";//");
+	    }// replace : with // as comment
+	    //replace FARADAY with F
+	    if (zeile.find("FARADAY")!=zeile.npos)
+	    	zeile.replace(zeile.find("FARADAY"), 7, "F");
+
+
 	    zeilen.push_back(zeile);    // Zeige sie auf dem Bildschirm
 	}
 	ModFile.close();    //}
@@ -2139,6 +2150,8 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  size_t funcS, funcE;
 	  bool second_time;
 
+	  std::vector<string> if_vars1;
+
 	  vector<string> func_hfile;
 
 	  string func, funchead;
@@ -2151,7 +2164,31 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 			  {
 				  func = build_func_head(FUNCTION[j]);
 				  funchead = func_head(FUNCTION[j]);
+
+				  size_t brack_open, brack_close;
+				  brack_open = 0;
+				  brack_close = 0;
+
+				  // testing if brackets in func are set correct if not correcting
+				  for (size_t k=0; k<func.size(); k++)
+				  {
+					  if (func[k]=='(')
+						  brack_open += 1;
+
+					  if (func[k]==')')
+						  brack_close += 1;
+
+				  }
+
+				  // if there is a closed bracket to much
+				  if (brack_close > brack_open)
+				  {
+					  size_t close_pos = func.find_last_of(")");
+					  func.replace(close_pos, 1, "");
+				  }
+
 				  func_hfile.push_back(func);
+
 
 				  // writing needed templates in function!
 				  string left = func.substr(0, func.find("::"));
@@ -2176,8 +2213,8 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 					  funcS = FUNCTION[i].find(funchead);
 					  if (funcS!=FUNCTION[i].npos)
 					  {
-						  funcE = FUNCTION[i].find(" ", funcS);
-						  FUNCTION[i].replace(funcS, funcE-funcS + 2, "return ");
+						  funcE = FUNCTION[i].find("=", funcS);
+						  FUNCTION[i].replace(funcS, funcE-funcS + 1, "return ");
 					  }
 
 					  if (FUNCTION[i].find("FUNCTION")==FUNCTION[i].npos)
@@ -2188,17 +2225,87 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 						  }
 						  if (second_time==false)
 						  {
+
+							  if (FUNCTION[i].find("if")!=FUNCTION[i].npos)
+							  {
+								  std::cout << "first if!!" << std::endl;
+								  if (i+1<=FUNCTION.size())
+								  {
+									  if (FUNCTION[i+1].find("=")!=FUNCTION[i+1].npos)
+									  {
+										  std::cout << "push_back!! " << std::endl;
+										  if_vars1.push_back(Remove_all(FUNCTION[i+1].substr(0, FUNCTION[i+1].find("="))));
+									  }
+								  }
+							  }
+
+
 							  if ((FUNCTION[i].find(without[0])==FUNCTION[i].npos) && (FUNCTION[i].find(without[1])==FUNCTION[i].npos)
 								 && (string(FUNCTION[i] + "; \n").find("};")==string(FUNCTION[i] + "; \n").npos) && (FUNCTION[i]!="")
 								 && Remove_all(FUNCTION[i])!="}")
 							  {
-								  mycppfile << FUNCTION[i] + "; \n";
-							 	  ////std::cout << FUNCTION[i];
+
+								  	  bool var_in_ii;
+									  // normal vars handling
+									  if (FUNCTION[i].find(" = ")!=FUNCTION[i].npos)
+									  {
+										  if (if_vars1.size()>0)
+										  {
+											  var_in_ii=false;
+											  for (size_t ii=0; ii<if_vars1.size(); ii++)
+											  {
+												  if (FUNCTION[i].find(if_vars1[ii])!=FUNCTION[i].npos)
+													  var_in_ii=true;
+											  }
+										  }
+										  if (var_in_ii==true)
+										  {
+											  std::cout << FUNCTION[i] << std::endl;
+											  mycppfile << FUNCTION[i] + "; \n";
+										  }
+										  else
+										  {
+											  std::cout << "double " + FUNCTION[i] << std::endl;
+											  mycppfile << "double " + FUNCTION[i] + "; \n";
+										  }
+									  }
+									  else
+									  {
+										  std::cout << FUNCTION[i] << std::endl;
+									////std::cout << FUNCTION[i];
+										  mycppfile << FUNCTION[i] + "; \n";
+									  }
+								  //}
 							  }
 							  else
 							  {
-							 	  ////std::cout << FUNCTION[i];
-							 	  mycppfile << FUNCTION[i] + "\n";
+								  if ((if_vars1.size()>0) and (FUNCTION[i].find(without[0])!=FUNCTION[i].npos))
+								  {
+									  //bool adden = false;
+									  for (size_t ii=0; ii<if_vars1.size(); ii++)
+									  {
+										  std::cout << "laufen ii: " << ii << std::endl;
+										  if (i+1<=FUNCTION.size())
+										  {
+											  std::cout << FUNCTION[i] << " - " << FUNCTION[i+1] << std::endl;
+											  std::cout << if_vars1[ii] << " - " << Remove_all(FUNCTION[i+1].substr(0, FUNCTION[i+1].find("="))) << std::endl;
+											  if (if_vars1[ii]==Remove_all(FUNCTION[i+1].substr(0, FUNCTION[i+1].find("="))))
+											  {
+												  std::cout << "mano " << std::endl;
+												  mycppfile << "double " << if_vars1[ii] << "; \n";
+											  }
+										  }
+									  }
+									  std::cout << FUNCTION[i] << std::endl;
+									  ////std::cout << FUNCTION[i];
+									  mycppfile << FUNCTION[i] + "\n";
+								  }
+								  else
+								  {
+									  std::cout << FUNCTION[i] << std::endl;
+									  ////std::cout << FUNCTION[i];
+									  mycppfile << FUNCTION[i] + "\n";
+								  }
 							  }
 
 						  }
@@ -2208,10 +2315,8 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 			  }
 		  }
-
 	  	  mycppfile << "\n \n \n";
 	  }
-
 	  // Proceduren wie Funktionen
 	  //std::cout << "All Functions added" << std::endl;
 
@@ -2466,9 +2571,9 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 				  // no clips but comment add the end
 				  if (endUnit==PARAMETER[i].npos && end==PARAMETER[i].npos)
 				  {
-					  if (PARAMETER[i].find(":")!=PARAMETER[i].npos)
+					  if (PARAMETER[i].find(";//")!=PARAMETER[i].npos)
 					  {
-						  PARAMETER[i] = PARAMETER[i].substr(0, PARAMETER[i].find(":")-1);
+						  PARAMETER[i] = PARAMETER[i].substr(0, PARAMETER[i].find(";//")-1);
 					  }
 					  Unit = 1;
 				  }
@@ -2581,6 +2686,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 			  ListIons.push_back(IonS);
 			  //writes var for outer concentrations
 			  //myhfile << "number " + IonS + "_out; \n";
+			  //std::cout << "Ionsout: " << IonS + "_out" << std::endl;
 			  HFile_added_Vars.push_back(IonS + "_out");
 		  }
 
@@ -2601,6 +2707,19 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
   	  std::vector<string> STATE = GetBlock(Pairs, Zeilen, "STATE");
+
+  	  std::cout << "before new state" << std::endl;
+
+  	  if (STATE.size()>0)
+  	  {
+  		  for (size_t i=0; i<STATE.size(); i++)
+  		  {
+  			  if (STATE[i].find("//")!=STATE[i].npos)
+  			  {
+  				  STATE[i] = STATE[i].substr(0, STATE[i].find("//")-1);
+  			  }
+  		  }
+  	  }
 
 	  // needed var for Gating params having same value of used Ion
 	  std::vector<string> SGating;
@@ -2636,63 +2755,71 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
   				  }
   			  }
   			  std::cout << "number vars: " << varSt <<std::endl;
-  			  for (size_t j=0; j<varSt; j++)
+  			  if (varSt>0)
   			  {
-  				  ////std::cout << "in state " << std::endl;
-  				  komm_beg = STATE[i].find(":");
-  				  stateend = STATE[i].find(" ", state);
-  				  stateend2 = STATE[i].find("}", state);
-  				  if (clip==true)
-  					  stateend = STATE[i].find("(", state);
-  				  clip = false;
-  				  ////std::cout << "ab: " << state << " anzahl: " << stateend-state << std::endl;
-  				  if (stateend==komm_beg+1)
+  				  for (size_t j=0; j<varSt; j++)
   				  {
-  					  stateend -= 1;
-  				  }
-  				  if ((stateend<=komm_beg) && (state<komm_beg))
-  				  {
-  					  if (STATE[i].find("}")!=STATE[i].npos)
-  		  			  {
-
-  						  if (stateend-state!=STATE[i].npos-state)
+  					  ////std::cout << "in state " << std::endl;
+  					  komm_beg = STATE[i].find(":");
+  					  stateend = STATE[i].find(" ", state);
+  					  stateend2 = STATE[i].find("}", state);
+  					  if (clip==true)
+  						  stateend = STATE[i].find("(", state);
+  					  clip = false;
+  					  ////std::cout << "ab: " << state << " anzahl: " << stateend-state << std::endl;
+  					  if (stateend==komm_beg+1)
+  					  {
+  						  stateend -= 1;
+  					  }
+  					  if ((stateend<=komm_beg) && (state<komm_beg))
+  					  {
+  						  if (STATE[i].find("}")!=STATE[i].npos)
   						  {
-  							  addState = Remove_all(STATE[i].substr(state, stateend-state));
+
+  							  if (stateend-state!=STATE[i].npos-state)
+  							  {
+  								  addState = Remove_all(STATE[i].substr(state, stateend-state));
+  							  }
+  							  else
+  							  {
+  								  ////std::cout << "not added!!" << std::endl;
+  								  addState = "";
+  							  }
   						  }
   						  else
   						  {
-  							  ////std::cout << "not added!!" << std::endl;
-  							  addState = "";
-  						  }
-  		  			  }
-  					  else
-  		  			  {
   						  ////std::cout << "vergleich: " << stateend << " - "<<komm_beg << std::endl;
-  						  addState = Remove_all(STATE[i].substr(state, stateend-state));
-  		  			  }
+  							  addState = Remove_all(STATE[i].substr(state, stateend-state));
+  						  }
 
-  					  //writting in hfile
-  		  			  if ((addState!="}") && (addState!=" ") && (addState!="") && (addState!="\n") &&(addState!="\n}") && (addState!="}\n")
-  		  			  && (addState.find("}")==addState.npos) && (addState.find("{")==addState.npos))
-  		  			  {
-  		  				// If State is already in Ion List we need another name for State
-  		  				// doing this by adding "S"
-  		  				  for (size_t k=0; k<ListIons.size(); k++)
-  		  				  {
-  		  					  if (Remove_all(addState)==Remove_all(ListIons[k]))
-  		  					  {
-  		  						  addState = addState+"S";
-  		  						  SGating.push_back(addState);
-  		  					  }
-  		  				  }
-  		  				  State_vars.push_back(addState);
-  		  				  std::cout << "State: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  " << addState << std::endl;
-  		  			  }
-  		  		  }
-  				  state = stateend+1;
-  		  		  //////////////////
+  						  //writting in hfile
+  						  if ((addState!="}") && (addState!=" ") && (addState!="") && (addState!="\n") &&(addState!="\n}") && (addState!="}\n")
+  								  && (addState.find("}")==addState.npos) && (addState.find("{")==addState.npos))
+  						  {
+  							  // If State is already in Ion List we need another name for State
+  							  // doing this by adding "S"
+  							  for (size_t k=0; k<ListIons.size(); k++)
+  							  {
+  								  if (Remove_all(addState)==Remove_all(ListIons[k]))
+  								  {
+  									  addState = addState+"S";
+  									  SGating.push_back(addState);
+  								  }
+  							  }
+  							  State_vars.push_back(addState);
+  							  std::cout << "State: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  " << addState << std::endl;
+  						  }
+  					  }
+  					  state = stateend+1;
+  					  //////////////////
+  				  }
+  			  }
+  			  else
+  			  {
+  				  stateend2=1;
   			  }
   			  varSt = 0;
+  			  std::cout << "state really 0" << std::endl;
   			  //adding last state if there is one
   			  if (STATE[i][stateend2-1]!=' ' && stateend2!=STATE[i].npos)
   			  {
@@ -2732,16 +2859,19 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  // Preparing for all Parameters getters and setters
 	  for (size_t i = 0; i<Parameter.size(); i++)
 	  {
-		  std::cout << Parameter[i] << std::endl;
-		  Getters.push_back(buildgetter(Remove_all(Parameter[i]), filename));
-		  Setters.push_back(buildsetter(Remove_all(Parameter[i]), filename));
+		  if (Parameter[i].find("//--//")==Parameter[i].npos)
+		  {
+			  std::cout << Parameter[i] << std::endl;
+			  Getters.push_back(buildgetter(Remove_all(Parameter[i]), filename));
+			  Setters.push_back(buildsetter(Remove_all(Parameter[i]), filename));
+		  }
 	  }
 
 
 
 	  	//Setters
 
-	  //std::cout << "All Parameters set" << std::endl;
+	  std::cout << "All Parameters set" << std::endl;
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 // Writing all interface parts
@@ -2769,7 +2899,8 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 			  else
 				  add = add + ", \n";
 		  }
-		  myhfile << add;
+		  if (add.find("//--//")==add.npos)
+			  myhfile << add;
 	  }
 	  for (size_t i=0; i<State_vars.size(); i++)
 	  {
@@ -2799,7 +2930,8 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		else
 			add1 = add1 + ", \n";
 	  	}
-	  	myhfile << add1;
+	  	if (add1.find("//--//")==add1.npos)
+	  		myhfile << add1;
 	  }
 	  for (size_t i=0; i<State_vars.size(); i++)
 	  {
@@ -2814,7 +2946,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  myhfile << "virtual ~"+ filename + "() {}; \n";
 
 
-
+	  std::cout << "bla" << std::endl;
 
 	  string name;
 
@@ -2848,19 +2980,23 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 
 
-
+	  std::cout << "before getters!" << std::endl;
 
 
 	  // Writting all parameter getter and setters
-	  for (size_t i = 0; i<Parameter.size(); i++)
+	  for (size_t i = 0; i<Getters.size(); i++)
 	  {
 		  myhfile << Getters[i][0] + " \n";
 	  }
 
-	  for (size_t i = 0; i<Parameter.size(); i++)
+	  std::cout << "getters are builded!" << std::endl;
+
+	  for (size_t i = 0; i<Setters.size(); i++)
 	  {
 		  myhfile << Setters[i][0] + " \n";
 	  }
+
+	  std::cout << "setters are builded!" << std::endl;
 
 	  // writing function for m_log_gates
 	  for (size_t i=0; i<State_vars.size(); i++)
@@ -2878,7 +3014,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 
 
-
+	  std::cout << "getters and setters are builded!" << std::endl;
 
 
 
@@ -2892,7 +3028,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 // Adding getters and setters in cpp file
 //////////////////////////////////////////////////////////////////////////////
 
-	  for (size_t i = 0; i<Parameter.size(); i++)
+	  for (size_t i = 0; i<Getters.size(); i++)
 	  {
 	  // starting by one cause 0 is for h-file
 		  mycppfile << "template<typename TDomain> \n";
@@ -2904,7 +3040,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  	  }
 	  }
 
-	  for (size_t i = 0; i<Parameter.size(); i++)
+	  for (size_t i = 0; i<Setters.size(); i++)
 	  {
 	  // starting by one cause 0 is for h-file
 		  mycppfile << "template<typename TDomain> \n";
@@ -3254,6 +3390,8 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  HFile_added_Vars_Init.push_back("v");
 
 
+	  std::vector<int> stats_begins;
+
 	  std::cout << "before initial size: " << INITIAL.size() << std::endl;
 	  if (INITIAL.size() > 0)
 	  {
@@ -3271,7 +3409,9 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 				  begin = count_beg(INITIAL[i]);
 				  if (Proc_funcs[j][0] == INITIAL[i].substr(begin, INITIAL[i].find("(")-begin))
 				  {
+					  // sets beginning of different procedures because we need the lines beetween procedures
 					  Stats_beg = i;
+					  stats_begins.push_back(Stats_beg);
 					  // searching for all vars in function initial i
 					  string init_vars = Remove_all(INITIAL[i].substr(INITIAL[i].find("(")+1));
 					  init_vars = init_vars.replace(init_vars.find(")"), 1, "");
@@ -3417,8 +3557,16 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 										{
 											if (Check_if(Proc_vals[k])==false)
 											{
-												mycppfile << "double " + Proc_vals[k] + "; \n";
-												HFile_added_Vars_Init.push_back(Proc_vals[k].substr(0, Proc_vals[k].find("=")));
+												// if it is a line comment
+												if (Proc_vals[k].find("//--//")==Proc_vals[k].npos)
+												{
+													mycppfile << "double " + Proc_vals[k] + "; \n";
+													HFile_added_Vars_Init.push_back(Proc_vals[k].substr(0, Proc_vals[k].find("=")));
+												}
+												else
+												{	// if it is a comment
+													mycppfile << Proc_vals[k] + "\n";
+												}
 											}
 										}
 
@@ -3430,104 +3578,126 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 					  }
 
 
+
 				  }
 			  }
 		  }		  // write locals vals as double
-	  }
 
-	  if (INITIAL.size() > 0)
-	  {
-
-		  //std::cout<< "writing end" << std::endl;
-		  for (size_t i=Stats_beg; i<INITIAL.size(); i++)
+		  for (size_t i=0; i<stats_begins.size(); i++)
 		  {
-			  // writings at the end
-			  if (i >= Stats_beg)
+			  std::cout << "important stats: " << stats_begins[i] << std::endl;
+		  }
+
+
+		  size_t int_end;
+		  size_t int_begin;
+
+		  for (size_t m=0; m<stats_begins.size(); m++)
+		  {
+			  if (m+1<stats_begins.size())
 			  {
-				  size_t gleich, vorgleich;
-				  if ((INITIAL[i]!="") && (INITIAL[i]!="}"))
+				  int_begin = stats_begins[m];
+				  int_end = stats_begins[m+1];
+			  } else
+			  {
+				  int_begin = stats_begins[m];
+				  int_end = INITIAL.size();
+			  }
+
+			  std::cout << "int being: " << int_begin << "int_end: " << int_end << std::endl;
+			  //std::cout<< "writing end" << std::endl;
+			  for (size_t i=int_begin; i<int_end; i++)
+			  {
+				  std::cout << "i: " << i << std::endl;
+				  // writings at the end
+				  if (i >= int_begin)
 				  {
-					  //std::cout << "gleich Search" << std::endl;
-					  vorgleich = pos_letter(INITIAL[i]);
-					  gleich = INITIAL[i].find("=");
-
-					  if (INITIAL[i].find("=")!=INITIAL[i].npos)
+					  size_t gleich, vorgleich;
+					  if ((INITIAL[i]!="") && (INITIAL[i]!="}"))
 					  {
-						  ////std::cout << "ab: " << vorgleich << "bis: " << gleich << std::endl;
-						  // needed if they are in gatting list use as gatting else write without gatting
-						  bool written = false;
-						  for (size_t j=0; j< State_vars.size(); j++)
+						  //std::cout << "gleich Search" << std::endl;
+						  vorgleich = pos_letter(INITIAL[i]);
+						  gleich = INITIAL[i].find("=");
+
+						  if (INITIAL[i].find("=")!=INITIAL[i].npos)
 						  {
-							  if (Remove_all(INITIAL[i].substr(vorgleich , gleich-vorgleich))==Remove_all(State_vars[j]))
+							  ////std::cout << "ab: " << vorgleich << "bis: " << gleich << std::endl;
+							  // needed if they are in gatting list use as gatting else write without gatting
+							  bool written = false;
+							  for (size_t j=0; j< State_vars.size(); j++)
 							  {
-								  mycppfile << "aa" + Remove_all(INITIAL[i].substr(vorgleich, gleich-vorgleich)) + "Gate[vrt] " + INITIAL[i].substr(gleich) + "; \n";
-								  written = true;
-							  }
-						  }
-						  {
-							  if (written==false)
-							  {
-								  if (INITIAL[i].find("=")!=INITIAL[i].npos)
+								  if (Remove_all(INITIAL[i].substr(vorgleich , gleich-vorgleich))==Remove_all(State_vars[j]))
 								  {
-
-									  string left = INITIAL[i].substr(0, INITIAL[i].find("="));
-									  //std::cout << left << std::endl;
-									  string right = INITIAL[i].substr(INITIAL[i].find("=")+1, INITIAL[i].npos-(INITIAL[i].find("=")+1));
-									  //std::cout << ProofSGatingInit(left, SGating) + " = " + right << std::endl;
-									  // checks if var is global or needs check
-									  bool with_double = true;
-									  bool same_as_left = false;
-
-									  string ProofedSGating_Left = ProofSGatingInit(Remove_all(left), SGating);
-
-									  std::cout << "left vs ProofedSGaating_left: " + left + " vs " + ProofedSGating_Left << std::endl;
-									  if (Remove_all(left) == Remove_all(ProofedSGating_Left))
+									  mycppfile << "aa" + Remove_all(INITIAL[i].substr(vorgleich, gleich-vorgleich)) + "Gate[vrt] " + INITIAL[i].substr(gleich) + "; \n";
+									  written = true;
+								  }
+							  }
+							  {
+								  if (written==false)
+								  {
+									  if (INITIAL[i].find("=")!=INITIAL[i].npos)
 									  {
-										  same_as_left = true;
-									  }
 
-									  for (size_t k=0; k<HFile_added_Vars_Init.size(); k++)
-									  {
-										  std::cout << "Vergleich: " + Remove_all(ProofedSGating_Left) + " vs " + Remove_all(HFile_added_Vars_Init[k]) << std::endl;
-										  if (Remove_all(ProofedSGating_Left) == Remove_all(HFile_added_Vars_Init[k]))
+										  string left = INITIAL[i].substr(0, INITIAL[i].find("="));
+										  //std::cout << left << std::endl;
+										  string right = INITIAL[i].substr(INITIAL[i].find("=")+1, INITIAL[i].npos-(INITIAL[i].find("=")+1));
+										  //std::cout << ProofSGatingInit(left, SGating) + " = " + right << std::endl;
+										  // checks if var is global or needs check
+										  bool with_double = true;
+										  bool same_as_left = false;
+
+										  string ProofedSGating_Left = ProofSGatingInit(Remove_all(left), SGating);
+
+										  std::cout << "left vs ProofedSGaating_left: " + left + " vs " + ProofedSGating_Left << std::endl;
+										  if (Remove_all(left) == Remove_all(ProofedSGating_Left))
 										  {
-											  with_double = false;
+											  same_as_left = true;
 										  }
-										  // if there is a if in
-										  if (Check_if(ProofedSGating_Left)==true)
-											  with_double = false;
+
+										  for (size_t k=0; k<HFile_added_Vars_Init.size(); k++)
+										  {
+											  std::cout << "Vergleich: " + Remove_all(ProofedSGating_Left) + " vs " + Remove_all(HFile_added_Vars_Init[k]) << std::endl;
+											  if (Remove_all(ProofedSGating_Left) == Remove_all(HFile_added_Vars_Init[k]))
+											  {
+												  with_double = false;
+											  }
+											  // if there is a if in
+											  if (Check_if(ProofedSGating_Left)==true)
+												  with_double = false;
+
+
+										  }
+
+										  if (with_double == true && same_as_left == true)
+										  {
+											  mycppfile << "double " + ProofedSGating_Left + " = " + right + "; \n";
+											  HFile_added_Vars_Init.push_back(ProofedSGating_Left);
+										  }
+
+										  if (with_double == false || same_as_left == false)
+										  {
+											  mycppfile <<  ProofedSGating_Left + " = " + right + "; \n";
+										  }
+
 
 
 									  }
 
-									  if (with_double == true && same_as_left == true)
+									  else
 									  {
-										  mycppfile << "double " + ProofedSGating_Left + " = " + right + "; \n";
-										  HFile_added_Vars_Init.push_back(ProofedSGating_Left);
+										  //std::cout << "inittest: " <<INITIAL[i] << std::endl;
+										  mycppfile << INITIAL[i] + "; \n";
 									  }
-
-									  if (with_double == false || same_as_left == false)
-									  {
-										  mycppfile <<  ProofedSGating_Left + " = " + right + "; \n";
-									  }
-
-
-
-								  }
-
-								  else
-								  {
-									  //std::cout << "inittest: " <<INITIAL[i] << std::endl;
-									  mycppfile << INITIAL[i] + "; \n";
 								  }
 							  }
-						  }
-					  } //else
-						  //vorgleich = beg_count(INITIAL[i]);
+						  } //else
+							  //vorgleich = beg_count(INITIAL[i]);
+					  }
 				  }
 			  }
 		  }
 	  }
+
 
 	  std::cout << "all init worked" << std::endl;
 	  mycppfile << "}  \n \n \n \n";
@@ -3632,6 +3802,13 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 
 	  std::cout << "Working on Derivative-Block starts" << std::endl;
+
+
+
+
+	  std::vector<int> Deriv_begins;
+
+
 	  if (DERIVATIVE.size() > 0)
 	  	  {
 	  		  begin = count_beg(DERIVATIVE[1]);
@@ -3647,6 +3824,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  				  std::cout << "Vergleich: " << DERIVATIVE[i].substr(begin, DERIVATIVE[i].find("(")-begin)<< " - " << Proc_funcs[j][0] << std::endl;
 	  				  if (Proc_funcs[j][0] == Remove_all(DERIVATIVE[i].substr(begin, DERIVATIVE[i].find("(")-begin)))
 	  				  {
+	  					 Deriv_begins.push_back(i);
 	  					 Stats_beg = i;
 	  					 string init_vars = Remove_all(DERIVATIVE[i].substr(DERIVATIVE[i].find("(")+1));
 	  					 init_vars = init_vars.replace(init_vars.find(")"), 1, "");
@@ -3702,7 +3880,10 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 						  		  {
 						  			  // vielleicht 2
 						  			  //std::cout << "Treffer2: "+ Proc_funcs[j][k] + " = aa"+ GatingName + "Gate[vrt];" << std::endl;
-						  			  mycppfile << "double " + Proc_funcs[j][k] + " = " + GatingName + "; \n \n";
+						  			  if (Proc_vals[k].find("//--//")==Proc_vals[k].npos)
+						  				  mycppfile << "double " + Proc_funcs[j][k] + " = " + GatingName + "; \n \n";
+						  			  else
+						  				  mycppfile << Proc_funcs[j][k] + " = " + GatingName + "; \n \n";
 						  			  ////std::cout << "else for: " << std::endl;
 						  		  }
 	  					  	  }
@@ -3786,8 +3967,19 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  									//std::cout<< Proc_vals[k] << std::endl;
 	  									if (Remove_all(Proc_vals[k])!="")
 	  									{
-	  										std::cout << "double " + Proc_vals[k] << std::endl;
-	  										mycppfile << "double " + Proc_vals[k] + "; \n";
+	  										//std::cout << "double " + Proc_vals[k] << std::endl;
+	  										//checking if it is a comment
+	  										if (Proc_vals[k].find("//--//")==Proc_vals[k].npos)
+	  										{
+	  											//std::cout << "write deriv: " << "double " << Proc_vals[k] << std::endl;
+	  											mycppfile << "double " + Proc_vals[k] + "; \n";
+	  										}
+	  										else
+	  										{
+	  											//std::cout << "write deriv: " << Proc_vals[k] << std::endl;
+	  											mycppfile << Proc_vals[k] + "; \n";
+	  										}
+
 	  										if (Proc_vals[k].find("=")!=Proc_vals[k].npos)
 	  											HFile_added_Vars_Deriv.push_back(Remove_all(Proc_vals[k].substr(0, Proc_vals[k].find("=")-1)));
 	  										else
@@ -3805,130 +3997,162 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  		  }		  // write locals vals as double
 	  	  }
 
-	  	  //std::cout<< "writing end" << std::endl;
-	  	  for (size_t i=Stats_beg; i<DERIVATIVE.size(); i++)
-	  	  {
-	  		  // writings at the end
-	  		  if (i >= Stats_beg)
-	  		  {
-				  // Writting derivfuncs
-				  //std::cout << "before deriv" << std::endl;
-				  if ((i> Stats_beg) && (i < DERIVATIVE.size()-1))
+		  size_t deriv_end;
+		  size_t deriv_begin;
+
+		  for (size_t m=0; m<Deriv_begins.size(); m++)
+		  {
+			  if (m+1<Deriv_begins.size())
+			  {
+				  deriv_begin = Deriv_begins[m];
+				  deriv_end = Deriv_begins[m+1];
+			  } else
+			  {
+				  deriv_begin = Deriv_begins[m];
+				  deriv_end = DERIVATIVE.size();
+			  }
+
+			  std::cout << "deriv begin: " << deriv_begin << "deriv_end: " << deriv_end << std::endl;
+
+			  //std::cout<< "writing end" << std::endl;
+			  for (size_t i=deriv_begin; i<deriv_end; i++)
+			  {
+				  // writings at the end
+				  if (i >= Deriv_begins[m])
 				  {
-					if (DERIVATIVE[i]!="")
-					{
-						if ((DERIVATIVE[i].find("\'")!=DERIVATIVE[i].npos) && (DERIVATIVE[i].find("=")!=DERIVATIVE[i].npos))
+					  // Writting derivfuncs
+					  //std::cout << "before deriv" << std::endl;
+					  if ((i> Deriv_begins[m]) && (i < DERIVATIVE.size()-1))
+					  {
+						if (DERIVATIVE[i]!="")
 						{
-							DERIVATIVE[i].replace(DERIVATIVE[i].find("\'"), 1, "");
-							DERIVATIVE[i].replace(DERIVATIVE[i].find("="), 1, "+=");
-							DERIVATIVE[i] = DERIVATIVE[i] + "*dt";
-							DERIVATIVE[i] = ProofSGatingGating(DERIVATIVE[i], SGating);
-							// if that var is a Gating and Ion at same time
-						}
-
-						bool used = false;
-						//std::cout << "before added Vars" << std::endl;
-						for (size_t j = 0; j<HFile_added_Vars_Deriv.size(); j++)
-						{
-							if (DERIVATIVE[i].find("=")!=DERIVATIVE[i].npos)
+							if ((DERIVATIVE[i].find("\'")!=DERIVATIVE[i].npos) && (DERIVATIVE[i].find("=")!=DERIVATIVE[i].npos))
 							{
-								//std::cout << "in derivv find =" << std::endl;
-								if (Remove_all(DERIVATIVE[i].substr(0, DERIVATIVE[i].find("=")-1))==Remove_all(HFile_added_Vars_Deriv[j]))
-									used = true;
+								DERIVATIVE[i].replace(DERIVATIVE[i].find("\'"), 1, "");
+								DERIVATIVE[i].replace(DERIVATIVE[i].find("="), 1, "+=");
+								DERIVATIVE[i] = DERIVATIVE[i] + "*dt";
+								DERIVATIVE[i] = ProofSGatingGating(DERIVATIVE[i], SGating);
+								// if that var is a Gating and Ion at same time
 							}
-						}
-						if (DERIVATIVE[i].find("if")!=DERIVATIVE[i].npos)
-							used = true;
 
-
-						if (used==false)
-						{
-							//std::cout << "in used false" << std::endl;
-							if (Remove_all(DERIVATIVE[i])!="")
+							bool used = false;
+							//std::cout << "before added Vars" << std::endl;
+							for (size_t j = 0; j<HFile_added_Vars_Deriv.size(); j++)
 							{
-								//std::cout << "double "+ DERIVATIVE[i] << std::endl;
-								mycppfile << "double " + DERIVATIVE[i] + "; \n";
 								if (DERIVATIVE[i].find("=")!=DERIVATIVE[i].npos)
-									HFile_added_Vars_Deriv.push_back(Remove_all(DERIVATIVE[i].substr(0, DERIVATIVE[i].find("=")-1)));
-								else
-									HFile_added_Vars_Deriv.push_back(Remove_all(DERIVATIVE[i]));
+								{
+									//std::cout << "in derivv find =" << std::endl;
+									if (Remove_all(DERIVATIVE[i].substr(0, DERIVATIVE[i].find("=")-1))==Remove_all(HFile_added_Vars_Deriv[j]))
+										used = true;
+								}
 							}
-						}
-						else
-						{
-							size_t oje;
-							// working with data out of if_handler
-							std::vector<string> if_file = if_handling(i, DERIVATIVE);
-							if (if_file.size()>1)
+							if (DERIVATIVE[i].find("if")!=DERIVATIVE[i].npos)
+								used = true;
+
+
+							if (used==false)
 							{
-								// only if really some if statements are used
-								oje = if_file.size()-1;
-								istringstream f(if_file[if_file.size()-1]);
-								f >> i;
+								//std::cout << "in used false" << std::endl;
+								if (Remove_all(DERIVATIVE[i])!="")
+								{
+									//std::cout << "double "+ DERIVATIVE[i] << std::endl;
+									if (DERIVATIVE[i].find("//--//")==DERIVATIVE[i].npos)
+										mycppfile << "double " + DERIVATIVE[i] + "; \n";
+									else
+										mycppfile << DERIVATIVE[i] + " \n";
+
+									std::cout << "print first: " << DERIVATIVE[i] << std::endl;
+
+									if (DERIVATIVE[i].find("=")!=DERIVATIVE[i].npos)
+										HFile_added_Vars_Deriv.push_back(Remove_all(DERIVATIVE[i].substr(0, DERIVATIVE[i].find("=")-1)));
+									else
+										HFile_added_Vars_Deriv.push_back(Remove_all(DERIVATIVE[i]));
+								}
 							}
 							else
 							{
-								// else like every time with known vars
-								oje = 0;
-								mycppfile << DERIVATIVE[i] + "; \n";
-							}
-
-							//writting of files out of if TODO add checking vars used if not declare before
-							//if -loop for later use
-							std::vector<string> setted_in_if;
-							bool same = false;
-							for (size_t m = 0; m<oje; m++)
-							{
-								if ((if_file[m].find("=")!=if_file[m].npos) && (if_file[m].find("if")==if_file[m].npos)
-									  && (if_file[m].find("else")==if_file[m].npos))
+								size_t oje;
+								// working with data out of if_handler
+								std::vector<string> if_file = if_handling(i, DERIVATIVE);
+								if (if_file.size()>1)
 								{
-									for (size_t n=0; n<HFile_added_Vars_Deriv.size(); n++)
-									{
-										std::cout << "Vergleich: " << Remove_all(if_file[m].substr(0, if_file[m].find("=")-1)) << " - "<< Remove_all(HFile_added_Vars_Deriv[n]) << std::endl;
-										if (Remove_all(if_file[m].substr(0, if_file[m].find("=")-1))==Remove_all(HFile_added_Vars_Deriv[n]))
-											same = true;
-									}
+									// only if really some if statements are used
+									oje = if_file.size()-1;
+									istringstream f(if_file[if_file.size()-1]);
+									f >> i;
+								}
+								else
+								{
+									// else like every time with known vars
+									oje = 0;
+									mycppfile << DERIVATIVE[i] + "; \n";
+								}
 
-									// if there is not such a var then we need to add
-									if (same == false)
+								//writting of files out of if TODO add checking vars used if not declare before
+								//if -loop for later use
+								std::vector<string> setted_in_if;
+								bool same = false;
+								for (size_t n = 0; n<oje; n++)
+								{
+									if ((if_file[n].find("=")!=if_file[n].npos) && (if_file[n].find("if")==if_file[n].npos)
+										  && (if_file[n].find("else")==if_file[n].npos))
 									{
-										setted_in_if.push_back(Remove_all(if_file[m].substr(0, if_file[m].find("=")-1)));
-										HFile_added_Vars_Deriv.push_back(Remove_all(if_file[m].substr(0, if_file[m].find("=")-1)));
+										for (size_t o=0; o<HFile_added_Vars_Deriv.size(); o++)
+										{
+											std::cout << "Vergleich: " << Remove_all(if_file[n].substr(0, if_file[n].find("=")-1)) << " - "<< Remove_all(HFile_added_Vars_Deriv[o]) << std::endl;
+											if (Remove_all(if_file[n].substr(0, if_file[n].find("=")-1))==Remove_all(HFile_added_Vars_Deriv[o]))
+												same = true;
+										}
+
+										// if there is not such a var then we need to add
+										if (same == false)
+										{
+											setted_in_if.push_back(Remove_all(if_file[n].substr(0, if_file[n].find("=")-1)));
+											HFile_added_Vars_Deriv.push_back(Remove_all(if_file[n].substr(0, if_file[n].find("=")-1)));
+										}
 									}
 								}
-							}
-							// writting needed double's
-							if (setted_in_if.size()>0)
-							{
-								for (size_t m=0; m<setted_in_if.size(); m++)
+								// writting needed double's
+								if (setted_in_if.size()>0)
 								{
-									if (Remove_all(setted_in_if[m])!="")
+									for (size_t n=0; n<setted_in_if.size(); n++)
 									{
-										if (m == 0)
-											mycppfile << "double " + setted_in_if[m];
-										else
-											mycppfile << ", " + setted_in_if[m];
+										if (Remove_all(setted_in_if[n])!="")
+										{
+											if (n == 0)
+											{
+												if (setted_in_if[m].find("//--//")==setted_in_if[m].npos)
+													mycppfile << "double " + setted_in_if[m];
+												else
+													mycppfile << setted_in_if[m];
+												std::cout<< "print: " << setted_in_if[m] << std::endl;
+											}
+											else
+											{
+												mycppfile << ", " + setted_in_if[m];
+											}
+										}
 									}
 								}
+
+								// new zeile
+								mycppfile << "; \n \n";
+
+								// writing if-loop
+								for (size_t m = 0; m<oje; m++)
+								{
+									mycppfile << if_file[m];
+								}
+
+
+
+
 							}
-
-							// new zeile
-							mycppfile << "; \n \n";
-
-							// writing if-loop
-							for (size_t m = 0; m<oje; m++)
-							{
-								mycppfile << if_file[m];
-							}
-
-
-
-
 						}
-					}
+					  }
 				  }
-	  		  }
-	  	  }
+			  }
+		  }
 
 	  mycppfile << "\n \n \n";
 
@@ -4055,7 +4279,10 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
   									if (Remove_all(Proc_vals[k])!="")
   									{
   										std::cout << "double " + Proc_vals[k] << std::endl;
-  										mycppfile << "double " + Proc_vals[k] + "; \n";
+  										if (Proc_vals[k].find("//--//")==Proc_vals[k].npos)
+  											mycppfile << "double " + Proc_vals[k] + "; \n";
+  										else
+  											mycppfile << Proc_vals[k] + "; \n";
   										if (Proc_vals[k].find("=")!=Proc_vals[k].npos)
   											HFile_added_Vars_Deriv.push_back(Remove_all(Proc_vals[k].substr(0, Proc_vals[k].find("=")-1)));
   										else
@@ -4087,65 +4314,74 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 					  std::cout << Solve_List[i] << std::endl;*/
 					  for (size_t j=0; j<KINETIC.size(); j++)
 					  {
-
-						  vector<string> varsL;
-						  string left, right, vars;
-						  size_t komma;
-						  size_t helpco, helpcc;
-						  size_t c_f_o, c_l_c;
-						  size_t equa = KINETIC[j].find("=");
-						  size_t arrows = KINETIC[j].find("<->");
-						  size_t KIN_length = KINETIC[j].npos;
-						  if (arrows!=KIN_length)
+						  // if there is no line comment
+						  if (KINETIC[j].find("//--//")==KINETIC[j].npos)
 						  {
-							  left = KINETIC[j].substr(0, arrows-1);
-							  right = KINETIC[j].substr(arrows+3, KIN_length-(arrows+3));
-
-							  c_f_o = right.find("(");
-							  c_l_c = right.find_last_of(")");
-
-							  vars = right.substr(c_f_o+1, c_l_c-(c_f_o+1));
-							  right = right.substr(0, c_f_o-1);
-
-							  //std::cout << "left: " << left <<" right: "<< right << "vars: " << vars << std::endl;
-							  helpco = vars.find("(");
-							  helpcc = vars.find(")");
-							  // del all clips
-							  while ((helpco!=vars.npos) || (helpcc!=vars.npos))
+							  vector<string> varsL;
+							  string left, right, vars;
+							  size_t komma;
+							  size_t helpco, helpcc;
+							  size_t c_f_o, c_l_c;
+							  size_t equa = KINETIC[j].find("=");
+							  size_t arrows = KINETIC[j].find("<->");
+							  size_t KIN_length = KINETIC[j].npos;
+							  if (arrows!=KIN_length)
 							  {
-								  vars.replace(helpco ,1 ,"");
-								  vars.replace(helpcc ,1 ,"");
+								  left = KINETIC[j].substr(0, arrows-1);
+								  right = KINETIC[j].substr(arrows+3, KIN_length-(arrows+3));
+
+								  c_f_o = right.find("(");
+								  c_l_c = right.find_last_of(")");
+
+								  vars = right.substr(c_f_o+1, c_l_c-(c_f_o+1));
+								  right = right.substr(0, c_f_o-1);
+
+								  //std::cout << "left: " << left <<" right: "<< right << "vars: " << vars << std::endl;
 								  helpco = vars.find("(");
 								  helpcc = vars.find(")");
-							  }
-							  // divide vars and push in var list
-							  size_t beg = 0;
-							  komma = vars.find(",");
-							  while (komma!=vars.npos)
-							  {
+								  // del all clips
+								  while ((helpco!=vars.npos) || (helpcc!=vars.npos))
+								  {
+									  vars.replace(helpco ,1 ,"");
+									  vars.replace(helpcc ,1 ,"");
+									  helpco = vars.find("(");
+									  helpcc = vars.find(")");
+								  }
+								  // divide vars and push in var list
+								  size_t beg = 0;
+								  komma = vars.find(",");
+								  while (komma!=vars.npos)
+								  {
+									  //std::cout << "var pushed_back: " << vars.substr(beg, komma-beg) << std::endl;
+									  varsL.push_back(vars.substr(beg, komma-beg));
+									  beg = komma+1;
+									  komma = vars.find(",", beg);
+								  }
 								  //std::cout << "var pushed_back: " << vars.substr(beg, komma-beg) << std::endl;
 								  varsL.push_back(vars.substr(beg, komma-beg));
-								  beg = komma+1;
-								  komma = vars.find(",", beg);
-							  }
-							  //std::cout << "var pushed_back: " << vars.substr(beg, komma-beg) << std::endl;
-							  varsL.push_back(vars.substr(beg, komma-beg));
-
-							  Ausgabe.push_back(left + "+ =  (-" +left +"*" + varsL[0] + "+" +right +"*" + varsL[1] + ")");
-							  Ausgabe.push_back(right + "+ = ("+left +"*" + varsL[0] + "+ -"+ right +"*" + varsL[1] + ")");
 
 
 
 
-						  } else
-						// if for example some vars getting set before using kinectics
-						  {
-							  if (equa!=KIN_length)
+
+								  //Fehler
+								  //std::cout << left << std::endl;
+								  Ausgabe.push_back(left + "+ =  (-" +left +"*" + varsL[0] + "+" +right +"*" + varsL[1] + ")");
+								  Ausgabe.push_back(right + "+ = ("+left +"*" + varsL[0] + "+ -"+ right +"*" + varsL[1] + ")");
+
+
+
+
+							  } else
+							// if for example some vars getting set before using kinectics
 							  {
-								  if (KINETIC[j].find("CONSERVE")==KINETIC[j].npos)
-									  mycppfile << "double " + KINETIC[j] + ";\n";
-							  }
+								  if (equa!=KIN_length)
+								  {
+									  if (KINETIC[j].find("CONSERVE")==KINETIC[j].npos)
+										  mycppfile << "double " + KINETIC[j] + ";\n";
+								  }
 
+							  }
 						  }
 					  }
 				  }
@@ -4335,7 +4571,10 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 				  			  if (BProc[i].find("=")!=BProc[i].npos)
 				  			  {
 				  				  HFile_added_Vars_Deriv.push_back(BProc[i].substr(0, BProc[i].find("=")-1));
-				  			  	  mycppfile << "double " + BProc[i] + "; \n";
+				  				  if (BProc[i].find("//--//")==BProc[i].npos)
+				  					  mycppfile << "double " + BProc[i] + "; \n";
+				  				  else
+				  					  mycppfile << BProc[i] + "; \n";
 				  			  }
 				  		  }
 				  	  }
@@ -4483,6 +4722,17 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  //writes Nernst Eqs
 	  std::vector<string> eqs = equali(Pairs, Zeilen);
 
+	  //removing wrong ION
+	  if (eqs.size()>0)
+	  {
+		  for (size_t i=0; i<eqs.size(); i++)
+		  {
+			  if (eqs[i].find("ION")!=eqs[i].npos)
+				  eqs[i].replace(eqs[i].find("ION"),3, "");
+		  }
+	  }
+
+
 	  //var vor latest use
 	  std::vector<string> comp_outs;
 	  string comp_outs_left, comp_outs_right;
@@ -4524,7 +4774,8 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 				  for (size_t j=0; j<Parameter.size(); j++)
 				  {
 					  string verg = eqs[i].substr(0, eqs[i].find("=")-1);
-					  std::cout << "verg: " << verg << std::endl;
+					  std::cout << "eqs: " << eqs[i] << std::endl;
+					  std::cout << "verg2: " << verg << std::endl;
 					  if (verg.find("number")!=verg.npos)
 						  verg = verg.replace(verg.find("number"), 6, "");
 					  //std::cout << "Vergleich: " << Remove_all(verg) << " vs " << Remove_all(Parameter[j]) << std::endl;
@@ -4535,7 +4786,8 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 				  if (is_comp_out == false && rev_pot_is_setted == false)
 				  {
 					  string test = eqs[i];
-					  test = test.replace(test.find("number"), 6, "");
+					  if (test.find("number") != test.npos)
+						  test = test.replace(test.find("number"), 6, "");
 					  //writting in if-schleife if there is hard coded ena, eca or ek given use this instead of calculation
 					  if (i==0)
 					  {
@@ -4568,6 +4820,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 						  mycppfile << e_name + "; \n";
 						  eqs[i] = eqs[i].replace(eqs[i].find("number"), 6, "");
 						  e_name2 = e_name.replace(e_name.find("number"), 6, "");
+						  //std::cout << "equis: " << eqs[i] << std::endl;
 						  mycppfile << "if (m_pVMDisc->" + Remove_all(e_name2) + "() == 0) \n";
 						  mycppfile << "{ \n";
 						  mycppfile << "\t " + eqs[i] + " \n";
@@ -4597,8 +4850,15 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 	  std::cout << "Working on Breakpoint-Block" << std::endl;
 
-	  if (BREAKPOINT.size()>1)
+	  if (BREAKPOINT.size()>0)
 	  {
+		  //remove local vals
+		  for (size_t i=0; i<BREAKPOINT.size(); i++)
+		  {
+			  if (BREAKPOINT[i].find("LOCAL")!=BREAKPOINT[i].npos)
+				  BREAKPOINT[i]="";
+		  }
+
 		  //decids which Breakpoint Method will be used
 		  for (size_t i=1; i<BREAKPOINT.size()-1; i++)
 		  {
@@ -4625,6 +4885,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 				  {
 					  non_spec_end = NEURON[i].find(" ", non_spec_beg+20);
 					  non_spec_current = NEURON[i].substr(non_spec_beg+20, non_spec_end-(non_spec_beg+20));
+					  std::cout << "NONSPEC_CURRENT: " << non_spec_current;
 				  }
 			  }
 
@@ -4715,6 +4976,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		  vector<bool> RealWrittenOuts;
 		  vector<string> Breakpoint_vars;
 
+		  vector<string> BreakpointOutput;
 
 		  // writes Breakpoint if it is Standard BP
 		  if (stand_BP==true)
@@ -4764,7 +5026,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 									 string test = Remove_all(fluxes[j]);
 									 if (test[0]!='i' && test[1]!='f' && test[2]!=' ')
 								  {
-									  mycppfile << "number " + fluxes[j] + "; \n";
+									  BreakpointOutput.push_back("number " + fluxes[j] + "; \n");
 									  fluxes[j] = "";
 									  B_vars[j] = "ddddddddddddd";
 								  }
@@ -4785,11 +5047,11 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 									  }
 									  if (global == true)
 									  {
-										 mycppfile << fluxes[j] + "; \n";
+										  BreakpointOutput.push_back(fluxes[j] + "; \n");
 									  }
 									  else
 									  {
-										 mycppfile << "number " + fluxes[j] + "; \n";
+										  BreakpointOutput.push_back("number " + fluxes[j] + "; \n");
 									  }
 									  fluxes[j] = "";
 									  B_vars[j] = "ddddddddddddd";
@@ -4807,7 +5069,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 				  int vm_flux_count = 0;
 
-				  mycppfile << "\n \n \n";
+				  BreakpointOutput.push_back("\n \n \n");
 
 				  //// adding writen comp_outs to file
 				  for (size_t i = 0; i<comp_outs.size(); i++)
@@ -4837,9 +5099,9 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 							 // writes all parts out
 							 string test = Remove_all(fluxes[i]);
 							 if (test[0]!='i' && test[1]!='f' && test[2]!=' ')
-								 mycppfile << "number " + fluxes[i] + "; \n";
+								 BreakpointOutput.push_back("number " + fluxes[i] + "; \n");
 							 else
-								 mycppfile << fluxes[i] + "; \n";
+								 BreakpointOutput.push_back(fluxes[i] + "; \n");
 							 //std::cout << "fluxesout[i] " << fluxes[i] << std::endl;
 						  }
 					  }
@@ -4852,6 +5114,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 				  {
 					  for (size_t j=0; j<ListIons.size(); j++)
 					  {
+						  std::cout << "ListIons: " << ListIons[j] << std::endl;
 						  Ion_outside.push_back(false);
 						  //std::cout << "List Ions" << std::endl;
 						  //std::cout << "i"+ListIons[j] << std::endl;
@@ -4870,6 +5133,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 								  }
 								  if (eqs[k+1]==ListIons[j])
 								  {
+
 									  //setting Ion_outside true to prevent output later as push_back from ionic_current
 									  //cause ion is only working on outside
 									  Ion_outside[j]=true;
@@ -4917,6 +5181,25 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 					  }
 				  }
 
+				  ///////////writing outputs
+				  for (size_t t=0; t<BreakpointOutput.size(); t++)
+				  {
+					  mycppfile << BreakpointOutput[t];
+				  }
+
+
+
+			//search for non spec_ionic_current and set it if used
+			for (size_t i=0; i<NEURON.size(); i++)
+			{
+			non_spec_beg = NEURON[i].find("NONSPECIFIC_CURRENT");
+			if (non_spec_beg!=NEURON[i].npos)
+				{
+					non_spec_end = NEURON[i].find(" ", non_spec_beg+20);
+					non_spec_current = NEURON[i].substr(non_spec_beg+20, non_spec_end-(non_spec_beg+20));
+					std::cout << "NONSPEC_CURRENT: " << non_spec_current;
+				}
+			}
 
 
 
@@ -4924,7 +5207,12 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		 	  if ((Remove_all(outs[0])=="") || (outs[0]==" "))
 		 		  outs[0]="0";
 
-		 	  mycppfile << "outCurrentValues.push_back(" + outs[0] + "); \n";
+		 	  if (non_spec_current!="")
+		 		  mycppfile << "outCurrentValues.push_back(" + outs[0] + " + " + non_spec_current + "); \n";
+		 	  else
+		 		  mycppfile << "outCurrentValues.push_back(" + outs[0] + "); \n";
+
+
 		 	  for (size_t i=1; i<outs.size(); i++)
 		 	  {
 		 		  bool optional = false;
@@ -5085,8 +5373,11 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  {
 		  for (size_t i = 0; i<Params_Unit.size(); i++)
 		  {
-			  myhfile << "number " + Params_Unit[i].substr(0, Params_Unit[i].find("=")) + "; \n";
-			  already_added.push_back(Remove_all(Params_Unit[i].substr(0, Params_Unit[i].find("="))));
+			  if (Params_Unit[i].find("//--//")==Params_Unit[i].npos)
+			  {
+				  myhfile << "number " + Params_Unit[i].substr(0, Params_Unit[i].find("=")) + "; \n";
+				  already_added.push_back(Remove_all(Params_Unit[i].substr(0, Params_Unit[i].find("="))));
+			  }
 		  }
 	  }
 
@@ -5103,9 +5394,12 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 			  if (Global_vars[i]!="" && adding==true)
 			  {
-				  std::cout << "Global vars: " << Global_vars[i] << std::endl;
-				  myhfile << "number " + Remove_all(Global_vars[i]) + "; \n";
-				  already_added.push_back(Global_vars[i]);
+				  if (Global_vars[i].find("//--//")==Global_vars[i].npos)
+				  {
+					  std::cout << "Global vars: " << Global_vars[i] << std::endl;
+					  myhfile << "number " + Remove_all(Global_vars[i]) + "; \n";
+					  already_added.push_back(Global_vars[i]);
+				  }
 			  }
 		  }
 	  }
@@ -5115,9 +5409,98 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		  myhfile << "bool m_log_" << State_vars[i] << "Gate; \n";
 	  }
 
+	  //Writing Neuron constant files out of const block
+	  std::vector<string> CONSTANT = GetBlock(Pairs, Zeilen, "CONSTANT");
+	  if (CONSTANT.size() >= 1)
+	  {
+		  for (size_t i = 0; i<CONSTANT.size(); i++)
+		  {
+			  size_t klammer = CONSTANT[i].find("(");
+			  size_t eckklammer = CONSTANT[i].find("<");
+			  if (klammer==CONSTANT[i].npos and eckklammer==CONSTANT[i].npos and CONSTANT[i].find("{")==CONSTANT[i].npos
+			    and CONSTANT[i].find("}")==CONSTANT[i].npos and Remove_all(CONSTANT[i])!="")
+				  myhfile << "const number " << CONSTANT[i] << "; \n";
+			  else
+			  {
+				  if (klammer < eckklammer)
+				  {
+					  if (CONSTANT[i].find("{")==CONSTANT[i].npos and CONSTANT[i].find("}")==CONSTANT[i].npos and Remove_all(CONSTANT[i])!="")
+						  myhfile << "const number " << CONSTANT[i].substr(0, klammer) << "; \n";
+				  }
+				  else
+				  {
+					  if (CONSTANT[i].find("{")==CONSTANT[i].npos and CONSTANT[i].find("}")==CONSTANT[i].npos and Remove_all(CONSTANT[i])!="")
+						  myhfile << "const number " << CONSTANT[i].substr(0, eckklammer) << "; \n";
+				  }
+			  }
+		  }
+	  }
+
+
 	  //Standard Neuron params
 	  myhfile << "// Standard-NModl-File-Params \n";
 	  myhfile << "number F, R, K, celsius; \n";
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	  // Getting some initial values out of Neuron as const numbers
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	  std::vector<bool> is_state;
+
+	  std::cout << "before first" << std::endl;
+
+	  std::cout << "State_vars: " << State_vars.size() << " INITIAL: " << INITIAL.size() << std::endl;
+
+	  // initialising is_state vars
+	  for (size_t j=0; j<INITIAL.size(); j++)
+	  {
+		  is_state.push_back(false);
+	  }
+
+	  //making bool list with only states numbers are true
+	  for (size_t i=0; i<State_vars.size(); i++)
+	  {
+		  for (size_t j=0; j<INITIAL.size(); j++)
+		  {
+			  size_t gleich = INITIAL[j].find("=");
+			  if (gleich != INITIAL[j].npos)
+			  {
+				  if (State_vars[i]==Remove_all(INITIAL[j].substr(0, gleich)))
+					  is_state[j]=true;
+			  }
+		  }
+	  }
+
+	  std::cout << "first worked" << std::endl;
+
+	  // if hase not been added already
+	  for (size_t i=0; i<INITIAL.size(); i++)
+	  {
+		  size_t gleich = INITIAL[i].find("=");
+		  if (gleich!=INITIAL[i].npos)
+		  {
+			  std::cout << "wokring... " << std::endl;
+			  if (is_state[i]==false)
+			  {
+				  bool test = false;
+
+				  for (size_t j=0; j<already_added.size(); j++)
+				  {
+					  if (Remove_all(INITIAL[i].substr(0, gleich))==already_added[j])
+						  test=true;
+				  }
+				  if (test == false)
+				  {
+					  if (INITIAL[i].find("if")==INITIAL[i].npos)
+						  myhfile << "const double " << INITIAL[i] << "; \n";
+				  }
+			  }
+		  }
+	  }
+
+
+
+
+
 
 	  myhfile << "}; \n \n";
 

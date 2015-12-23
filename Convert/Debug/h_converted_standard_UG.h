@@ -52,7 +52,7 @@ class h_converted_standard_UG
 h_converted_standard_UG(const char* functions, const char* subsets) 
 try : IChannel<TDomain>(functions, subsets), 
 ehd ( 0), 
-    ghdbar(.0001 *0.0001), 
+    ghdbar(.0001 *1e-05), 
     vhalfl(-81   *1), 
     kl(-8*1), 
     vhalft(-75   *1), 
@@ -61,6 +61,7 @@ ehd ( 0),
     gmt(.4   *1), 
     q10(4.5*1), 
     qtl(1*1), 
+m_log_SGate(false), 
 m_log_lGate(false) {} 
 UG_CATCH_THROW("Error in h_converted_standard_UG initializer list. "); 
  
@@ -69,7 +70,7 @@ UG_CATCH_THROW("Error in h_converted_standard_UG initializer list. ");
 h_converted_standard_UG(const std::vector<std::string>& functions, const std::vector<std::string>& subsets) 
 try : IChannel<TDomain>(functions, subsets), 
 ehd ( 0), 
-    ghdbar(.0001 *0.0001), 
+    ghdbar(.0001 *1e-05), 
     vhalfl(-81   *1), 
     kl(-8*1), 
     vhalft(-75   *1), 
@@ -78,6 +79,7 @@ ehd ( 0),
     gmt(.4   *1), 
     q10(4.5*1), 
     qtl(1*1), 
+m_log_SGate(false), 
 m_log_lGate(false) {} 
 UG_CATCH_THROW("Error in h_converted_standard_UG initializer list. "); 
 /// destructor 
@@ -116,6 +118,7 @@ void setzetat(double val);
 void setgmt(double val); 
 void setq10(double val); 
 void setqtl(double val); 
+void set_log_SGate(bool bLogSGate); 
 void set_log_lGate(bool bLoglGate); 
 
  
@@ -123,6 +126,8 @@ protected:
 private: 
  
 virtual void specify_write_function_indices(); 
+ADouble SGate; 
+Grid::AttachmentAccessor<Vertex, ADouble> aaSGate; 
 ADouble lGate; 
 Grid::AttachmentAccessor<Vertex, ADouble> aalGate; 
 number ehd ; 
@@ -137,6 +142,7 @@ number     q10;
 number     qtl; 
 number taul; 
 number linf; 
+bool m_log_SGate; 
 bool m_log_lGate; 
 // Standard-NModl-File-Params 
 number F, R, K, celsius; 

@@ -11,6 +11,7 @@ namespace cable {
 template<typename TDomain> 
 double hh_converted_standard_UG<TDomain>::vtrap(double x, double y) 
 { 
+double vtrap; 
         if (fabs(x/y) < 1e-6) {
                 return  y*(1 - x/y/2); 
         }else{
@@ -78,6 +79,12 @@ template<typename TDomain>
 void hh_converted_standard_UG<TDomain>::init_attachments() 
 { 
 SmartPtr<Grid> spGrid = m_pVMDisc->approx_space()->domain()->grid(); 
+if (spGrid->has_vertex_attachment(this->SGate)) 
+UG_THROW("Attachment necessary (SGate) for hh_converted_standard_UG channel dynamics "
+"could not be made, since it already exists."); 
+spGrid->attach_to_vertices(this->SGate); 
+this->aaSGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->SGate); 
+ 
 if (spGrid->has_vertex_attachment(this->mGate)) 
 UG_THROW("Attachment necessary (mGate) for hh_converted_standard_UG channel dynamics "
 "could not be made, since it already exists."); 
@@ -138,7 +145,7 @@ std::vector<number> hh_converted_standard_UG<TDomain>::state_values(number x, nu
 	 Vertex* bestVrt; 
  
 	 // Iterate only if there is one Gtting needed 
-	 if (m_log_mGate || m_log_hGate || m_log_nGate )
+	 if (m_log_SGate || m_log_mGate || m_log_hGate || m_log_nGate )
 	 { 
 	 	 // iterating over all elements 
 	 	 for (size_t si=0; si < ssGrp.size(); si++) 
@@ -164,6 +171,8 @@ std::vector<number> hh_converted_standard_UG<TDomain>::state_values(number x, nu
 	 	 	 	 ++iter; 
 	 	 	 } 
 	 	 } 
+	 	 if (m_log_SGate == true) 
+	 	 	 GatingAccesors.push_back(this->aaSGate[bestVrt]); 
 	 	 if (m_log_mGate == true) 
 	 	 	 GatingAccesors.push_back(this->aamGate[bestVrt]); 
 	 	 if (m_log_hGate == true) 
@@ -175,6 +184,7 @@ std::vector<number> hh_converted_standard_UG<TDomain>::state_values(number x, nu
 } 
  
 //Setters for states_outputs 
+template<typename TDomain> void hh_converted_standard_UG<TDomain>::set_log_SGate(bool bLogSGate) { m_log_SGate = bLogSGate; }
 template<typename TDomain> void hh_converted_standard_UG<TDomain>::set_log_mGate(bool bLogmGate) { m_log_mGate = bLogmGate; }
 template<typename TDomain> void hh_converted_standard_UG<TDomain>::set_log_hGate(bool bLoghGate) { m_log_hGate = bLoghGate; }
 template<typename TDomain> void hh_converted_standard_UG<TDomain>::set_log_nGate(bool bLognGate) { m_log_nGate = bLognGate; }
@@ -199,21 +209,21 @@ number k = vrt_values[VMDisc<TDomain>::_k_];
 
  
 double           alpha, beta, sum, q10; 
-                      ;//Call once from HOC to initialize inf at resting v.
+                      //--//Call once from HOC to initialize inf at resting v.
 q10= pow(3 , ((celsius-6.3)/10)); 
-                ;//"m" sodium activation system
+                //--//"m" sodium activation system
         alpha = .1 * vtrap(-(v+40),10); 
         beta =  4 * exp(-(v+65)/18); 
         sum = alpha + beta; 
 	mtau = 1/(q10*sum); 
         minf = alpha/sum; 
-                ;//"h" sodium inactivation system
+                //--//"h" sodium inactivation system
         alpha = .07 * exp(-(v+65)/20); 
         beta = 1 / (exp(-(v+35)/10) + 1); 
         sum = alpha + beta; 
 	htau = 1/(q10*sum); 
         hinf = alpha/sum; 
-                ;//"n" potassium activation system
+                //--//"n" potassium activation system
         alpha = .01*vtrap(-(v+55),10) ; 
         beta = .125*exp(-(v+65)/80); 
 	sum = alpha + beta; 
@@ -244,6 +254,7 @@ number na = vrt_values[VMDisc<TDomain>::_na_];
 number k = vrt_values[VMDisc<TDomain>::_k_]; 
 
  
+double S = aaSGate[vrt]; 
 double m = aamGate[vrt]; 
 double h = aahGate[vrt]; 
 double n = aanGate[vrt]; 
@@ -251,21 +262,21 @@ double n = aanGate[vrt];
  
  
 double           alpha, beta, sum, q10; 
-                      //Call once from HOC to initialize inf at resting v.
+                      //--//Call once from HOC to initialize inf at resting v.; 
 q10= pow(3 , ((celsius-6.3)/10)); 
-                //"m" sodium activation system
+                //--//"m" sodium activation system; 
         alpha = .1 * vtrap(-(v+40),10); 
         beta =  4 * exp(-(v+65)/18); 
         sum = alpha + beta; 
 	mtau = 1/(q10*sum); 
         minf = alpha/sum; 
-                //"h" sodium inactivation system
+                //--//"h" sodium inactivation system; 
         alpha = .07 * exp(-(v+65)/20); 
         beta = 1 / (exp(-(v+35)/10) + 1); 
         sum = alpha + beta; 
 	htau = 1/(q10*sum); 
         hinf = alpha/sum; 
-                //"n" potassium activation system
+                //--//"n" potassium activation system; 
         alpha = .01*vtrap(-(v+55),10) ; 
         beta = .125*exp(-(v+65)/80); 
 	sum = alpha + beta; 
@@ -283,6 +294,7 @@ q10= pow(3 , ((celsius-6.3)/10));
 
  
  
+aaSGate[vrt] = S; 
 aamGate[vrt] = m; 
 aahGate[vrt] = h; 
 aanGate[vrt] = n; 
@@ -304,6 +316,7 @@ m_R = m_pVMDisc->R;
 m_F = m_pVMDisc->F; 
  
  
+number S = aaSGate[ver]; 
 number m = aamGate[ver]; 
 number h = aahGate[ver]; 
 number n = aanGate[ver]; 

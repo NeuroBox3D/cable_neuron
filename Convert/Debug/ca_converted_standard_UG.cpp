@@ -11,6 +11,7 @@ namespace cable {
 template<typename TDomain> 
 double ca_converted_standard_UG<TDomain>::efun(double z) 
 { 
+double efun; 
 	if (fabs(z) < 1e-4) {
 		return  1 - z/2; 
 	}else{
@@ -235,14 +236,14 @@ tadj= pow(q10 , ((celsius-temp)/10));
 	b = 0.94*exp((-75-vm)/17); 
 double 	mtau = 1/tadj/(a+b); 
 double 	minf = a/(a+b); 
-		;//"h" inactivation 
+		//--//"h" inactivation 
 	a = 0.000457*exp((-13-vm)/50); 
 	b = 0.0065/(exp((-vm-15)/28) + 1); 
 double 	htau = 1/tadj/(a+b); 
 double 	hinf = a/(a+b); 
-;//        tinc = -dt * tadj
-;//        mexp = 1 - exp(tinc/mtau)
-;//        hexp = 1 - exp(tinc/htau)
+//--//        tinc = -dt * tadj
+//--//        mexp = 1 - exp(tinc/mtau)
+//--//        hexp = 1 - exp(tinc/htau)
 aamGate[vrt] = minf; 
 aahGate[vrt] = hinf; 
 }  
@@ -278,14 +279,14 @@ tadj= pow(q10 , ((celsius-temp)/10));
 	b = 0.94*exp((-75-vm)/17); 
 double 	mtau = 1/tadj/(a+b); 
 double 	minf = a/(a+b); 
-		//"h" inactivation 
+		//--//"h" inactivation ; 
 	a = 0.000457*exp((-13-vm)/50); 
 	b = 0.0065/(exp((-vm-15)/28) + 1); 
 double 	htau = 1/tadj/(a+b); 
 double 	hinf = a/(a+b); 
-//        tinc = -dt * tadj
-//        mexp = 1 - exp(tinc/mtau)
-//        hexp = 1 - exp(tinc/htau)
+//--//        tinc = -dt * tadj; 
+//--//        mexp = 1 - exp(tinc/mtau); 
+//--//        hexp = 1 - exp(tinc/htau); 
         m  +=   (minf-m)/mtau*dt; 
 ; 
  

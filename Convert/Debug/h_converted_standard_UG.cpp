@@ -139,6 +139,12 @@ template<typename TDomain>
 void h_converted_standard_UG<TDomain>::init_attachments() 
 { 
 SmartPtr<Grid> spGrid = m_pVMDisc->approx_space()->domain()->grid(); 
+if (spGrid->has_vertex_attachment(this->SGate)) 
+UG_THROW("Attachment necessary (SGate) for h_converted_standard_UG channel dynamics "
+"could not be made, since it already exists."); 
+spGrid->attach_to_vertices(this->SGate); 
+this->aaSGate = Grid::AttachmentAccessor<Vertex, ADouble>(*spGrid, this->SGate); 
+ 
 if (spGrid->has_vertex_attachment(this->lGate)) 
 UG_THROW("Attachment necessary (lGate) for h_converted_standard_UG channel dynamics "
 "could not be made, since it already exists."); 
@@ -187,7 +193,7 @@ std::vector<number> h_converted_standard_UG<TDomain>::state_values(number x, num
 	 Vertex* bestVrt; 
  
 	 // Iterate only if there is one Gtting needed 
-	 if (m_log_lGate )
+	 if (m_log_SGate || m_log_lGate )
 	 { 
 	 	 // iterating over all elements 
 	 	 for (size_t si=0; si < ssGrp.size(); si++) 
@@ -213,6 +219,8 @@ std::vector<number> h_converted_standard_UG<TDomain>::state_values(number x, num
 	 	 	 	 ++iter; 
 	 	 	 } 
 	 	 } 
+	 	 if (m_log_SGate == true) 
+	 	 	 GatingAccesors.push_back(this->aaSGate[bestVrt]); 
 	 	 if (m_log_lGate == true) 
 	 	 	 GatingAccesors.push_back(this->aalGate[bestVrt]); 
 	 } 
@@ -220,6 +228,7 @@ std::vector<number> h_converted_standard_UG<TDomain>::state_values(number x, num
 } 
  
 //Setters for states_outputs 
+template<typename TDomain> void h_converted_standard_UG<TDomain>::set_log_SGate(bool bLogSGate) { m_log_SGate = bLogSGate; }
 template<typename TDomain> void h_converted_standard_UG<TDomain>::set_log_lGate(bool bLoglGate) { m_log_lGate = bLoglGate; }
  // Init Method for using gatings 
 template<typename TDomain> 
@@ -243,7 +252,7 @@ double          a,qt;
 qt= pow(q10 , ((celsius-33)/10)); 
         a = alpt(v); 
         linf = 1/(1 + exp(-(v-vhalfl)/kl)); 
-;//       linf = 1/(1+ alpl(v))
+//--//       linf = 1/(1+ alpl(v))
 double         taul = bett(v)/(qtl*qt*a0t*(1+a)); 
 aalGate[vrt] =linf; 
 }  
@@ -266,6 +275,7 @@ number celsius = m_pVMDisc->temperature_celsius();
 number v = vrt_values[VMDisc<TDomain>::_v_]; 
 
  
+double S = aaSGate[vrt]; 
 double l = aalGate[vrt]; 
 
  
@@ -274,7 +284,7 @@ double          a,qt;
 qt= pow(q10 , ((celsius-33)/10)); 
         a = alpt(v); 
         linf = 1/(1 + exp(-(v-vhalfl)/kl)); 
-//       linf = 1/(1+ alpl(v))
+//--//       linf = 1/(1+ alpl(v)); 
 double         taul = bett(v)/(qtl*qt*a0t*(1+a)); 
         l  +=   (linf - l)/taul*dt; 
 ; 
@@ -282,6 +292,7 @@ double         taul = bett(v)/(qtl*qt*a0t*(1+a));
 
  
  
+aaSGate[vrt] = S; 
 aalGate[vrt] = l; 
  
  
@@ -301,6 +312,7 @@ m_R = m_pVMDisc->R;
 m_F = m_pVMDisc->F; 
  
  
+number S = aaSGate[ver]; 
 number l = aalGate[ver]; 
 number v =  vrt_values[m_pVMDisc->_v_]; 
  

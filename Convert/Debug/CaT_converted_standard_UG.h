@@ -51,7 +51,7 @@ class CaT_converted_standard_UG
 /// @copydoc IChannel<TDomain>::IChannel(cont char*) 
 CaT_converted_standard_UG(const char* functions, const char* subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-	gbar ( 0.0008 *0.0001), 
+	gbar ( 0.0008 *1e-05), 
 	vshift ( 0	*1), 
 	cao  ( 2.5	*1), 
 cai ( 0), 
@@ -79,7 +79,7 @@ UG_CATCH_THROW("Error in CaT_converted_standard_UG initializer list. ");
 /// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&) 
 CaT_converted_standard_UG(const std::vector<std::string>& functions, const std::vector<std::string>& subsets) 
 try : IChannel<TDomain>(functions, subsets), 
-	gbar ( 0.0008 *0.0001), 
+	gbar ( 0.0008 *1e-05), 
 	vshift ( 0	*1), 
 	cao  ( 2.5	*1), 
 cai ( 0), 
