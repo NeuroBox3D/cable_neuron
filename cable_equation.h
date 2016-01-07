@@ -22,20 +22,16 @@
 #include "channel_interface.h"
 #include "cable_ass_tuner.h"
 
-#ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
-	#include "../SynapseHandler/synapse_handler.h"
-#endif
+#include "../SynapseHandler/synapse_handler.h"
 
 
 namespace ug {
 
-#ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
 namespace synapse_handler {
 	// forward declaration
 	template <typename TDomain>
 	class NETISynapseHandler;
 }
-#endif
 
 
 namespace cable {
@@ -165,9 +161,7 @@ class CableEquation
 		/// set influx params (flux value, coordinates, beginning, duration)
 		void set_influx(number Flux, number x, number y, number z, number beg, number dur);
 
-#ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
 		void set_synapse_handler(SmartPtr<synapse_handler::NETISynapseHandler<TDomain> > sh);
-#endif
 
 		/// adding a channel
 		void add(SmartPtr<ICableMembraneTransport<TDomain> > transportMechanism);
@@ -300,9 +294,7 @@ class CableEquation
 		std::vector<number> m_vFluxValue, m_vFluxStart, m_vFluxDur;		///< values describing influxes
 		std::vector<MathVector<dim> > m_vFluxCoords;					///< vector for influx coordinates x, y, z
 
-#ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
 		SmartPtr<synapse_handler::NETISynapseHandler<TDomain> > m_spSH;	///< synapse handler
-#endif
 
 		std::vector<SmartPtr<TIChannel> > m_channel;					///< list of channels
 

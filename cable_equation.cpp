@@ -47,9 +47,7 @@ CableEquation<TDomain>::CableEquation(const char* subsets, bool withConcs, numbe
 	m_bOutput(false),
 	m_output_x(0), m_output_y(0), m_output_z(0),
 	m_outputPath(""),
-#ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
 	m_spSH(SPNULL),
-#endif
 	m_v(0), m_na(0), m_k(0), m_ca(0),
 	m_init_time(init_time), m_time(init_time),
 	m_bNonRegularGrid(false),
@@ -173,14 +171,12 @@ set_influx(number Flux, number x, number y, number z, number beg, number dur)
 	if (dim >= 3) m_vFluxCoords[m_vFluxCoords.size()-1][2] = z;
 }
 
-#ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
 template <typename TDomain>
 void CableEquation<TDomain>::
 set_synapse_handler(SmartPtr<synapse_handler::NETISynapseHandler<TDomain> > sh)
 {
 	m_spSH = sh;
 }
-#endif
 
 
 template<typename TDomain>
@@ -416,11 +412,9 @@ void CableEquation<TDomain>::approximation_space_changed()
 	for (; it != it_end; ++it)
 		m_vSurfVrt.push_back(*it);
 
-#ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
 	// call init method for synapse handler
 	if (m_spSH.valid())
 		m_spSH->grid_first_available();
-#endif
 
 	// lock discretization
 	m_bLocked = true;
@@ -527,11 +521,9 @@ prep_timestep(number time, VectorProxyBase* upb)
 	// update time in attachments (must be done AFTER update_gating of channels)
 	m_time = time;
 
-#ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
 	// call update_presyn() method for synapse handler
 	if (m_spSH.valid())
 		m_spSH->update_presyn();
-#endif
 }
 
 
@@ -781,7 +773,6 @@ void CableEquation<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, cons
 		}
 
 		// synapses handled by synapse_handler
-#ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
 		if	(m_spSH.valid())
 		{
 			number current = 0;
@@ -803,7 +794,6 @@ void CableEquation<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, cons
 				}
 			}
 		}
-#endif
 
 		// membrane transport mechanisms (IChannels)
 		std::vector<number> allOutCurrentValues(m_numb_ion_funcs+1, 0.0);

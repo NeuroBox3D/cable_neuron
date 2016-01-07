@@ -393,9 +393,7 @@ struct Functionality
 #ifdef UG_CPU_1
 				.add_method("estimate_cfl_cond", &T::template estimate_cfl_cond<CPUAlgebra::vector_type>)
 #endif
-#ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
 				.add_method("set_synapse_handler", &T::set_synapse_handler)
-#endif
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "CableEquation", tag);
 		}
