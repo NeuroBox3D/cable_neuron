@@ -28,9 +28,9 @@
 #include "order.h"
 
 // add converted channels
-#ifdef HH_CONVERTED_CHANNELS_ENABLED
+//#ifdef HH_CONVERTED_CHANNELS_ENABLED
 #include "Convert/Debug/includefile.cpp"
-#endif
+//#endif
 //#include "Convert/Debug/hh_converted_standard_UG.h"
 //other channel includes
 
@@ -404,9 +404,9 @@ struct Functionality
 			reg.add_class_to_group(name, "VMDisc", tag);
 		}
 
-#ifdef HH_CONVERTED_CHANNELS_ENABLED
+//#ifdef HH_CONVERTED_CHANNELS_ENABLED
 		#include "Convert/Debug/channels.cpp"
-#endif
+//#endif
 
 		// Cuthill McKee ordering
 		{
