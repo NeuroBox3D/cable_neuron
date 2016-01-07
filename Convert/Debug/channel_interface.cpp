@@ -12,8 +12,8 @@ namespace ug {
 namespace cable {
 
 template <typename TDomain>
-IChannel<TDomain>::IChannel(const char* functions, const char* subsets)
-: m_pVMDisc(NULL)
+ICableMembraneTransport<TDomain>::ICableMembraneTransport(const char* functions, const char* subsets)
+: m_pCE(NULL)
 {
 	m_vSubset = TokenizeString(subsets);
 
@@ -29,7 +29,7 @@ IChannel<TDomain>::IChannel(const char* functions, const char* subsets)
 	{
 		if (m_vSubset.empty())
 		{
-			UG_THROW("Error while setting subsets in IChannel: Passed subset string lacks\n"
+			UG_THROW("Error while setting subsets in ICableMembraneTransport: Passed subset string lacks\n"
 					 "a subset specification at position " << i << " (of " << m_vSubset.size()-1 << ")");
 		}
 	}
@@ -37,17 +37,17 @@ IChannel<TDomain>::IChannel(const char* functions, const char* subsets)
 
 
 template <typename TDomain>
-IChannel<TDomain>::IChannel(const std::vector<std::string>& functions, const std::vector<std::string>& subsets)
-: m_pVMDisc(NULL)
+ICableMembraneTransport<TDomain>::ICableMembraneTransport(const std::vector<std::string>& functions, const std::vector<std::string>& subsets)
+: m_pCE(NULL)
 {
 	m_vSubset = subsets;
 };
 
 
 template <typename TDomain>
-void IChannel<TDomain>::approx_space_available()
+void ICableMembraneTransport<TDomain>::approx_space_available()
 {
-	ConstSmartPtr<ApproximationSpace<TDomain> > approx = m_pVMDisc->approx_space();
+	ConstSmartPtr<ApproximationSpace<TDomain> > approx = m_pCE->approx_space();
 
 	// get indices for subsets
 	ConstSmartPtr<MGSubsetHandler> ssh = approx->domain()->subset_handler();
@@ -65,12 +65,12 @@ void IChannel<TDomain>::approx_space_available()
 	// as this will not allow vtable lookup
 	specify_write_function_indices();
 
-	vm_disc_available();
+	ce_obj_available();
 }
 
 
 template <typename TDomain>
-bool IChannel<TDomain>::
+bool ICableMembraneTransport<TDomain>::
 is_def_on_subset(int si) const
 {
 	size_t sz = m_vSI.size();
@@ -86,15 +86,15 @@ is_def_on_subset(int si) const
 //	explicit template instantiations //
 
 #ifdef UG_DIM_1
-	template class IChannel<Domain1d>;
+	template class ICableMembraneTransport<Domain1d>;
 #endif
 
 #ifdef UG_DIM_2
-	template class IChannel<Domain2d>;
+	template class ICableMembraneTransport<Domain2d>;
 #endif
 
 #ifdef UG_DIM_3
-	template class IChannel<Domain3d>;
+	template class ICableMembraneTransport<Domain3d>;
 #endif
 
 } // namespace cable

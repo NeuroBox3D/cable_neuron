@@ -185,7 +185,7 @@ set_synapse_handler(SmartPtr<synapse_handler::NETISynapseHandler<TDomain> > sh)
 
 template<typename TDomain>
 void CableEquation<TDomain>::
-add(SmartPtr<IChannel<TDomain> > transportMechanism)
+add(SmartPtr<ICableMembraneTransport<TDomain> > transportMechanism)
 {
 	m_channel.push_back(transportMechanism);
 
@@ -195,7 +195,7 @@ add(SmartPtr<IChannel<TDomain> > transportMechanism)
 
 
 template <typename TDomain>
-void CableEquation<TDomain>::set_output_point_and_pathset_output_point_and_path(bool output, number x, number y, number z, std::string outPath)
+void CableEquation<TDomain>::set_output_point_and_path(bool output, number x, number y, number z, std::string outPath)
 {
 	m_bOutput = output;
 	m_output_x = x;
@@ -237,7 +237,7 @@ current_subset_index() const
 
 
 template<typename TDomain>
-void CableEquation<TDomain>::write_gatings_for_position(number x, number y, number z, std::string pfad)
+void CableEquation<TDomain>::write_states_for_position(number x, number y, number z, std::string pfad)
 {
 	// Vector with all needed Filename as ofstreams
 	std::vector<std::vector<SmartPtr<std::ofstream> > > Vec_ofstreams;
@@ -453,7 +453,7 @@ prep_timestep(number time, VectorProxyBase* upb)
 
 	// write out gatings
 	if (m_bOutput)
-		write_gatings_for_position(m_output_x, m_output_y, m_output_z, m_outputPath);
+		write_states_for_position(m_output_x, m_output_y, m_output_z, m_outputPath);
 
 
 	typedef CPUAlgebra::vector_type v_type;
@@ -814,7 +814,7 @@ void CableEquation<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, cons
 			std::vector<number> outCurrentValues;
 
 			// values we are getting from ionic_flux function in channels
-			m_channelsOnCurrSubset[ch]->ionic_current(pElem->vertex(co), m_currVrtValues[co], outCurrentValues);
+			m_channelsOnCurrSubset[ch]->current(pElem->vertex(co), m_currVrtValues[co], outCurrentValues);
 
 			UG_ASSERT(outCurrentValues.size() == m_vvCurrChWFctInd[ch].size(),
 					  "mismatch in number of currents in channel \"" << m_channelsOnCurrSubset[ch]->name() << "\"");

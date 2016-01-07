@@ -23,13 +23,13 @@ double h_converted_standard_UG<TDomain>::bett(double v)
  
 // adding function which always inits_attachments 
 template<typename TDomain> 
-void h_converted_standard_UG<TDomain>::vm_disc_available()  
+void h_converted_standard_UG<TDomain>::ce_obj_available()  
 {  
 	init_attachments();  
- 	F = m_pVMDisc->F; 
- R = m_pVMDisc->R; 
- K = m_pVMDisc->temperature(); 
- celsius = m_pVMDisc->temperature_celsius(); 
+ 	F = m_pCE->F; 
+ R = m_pCE->R; 
+ K = m_pCE->temperature(); 
+ celsius = m_pCE->temperature_celsius(); 
 }  
  
  
@@ -138,7 +138,7 @@ qtl = val;
 template<typename TDomain> 
 void h_converted_standard_UG<TDomain>::init_attachments() 
 { 
-SmartPtr<Grid> spGrid = m_pVMDisc->approx_space()->domain()->grid(); 
+SmartPtr<Grid> spGrid = m_pCE->approx_space()->domain()->grid(); 
 if (spGrid->has_vertex_attachment(this->SGate)) 
 UG_THROW("Attachment necessary (SGate) for h_converted_standard_UG channel dynamics "
 "could not be made, since it already exists."); 
@@ -185,7 +185,7 @@ std::vector<number> h_converted_standard_UG<TDomain>::state_values(number x, num
 	 // Definitions for Iteration over all Elements 
 	 typedef typename DoFDistribution::traits<Vertex>::const_iterator itType; 
 	 SubsetGroup ssGrp; 
-	 try { ssGrp = SubsetGroup(m_pVMDisc->approx_space()->domain()->subset_handler(), this->m_vSubset);} 
+	 try { ssGrp = SubsetGroup(m_pCE->approx_space()->domain()->subset_handler(), this->m_vSubset);} 
 	 UG_CATCH_THROW("Subset group creation failed."); 
  
 	 itType iter; 
@@ -198,10 +198,10 @@ std::vector<number> h_converted_standard_UG<TDomain>::state_values(number x, num
 	 	 // iterating over all elements 
 	 	 for (size_t si=0; si < ssGrp.size(); si++) 
 	 	 { 
-	 	 	 itType iterBegin = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]); 
-	 	 	 itType iterEnd = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template end<Vertex>(ssGrp[si]); 
+	 	 	 itType iterBegin = m_pCE->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]); 
+	 	 	 itType iterEnd = m_pCE->approx_space()->dof_distribution(GridLevel::TOP)->template end<Vertex>(ssGrp[si]); 
  
-	 	 	 const position_accesor_type& aaPos = m_pVMDisc->approx_space()->domain()->position_accessor(); 
+	 	 	 const position_accesor_type& aaPos = m_pCE->approx_space()->domain()->position_accessor(); 
 	 	 	 if (si==0) 
 	 	 	 { 
 	 	 	 	 bestVrt = *iterBegin; 
@@ -237,13 +237,13 @@ void h_converted_standard_UG<TDomain>::init(Vertex* vrt, const std::vector<numbe
 //get celsius and time
 // inits temperatur from kalvin to celsius and some other typical neuron values
 number m_T, m_R, m_F; 
-m_T = m_pVMDisc->temperature(); 
-m_R = m_pVMDisc->R; 
-m_F = m_pVMDisc->F; 
+m_T = m_pCE->temperature(); 
+m_R = m_pCE->R; 
+m_F = m_pCE->F; 
  
  
-number celsius = m_pVMDisc->temperature_celsius(); 
-number dt = m_pVMDisc->time(); 
+number celsius = m_pCE->temperature_celsius(); 
+number dt = m_pCE->time(); 
 // make preparing vor getting values of every edge 
 number v = vrt_values[CableEquation<TDomain>::_v_]; 
 
@@ -264,14 +264,14 @@ void h_converted_standard_UG<TDomain>::update_gating(number newTime, Vertex* vrt
 { 
 // inits temperatur from kalvin to celsius and some other typical neuron values
 number m_T, m_R, m_F; 
-m_T = m_pVMDisc->temperature(); 
-m_R = m_pVMDisc->R; 
-m_F = m_pVMDisc->F; 
+m_T = m_pCE->temperature(); 
+m_R = m_pCE->R; 
+m_F = m_pCE->F; 
  
  
-number celsius = m_pVMDisc->temperature_celsius(); 
- number FARADAY = m_pVMDisc->F; 
- number dt = newTime - m_pVMDisc->time(); 
+number celsius = m_pCE->temperature_celsius(); 
+ number FARADAY = m_pCE->F; 
+ number dt = newTime - m_pCE->time(); 
 number v = vrt_values[CableEquation<TDomain>::_v_]; 
 
  
@@ -302,28 +302,28 @@ aalGate[vrt] = l;
  
  
 template<typename TDomain> 
-void h_converted_standard_UG<TDomain>::ionic_current(Vertex* ver, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues) 
+void h_converted_standard_UG<TDomain>::current(Vertex* ver, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues) 
 { 
  
 // inits temperatur from kalvin to celsius and some other typical neuron values
 number m_T, m_R, m_F; 
-m_T = m_pVMDisc->temperature(); 
-m_R = m_pVMDisc->R; 
-m_F = m_pVMDisc->F; 
+m_T = m_pCE->temperature(); 
+m_R = m_pCE->R; 
+m_F = m_pCE->F; 
  
  
 number S = aaSGate[ver]; 
 number l = aalGate[ver]; 
-number v =  vrt_values[m_pVMDisc->_v_]; 
+number v =  vrt_values[m_pCE->_v_]; 
  
  
-number t = m_pVMDisc->time(); 
+number t = m_pCE->time(); 
  
  
 
  
  
-const number helpV = 1e3*(m_pVMDisc->R*m_pVMDisc->temperature())/m_pVMDisc->F; 
+const number helpV = 1e3*(m_pCE->R*m_pCE->temperature())/m_pCE->F; 
  
  
 number ghd = ghdbar*l; 

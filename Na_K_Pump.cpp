@@ -17,7 +17,7 @@ namespace cable {
 
 template<typename TDomain>
 Na_K_Pump<TDomain>::Na_K_Pump(const char* functions, const char* subsets)
-try : IChannel<TDomain>(functions, subsets),
+try : ICableMembraneTransport<TDomain>(functions, subsets),
 K_K(1.37), K_Na(5.74), IMAX_P(3.6e-5) {}
 UG_CATCH_THROW("Error in Na_K_Pump initializer list.");
 
@@ -27,7 +27,7 @@ Na_K_Pump<TDomain>::Na_K_Pump
 	const std::vector<std::string>& functions,
 	const std::vector<std::string>& subsets
 )
-try : IChannel<TDomain>(functions, subsets),
+try : ICableMembraneTransport<TDomain>(functions, subsets),
 K_K(1.37), K_Na(5.74), IMAX_P(3.6e-5) {}
 UG_CATCH_THROW("Error in Na_K_Pump initializer list.");
 
@@ -63,7 +63,7 @@ set_IMAX_P(number IMAX)
 
 
 template<typename TDomain>
-void Na_K_Pump<TDomain>::vm_disc_available()
+void Na_K_Pump<TDomain>::ce_obj_available()
 {
 
 }
@@ -91,7 +91,7 @@ void Na_K_Pump<TDomain>::update_gating(number newTime, Vertex* vrt, const std::v
 
 
 template<typename TDomain>
-void Na_K_Pump<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
+void Na_K_Pump<TDomain>::current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
 {
 	//number ca = vrt_values[CableEquation<TDomain>::_ca_];
 	number na = vrt_values[CableEquation<TDomain>::_na_];

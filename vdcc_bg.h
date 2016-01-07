@@ -17,15 +17,15 @@ namespace cable {
 
 template <typename TDomain>
 class VDCC_BG_Cable
-	: public IChannel<TDomain>
+	: public ICableMembraneTransport<TDomain>
 {
 	public:
-		using IChannel<TDomain>::m_pVMDisc;
+		using ICableMembraneTransport<TDomain>::m_pCE;
 
-		/// @copydoc IChannel<TDomain>::IChannel(const char*)
+		/// @copydoc ICableMembraneTransport<TDomain>::ICableMembraneTransport(const char*)
 		VDCC_BG_Cable(const char* functions, const char* subsets);
 
-		/// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&)
+		/// @copydoc ICableMembraneTransport<TDomain>::ICableMembraneTransport(const std::vector<std::string>&)
 		VDCC_BG_Cable(const std::vector<std::string>& functions, const std::vector<std::string>& subsets);;
 
 		/// destructor
@@ -43,11 +43,11 @@ class VDCC_BG_Cable
 		void set_log_mGate(bool bLogMGate);
 
 	public:
-		// inherited from IChannel
+		// inherited from ICableMembraneTransport
 		virtual void init(Vertex* vrt, const std::vector<number>& vrt_values);
 		virtual void update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values);
-		virtual void ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues);
-		virtual void vm_disc_available();
+		virtual void current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues);
+		virtual void ce_obj_available();
 		virtual std::vector<number> state_values(number x, number y, number z);
 
 	private:

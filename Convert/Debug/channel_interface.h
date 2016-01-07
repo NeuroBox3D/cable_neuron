@@ -22,18 +22,18 @@ class CableEquation;
 
 
 template <typename TDomain>
-class IChannel
+class ICableMembraneTransport
 {
 	public:
 		// TODO: We do not need functions here!
 		///	constructor with comma-separated c-string
-		IChannel(const char* functions, const char* subsets);
+		ICableMembraneTransport(const char* functions, const char* subsets);
 
 		/// constructor with vector of string
-		IChannel(const std::vector<std::string>& functions, const std::vector<std::string>& subsets);
+		ICableMembraneTransport(const std::vector<std::string>& functions, const std::vector<std::string>& subsets);
 
 		///	destructor
-		virtual ~IChannel() {};
+		virtual ~ICableMembraneTransport() {};
 
 		/// name
 		virtual std::string name() {return std::string("");};
@@ -54,13 +54,13 @@ class IChannel
 		virtual void update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values) = 0;
 
 		/// provides the ionic current (mol*s^-1) at a given vertex
-		virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues) = 0;
+		virtual void current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues) = 0;
 
 		/// called when approximation space is available
 		void approx_space_available();
 
 		/// called when access to the root VM disc is possible
-		virtual void vm_disc_available() {};
+		virtual void ce_obj_available() {};
 
 		/// getting values of internal channel states
 		virtual std::vector<number> state_values(number x, number y, number z) = 0;
@@ -95,7 +95,7 @@ class IChannel
 		 */
 		bool is_def_on_subset(int si) const;
 
-		void set_ce_object(CableEquation<TDomain>*  vmdisc) {m_pVMDisc = vmdisc;}
+		void set_ce_object(CableEquation<TDomain>*  vmdisc) {m_pCE = vmdisc;}
 
 	private:
 		virtual void specify_write_function_indices() {UG_THROW("specify_write_function_indices() not implemented!");}
@@ -111,7 +111,7 @@ class IChannel
 		std::vector<int> m_vSI;
 
 		/// joint CableEquation
-		CableEquation<TDomain>* m_pVMDisc;
+		CableEquation<TDomain>* m_pCE;
 
 };
 

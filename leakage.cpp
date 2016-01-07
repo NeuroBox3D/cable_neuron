@@ -13,7 +13,7 @@ namespace cable {
 
 template<typename TDomain>
 ChannelLeak<TDomain>::ChannelLeak(const char* functions, const char* subsets)
-try : IChannel<TDomain>(functions, subsets) {}
+try : ICableMembraneTransport<TDomain>(functions, subsets) {}
 UG_CATCH_THROW("Error in ChannelHH initializer list.");
 
 template<typename TDomain>
@@ -22,7 +22,7 @@ ChannelLeak<TDomain>::ChannelLeak
 	const std::vector<std::string>& functions,
 	const std::vector<std::string>& subsets
 )
-try : IChannel<TDomain>(functions, subsets) {}
+try : ICableMembraneTransport<TDomain>(functions, subsets) {}
 UG_CATCH_THROW("Error in ChannelHH initializer list.");
 
 
@@ -83,10 +83,10 @@ void ChannelLeak<TDomain>::set_rev_pot(number e, const std::vector<std::string>&
 
 
 template<typename TDomain>
-void ChannelLeak<TDomain>::vm_disc_available()
+void ChannelLeak<TDomain>::ce_obj_available()
 {
 // save parameters for subset indices
-	ConstSmartPtr<MGSubsetHandler> ssh = m_pVMDisc->approx_space()->domain()->subset_handler();
+	ConstSmartPtr<MGSubsetHandler> ssh = m_pCE->approx_space()->domain()->subset_handler();
 
 	// if special params saved for individual subsets, take these
 	typedef typename std::map<std::string, Params>::const_iterator MapIter;
@@ -153,13 +153,13 @@ void ChannelLeak<TDomain>::update_gating(number newTime, Vertex* vrt, const std:
 
 
 template<typename TDomain>
-void ChannelLeak<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
+void ChannelLeak<TDomain>::current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
 {
 	// getting attachments for vertex
-	number VM 	 = vrt_values[m_pVMDisc->_v_];
+	number VM 	 = vrt_values[m_pCE->_v_];
 
 	// params for this subset
-	int si = m_pVMDisc->current_subset_index();
+	int si = m_pCE->current_subset_index();
 	const number g = m_mSubsetParams[si].g;
 	const number E = m_mSubsetParams[si].E;
 
@@ -191,7 +191,7 @@ template<typename TDomain>
 number ChannelLeak<TDomain>::
 lin_dep_on_pot(Vertex* vrt, const std::vector<number>& vrt_values)
 {
-	return m_mSubsetParams[m_pVMDisc->current_subset_index()].g;
+	return m_mSubsetParams[m_pCE->current_subset_index()].g;
 }
 
 

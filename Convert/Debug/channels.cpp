@@ -6,7 +6,7 @@
  
 { 
 	 typedef ar_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("ar_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -24,7 +24,7 @@
  
 { 
 	 typedef ca_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("ca_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -49,7 +49,7 @@
  
 { 
 	 typedef cad_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("cad_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -70,7 +70,7 @@
  
 { 
 	 typedef CaT_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("CaT_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -107,7 +107,7 @@
  
 { 
 	 typedef HH2_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("HH2_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -130,7 +130,7 @@
  
 { 
 	 typedef inwardrect_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("inwardrect_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -155,7 +155,7 @@
  
 { 
 	 typedef kca_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("kca_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -180,7 +180,7 @@
  
 { 
 	 typedef kir_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("kir_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -201,7 +201,7 @@
  
 { 
 	 typedef km_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("km_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -226,7 +226,7 @@
  
 { 
 	 typedef kv_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("kv_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -251,7 +251,7 @@
  
 { 
 	 typedef na_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("na_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -285,7 +285,7 @@
  
 { 
 	 typedef NMDA_Mg_T_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("NMDA_Mg_T_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -347,7 +347,7 @@
  
 { 
 	 typedef passive_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("passive_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -364,7 +364,7 @@
  
 { 
 	 typedef release_BMK_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("release_BMK_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -382,7 +382,7 @@
  
 { 
 	 typedef release_exp_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("release_exp_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -401,7 +401,7 @@
  
 { 
 	 typedef caL3d_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("caL3d_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -427,7 +427,7 @@
  
 { 
 	 typedef pump_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("pump_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -447,7 +447,7 @@
  
 { 
 	 typedef h_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("h_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -473,7 +473,7 @@
  
 { 
 	 typedef hh_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("hh_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -495,7 +495,7 @@
  
 { 
 	 typedef ca_converted_allNernst_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("ca_converted_allNernst_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -520,7 +520,7 @@
  
 { 
 	 typedef pump_converted_allNernst_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("pump_converted_allNernst_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -541,7 +541,7 @@
  
 { 
 	 typedef hh_converted_allNernst_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("hh_converted_allNernst_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -563,7 +563,7 @@
  
 { 
 	 typedef CaT_converted_allNernst_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("CaT_converted_allNernst_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -600,7 +600,7 @@
  
 { 
 	 typedef NMDA_Mg_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("NMDA_Mg_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -659,7 +659,7 @@
  
 { 
 	 typedef Kv4_csi_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("Kv4_csi_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -705,7 +705,7 @@
  
 { 
 	 typedef Kv4_csiosi_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("Kv4_csiosi_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -757,7 +757,7 @@
  
 { 
 	 typedef myseclamp_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("myseclamp_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -777,7 +777,7 @@
  
 { 
 	 typedef kfast_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("kfast_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -803,7 +803,7 @@
  
 { 
 	 typedef kslow_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("kslow_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -829,7 +829,7 @@
  
 { 
 	 typedef kadist_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("kadist_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -863,7 +863,7 @@
  
 { 
 	 typedef kaprox_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("kaprox_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -897,7 +897,7 @@
  
 { 
 	 typedef kdrca1_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("kdrca1_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -921,7 +921,7 @@
  
 { 
 	 typedef na3n_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("na3n_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -964,7 +964,7 @@
  
 { 
 	 typedef naxn_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("naxn_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -999,7 +999,7 @@
  
 { 
 	 typedef kdr_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("kdr_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -1027,7 +1027,7 @@
  
 { 
 	 typedef namir_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("namir_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -1068,7 +1068,7 @@
  
 { 
 	 typedef iq_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("iq_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -1090,7 +1090,7 @@
  
 { 
 	 typedef borgkm_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("borgkm_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -1114,7 +1114,7 @@
  
 { 
 	 typedef kf_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("kf_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -1138,7 +1138,7 @@
  
 { 
 	 typedef ks_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("ks_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -1162,7 +1162,7 @@
  
 { 
 	 typedef nap_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("nap_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -1187,7 +1187,7 @@
  
 { 
 	 typedef nattxs_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("nattxs_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -1218,7 +1218,7 @@
  
 { 
 	 typedef nav1p8_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("nav1p8_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -1249,7 +1249,7 @@
  
 { 
 	 typedef nav1p9_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("nav1p9_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -1280,7 +1280,7 @@
  
 { 
 	 typedef hh_Cp_scaled_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("hh_Cp_scaled_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -1301,7 +1301,7 @@
  
 { 
 	 typedef hh_Cs_scaled_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("hh_Cs_scaled_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -1323,7 +1323,7 @@
  
 { 
 	 typedef hh_Ca_scaled_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("hh_Ca_scaled_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -1345,7 +1345,7 @@
  
 { 
 	 typedef Kv1_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("Kv1_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -1362,7 +1362,7 @@
  
 { 
 	 typedef nadifl_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("nadifl_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -1379,7 +1379,7 @@
  
 { 
 	 typedef AXNODE75_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("AXNODE75_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -1431,7 +1431,7 @@
  
 { 
 	 typedef SK_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("SK_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -1452,7 +1452,7 @@
  
 { 
 	 typedef KDRf_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("KDRf_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -1471,7 +1471,7 @@
  
 { 
 	 typedef KDRs_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("KDRs_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -1491,7 +1491,7 @@
  
 { 
 	 typedef HCN_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("HCN_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -1509,7 +1509,7 @@
  
 { 
 	 typedef HVA_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("HVA_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -1536,7 +1536,7 @@
  
 { 
 	 typedef Na_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("Na_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -1557,7 +1557,7 @@
  
 { 
 	 typedef NaL_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("NaL_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -1576,7 +1576,7 @@
  
 { 
 	 typedef gpi_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("gpi_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -1593,7 +1593,7 @@
  
 { 
 	 typedef cacum_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("cacum_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -1613,7 +1613,7 @@
  
 { 
 	 typedef PARAK75_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("PARAK75_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 
@@ -1641,7 +1641,7 @@
  
 { 
 	 typedef Na2_converted_standard_UG<TDomain> T; 
-	 typedef IChannel<TDomain> TBase; 
+	 typedef ICableMembraneTransport<TDomain> TBase; 
 	 string name = string("Na2_converted_standard_UG").append(suffix); 
 	 reg.add_class_<T, TBase >(name, grp) 
 	 	 .template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)") 

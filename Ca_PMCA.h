@@ -18,15 +18,15 @@ namespace cable {
 
 template <typename TDomain>
 class Ca_PMCA
-	: public IChannel<TDomain>
+	: public ICableMembraneTransport<TDomain>
 {
 	public:
-		using IChannel<TDomain>::m_pVMDisc;
+		using ICableMembraneTransport<TDomain>::m_pCE;
 
-		/// @copydoc IChannel<TDomain>::IChannel(const char*)
+		/// @copydoc ICableMembraneTransport<TDomain>::ICableMembraneTransport(const char*)
 		Ca_PMCA(const char* functions, const char* subsets);
 
-		/// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&)
+		/// @copydoc ICableMembraneTransport<TDomain>::ICableMembraneTransport(const std::vector<std::string>&)
 		Ca_PMCA(const std::vector<std::string>& functions, const std::vector<std::string>& subsets);
 
 		/// destructor
@@ -42,11 +42,11 @@ class Ca_PMCA
 
 		void set_IMAX_P(number IMAX);
 
-		// inherited from IChannel
+		// inherited from ICableMembraneTransport
 		virtual void init(Vertex* vrt, const std::vector<number>& vrt_values);
 		virtual void update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values);
-		virtual void ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues);
-		virtual void vm_disc_available();
+		virtual void current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues);
+		virtual void ce_obj_available();
 		//virtual void Jacobi_sets(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outJFlux);
 		virtual number lin_dep_on_pot(Vertex* vrt, const std::vector<number>& vrt_values);
 

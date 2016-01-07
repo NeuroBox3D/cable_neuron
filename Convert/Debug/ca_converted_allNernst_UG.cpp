@@ -22,7 +22,7 @@ double ca_converted_allNernst_UG<TDomain>::efun(double z)
  
 // adding function which always inits_attachments 
 template<typename TDomain> 
-void ca_converted_allNernst_UG<TDomain>::vm_disc_available()  
+void ca_converted_allNernst_UG<TDomain>::ce_obj_available()  
 {  
 	init_attachments();  
 }  
@@ -113,7 +113,7 @@ vmax = val;
 template<typename TDomain> 
 void ca_converted_allNernst_UG<TDomain>::init_attachments() 
 { 
-SmartPtr<Grid> spGrid = m_pVMDisc->approx_space()->domain()->grid(); 
+SmartPtr<Grid> spGrid = m_pCE->approx_space()->domain()->grid(); 
 if (spGrid->has_vertex_attachment(this->mGate)) 
 UG_THROW("Attachment necessary (mGate) for ca_converted_allNernst_UG channel dynamics "
 "could not be made, since it already exists."); 
@@ -160,7 +160,7 @@ std::vector<number> ca_converted_allNernst_UG<TDomain>::state_values(number x, n
 	 // Definitions for Iteration over all Elements 
 	 typedef typename DoFDistribution::traits<Vertex>::const_iterator itType; 
 	 SubsetGroup ssGrp; 
-	 try { ssGrp = SubsetGroup(m_pVMDisc->approx_space()->domain()->subset_handler(), this->m_vSubset);} 
+	 try { ssGrp = SubsetGroup(m_pCE->approx_space()->domain()->subset_handler(), this->m_vSubset);} 
 	 UG_CATCH_THROW("Subset group creation failed."); 
  
 	 itType iter; 
@@ -173,10 +173,10 @@ std::vector<number> ca_converted_allNernst_UG<TDomain>::state_values(number x, n
 	 	 // iterating over all elements 
 	 	 for (size_t si=0; si < ssGrp.size(); si++) 
 	 	 { 
-	 	 	 itType iterBegin = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]); 
-	 	 	 itType iterEnd = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template end<Vertex>(ssGrp[si]); 
+	 	 	 itType iterBegin = m_pCE->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]); 
+	 	 	 itType iterEnd = m_pCE->approx_space()->dof_distribution(GridLevel::TOP)->template end<Vertex>(ssGrp[si]); 
  
-	 	 	 const position_accesor_type& aaPos = m_pVMDisc->approx_space()->domain()->position_accessor(); 
+	 	 	 const position_accesor_type& aaPos = m_pCE->approx_space()->domain()->position_accessor(); 
 	 	 	 if (si==0) 
 	 	 	 { 
 	 	 	 	 bestVrt = *iterBegin; 
@@ -212,13 +212,13 @@ void ca_converted_allNernst_UG<TDomain>::init(Vertex* vrt, const std::vector<num
 //get celsius and time
 // inits temperatur from kalvin to celsius and some other typical neuron values
 number m_T, m_R, m_F; 
-m_T = m_pVMDisc->temperature(); 
-m_R = m_pVMDisc->R; 
-m_F = m_pVMDisc->F; 
+m_T = m_pCE->temperature(); 
+m_R = m_pCE->R; 
+m_F = m_pCE->F; 
  
  
-number celsius = m_pVMDisc->temperature_celsius(); 
-number dt = m_pVMDisc->time(); 
+number celsius = m_pCE->temperature_celsius(); 
+number dt = m_pCE->time(); 
 // make preparing vor getting values of every edge 
 number v = vrt_values[CableEquation<TDomain>::_v_]; 
 number ca = vrt_values[CableEquation<TDomain>::_ca_]; 
@@ -250,14 +250,14 @@ void ca_converted_allNernst_UG<TDomain>::update_gating(number newTime, Vertex* v
 { 
 // inits temperatur from kalvin to celsius and some other typical neuron values
 number m_T, m_R, m_F; 
-m_T = m_pVMDisc->temperature(); 
-m_R = m_pVMDisc->R; 
-m_F = m_pVMDisc->F; 
+m_T = m_pCE->temperature(); 
+m_R = m_pCE->R; 
+m_F = m_pCE->F; 
  
  
-number celsius = m_pVMDisc->temperature_celsius(); 
- number FARADAY = m_pVMDisc->F; 
- number dt = newTime - m_pVMDisc->time(); 
+number celsius = m_pCE->temperature_celsius(); 
+ number FARADAY = m_pCE->F; 
+ number dt = newTime - m_pCE->time(); 
 number v = vrt_values[CableEquation<TDomain>::_v_]; 
 number ca = vrt_values[CableEquation<TDomain>::_ca_]; 
 
@@ -301,34 +301,34 @@ aahGate[vrt] = h;
  
  
 template<typename TDomain> 
-void ca_converted_allNernst_UG<TDomain>::ionic_current(Vertex* ver, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues) 
+void ca_converted_allNernst_UG<TDomain>::current(Vertex* ver, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues) 
 { 
  
 // inits temperatur from kalvin to celsius and some other typical neuron values
 number m_T, m_R, m_F; 
-m_T = m_pVMDisc->temperature(); 
-m_R = m_pVMDisc->R; 
-m_F = m_pVMDisc->F; 
+m_T = m_pCE->temperature(); 
+m_R = m_pCE->R; 
+m_F = m_pCE->F; 
  
  
 number m = aamGate[ver]; 
 number h = aahGate[ver]; 
-number ca = vrt_values[m_pVMDisc->_ca_]; 
-number v =  vrt_values[m_pVMDisc->_v_]; 
+number ca = vrt_values[m_pCE->_ca_]; 
+number v =  vrt_values[m_pCE->_v_]; 
  
  
-number t = m_pVMDisc->time(); 
+number t = m_pCE->time(); 
  
  
-const number helpV = 1e3*(m_pVMDisc->R*m_pVMDisc->temperature())/m_pVMDisc->F; 
+const number helpV = 1e3*(m_pCE->R*m_pCE->temperature())/m_pCE->F; 
 number eca; 
-if (m_pVMDisc->rev_pot_ca() == 0) 
+if (m_pCE->rev_pot_ca() == 0) 
 { 
-	  eca = helpV*(log(m_pVMDisc->ca_out()/ca)); 
+	  eca = helpV*(log(m_pCE->ca_out()/ca)); 
 } 
 else 
 { 
-	  eca = m_pVMDisc->rev_pot_ca(); 
+	  eca = m_pCE->rev_pot_ca(); 
 } 
  
  

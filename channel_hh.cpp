@@ -18,7 +18,7 @@ namespace cable {
 
 template<typename TDomain>
 ChannelHH<TDomain>::ChannelHH(const char* functions, const char* subsets)
-try : IChannel<TDomain>(functions, subsets),
+try : ICableMembraneTransport<TDomain>(functions, subsets),
 m_log_nGate(false), m_log_hGate(false), m_log_mGate(false) {}
 UG_CATCH_THROW("Error in ChannelHH initializer list.");
 
@@ -28,7 +28,7 @@ ChannelHH<TDomain>::ChannelHH
 	const std::vector<std::string>& functions,
 	const std::vector<std::string>& subsets
 )
-try : IChannel<TDomain>(functions, subsets),
+try : ICableMembraneTransport<TDomain>(functions, subsets),
 m_log_nGate(false), m_log_hGate(false), m_log_mGate(false) {}
 UG_CATCH_THROW("Error in ChannelHH initializer list.");
 
@@ -90,10 +90,10 @@ vtrap(number x, number y)
 
 
 template<typename TDomain>
-void ChannelHH<TDomain>::vm_disc_available()
+void ChannelHH<TDomain>::ce_obj_available()
 {
 // save parameters for subset indices
-	ConstSmartPtr<MGSubsetHandler> ssh = m_pVMDisc->approx_space()->domain()->subset_handler();
+	ConstSmartPtr<MGSubsetHandler> ssh = m_pCE->approx_space()->domain()->subset_handler();
 
 	// if special params saved for individual subsets, take these
 	typedef typename std::map<std::string, Params>::const_iterator MapIter;
@@ -159,7 +159,7 @@ std::vector<number> ChannelHH<TDomain>::state_values(number x, number y, number 
 	// Definitions for Iterating over all Elements
 	typedef typename DoFDistribution::traits<Vertex>::const_iterator itType;
 	SubsetGroup ssGrp;
-	try{ ssGrp = SubsetGroup(m_pVMDisc->approx_space()->domain()->subset_handler(), this->m_vSubset);}
+	try{ ssGrp = SubsetGroup(m_pCE->approx_space()->domain()->subset_handler(), this->m_vSubset);}
 	UG_CATCH_THROW("Subset group creation failed.");
 
 	//UG_LOG("Channel: Before iteration" << std::endl);
@@ -176,10 +176,10 @@ std::vector<number> ChannelHH<TDomain>::state_values(number x, number y, number 
 		// iterating over all elements
 		for (size_t si=0; si < ssGrp.size(); si++)
 		{
-			itType iterBegin = m_pVMDisc->approx_space()->dof_distribution(GridLevel(), false)->template begin<Vertex>(ssGrp[si]);
-			itType iterEnd = m_pVMDisc->approx_space()->dof_distribution(GridLevel(), false)->template end<Vertex>(ssGrp[si]);
+			itType iterBegin = m_pCE->approx_space()->dof_distribution(GridLevel(), false)->template begin<Vertex>(ssGrp[si]);
+			itType iterEnd = m_pCE->approx_space()->dof_distribution(GridLevel(), false)->template end<Vertex>(ssGrp[si]);
 
-			const position_accessor_type& aaPos = m_pVMDisc->approx_space()->domain()->position_accessor();
+			const position_accessor_type& aaPos = m_pCE->approx_space()->domain()->position_accessor();
 			// if the right vertex of needed Position is found write out values
 			if (si==0)
 			{
@@ -219,7 +219,7 @@ template<typename TDomain>
 void ChannelHH<TDomain>::init_attachments()
 {
 	// attach attachments
-	SmartPtr<Grid> spGrid = m_pVMDisc->approx_space()->domain()->grid();
+	SmartPtr<Grid> spGrid = m_pCE->approx_space()->domain()->grid();
 
 	if (spGrid->has_vertex_attachment(m_MGate))
 		UG_THROW("Attachment necessary (MGate) for Hodgkin and Huxley channel dynamics "
@@ -270,9 +270,9 @@ void ChannelHH<TDomain>::init(Vertex* vrt, const std::vector<number>& vrt_values
 template<typename TDomain>
 void ChannelHH<TDomain>::update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values)
 {
-	number dt = newTime - m_pVMDisc->time();
+	number dt = newTime - m_pCE->time();
 	number VM = vrt_values[CableEquation<TDomain>::_v_];
-	number tmp = m_pVMDisc->temperature_celsius();
+	number tmp = m_pCE->temperature_celsius();
 	number tmp_factor = std::pow(2.3, (tmp-23.0)/10.0);
 
 	// values for m gate
@@ -300,7 +300,7 @@ void ChannelHH<TDomain>::update_gating(number newTime, Vertex* vrt, const std::v
 
 
 template<typename TDomain>
-void ChannelHH<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
+void ChannelHH<TDomain>::current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
 {
 	// getting attachments for vertex
 	number NGate = m_aaNGate[vrt];
@@ -309,14 +309,14 @@ void ChannelHH<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>& v
 	number VM 	 = vrt_values[CableEquation<TDomain>::_v_];
 
 	// params for this subset
-	int si = m_pVMDisc->current_subset_index();
+	int si = m_pCE->current_subset_index();
 	const number gK = m_mSubsetParams[si].gK;
 	const number gNa = m_mSubsetParams[si].gNa;
 
-	number rev_pot_K = m_pVMDisc->rev_pot_k();
-	number rev_pot_Na = m_pVMDisc->rev_pot_na();
+	number rev_pot_K = m_pCE->rev_pot_k();
+	number rev_pot_Na = m_pCE->rev_pot_na();
 
-	number tmp = m_pVMDisc->temperature_celsius();
+	number tmp = m_pCE->temperature_celsius();
 	number tmp_factor = std::pow(2.3, (tmp-23.0)/10.0);
 
 	// single channel type fluxes
@@ -367,11 +367,11 @@ lin_dep_on_pot(Vertex* vrt, const std::vector<number>& vrt_values)
 	number HGate = m_aaHGate[vrt];
 
 	// params for this subset
-	int si = m_pVMDisc->current_subset_index();
+	int si = m_pCE->current_subset_index();
 	const number gK = m_mSubsetParams[si].gK;
 	const number gNa = m_mSubsetParams[si].gNa;
 
-	number tmp = m_pVMDisc->temperature_celsius();
+	number tmp = m_pCE->temperature_celsius();
 	number tmp_factor = std::pow(2.3, (tmp-23.0)/10.0);
 
 	// single channel type fluxes
@@ -400,7 +400,7 @@ specify_write_function_indices()
 
 template <typename TDomain>
 ChannelHHNernst<TDomain>::ChannelHHNernst(const char* functions, const char* subsets)
-try : IChannel<TDomain>(functions, subsets),
+try : ICableMembraneTransport<TDomain>(functions, subsets),
 m_log_nGate(false), m_log_hGate(false), m_log_mGate(false) {}
 UG_CATCH_THROW("Error in ChannelHHNernst initializer list.");
 
@@ -410,7 +410,7 @@ ChannelHHNernst<TDomain>::ChannelHHNernst
 	const std::vector<std::string>& functions,
 	const std::vector<std::string>& subsets
 )
-try : IChannel<TDomain>(functions, subsets),
+try : ICableMembraneTransport<TDomain>(functions, subsets),
 m_log_nGate(false), m_log_hGate(false), m_log_mGate(false) {}
 UG_CATCH_THROW("Error in ChannelHHNernst initializer list.");
 
@@ -472,10 +472,10 @@ vtrap(number x, number y)
 
 
 template<typename TDomain>
-void ChannelHHNernst<TDomain>::vm_disc_available()
+void ChannelHHNernst<TDomain>::ce_obj_available()
 {
 // save parameters for subset indices
-	ConstSmartPtr<MGSubsetHandler> ssh = m_pVMDisc->approx_space()->domain()->subset_handler();
+	ConstSmartPtr<MGSubsetHandler> ssh = m_pCE->approx_space()->domain()->subset_handler();
 
 	// if special params saved for individual subsets, take these
 	typedef typename std::map<std::string, Params>::const_iterator MapIter;
@@ -541,7 +541,7 @@ std::vector<number> ChannelHHNernst<TDomain>::state_values(number x, number y, n
 	// Definitions for Iterating over all Elements
 	typedef typename DoFDistribution::traits<Vertex>::const_iterator itType;
 	SubsetGroup ssGrp;
-	try{ ssGrp = SubsetGroup(m_pVMDisc->approx_space()->domain()->subset_handler(), this->m_vSubset);}
+	try{ ssGrp = SubsetGroup(m_pCE->approx_space()->domain()->subset_handler(), this->m_vSubset);}
 	UG_CATCH_THROW("Subset group creation failed.");
 
 	//UG_LOG("Channel: Before iteration" << std::endl);
@@ -558,10 +558,10 @@ std::vector<number> ChannelHHNernst<TDomain>::state_values(number x, number y, n
 		// iterating over all elements
 		for (size_t si=0; si < ssGrp.size(); si++)
 		{
-			itType iterBegin = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]);
-			itType iterEnd = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template end<Vertex>(ssGrp[si]);
+			itType iterBegin = m_pCE->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]);
+			itType iterEnd = m_pCE->approx_space()->dof_distribution(GridLevel::TOP)->template end<Vertex>(ssGrp[si]);
 
-			const position_accessor_type& aaPos = m_pVMDisc->approx_space()->domain()->position_accessor();
+			const position_accessor_type& aaPos = m_pCE->approx_space()->domain()->position_accessor();
 
 			if (si==0)
 			{
@@ -600,7 +600,7 @@ template<typename TDomain>
 void ChannelHHNernst<TDomain>::init_attachments()
 {
 	// attach attachments
-	SmartPtr<Grid> spGrid = m_pVMDisc->approx_space()->domain()->grid();
+	SmartPtr<Grid> spGrid = m_pCE->approx_space()->domain()->grid();
 
 	if (spGrid->has_vertex_attachment(m_MGate))
 		UG_THROW("Attachment necessary (MGate) for Hodgkin and Huxley channel dynamics "
@@ -652,9 +652,9 @@ void ChannelHHNernst<TDomain>::init(Vertex* vrt, const std::vector<number>& vrt_
 template<typename TDomain>
 void ChannelHHNernst<TDomain>::update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values)
 {
-	number dt = newTime - m_pVMDisc->time();
+	number dt = newTime - m_pCE->time();
 	number VM = vrt_values[CableEquation<TDomain>::_v_];
-	number tmp = m_pVMDisc->temperature_celsius();
+	number tmp = m_pCE->temperature_celsius();
 	number tmp_factor = std::pow(2.3, (tmp-23.0)/10.0);
 
 	// values for m gate
@@ -680,7 +680,7 @@ void ChannelHHNernst<TDomain>::update_gating(number newTime, Vertex* vrt, const 
 
 
 template<typename TDomain>
-void ChannelHHNernst<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
+void ChannelHHNernst<TDomain>::current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
 {
 	// getting attachments out of Vertex
 	number NGate = m_aaNGate[vrt];
@@ -691,20 +691,20 @@ void ChannelHHNernst<TDomain>::ionic_current(Vertex* vrt, const std::vector<numb
 	number na 	 = vrt_values[CableEquation<TDomain>::_na_];
 
 	// params for this subset
-	int si = m_pVMDisc->current_subset_index();
+	int si = m_pCE->current_subset_index();
 	const number gK = m_mSubsetParams[si].gK;
 	const number gNa = m_mSubsetParams[si].gNa;
 
-	const number R = m_pVMDisc->R;
-	const number F = m_pVMDisc->F;
-	const number T = m_pVMDisc->temperature();
+	const number R = m_pCE->R;
+	const number F = m_pCE->F;
+	const number T = m_pCE->temperature();
 
-	//UG_ASSERT(m_pVMDisc->valid(), "Channel has not been assigned a vmDisc object yet!");
+	//UG_ASSERT(m_pCE->valid(), "Channel has not been assigned a vmDisc object yet!");
 	const number helpV = 1e3 * R*T/F;
-	number potassium_nernst_eq 	= helpV*(std::log(m_pVMDisc->k_out()/k));
-	number sodium_nernst_eq	 	= helpV*(std::log(m_pVMDisc->na_out()/na));
+	number potassium_nernst_eq 	= helpV*(std::log(m_pCE->k_out()/k));
+	number sodium_nernst_eq	 	= helpV*(std::log(m_pCE->na_out()/na));
 
-	number tmp = m_pVMDisc->temperature_celsius();
+	number tmp = m_pCE->temperature_celsius();
 	number tmp_factor = std::pow(2.3, (tmp-23.0)/10.0);
 
 	// single channel ion fluxes
@@ -732,10 +732,10 @@ void ChannelHHNernst<TDomain>::Jacobi_sets(Vertex* vrt, const std::vector<number
 	number k 	 = vrt_values[CableEquation<TDomain>::_k_];
 	number na 	 = vrt_values[CableEquation<TDomain>::_na_];
 
-	UG_ASSERT(m_pVMDisc, "Channel has not been assigned a vmDisc object yet!");
+	UG_ASSERT(m_pCE, "Channel has not been assigned a vmDisc object yet!");
 	const number helpV = (m_R*m_T)/m_F;
-	const number potassium_nernst_eq_dK 	=  helpV * (-m_pVMDisc->k_out()/k)*0.18; //helpV * (-K_out/pow(u(_K_,co),2));
-	const number sodium_nernst_eq_dNa		=  -helpV * (-m_pVMDisc->na_out()/na)*0.003;
+	const number potassium_nernst_eq_dK 	=  helpV * (-m_pCE->k_out()/k)*0.18; //helpV * (-K_out/pow(u(_K_,co),2));
+	const number sodium_nernst_eq_dNa		=  -helpV * (-m_pCE->na_out()/na)*0.003;
 
 	outJFlux.push_back(m_g_K*pow(NGate,4) + m_g_Na*pow(MGate,3)*HGate + m_g_I);
 	outJFlux.push_back(potassium_nernst_eq_dK);
@@ -756,11 +756,11 @@ lin_dep_on_pot(Vertex* vrt, const std::vector<number>& vrt_values)
 	number HGate = m_aaHGate[vrt];
 
 	// params for this subset
-	int si = m_pVMDisc->current_subset_index();
+	int si = m_pCE->current_subset_index();
 	const number gK = m_mSubsetParams[si].gK;
 	const number gNa = m_mSubsetParams[si].gNa;
 
-	number tmp = m_pVMDisc->temperature_celsius();
+	number tmp = m_pCE->temperature_celsius();
 	number tmp_factor = std::pow(2.3, (tmp-23.0)/10.0);
 
 	// single channel ion fluxes

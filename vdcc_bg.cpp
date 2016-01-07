@@ -18,7 +18,7 @@ namespace cable {
 
 template<typename TDomain>
 VDCC_BG_Cable<TDomain>::VDCC_BG_Cable(const char* functions, const char* subsets)
-try : IChannel<TDomain>(functions, subsets),
+try : ICableMembraneTransport<TDomain>(functions, subsets),
 	m_mp(2), m_z_m(3.4), m_v12_m(-21.0), m_tau0_m(1.5),
 	m_hp(1), m_z_h(-2.0), m_v12_h(-40.0), m_tau0_h(75.0),
 	m_perm(3.8e-10),
@@ -31,7 +31,7 @@ VDCC_BG_Cable<TDomain>::VDCC_BG_Cable
 	const std::vector<std::string>& functions,
 	const std::vector<std::string>& subsets
 )
-try : IChannel<TDomain>(functions, subsets),
+try : ICableMembraneTransport<TDomain>(functions, subsets),
 	m_mp(2), m_z_m(3.4), m_v12_m(-21.0), m_tau0_m(1.5),
 	m_hp(1), m_z_h(-2.0), m_v12_h(-40.0), m_tau0_h(75.0),
 	m_perm(3.8e-10),
@@ -53,7 +53,7 @@ template<typename TDomain> void VDCC_BG_Cable<TDomain>::set_log_mGate(bool bLogM
 
 
 template<typename TDomain>
-void VDCC_BG_Cable<TDomain>::vm_disc_available()
+void VDCC_BG_Cable<TDomain>::ce_obj_available()
 {
 	init_attachments();
 }
@@ -90,7 +90,7 @@ std::vector<number> VDCC_BG_Cable<TDomain>::state_values(number x, number y, num
 	// Definitions for Iterating over all Elements
 	typedef typename DoFDistribution::traits<Vertex>::const_iterator itType;
 	SubsetGroup ssGrp;
-	try{ ssGrp = SubsetGroup(m_pVMDisc->approx_space()->domain()->subset_handler(), this->m_vSubset);}
+	try{ ssGrp = SubsetGroup(m_pCE->approx_space()->domain()->subset_handler(), this->m_vSubset);}
 	UG_CATCH_THROW("Subset group creation failed.");
 
 	//UG_LOG("Channel: Before iteration" << std::endl);
@@ -107,10 +107,10 @@ std::vector<number> VDCC_BG_Cable<TDomain>::state_values(number x, number y, num
 		// iterating over all elements
 		for (size_t si=0; si < ssGrp.size(); si++)
 		{
-			itType iterBegin = m_pVMDisc->approx_space()->dof_distribution(GridLevel(), false)->template begin<Vertex>(ssGrp[si]);
-			itType iterEnd = m_pVMDisc->approx_space()->dof_distribution(GridLevel(), false)->template end<Vertex>(ssGrp[si]);
+			itType iterBegin = m_pCE->approx_space()->dof_distribution(GridLevel(), false)->template begin<Vertex>(ssGrp[si]);
+			itType iterEnd = m_pCE->approx_space()->dof_distribution(GridLevel(), false)->template end<Vertex>(ssGrp[si]);
 
-			const position_accessor_type& aaPos = m_pVMDisc->approx_space()->domain()->position_accessor();
+			const position_accessor_type& aaPos = m_pCE->approx_space()->domain()->position_accessor();
 			// if the right vertex of needed Position is found write out values
 			if (si==0)
 			{
@@ -148,7 +148,7 @@ template<typename TDomain>
 void VDCC_BG_Cable<TDomain>::init_attachments()
 {
 	// attach attachments
-	SmartPtr<Grid> spGrid = m_pVMDisc->approx_space()->domain()->grid();
+	SmartPtr<Grid> spGrid = m_pCE->approx_space()->domain()->grid();
 
 	if (spGrid->has_vertex_attachment(m_MGate))
 		UG_THROW("Attachment necessary (MGate) for Borg-Graham type VDCC dynamics "
@@ -172,9 +172,9 @@ void VDCC_BG_Cable<TDomain>::init(Vertex* vrt, const std::vector<number>& vrt_va
 {
 	number VM = vrt_values[CableEquation<TDomain>::_v_];
 
-	const number& R = m_pVMDisc->R;
-	const number& F = m_pVMDisc->F;
-	const number& T = m_pVMDisc->temperature();
+	const number& R = m_pCE->R;
+	const number& F = m_pCE->F;
+	const number& T = m_pCE->temperature();
 
 	m_aaMGate[vrt] =  1.0 / (1.0 + exp(-m_z_m * (VM - m_v12_m) * 1e-3*F/(R*T)));
 	m_aaHGate[vrt] = 1.0 / (1.0 + exp(-m_z_h * (VM - m_v12_h) * 1e-3*F/(R*T)));
@@ -183,12 +183,12 @@ void VDCC_BG_Cable<TDomain>::init(Vertex* vrt, const std::vector<number>& vrt_va
 template<typename TDomain>
 void VDCC_BG_Cable<TDomain>::update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values)
 {
-	number dt = newTime - m_pVMDisc->time();
+	number dt = newTime - m_pCE->time();
 	number VM = vrt_values[CableEquation<TDomain>::_v_];
 
-	const number& R = m_pVMDisc->R;
-	const number& F = m_pVMDisc->F;
-	const number& T = m_pVMDisc->temperature();
+	const number& R = m_pCE->R;
+	const number& F = m_pCE->F;
+	const number& T = m_pCE->temperature();
 
 	number& mGate = m_aaMGate[vrt];
 	number& hGate = m_aaHGate[vrt];
@@ -249,18 +249,18 @@ void VDCC_BG_Cable<TDomain>::update_gating(number newTime, Vertex* vrt, const st
 
 
 template<typename TDomain>
-void VDCC_BG_Cable<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
+void VDCC_BG_Cable<TDomain>::current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
 {
 	// getting attachments for vertex
 	number MGate = m_aaMGate[vrt];
 	number HGate = m_aaHGate[vrt];
 	number VM 	 = 1e-3*vrt_values[CableEquation<TDomain>::_v_];	// scale from mV to V!
 	number caCyt = vrt_values[CableEquation<TDomain>::_ca_];
-	number caExt = m_pVMDisc->ca_out();
+	number caExt = m_pCE->ca_out();
 
-	const number& R = m_pVMDisc->R;
-	const number& F = m_pVMDisc->F;
-	const number& T = m_pVMDisc->temperature();
+	const number& R = m_pCE->R;
+	const number& F = m_pCE->F;
+	const number& T = m_pCE->temperature();
 
 	number gating = pow(MGate, m_mp);
 	gating *= pow(HGate, m_hp);

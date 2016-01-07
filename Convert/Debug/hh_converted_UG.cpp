@@ -21,7 +21,7 @@ double hh_converted_UG<TDomain>::vtrap(double x, double y)
  
 // adding function which always inits_attachments 
 template<typename TDomain> 
-void hh_converted_UG<TDomain>::vm_disc_available()  
+void hh_converted_UG<TDomain>::ce_obj_available()  
 {  
 	init_attachments();  
 }  
@@ -33,10 +33,10 @@ template<typename TDomain>
 void hh_converted_UG<TDomain>::init_attachments() 
 { 
 // inits temperatur from kalvin to celsius and some other typical neuron values
-m_pVMDisc->celsius = m_T - 273; 
+m_pCE->celsius = m_T - 273; 
  
  
-SmartPtr<Grid> spGrid = m_pVMDisc->approx_space()->domain()->grid(); 
+SmartPtr<Grid> spGrid = m_pCE->approx_space()->domain()->grid(); 
 if (spGrid->has_vertex_attachment(this->mGate)) 
 UG_THROW("Attachment necessary (mGate) for hh_converted_UG channel dynamics "
 "could not be made, since it already exists."); 
@@ -64,11 +64,11 @@ template<typename TDomain>
 void hh_converted_UG<TDomain>::init(const LocalVector& u, Edge* edge) 
 { 
 //get celsius 
-number celsius = m_pVMDisc->celsius; 
+number celsius = m_pCE->celsius; 
 // make preparing vor getting values of every edge 
 typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; 
 vrt_list vl; 
-m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge); 
+m_pCE->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge); 
  
  
 //over all edges 
@@ -77,9 +77,9 @@ for (size_t l = 0; l< vl.size(); l++)
 	 Vertex* vrt = vl[l]; 
  
  
-number v = u(m_pVMDisc->_v_, l); 
-number na = u(m_pVMDisc->_na_, l); 
-number k = u(m_pVMDisc->_k_, l); 
+number v = u(m_pCE->_v_, l); 
+number na = u(m_pCE->_na_, l); 
+number k = u(m_pCE->_k_, l); 
 
  
 double           alpha, beta, sum, q10; 
@@ -114,12 +114,12 @@ aanGate[vrt] = ninf;
 template<typename TDomain> 
 void hh_converted_UG<TDomain>::update_gating(number newTime, const LocalVector& u, Edge* edge) 
 { 
-number celsius = m_pVMDisc->celsius; 
+number celsius = m_pCE->celsius; 
  
 // make preparing vor getting values of every edge 
 typedef typename MultiGrid::traits<Vertex>::secure_container vrt_list; 
 vrt_list vl; 
-m_pVMDisc->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge); 
+m_pCE->approx_space()->domain()->grid()->associated_elements_sorted(vl, edge); 
  
  
 //over all edges 
@@ -128,10 +128,10 @@ for (size_t l = 0; l< vl.size(); l++)
 	 Vertex* vrt = vl[l]; 
  
  
-number dt = newTime - m_pVMDisc->m_aaTime[vrt]; 
-number v = u(m_pVMDisc->_v_, l); 
-number na = u(m_pVMDisc->_na_, l); 
-number k = u(m_pVMDisc->_k_, l); 
+number dt = newTime - m_pCE->m_aaTime[vrt]; 
+number v = u(m_pCE->_v_, l); 
+number na = u(m_pCE->_na_, l); 
+number k = u(m_pCE->_k_, l); 
 
  
 double m = aamGate[vrt]; 
@@ -179,7 +179,7 @@ aanGate[vrt] = n;
  
  
 template<typename TDomain> 
-void hh_converted_UG<TDomain>::ionic_current(Vertex* ver, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues) 
+void hh_converted_UG<TDomain>::current(Vertex* ver, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues) 
 { 
  
 number m = aamGate[ver]; 
@@ -191,8 +191,8 @@ number v =  vrt_values[CableEquation<TDomain>::_v_];
  
  
 const number helpV = 1e3*(m_R*m_T)/m_F; 
-number ena = helpV*(log(m_pVMDisc->na_out/na)); 
-number ek = helpV*(log(m_pVMDisc->k_out/k)); 
+number ena = helpV*(log(m_pCE->na_out/na)); 
+number ek = helpV*(log(m_pCE->k_out/k)); 
  
  
 number gna = gnabar*m*m*m*h; 

@@ -18,15 +18,15 @@ namespace cable {
 
 template <typename TDomain>
 class IonLeakage
-	: public IChannel<TDomain>
+	: public ICableMembraneTransport<TDomain>
 {
 	public:
-		using IChannel<TDomain>::m_pVMDisc;
+		using ICableMembraneTransport<TDomain>::m_pCE;
 
-		/// @copydoc IChannel<TDomain>::IChannel(const char*)
+		/// @copydoc ICableMembraneTransport<TDomain>::ICableMembraneTransport(const char*)
 		IonLeakage(const char* functions, const char* subsets);
 
-		/// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&)
+		/// @copydoc ICableMembraneTransport<TDomain>::ICableMembraneTransport(const std::vector<std::string>&)
 		IonLeakage(const std::vector<std::string>& functions, const std::vector<std::string>& subsets);
 
 		/// destructor
@@ -44,11 +44,11 @@ class IonLeakage
 		/// set permeability
 		void set_perm(number flux_at_rest, number conc_in_rest, number conc_out_rest, number vm_rest, int valency);
 
-		// inherited from IChannel
+		// inherited from ICableMembraneTransport
 		virtual void init(Vertex* vrt, const std::vector<number>& vrt_values);
 		virtual void update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values);
-		virtual void ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues);
-		virtual void vm_disc_available();
+		virtual void current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues);
+		virtual void ce_obj_available();
 
 	private:
 		virtual void specify_write_function_indices();

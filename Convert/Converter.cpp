@@ -51,22 +51,22 @@ std::vector<string> Converter::Read_i_value(std::vector<string> Neuron)
 	{
 		if (All_reads[i]=="ica")
 		{
-			erg.push_back("number ica = m_pVMDisc->flux_ca(); \n");
+			erg.push_back("number ica = m_pCE->flux_ca(); \n");
 			written = true;
 		}
 		if (All_reads[i]=="ik")
 		{
-			erg.push_back("number ik = m_pVMDisc->flux_k(); \n");
+			erg.push_back("number ik = m_pCE->flux_k(); \n");
 			written = true;
 		}
 		if (All_reads[i]=="ina")
 		{
-			erg.push_back("number ina = m_pVMDisc->flux_na(); \n");
+			erg.push_back("number ina = m_pCE->flux_na(); \n");
 			written = true;
 		}
 		if (All_reads[i]=="i")
 		{
-			erg.push_back("number i = m_pVMDisc->flux_v(); \n");
+			erg.push_back("number i = m_pCE->flux_v(); \n");
 			written = true;
 		}
 	}
@@ -807,7 +807,7 @@ bool Converter::begG(string s)
 std::vector<string> Converter::equali(std::vector<pair<int, int> > Pairs, std::vector<string> Zeilen)
 {
 	std::vector<string> out;
-	out.push_back("const number helpV = 1e3*(m_pVMDisc->R*m_pVMDisc->temperature())/m_pVMDisc->F;");
+	out.push_back("const number helpV = 1e3*(m_pCE->R*m_pCE->temperature())/m_pCE->F;");
 
 	size_t Ion, IonRead, IonRend;
 	string IonS;
@@ -877,7 +877,7 @@ std::vector<string> Converter::equali(std::vector<pair<int, int> > Pairs, std::v
 			if (version[j]==false)
 			{
 			std::cout << "read ion: " + ListIonRead[j] + "List ion: " + ListIon[j] << std::endl;
-			out.push_back("number " + ListIonRead[j] + " = helpV*(log(m_pVMDisc->" + ListIon[j] + "_out()/" + ListIon[j] + "));");
+			out.push_back("number " + ListIonRead[j] + " = helpV*(log(m_pCE->" + ListIon[j] + "_out()/" + ListIon[j] + "));");
 			}
 		}
 
@@ -887,7 +887,7 @@ std::vector<string> Converter::equali(std::vector<pair<int, int> > Pairs, std::v
 			if (version[j]==true)
 			{
 			std::cout << "read ion: " + ListIonRead[j] + "List ion: " + ListIon[j] << std::endl;
-			out.push_back("number " + ListIonRead[j] + " = helpV*(log(m_pVMDisc->" + ListIon[j] + "_out()/" + ListIon[j] + "));");
+			out.push_back("number " + ListIonRead[j] + " = helpV*(log(m_pCE->" + ListIon[j] + "_out()/" + ListIon[j] + "));");
 			}
 		}
 
@@ -2428,10 +2428,10 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 	  mycppfile << "// adding function which always inits_attachments \n";
 	  mycppfile << "template<typename TDomain> \n";
-	  mycppfile << "void "+filename+"<TDomain>::vm_disc_available()  \n";
+	  mycppfile << "void "+filename+"<TDomain>::ce_obj_available()  \n";
 	  mycppfile << "{  \n";
 	  mycppfile << "	init_attachments();  \n";
-	  mycppfile << " 	F = m_pVMDisc->F; \n R = m_pVMDisc->R; \n K = m_pVMDisc->temperature(); \n celsius = m_pVMDisc->temperature_celsius(); \n";
+	  mycppfile << " 	F = m_pCE->F; \n R = m_pCE->R; \n K = m_pCE->temperature(); \n celsius = m_pCE->temperature_celsius(); \n";
 	  mycppfile << "}  \n \n \n \n";
 	  mycppfile.close();
 
@@ -2481,10 +2481,10 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 	  myhfile << "template <typename TDomain> \n";
 	  myhfile << "class " + filename + "\n";
-	  myhfile << "    : public IChannel<TDomain> \n";
+	  myhfile << "    : public ICableMembraneTransport<TDomain> \n";
 	  myhfile << "{ \n";
 	  myhfile << "    public: \n ";
-	  myhfile << "using IChannel <TDomain>::m_pVMDisc; \n \n";
+	  myhfile << "using ICableMembraneTransport <TDomain>::m_pCE; \n \n";
 
 
 	  // finde die spezifischen Parameter
@@ -2880,9 +2880,9 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 	  myhfile << "\n"; myhfile << "\n";
 
-	  myhfile << "/// @copydoc IChannel<TDomain>::IChannel(cont char*) \n";
+	  myhfile << "/// @copydoc ICableMembraneTransport<TDomain>::ICableMembraneTransport(cont char*) \n";
 	  myhfile << filename + "(const char* functions, const char* subsets) \n";
-	  myhfile << "try : IChannel<TDomain>(functions, subsets), \n";
+	  myhfile << "try : ICableMembraneTransport<TDomain>(functions, subsets), \n";
 	  /// adding all standard vals of Parameters
 	  size_t gleich;
 	  string add;
@@ -2911,9 +2911,9 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
   	  }
 	  myhfile << "UG_CATCH_THROW(\"Error in "+ filename + " initializer list. \"); \n \n \n";
 
-	  myhfile << "/// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&) \n";
+	  myhfile << "/// @copydoc ICableMembraneTransport<TDomain>::ICableMembraneTransport(const std::vector<std::string>&) \n";
 	  myhfile << filename + "(const std::vector<std::string>& functions, const std::vector<std::string>& subsets) \n";
-	  myhfile << "try : IChannel<TDomain>(functions, subsets), \n";
+	  myhfile << "try : ICableMembraneTransport<TDomain>(functions, subsets), \n";
 	  /// adding all standard vals of Parameters
 	  size_t gleich1;
 	  string add1;
@@ -2967,14 +2967,14 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  }
 
 
-	  /// adding functions of IChannel
+	  /// adding functions of ICableMembraneTransport
 	  myhfile << "/// create attachments and accessors \n";
 	  myhfile << "void init_attachments(); \n";
-	  myhfile << "// inherited from IChannel \n \n";
+	  myhfile << "// inherited from ICableMembraneTransport \n \n";
 	  myhfile << "virtual void init(Vertex* vrt, const std::vector<number>& vrt_values); \n";
 	  myhfile << "virtual void update_gating(number newtime, Vertex* vrt, const std::vector<number>& vrt_values); \n";
-	  myhfile << "virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues); \n";
-	  myhfile << "virtual void vm_disc_available(); \n";
+	  myhfile << "virtual void current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues); \n";
+	  myhfile << "virtual void ce_obj_available(); \n";
 	  myhfile << "virtual std::vector<number> state_values(number x, number y, number z); \n";
 	  myhfile << "\n \n";
 
@@ -3070,7 +3070,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  mycppfile << "void " + filename + "<TDomain>::init_attachments() \n";
 	  mycppfile << "{ \n";
 
-	  mycppfile << "SmartPtr<Grid> spGrid = m_pVMDisc->approx_space()->domain()->grid(); \n";
+	  mycppfile << "SmartPtr<Grid> spGrid = m_pCE->approx_space()->domain()->grid(); \n";
 
 ////////////////////////////////////////////////////////////////////////////////////
 //// Saving all States in one Var also writting first states into cpp and h file
@@ -3252,7 +3252,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  mycppfile << "\t // Definitions for Iteration over all Elements \n";
 	  mycppfile << "\t typedef typename DoFDistribution::traits<Vertex>::const_iterator itType; \n";
 	  mycppfile << "\t SubsetGroup ssGrp; \n";
-	  mycppfile << "\t try { ssGrp = SubsetGroup(m_pVMDisc->approx_space()->domain()->subset_handler(), this->m_vSubset);} \n";
+	  mycppfile << "\t try { ssGrp = SubsetGroup(m_pCE->approx_space()->domain()->subset_handler(), this->m_vSubset);} \n";
 	  mycppfile << "\t UG_CATCH_THROW(\"Subset group creation failed.\"); \n \n";
 
 	  mycppfile << "\t itType iter; \n";
@@ -3278,9 +3278,9 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		  mycppfile << "\t \t // iterating over all elements \n";
 		  mycppfile << "\t \t for (size_t si=0; si < ssGrp.size(); si++) \n";
 		  mycppfile << "\t \t { \n";
-		  mycppfile << "\t \t \t itType iterBegin = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]); \n";
-		  mycppfile << "\t \t \t itType iterEnd = m_pVMDisc->approx_space()->dof_distribution(GridLevel::TOP)->template end<Vertex>(ssGrp[si]); \n \n";
-		  mycppfile << "\t \t \t const position_accesor_type& aaPos = m_pVMDisc->approx_space()->domain()->position_accessor(); \n";
+		  mycppfile << "\t \t \t itType iterBegin = m_pCE->approx_space()->dof_distribution(GridLevel::TOP)->template begin<Vertex>(ssGrp[si]); \n";
+		  mycppfile << "\t \t \t itType iterEnd = m_pCE->approx_space()->dof_distribution(GridLevel::TOP)->template end<Vertex>(ssGrp[si]); \n \n";
+		  mycppfile << "\t \t \t const position_accesor_type& aaPos = m_pCE->approx_space()->domain()->position_accessor(); \n";
 		  mycppfile << "\t \t \t if (si==0) \n";
 		  mycppfile << "\t \t \t { \n";
 		  mycppfile << "\t \t \t \t bestVrt = *iterBegin; \n";
@@ -3341,11 +3341,11 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  mycppfile << "//get celsius and time\n";
 	  mycppfile << "// inits temperatur from kalvin to celsius and some other typical neuron values\n";
 	  mycppfile << "number m_T, m_R, m_F; \n";
-	  mycppfile << "m_T = m_pVMDisc->temperature(); \n";
-	  mycppfile << "m_R = m_pVMDisc->R; \n";
-	  mycppfile << "m_F = m_pVMDisc->F; \n \n \n";
-	  mycppfile << "number celsius = m_pVMDisc->temperature_celsius(); \n";
-	  mycppfile << "number dt = m_pVMDisc->time(); \n";
+	  mycppfile << "m_T = m_pCE->temperature(); \n";
+	  mycppfile << "m_R = m_pCE->R; \n";
+	  mycppfile << "m_F = m_pCE->F; \n \n \n";
+	  mycppfile << "number celsius = m_pCE->temperature_celsius(); \n";
+	  mycppfile << "number dt = m_pCE->time(); \n";
 
 	  if (Ion_fluxes[0]!="")
 	  {
@@ -3719,11 +3719,11 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  // TODO working with right functions from CableEquation
 	  mycppfile << "// inits temperatur from kalvin to celsius and some other typical neuron values\n";
 	  mycppfile << "number m_T, m_R, m_F; \n";
-	  mycppfile << "m_T = m_pVMDisc->temperature(); \n";
-	  mycppfile << "m_R = m_pVMDisc->R; \n";
-	  mycppfile << "m_F = m_pVMDisc->F; \n \n \n";
-	  mycppfile << "number celsius = m_pVMDisc->temperature_celsius(); \n ";
-	  mycppfile << "number FARADAY = m_pVMDisc->F; \n ";
+	  mycppfile << "m_T = m_pCE->temperature(); \n";
+	  mycppfile << "m_R = m_pCE->R; \n";
+	  mycppfile << "m_F = m_pCE->F; \n \n \n";
+	  mycppfile << "number celsius = m_pCE->temperature_celsius(); \n ";
+	  mycppfile << "number FARADAY = m_pCE->F; \n ";
 
 	  if (Ion_fluxes[0]!="")
 	  {
@@ -3734,7 +3734,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 	  }
 
-	  mycppfile << "number dt = newTime - m_pVMDisc->time(); \n";
+	  mycppfile << "number dt = newTime - m_pCE->time(); \n";
 	  mycppfile << "number v = vrt_values[CableEquation<TDomain>::_v_]; \n";
 
 	  for (size_t i=0; i<ListIons.size(); i++)
@@ -4619,14 +4619,14 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 
 	  mycppfile << "template<typename TDomain> \n";
-	  mycppfile << "void " + filename + "<TDomain>::ionic_current(Vertex* ver, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues) \n";
+	  mycppfile << "void " + filename + "<TDomain>::current(Vertex* ver, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues) \n";
 	  mycppfile << "{ \n \n";
 
 	  mycppfile << "// inits temperatur from kalvin to celsius and some other typical neuron values\n";
 	  mycppfile << "number m_T, m_R, m_F; \n";
-	  mycppfile << "m_T = m_pVMDisc->temperature(); \n";
-	  mycppfile << "m_R = m_pVMDisc->R; \n";
-	  mycppfile << "m_F = m_pVMDisc->F; \n \n \n";
+	  mycppfile << "m_T = m_pCE->temperature(); \n";
+	  mycppfile << "m_R = m_pCE->R; \n";
+	  mycppfile << "m_F = m_pCE->F; \n \n \n";
 
 	  // writing needed fluxes if any needed
 	  if (Ion_fluxes[0]!="")
@@ -4653,18 +4653,18 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 		  // all ions
 		  for (size_t i=0; i<ListIons.size(); i++)
 		  {
-		 	  mycppfile << "number " + ListIons[i] + " = vrt_values[m_pVMDisc->_" + ListIons[i] + "_]; \n";
+		 	  mycppfile << "number " + ListIons[i] + " = vrt_values[m_pCE->_" + ListIons[i] + "_]; \n";
 		  }
 	  }
 
 
 
 	  // v needed every time
-	  mycppfile << "number v =  vrt_values[m_pVMDisc->_v_]; \n";
+	  mycppfile << "number v =  vrt_values[m_pCE->_v_]; \n";
 	  mycppfile << " \n";
 	  mycppfile << " \n";
 	  // adding current time as t
-	  mycppfile << "number t = m_pVMDisc->time(); \n \n \n";
+	  mycppfile << "number t = m_pCE->time(); \n \n \n";
 
 
 	  std::cout << "in Ions! " << std::endl;
@@ -4821,13 +4821,13 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 						  eqs[i] = eqs[i].replace(eqs[i].find("number"), 6, "");
 						  e_name2 = e_name.replace(e_name.find("number"), 6, "");
 						  //std::cout << "equis: " << eqs[i] << std::endl;
-						  mycppfile << "if (m_pVMDisc->" + Remove_all(e_name2) + "() == 0) \n";
+						  mycppfile << "if (m_pCE->" + Remove_all(e_name2) + "() == 0) \n";
 						  mycppfile << "{ \n";
 						  mycppfile << "\t " + eqs[i] + " \n";
 						  mycppfile << "} \n";
 						  mycppfile << "else \n";
 						  mycppfile << "{ \n";
-						  mycppfile << "\t " + e_name + " = m_pVMDisc->" + Remove_all(e_name2) + "(); \n";
+						  mycppfile << "\t " + e_name + " = m_pCE->" + Remove_all(e_name2) + "(); \n";
 						  mycppfile << "} \n";
 					  }
 				  }
@@ -5134,7 +5134,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 								  if (eqs[k+1]==ListIons[j])
 								  {
 
-									  //setting Ion_outside true to prevent output later as push_back from ionic_current
+									  //setting Ion_outside true to prevent output later as push_back from current
 									  //cause ion is only working on outside
 									  Ion_outside[j]=true;
 
@@ -5158,7 +5158,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 											 if (fluxes[i].find(right)!=fluxes[i].npos)
 											 {
-												 mycppfile << "number " + eqs[k+1] + "o = m_pVMDisc->" + eqs[k+1] + "_out(); \n";
+												 mycppfile << "number " + eqs[k+1] + "o = m_pCE->" + eqs[k+1] + "_out(); \n";
 												 mycppfile << "\n \n \n";
 											 }
 
@@ -5586,7 +5586,7 @@ std::vector<string> Converter::WriteChannelFile(string Ch_Name, string filename)
 		mychannelfile << "#include \"" + Ch_Name + ".h\" \n \n \n";
 		mychannelfile << "{ \n";
 		mychannelfile << "\t typedef " + Ch_Name + "<TDomain> T; \n";
-		mychannelfile << "\t typedef IChannel<TDomain> TBase; \n";
+		mychannelfile << "\t typedef ICableMembraneTransport<TDomain> TBase; \n";
 		mychannelfile << "\t string name = string(\""+ Ch_Name + "\").append(suffix); \n";
 		mychannelfile << "\t reg.add_class_<T, TBase >(name, grp) \n";
 		mychannelfile << "\t \t .template add_constructor<void (*)(const char*, const char*)>(\"Function(s)#Subset(s)\") \n";

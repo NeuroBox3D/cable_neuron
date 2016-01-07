@@ -17,15 +17,15 @@ namespace cable {
 
 template <typename TDomain>
 class ChannelHH
-	: public IChannel<TDomain>
+	: public ICableMembraneTransport<TDomain>
 {
 	public:
-		using IChannel<TDomain>::m_pVMDisc;
+		using ICableMembraneTransport<TDomain>::m_pCE;
 
-		/// @copydoc IChannel<TDomain>::IChannel(const char*)
+		/// @copydoc ICableMembraneTransport<TDomain>::ICableMembraneTransport(const char*)
 		ChannelHH(const char* functions, const char* subsets);
 
-		/// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&)
+		/// @copydoc ICableMembraneTransport<TDomain>::ICableMembraneTransport(const std::vector<std::string>&)
 		ChannelHH(const std::vector<std::string>& functions, const std::vector<std::string>& subsets);;
 
 		/// destructor
@@ -54,11 +54,11 @@ class ChannelHH
 		number vtrap(number x, number y);
 
 	public:
-		// inherited from IChannel
+		// inherited from ICableMembraneTransport
 		virtual void init(Vertex* vrt, const std::vector<number>& vrt_values);
 		virtual void update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values);
-		virtual void ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues);
-		virtual void vm_disc_available();
+		virtual void current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues);
+		virtual void ce_obj_available();
 		virtual std::vector<number> state_values(number x, number y, number z);
 		//virtual void Jacobi_sets(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outJFlux);
 		virtual number lin_dep_on_pot(Vertex* vrt, const std::vector<number>& vrt_values);
@@ -94,15 +94,15 @@ class ChannelHH
 
 template <typename TDomain>
 class ChannelHHNernst
-	: public IChannel<TDomain>
+	: public ICableMembraneTransport<TDomain>
 {
 	public:
-		using IChannel<TDomain>::m_pVMDisc;
+		using ICableMembraneTransport<TDomain>::m_pCE;
 
-		/// @copydoc IChannel<TDomain>::IChannel(const char*)
+		/// @copydoc ICableMembraneTransport<TDomain>::ICableMembraneTransport(const char*)
 		ChannelHHNernst(const char* functions, const char* subsets);
 
-		/// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&)
+		/// @copydoc ICableMembraneTransport<TDomain>::ICableMembraneTransport(const std::vector<std::string>&)
 		ChannelHHNernst(const std::vector<std::string>& functions, const std::vector<std::string>& subsets);
 
 		/// destructor
@@ -131,11 +131,11 @@ class ChannelHHNernst
 		number vtrap(number x, number y);
 
 	public:
-		// inherited from IChannel
+		// inherited from ICableMembraneTransport
 		virtual void init(Vertex* vrt, const std::vector<number>& vrt_values);
 		virtual void update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values);
-		virtual void ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues);
-		virtual void vm_disc_available();
+		virtual void current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues);
+		virtual void ce_obj_available();
 		virtual std::vector<number> state_values(number x, number y, number z);
 		//virtual void Jacobi_sets(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outJFlux);
 		virtual number lin_dep_on_pot(Vertex* vrt, const std::vector<number>& vrt_values);

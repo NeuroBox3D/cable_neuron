@@ -45,7 +45,7 @@ namespace cable {
 
 // forward declaration
 template <typename TDomain>
-class IChannel;
+class ICableMembraneTransport;
 
 template <typename TDomain>
 class CableEquation
@@ -53,7 +53,7 @@ class CableEquation
 {
 	public:
 		/// type for channels
-		typedef IChannel<TDomain> TIChannel;
+		typedef ICableMembraneTransport<TDomain> TIChannel;
 
 		///	world dimension
 		static const int dim = IElemDisc<TDomain>::dim;
@@ -164,7 +164,7 @@ class CableEquation
 #endif
 
 		/// adding a channel
-		void add(SmartPtr<IChannel<TDomain> > Channel);
+		void add(SmartPtr<ICableMembraneTransport<TDomain> > Channel);
 
 		// ////////////////////////////////
 		// getters for functional values //
@@ -185,7 +185,7 @@ class CableEquation
 		number vm(Vertex* vrt) const;
 
 		/// write all gating values for a position to file
-		void write_gatings_for_position(number x, number y, number z, std::string pfad);
+		void write_states_for_position(number x, number y, number z, std::string pfad);
 
 		/// sets Vars for writing output
 		void set_output_point_and_path(bool output, number gating_x, number gating_y, number gating_z, std::string gating_pfad);

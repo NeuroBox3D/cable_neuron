@@ -37,10 +37,10 @@ class CableEquation;
  
 template <typename TDomain> 
 class hh_converted_standard_UG
-    : public IChannel<TDomain> 
+    : public ICableMembraneTransport<TDomain> 
 { 
     public: 
- using IChannel <TDomain>::m_pVMDisc; 
+ using ICableMembraneTransport <TDomain>::m_pCE; 
  
 
  
@@ -48,9 +48,9 @@ class hh_converted_standard_UG
 
 
 
-/// @copydoc IChannel<TDomain>::IChannel(cont char*) 
+/// @copydoc ICableMembraneTransport<TDomain>::ICableMembraneTransport(cont char*) 
 hh_converted_standard_UG(const char* functions, const char* subsets) 
-try : IChannel<TDomain>(functions, subsets), 
+try : ICableMembraneTransport<TDomain>(functions, subsets), 
         gnabar ( .12 *0.01), 
         gkbar ( .036 *0.01), 
         gl ( .0003 *0.01), 
@@ -62,9 +62,9 @@ m_log_nGate(false) {}
 UG_CATCH_THROW("Error in hh_converted_standard_UG initializer list. "); 
  
  
-/// @copydoc IChannel<TDomain>::IChannel(const std::vector<std::string>&) 
+/// @copydoc ICableMembraneTransport<TDomain>::ICableMembraneTransport(const std::vector<std::string>&) 
 hh_converted_standard_UG(const std::vector<std::string>& functions, const std::vector<std::string>& subsets) 
-try : IChannel<TDomain>(functions, subsets), 
+try : ICableMembraneTransport<TDomain>(functions, subsets), 
         gnabar ( .12 *0.01), 
         gkbar ( .036 *0.01), 
         gl ( .0003 *0.01), 
@@ -80,12 +80,12 @@ virtual ~hh_converted_standard_UG() {};
 double vtrap(double x, double y); 
 /// create attachments and accessors 
 void init_attachments(); 
-// inherited from IChannel 
+// inherited from ICableMembraneTransport 
  
 virtual void init(Vertex* vrt, const std::vector<number>& vrt_values); 
 virtual void update_gating(number newtime, Vertex* vrt, const std::vector<number>& vrt_values); 
-virtual void ionic_current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues); 
-virtual void vm_disc_available(); 
+virtual void current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues); 
+virtual void ce_obj_available(); 
 virtual std::vector<number> state_values(number x, number y, number z); 
 
  

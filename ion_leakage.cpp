@@ -13,7 +13,7 @@ namespace cable {
 
 template<typename TDomain>
 IonLeakage<TDomain>::IonLeakage(const char* functions, const char* subsets)
-try : IChannel<TDomain>(functions, subsets),
+try : ICableMembraneTransport<TDomain>(functions, subsets),
 m_perm(1.0e-6), m_leaking_fct(std::string("v")), m_lfInd(0),
 m_flux_at_rest(0.0), m_conc_in_rest(5e-5), m_conc_out_rest(1.5), m_vm_rest(-65), m_valency(1) {}
 UG_CATCH_THROW("Error in ChannelHH initializer list.");
@@ -24,7 +24,7 @@ IonLeakage<TDomain>::IonLeakage
 	const std::vector<std::string>& functions,
 	const std::vector<std::string>& subsets
 )
-try : IChannel<TDomain>(functions, subsets),
+try : ICableMembraneTransport<TDomain>(functions, subsets),
 m_perm(1.0e-6), m_leaking_fct(std::string("v")), m_lfInd(0),
 m_flux_at_rest(0.0), m_conc_in_rest(5e-5), m_conc_out_rest(1.5), m_vm_rest(-65), m_valency(1) {}
 UG_CATCH_THROW("Error in ChannelHH initializer list.");
@@ -60,18 +60,18 @@ set_perm(number flux_at_rest, number conc_in_rest, number conc_out_rest, number 
 
 
 template<typename TDomain>
-void IonLeakage<TDomain>::vm_disc_available()
+void IonLeakage<TDomain>::ce_obj_available()
 {
 	try
 	{
-		m_lfInd = this->m_pVMDisc->function_pattern()->fct_id_by_name(m_leaking_fct.c_str());
+		m_lfInd = this->m_pCE->function_pattern()->fct_id_by_name(m_leaking_fct.c_str());
 	}
 	UG_CATCH_THROW("Leaking quantity for Leakage machanism not defined in functions of CableEquation.")
 
 	// set permeability coeff
-	const number& R = m_pVMDisc->R;
-	const number& F = m_pVMDisc->F;
-	const number& T = m_pVMDisc->temperature();
+	const number& R = m_pCE->R;
+	const number& F = m_pCE->F;
+	const number& T = m_pCE->temperature();
 	const int z = m_valency;
 
 	if (fabs(m_vm_rest) < 1e-8) m_perm = m_flux_at_rest / ((m_conc_out_rest - m_conc_in_rest) - z*F/(2*R*T) * (m_conc_out_rest + m_conc_in_rest)*m_vm_rest);
@@ -106,16 +106,16 @@ void IonLeakage<TDomain>::update_gating(number newTime, Vertex* vrt, const std::
 
 
 template<typename TDomain>
-void IonLeakage<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
+void IonLeakage<TDomain>::current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
 {
 	// getting attachments for vertex
 	const number& conc_in 	 = vrt_values[m_lfInd];
-	const number& conc_out 	 = this->m_pVMDisc->conc_out(m_lfInd);
+	const number& conc_out 	 = this->m_pCE->conc_out(m_lfInd);
 	const number& VM	 	 = 1e-3*vrt_values[CableEquation<TDomain>::_v_]; // scale to V!
 
-	const number& R = m_pVMDisc->R;
-	const number& F = m_pVMDisc->F;
-	const number& T = m_pVMDisc->temperature();
+	const number& R = m_pCE->R;
+	const number& F = m_pCE->F;
+	const number& T = m_pCE->temperature();
 	const int z = m_valency;
 
 	number leak;

@@ -159,19 +159,19 @@ struct Functionality
 
 		// Channel Interface Base (virtual class)
 		{
-			typedef IChannel<TDomain> T;
-			string name = string("IChannel").append(suffix);
+			typedef ICableMembraneTransport<TDomain> T;
+			string name = string("ICableMembraneTransport").append(suffix);
 			reg.add_class_<T>(name, grp);
 				//.add_method("init", &T::init)
 				//.add_method("update_gating", &T::update_gating);
-			reg.add_class_to_group(name, "IChannel", tag);
+			reg.add_class_to_group(name, "ICableMembraneTransport", tag);
 		}
 
 
 		// HH
 		{
 			typedef ChannelHH<TDomain> T;
-			typedef IChannel<TDomain> TBase;
+			typedef ICableMembraneTransport<TDomain> TBase;
 			string name = string("ChannelHH").append(suffix);
 			reg.add_class_<T, TBase >(name, grp)
 				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
@@ -193,7 +193,7 @@ struct Functionality
 				.add_method("set_log_mGate", &T::set_log_mGate)
 				.add_method("set_log_nGate", &T::set_log_nGate)
 				.add_method("set_log_hGate", &T::set_log_hGate)
-				//.add_method("ionic_current", /*static_cast<void (TBase::*) (Vertex*, std::vector<>&)> (&T::ionic_current) /*, "","", "doing flux")
+				//.add_method("current", /*static_cast<void (TBase::*) (Vertex*, std::vector<>&)> (&T::current) /*, "","", "doing flux")
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "ChannelHH", tag);
 		}
@@ -202,7 +202,7 @@ struct Functionality
 		// HH-with-Nernst
 		{
 			typedef ChannelHHNernst<TDomain> T;
-			typedef IChannel<TDomain> TBase;
+			typedef ICableMembraneTransport<TDomain> TBase;
 			string name = string("ChannelHHNernst").append(suffix);
 			reg.add_class_<T, TBase >(name, grp)
 				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
@@ -224,7 +224,7 @@ struct Functionality
 				.add_method("set_log_mGate", &T::set_log_mGate)
 				.add_method("set_log_nGate", &T::set_log_nGate)
 				.add_method("set_log_hGate", &T::set_log_hGate)
-				//.add_method("ionic_current", /*static_cast<void (TBase::*) (Vertex*, std::vector<>&)> (*/&T::ionic_current) /*, "","", "doing flux")*/
+				//.add_method("current", /*static_cast<void (TBase::*) (Vertex*, std::vector<>&)> (*/&T::current) /*, "","", "doing flux")*/
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "ChannelHHNernst", tag);
 		}
@@ -233,7 +233,7 @@ struct Functionality
 		// charge leakage
 		{
 			typedef ChannelLeak<TDomain> T;
-			typedef IChannel<TDomain> TBase;
+			typedef ICableMembraneTransport<TDomain> TBase;
 			string name = string("ChannelLeak").append(suffix);
 			reg.add_class_<T, TBase >(name, grp)
 				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
@@ -264,7 +264,7 @@ struct Functionality
 		// ion leakage
 		{
 			typedef IonLeakage<TDomain> T;
-			typedef IChannel<TDomain> TBase;
+			typedef ICableMembraneTransport<TDomain> TBase;
 			string name = string("IonLeakage").append(suffix);
 			reg.add_class_<T, TBase >(name, grp)
 				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
@@ -280,7 +280,7 @@ struct Functionality
 		// VDCC BG
 		{
 			typedef VDCC_BG_Cable<TDomain> T;
-			typedef IChannel<TDomain> TBase;
+			typedef ICableMembraneTransport<TDomain> TBase;
 			string name = string("VDCC_BG_Cable").append(suffix);
 			reg.add_class_<T, TBase >(name, grp)
 				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
@@ -294,7 +294,7 @@ struct Functionality
 		// ca "channel" (pump)
 		{
 			typedef Ca_PMCA<TDomain> T;
-			typedef IChannel<TDomain> TBase;
+			typedef ICableMembraneTransport<TDomain> TBase;
 			string name = string("Ca_PMCA").append(suffix);
 			reg.add_class_<T, TBase >(name, grp)
 				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
@@ -308,7 +308,7 @@ struct Functionality
 		// ca "channel" (pump)
 		{
 			typedef Ca_NCX<TDomain> T;
-			typedef IChannel<TDomain> TBase;
+			typedef ICableMembraneTransport<TDomain> TBase;
 			string name = string("Ca_NCX").append(suffix);
 			reg.add_class_<T, TBase >(name, grp)
 				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
@@ -323,7 +323,7 @@ struct Functionality
 		// Na/K pump
 		{
 			typedef Na_K_Pump<TDomain> T;
-			typedef IChannel<TDomain> TBase;
+			typedef ICableMembraneTransport<TDomain> TBase;
 			string name = string("Na_K_Pump").append(suffix);
 			reg.add_class_<T, TBase >(name, grp)
 				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
@@ -337,7 +337,7 @@ struct Functionality
 
 		// VM-Disc class
 		{
-			typedef IChannel<TDomain> TIChannel;
+			typedef ICableMembraneTransport<TDomain> TIChannel;
 			typedef CableEquation<TDomain> T;
 			typedef IElemDisc<TDomain> TBase;
 			string name = string("CableEquation").append(suffix);
@@ -387,9 +387,8 @@ struct Functionality
 						"begin time | default | 0 #"
 						"duration time | default | 0 ",
 						"sets Position, duration, ending and influxvalue of an Influx")
-				.add_method("write_gatings_for_position", &T::write_gatings_for_position)
-				.add_method("set_output", static_cast<void (T::*)(bool, number, number, number, std::string)> (&T::set_output))
-				.add_method("gets_syns", &T::gets_syns)
+				.add_method("write_states_for_position", &T::write_states_for_position)
+				.add_method("set_output_point_and_path", &T::set_output_point_and_path)
 				.add_method("set_influx_subset", &T::set_influx_subset)
 #ifdef UG_CPU_1
 				.add_method("estimate_cfl_cond", &T::template estimate_cfl_cond<CPUAlgebra::vector_type>)

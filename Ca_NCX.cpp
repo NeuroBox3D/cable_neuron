@@ -14,7 +14,7 @@ namespace cable {
 
 template<typename TDomain>
 Ca_NCX<TDomain>::Ca_NCX(const char* functions, const char* subsets)
-try : IChannel<TDomain>(functions, subsets),
+try : ICableMembraneTransport<TDomain>(functions, subsets),
 KD_N(1.8e-3), IMAX_N(3.75e-11) {}
 UG_CATCH_THROW("Error in Ca_NCX initializer list.");
 
@@ -24,7 +24,7 @@ Ca_NCX<TDomain>::Ca_NCX
 	const std::vector<std::string>& functions,
 	const std::vector<std::string>& subsets
 )
-try : IChannel<TDomain>(functions, subsets),
+try : ICableMembraneTransport<TDomain>(functions, subsets),
 KD_N(1.8e-3), IMAX_N(3.75e-11) {}
 UG_CATCH_THROW("Error in Ca_NCX initializer list.");
 
@@ -52,7 +52,7 @@ set_IMAX_N(number IMAX)
 
 
 template<typename TDomain>
-void Ca_NCX<TDomain>::vm_disc_available()
+void Ca_NCX<TDomain>::ce_obj_available()
 {
 
 }
@@ -80,7 +80,7 @@ void Ca_NCX<TDomain>::update_gating(number newTime, Vertex* vrt, const std::vect
 
 
 template<typename TDomain>
-void Ca_NCX<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
+void Ca_NCX<TDomain>::current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
 {
 	// getting attachments for vertex
 	number ca = vrt_values[CableEquation<TDomain>::_ca_];

@@ -43,7 +43,7 @@ namespace cable {
 
 // forward declaration
 template <typename TDomain>
-class IChannel;
+class ICableMembraneTransport;
 
 template <typename TDomain>
 class CableEquation
@@ -51,7 +51,7 @@ class CableEquation
 {
 	public:
 		/// type for channels
-		typedef IChannel<TDomain> TIChannel;
+		typedef ICableMembraneTransport<TDomain> TIChannel;
 
 		///	world dimension
 		static const int dim = IElemDisc<TDomain>::dim;
@@ -168,12 +168,9 @@ class CableEquation
 #ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
 		void set_synapse_handler(SmartPtr<synapse_handler::NETISynapseHandler<TDomain> > sh);
 #endif
-#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED
-		void set_synapse_distributor(SmartPtr<SynapseDistributor> sd);
-#endif
 
 		/// adding a channel
-		void add(SmartPtr<IChannel<TDomain> > transportMechanism);
+		void add(SmartPtr<ICableMembraneTransport<TDomain> > transportMechanism);
 
 		// ////////////////////////////////
 		// getters for functional values //
@@ -196,8 +193,8 @@ class CableEquation
 		/// get current assembling subset
 		int current_subset_index() const;
 
-		/// write all gating values for a position to file
-		void write_gatings_for_position(number x, number y, number z, std::string pfad);
+		/// write all internal state values for a position to file
+		void write_states_for_position(number x, number y, number z, std::string pfad);
 
 		/// sets Vars for writing output
 		void set_output_point_and_path(bool output, number x, number y, number z, std::string outPath);
