@@ -222,8 +222,8 @@ m_F = m_pVMDisc->F;
 number celsius = m_pVMDisc->temperature_celsius(); 
 number dt = m_pVMDisc->time(); 
 // make preparing vor getting values of every edge 
-number v = vrt_values[VMDisc<TDomain>::_v_]; 
-number ca = vrt_values[VMDisc<TDomain>::_ca_]; 
+number v = vrt_values[CableEquation<TDomain>::_v_]; 
+number ca = vrt_values[CableEquation<TDomain>::_ca_]; 
 
  
 }  
@@ -243,8 +243,8 @@ m_F = m_pVMDisc->F;
 number celsius = m_pVMDisc->temperature_celsius(); 
  number FARADAY = m_pVMDisc->F; 
  number dt = newTime - m_pVMDisc->time(); 
-number v = vrt_values[VMDisc<TDomain>::_v_]; 
-number ca = vrt_values[VMDisc<TDomain>::_ca_]; 
+number v = vrt_values[CableEquation<TDomain>::_v_]; 
+number ca = vrt_values[CableEquation<TDomain>::_ca_]; 
 
  
 double C = aaCGate[vrt]; 
@@ -318,7 +318,7 @@ template<typename TDomain>
 void caL3d_converted_standard_UG<TDomain>::specify_write_function_indices() 
 { 
  
-this->m_vWFctInd.push_back(VMDisc<TDomain>::_v_); 
+this->m_vWFctInd.push_back(CableEquation<TDomain>::_v_); 
 } 
  
  

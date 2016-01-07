@@ -50,7 +50,7 @@ template<typename TDomain>
 void IonLeakage<TDomain>::
 set_perm(number flux_at_rest, number conc_in_rest, number conc_out_rest, number vm_rest, int valency)
 {
-	// save parameters for evaluation when VMDisc avail.
+	// save parameters for evaluation when CableEquation avail.
 	m_flux_at_rest = flux_at_rest;
 	m_conc_in_rest = conc_in_rest;
 	m_conc_out_rest = conc_out_rest;
@@ -66,7 +66,7 @@ void IonLeakage<TDomain>::vm_disc_available()
 	{
 		m_lfInd = this->m_pVMDisc->function_pattern()->fct_id_by_name(m_leaking_fct.c_str());
 	}
-	UG_CATCH_THROW("Leaking quantity for Leakage machanism not defined in functions of VMDisc.")
+	UG_CATCH_THROW("Leaking quantity for Leakage machanism not defined in functions of CableEquation.")
 
 	// set permeability coeff
 	const number& R = m_pVMDisc->R;
@@ -111,7 +111,7 @@ void IonLeakage<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>& 
 	// getting attachments for vertex
 	const number& conc_in 	 = vrt_values[m_lfInd];
 	const number& conc_out 	 = this->m_pVMDisc->conc_out(m_lfInd);
-	const number& VM	 	 = 1e-3*vrt_values[VMDisc<TDomain>::_v_]; // scale to V!
+	const number& VM	 	 = 1e-3*vrt_values[CableEquation<TDomain>::_v_]; // scale to V!
 
 	const number& R = m_pVMDisc->R;
 	const number& F = m_pVMDisc->F;
@@ -131,7 +131,7 @@ template<typename TDomain>
 void IonLeakage<TDomain>::
 specify_write_function_indices()
 {
-	// prepare vector containing VMDisc fct indices which this channel writes to
+	// prepare vector containing CableEquation fct indices which this channel writes to
 	this->m_vWFctInd.push_back(m_lfInd);
 }
 

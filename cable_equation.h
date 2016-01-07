@@ -1,13 +1,13 @@
 /*
- * VM_Disc.cpp
+ * cable_equation.h
  *
  *  Created on: 26.11.2014
  *      Author: Pgottmann, mbreit
  */
 
 
-#ifndef __UG__PLUGINS__EXPERIMENTAL__CABLE__VM_DISC_H__
-#define __UG__PLUGINS__EXPERIMENTAL__CABLE__VM_DISC_H__
+#ifndef __UG__PLUGINS__CABLE_NEURON__CABLE_EQUATION_H__
+#define __UG__PLUGINS__CABLE_NEURON__CABLE_EQUATION_H__
 
 // other ug4 modules
 #include "common/common.h"
@@ -24,9 +24,6 @@
 
 #ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
 	#include "../SynapseHandler/synapse_handler.h"
-#endif
-#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED
-	#include "../SynapseDistributor/synapse_distributor.h"
 #endif
 
 
@@ -49,7 +46,7 @@ template <typename TDomain>
 class IChannel;
 
 template <typename TDomain>
-class VMDisc
+class CableEquation
 	: public IElemDisc<TDomain>
 {
 	public:
@@ -73,10 +70,10 @@ class VMDisc
 	
 	public:
 		///	constructor
-		VMDisc(const char* subsets, bool withConcs = true, number init_time = 0.0);
+		CableEquation(const char* subsets, bool withConcs = true, number init_time = 0.0);
 
 		///	destructor
-		virtual ~VMDisc() {};
+		virtual ~CableEquation() {};
 
 		// /////////////////////
 		// setting parameters //
@@ -102,9 +99,10 @@ class VMDisc
 
 		/// set Nernst potentials for ion species in units of mV
 		///	\{
-		void set_ek(number value);
-		void set_ena(number value);
-		void set_eca(number value);
+		// TODO: make that set_rev_pot(string ion, number value)
+		void set_rev_pot_k(number value);
+		void set_rev_pot_na(number value);
+		void set_rev_pot_ca(number value);
 		/// \}
 
 		/// set temperature in units of K
@@ -143,9 +141,9 @@ class VMDisc
 
 		/// get Nernst potentials for ion species in units of mV
 		///	\{
-		number ek();
-		number ena();
-		number eca();
+		number rev_pot_k();
+		number rev_pot_na();
+		number rev_pot_ca();
 		/// \}
 
 		/// get temperature in units of K
@@ -154,15 +152,12 @@ class VMDisc
 		/// get temperature in units of degrees C
 		number temperature_celsius();
 
-		/// getting number of Synapses
-		void gets_syns();
-
 		// ////////////////////////////
 		// setters for functionality //
 		// ////////////////////////////
 
 		/// setter for influx via subset
-		void set_influx_subset(int influx_subset, double input, double dur, double start);
+		void set_influx_subset(int influx_subset, number input, number dur, number start);
 
 		/// set influx position accuracy
 		void set_influx_ac(number influx_ac);
@@ -178,7 +173,7 @@ class VMDisc
 #endif
 
 		/// adding a channel
-		void add_channel(SmartPtr<IChannel<TDomain> > Channel);
+		void add(SmartPtr<IChannel<TDomain> > transportMechanism);
 
 		// ////////////////////////////////
 		// getters for functional values //
@@ -196,7 +191,7 @@ class VMDisc
 		number time();
 
 		/// get membrane potential at a vertex
-		number get_vm(Vertex* vrt) const;
+		number vm(Vertex* vrt) const;
 
 		/// get current assembling subset
 		int current_subset_index() const;
@@ -205,7 +200,7 @@ class VMDisc
 		void write_gatings_for_position(number x, number y, number z, std::string pfad);
 
 		/// sets Vars for writing output
-		void set_output(bool output, number gating_x, number gating_y, number gating_z, std::string gating_pfad);
+		void set_output_point_and_path(bool output, number x, number y, number z, std::string outPath);
 
 		/// estimate time step size for next step
 		template <typename TVector>
@@ -296,26 +291,20 @@ class VMDisc
 
 		number m_influx_ac;
 
-		bool m_output;
-		number m_gating_x, m_gating_y, m_gating_z;
-		std::string m_gating_pfad;
-
-		number syn_counter_alpha, syn_counter_exp;
+		bool m_bOutput;
+		number m_output_x, m_output_y, m_output_z;
+		std::string m_outputPath;
 
 		// vars for influx via subset
 		std::vector<int> m_influx_subset;
-		std::vector<double> m_subset_influx, m_subset_influx_start, m_subset_influx_dur;
+		std::vector<number> m_vSubsetInflux, m_vSubsetInfluxStart, m_vSubsetInfluxDur;
 
 	protected:
-		std::vector<number> m_flux_value, m_beg_flux, m_dur_flux;		///< values describing influxes
-		std::vector<MathVector<dim> > m_coords;							///< vector for influx coordinates x, y, z
+		std::vector<number> m_vFluxValue, m_vFluxStart, m_vFluxDur;		///< values describing influxes
+		std::vector<MathVector<dim> > m_vFluxCoords;					///< vector for influx coordinates x, y, z
 
 #ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
 		SmartPtr<synapse_handler::NETISynapseHandler<TDomain> > m_spSH;	///< synapse handler
-#endif
-
-#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED
-		SmartPtr<SynapseDistributor> m_spSD;							///< synapse distributor
 #endif
 
 		std::vector<SmartPtr<TIChannel> > m_channel;					///< list of channels
@@ -346,4 +335,4 @@ class VMDisc
 } // namespace cable
 } // namespace ug
 
-#endif // __UG__PLUGINS__EXPERIMENTAL__CABLE__VM_DISC_H__
+#endif // __UG__PLUGINS__CABLE_NEURON__CABLE_EQUATION_H__

@@ -332,8 +332,8 @@ m_F = m_pVMDisc->F;
 number celsius = m_pVMDisc->temperature_celsius(); 
 number dt = m_pVMDisc->time(); 
 // make preparing vor getting values of every edge 
-number v = vrt_values[VMDisc<TDomain>::_v_]; 
-number ca = vrt_values[VMDisc<TDomain>::_ca_]; 
+number v = vrt_values[CableEquation<TDomain>::_v_]; 
+number ca = vrt_values[CableEquation<TDomain>::_ca_]; 
 
  
 double          tinc; 
@@ -365,8 +365,8 @@ m_F = m_pVMDisc->F;
 number celsius = m_pVMDisc->temperature_celsius(); 
  number FARADAY = m_pVMDisc->F; 
  number dt = newTime - m_pVMDisc->time(); 
-number v = vrt_values[VMDisc<TDomain>::_v_]; 
-number ca = vrt_values[VMDisc<TDomain>::_ca_]; 
+number v = vrt_values[CableEquation<TDomain>::_v_]; 
+number ca = vrt_values[CableEquation<TDomain>::_ca_]; 
 
  
 double m = aamGate[vrt]; 
@@ -423,13 +423,13 @@ number t = m_pVMDisc->time();
  
 const number helpV = 1e3*(m_pVMDisc->R*m_pVMDisc->temperature())/m_pVMDisc->F; 
 number eca; 
-if (m_pVMDisc->eca() == 0) 
+if (m_pVMDisc->rev_pot_ca() == 0) 
 { 
 	  eca = helpV*(log(m_pVMDisc->ca_out()/ca)); 
 } 
 else 
 { 
-	  eca = m_pVMDisc->eca(); 
+	  eca = m_pVMDisc->rev_pot_ca(); 
 } 
  
  
@@ -445,7 +445,7 @@ template<typename TDomain>
 void CaT_converted_standard_UG<TDomain>::specify_write_function_indices() 
 { 
  
-this->m_vWFctInd.push_back(VMDisc<TDomain>::_v_); 
+this->m_vWFctInd.push_back(CableEquation<TDomain>::_v_); 
 } 
  
  

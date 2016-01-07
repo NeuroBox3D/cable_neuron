@@ -247,7 +247,7 @@ void ChannelHH<TDomain>::init_attachments()
 template<typename TDomain>
 void ChannelHH<TDomain>::init(Vertex* vrt, const std::vector<number>& vrt_values)
 {
-	number VM = vrt_values[VMDisc<TDomain>::_v_];
+	number VM = vrt_values[CableEquation<TDomain>::_v_];
 
 	// values for m gate
 	number AlphaHm = 0.1 * vtrap(-(VM+40.0),10.0);
@@ -271,7 +271,7 @@ template<typename TDomain>
 void ChannelHH<TDomain>::update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values)
 {
 	number dt = newTime - m_pVMDisc->time();
-	number VM = vrt_values[VMDisc<TDomain>::_v_];
+	number VM = vrt_values[CableEquation<TDomain>::_v_];
 	number tmp = m_pVMDisc->temperature_celsius();
 	number tmp_factor = std::pow(2.3, (tmp-23.0)/10.0);
 
@@ -306,15 +306,15 @@ void ChannelHH<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>& v
 	number NGate = m_aaNGate[vrt];
 	number MGate = m_aaMGate[vrt];
 	number HGate = m_aaHGate[vrt];
-	number VM 	 = vrt_values[VMDisc<TDomain>::_v_];
+	number VM 	 = vrt_values[CableEquation<TDomain>::_v_];
 
 	// params for this subset
 	int si = m_pVMDisc->current_subset_index();
 	const number gK = m_mSubsetParams[si].gK;
 	const number gNa = m_mSubsetParams[si].gNa;
 
-	number rev_pot_K = m_pVMDisc->ek();
-	number rev_pot_Na = m_pVMDisc->ena();
+	number rev_pot_K = m_pVMDisc->rev_pot_k();
+	number rev_pot_Na = m_pVMDisc->rev_pot_na();
 
 	number tmp = m_pVMDisc->temperature_celsius();
 	number tmp_factor = std::pow(2.3, (tmp-23.0)/10.0);
@@ -386,8 +386,8 @@ template<typename TDomain>
 void ChannelHH<TDomain>::
 specify_write_function_indices()
 {
-	// prepare vector containing VMDisc fct indices which this channel writes to
-	this->m_vWFctInd.push_back(VMDisc<TDomain>::_v_);
+	// prepare vector containing CableEquation fct indices which this channel writes to
+	this->m_vWFctInd.push_back(CableEquation<TDomain>::_v_);
 }
 
 
@@ -629,7 +629,7 @@ void ChannelHHNernst<TDomain>::init_attachments()
 template<typename TDomain>
 void ChannelHHNernst<TDomain>::init(Vertex* vrt, const std::vector<number>& vrt_values)
 {
-	number VM = vrt_values[VMDisc<TDomain>::_v_];
+	number VM = vrt_values[CableEquation<TDomain>::_v_];
 
 	// values for m gate
 	number AlphaHm = 0.1 * vtrap(-(VM+40.0),10.0);
@@ -653,7 +653,7 @@ template<typename TDomain>
 void ChannelHHNernst<TDomain>::update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values)
 {
 	number dt = newTime - m_pVMDisc->time();
-	number VM = vrt_values[VMDisc<TDomain>::_v_];
+	number VM = vrt_values[CableEquation<TDomain>::_v_];
 	number tmp = m_pVMDisc->temperature_celsius();
 	number tmp_factor = std::pow(2.3, (tmp-23.0)/10.0);
 
@@ -686,9 +686,9 @@ void ChannelHHNernst<TDomain>::ionic_current(Vertex* vrt, const std::vector<numb
 	number NGate = m_aaNGate[vrt];
 	number MGate = m_aaMGate[vrt];
 	number HGate = m_aaHGate[vrt];
-	number v 	 = vrt_values[VMDisc<TDomain>::_v_];
-	number k 	 = vrt_values[VMDisc<TDomain>::_k_];
-	number na 	 = vrt_values[VMDisc<TDomain>::_na_];
+	number v 	 = vrt_values[CableEquation<TDomain>::_v_];
+	number k 	 = vrt_values[CableEquation<TDomain>::_k_];
+	number na 	 = vrt_values[CableEquation<TDomain>::_na_];
 
 	// params for this subset
 	int si = m_pVMDisc->current_subset_index();
@@ -729,8 +729,8 @@ void ChannelHHNernst<TDomain>::Jacobi_sets(Vertex* vrt, const std::vector<number
 	number NGate = m_aaNGate[vrt];
 	number MGate = m_aaMGate[vrt];
 	number HGate = m_aaHGate[vrt];
-	number k 	 = vrt_values[VMDisc<TDomain>::_k_];
-	number na 	 = vrt_values[VMDisc<TDomain>::_na_];
+	number k 	 = vrt_values[CableEquation<TDomain>::_k_];
+	number na 	 = vrt_values[CableEquation<TDomain>::_na_];
 
 	UG_ASSERT(m_pVMDisc, "Channel has not been assigned a vmDisc object yet!");
 	const number helpV = (m_R*m_T)/m_F;
@@ -775,10 +775,10 @@ template<typename TDomain>
 void ChannelHHNernst<TDomain>::
 specify_write_function_indices()
 {
-	// prepare vector containing VMDisc fct indices which this channel writes to
-	this->m_vWFctInd.push_back(VMDisc<TDomain>::_v_);
-	this->m_vWFctInd.push_back(VMDisc<TDomain>::_k_);
-	this->m_vWFctInd.push_back(VMDisc<TDomain>::_na_);
+	// prepare vector containing CableEquation fct indices which this channel writes to
+	this->m_vWFctInd.push_back(CableEquation<TDomain>::_v_);
+	this->m_vWFctInd.push_back(CableEquation<TDomain>::_k_);
+	this->m_vWFctInd.push_back(CableEquation<TDomain>::_na_);
 }
 
 

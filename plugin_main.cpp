@@ -23,8 +23,8 @@
 #include "ElemDiscHH_Nernst_neuron_fv1.h"
 
 // Solver includes
-#include "VM_Disc.h"
 #include "cable_ass_tuner.h"
+#include "cable_equation.h"
 #include "order.h"
 
 // add converted channels
@@ -193,7 +193,7 @@ struct Functionality
 				.add_method("set_log_mGate", &T::set_log_mGate)
 				.add_method("set_log_nGate", &T::set_log_nGate)
 				.add_method("set_log_hGate", &T::set_log_hGate)
-				//.add_method("ionic_current", /*static_cast<void (TBase::*) (Vertex*, std::vector<double>&)> (&T::ionic_current) /*, "","", "doing flux")
+				//.add_method("ionic_current", /*static_cast<void (TBase::*) (Vertex*, std::vector<>&)> (&T::ionic_current) /*, "","", "doing flux")
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "ChannelHH", tag);
 		}
@@ -224,7 +224,7 @@ struct Functionality
 				.add_method("set_log_mGate", &T::set_log_mGate)
 				.add_method("set_log_nGate", &T::set_log_nGate)
 				.add_method("set_log_hGate", &T::set_log_hGate)
-				//.add_method("ionic_current", /*static_cast<void (TBase::*) (Vertex*, std::vector<double>&)> (*/&T::ionic_current) /*, "","", "doing flux")*/
+				//.add_method("ionic_current", /*static_cast<void (TBase::*) (Vertex*, std::vector<>&)> (*/&T::ionic_current) /*, "","", "doing flux")*/
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "ChannelHHNernst", tag);
 		}
@@ -338,9 +338,9 @@ struct Functionality
 		// VM-Disc class
 		{
 			typedef IChannel<TDomain> TIChannel;
-			typedef VMDisc<TDomain> T;
+			typedef CableEquation<TDomain> T;
 			typedef IElemDisc<TDomain> TBase;
-			string name = string("VMDisc").append(suffix);
+			string name = string("CableEquation").append(suffix);
 			reg.add_class_<T, TBase >(name, grp)
 				.template add_constructor<void (*)(const char*)>
 					("Subset(s)")
@@ -363,11 +363,11 @@ struct Functionality
 				.add_method("set_ca_out", static_cast<void (T::*)(number)>(&T::set_ca_out),
 						"", "extracellular [Ca] in units of mM | default | value=1.5", "sets extracellular [Ca]")
 
-				.add_method("set_ena", static_cast<void (T::*)(number)>(&T::set_ena),
+				.add_method("set_rev_pot_na", static_cast<void (T::*)(number)>(&T::set_rev_pot_na),
 						"", "reversal potential for Na | default | value=50.0", "sets reversal potential for Na")
-				.add_method("set_ek", static_cast<void (T::*)(number)>(&T::set_ek),
+				.add_method("set_rev_pot_k", static_cast<void (T::*)(number)>(&T::set_rev_pot_k),
 						"", "reversal potential for K | default | value=-77.0", "sets reversal potential for K")
-				.add_method("set_eca", static_cast<void (T::*)(number)>(&T::set_eca),
+				.add_method("set_rev_pot_ca", static_cast<void (T::*)(number)>(&T::set_rev_pot_ca),
 						"", "reversal potential for Ca | default | value=138.0", "sets reversal potential for Ca")
 
 				.add_method("set_temperature", static_cast<void (T::*)(number)>(&T::set_temperature),
@@ -378,7 +378,7 @@ struct Functionality
 				.add_method("set_diff_coeffs", static_cast<void (T::*)(const std::vector<number>&)> (&T::set_diff_coeffs), "",
 						"diffusion coefficient of K, Na and Ca", "sets diffusion coeffizients")
 
-				.add_method("add_channel", &T::add_channel)
+				.add_method("add", &T::add)
 				.add_method("set_influx", static_cast<void (T::*)(number, number, number, number, number, number)>(&T::set_influx), "",
 						"flux value | default | value=1e-12 #"
 						"x-coordinate of influx position | default | 0.0 #"
@@ -397,11 +397,8 @@ struct Functionality
 #ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
 				.add_method("set_synapse_handler", &T::set_synapse_handler)
 #endif
-#ifdef PLUGIN_SYNAPSE_DISTRIBUTOR_ENABLED
-				.add_method("set_synapse_distributor", &T::set_synapse_distributor)
-#endif
 				.set_construct_as_smart_pointer(true);
-			reg.add_class_to_group(name, "VMDisc", tag);
+			reg.add_class_to_group(name, "CableEquation", tag);
 		}
 
 #ifdef CONVERTED_CHANNELS_ENABLED

@@ -83,7 +83,7 @@ template<typename TDomain>
 void Ca_NCX<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
 {
 	// getting attachments for vertex
-	number ca = vrt_values[VMDisc<TDomain>::_ca_];
+	number ca = vrt_values[CableEquation<TDomain>::_ca_];
 
 	//outCurrentValues.push_back(0);
 	// Ca flux in mol/(m^2*ms)
@@ -104,9 +104,9 @@ template<typename TDomain>
 void Ca_NCX<TDomain>::
 specify_write_function_indices()
 {
-	// prepare vector containing VMDisc fct indices which this channel writes to
-	//this->m_vWFctInd.push_back(VMDisc<TDomain>::_v_);
-	this->m_vWFctInd.push_back(VMDisc<TDomain>::_ca_);
+	// prepare vector containing CableEquation fct indices which this channel writes to
+	//this->m_vWFctInd.push_back(CableEquation<TDomain>::_v_);
+	this->m_vWFctInd.push_back(CableEquation<TDomain>::_ca_);
 }
 
 

@@ -2467,7 +2467,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  myhfile << "#include \"common/util/vector_util.h\" \n";
 	  myhfile << "\n";
 
-	  myhfile << "#include \"../../VM_Disc.h\" \n \n";
+	  myhfile << "#include \"../../cable_equation.h\" \n \n";
 
 	  myhfile << "#include <vector> \n";
 	  myhfile << "#include <stdio.h> \n";
@@ -2477,7 +2477,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  myhfile << "namespace cable {\n\n\n";
 	  myhfile << "// forward declaration \n";
 	  myhfile << "template <typename TDomain> \n";
-	  myhfile << "class VMDisc; \n \n";
+	  myhfile << "class CableEquation; \n \n";
 
 	  myhfile << "template <typename TDomain> \n";
 	  myhfile << "class " + filename + "\n";
@@ -2599,7 +2599,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 			  // there are sometimes parameters which do not get a value
 			  // but they need without the converted file is not working
 			  // also standard parameters like celsius farraday are used here
-			  // but they get value from VMDisc-class
+			  // but they get value from CableEquation-class
 			  else
 			  {
 				  string Param;
@@ -3359,12 +3359,12 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 	  mycppfile << "// make preparing vor getting values of every edge \n";
 
-	  mycppfile << "number v = vrt_values[VMDisc<TDomain>::_v_]; \n";
+	  mycppfile << "number v = vrt_values[CableEquation<TDomain>::_v_]; \n";
 
 	  // TODO we only need read ions in right context
 	  for (size_t i=0; i<ListIons.size(); i++)
 	  {
-		  mycppfile << "number " + ListIons[i] +" = vrt_values[VMDisc<TDomain>::_"+ ListIons[i] +"_]; \n";
+		  mycppfile << "number " + ListIons[i] +" = vrt_values[CableEquation<TDomain>::_"+ ListIons[i] +"_]; \n";
 	  }
 	  mycppfile << "\n \n";
 
@@ -3716,7 +3716,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  mycppfile << "template<typename TDomain> \n";
 	  mycppfile << "void " + filename + "<TDomain>::update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values) \n";
 	  mycppfile << "{ \n";
-	  // TODO working with right functions from VMDisc
+	  // TODO working with right functions from CableEquation
 	  mycppfile << "// inits temperatur from kalvin to celsius and some other typical neuron values\n";
 	  mycppfile << "number m_T, m_R, m_F; \n";
 	  mycppfile << "m_T = m_pVMDisc->temperature(); \n";
@@ -3735,11 +3735,11 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  }
 
 	  mycppfile << "number dt = newTime - m_pVMDisc->time(); \n";
-	  mycppfile << "number v = vrt_values[VMDisc<TDomain>::_v_]; \n";
+	  mycppfile << "number v = vrt_values[CableEquation<TDomain>::_v_]; \n";
 
 	  for (size_t i=0; i<ListIons.size(); i++)
 	  {
-		  mycppfile << "number " + ListIons[i] +" = vrt_values[VMDisc<TDomain>::_"+ ListIons[i] +"_]; \n";
+		  mycppfile << "number " + ListIons[i] +" = vrt_values[CableEquation<TDomain>::_"+ ListIons[i] +"_]; \n";
 	  }
 	  mycppfile << "\n \n";
 
@@ -5275,7 +5275,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  mycppfile << "void " + filename + "<TDomain>::specify_write_function_indices() \n";
 	  mycppfile << "{ \n \n";
 	  // First value is always for v reserved
-	  mycppfile << "this->m_vWFctInd.push_back(VMDisc<TDomain>::_v_); \n";
+	  mycppfile << "this->m_vWFctInd.push_back(CableEquation<TDomain>::_v_); \n";
 	  // All other outs have to be checked
  	  for (size_t i=0; i<writes_Ions.size(); i++)
  	  {
@@ -5286,7 +5286,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
  				if (RealWrittenOuts.size()>0)
  				{
  					if (RealWrittenOuts[i]==true)
- 						mycppfile << "this->m_vWFctInd.push_back(VMDisc<TDomain>::_"<< writes_Ions[i].replace(writes_Ions[i].find("i"),1,"") <<"_); \n";
+ 						mycppfile << "this->m_vWFctInd.push_back(CableEquation<TDomain>::_"<< writes_Ions[i].replace(writes_Ions[i].find("i"),1,"") <<"_); \n";
  				}
  			 }
  		 }

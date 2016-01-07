@@ -17,10 +17,10 @@ namespace ug {
 namespace cable {
 
 /**
- * @brief handler for diameter attachment in the VMDisc multi-grid
+ * @brief handler for diameter attachment in the CableEquation multi-grid
  *
  * This class implements an attachment handler for the diameter attachment used
- * in the VMDisc class.
+ * in the CableEquation class.
  *
  * The diameter vertex attachment needs to be propagated not only by copying from
  * base vertices to their child vertices and grand-child vertices (and so on);

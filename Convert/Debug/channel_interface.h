@@ -9,7 +9,7 @@
 #define __UG__PLUGINS__EXPERIMENTAL__CABLE__CHANNEL_INTERFACE_H__
 
 
-#include "VM_Disc.h"
+#include "cable_equation.h"
 
 
 namespace ug {
@@ -18,7 +18,7 @@ namespace cable {
 
 // forward declaration
 template <typename TDomain>
-class VMDisc;
+class CableEquation;
 
 
 template <typename TDomain>
@@ -74,7 +74,7 @@ class IChannel
 		 *	This method is useful for automatic time step size calculation. It is supposed to calculate
 		 *	(or at least estimate) the linear dependency (first term in the taylor expansion)
 		 *	of the electric current through the mechanism on the given potential. This is used in
-		 *	the VMDisc to get an estimate for the CFL condition that has to be fulfilled by the
+		 *	the CableEquation to get an estimate for the CFL condition that has to be fulfilled by the
 		 *	time step size.
 		 *
 		 * @param vrt			vertex to compute dependency for
@@ -95,7 +95,7 @@ class IChannel
 		 */
 		bool is_def_on_subset(int si) const;
 
-		void set_vm_disc(VMDisc<TDomain>*  vmdisc) {m_pVMDisc = vmdisc;}
+		void set_ce_object(CableEquation<TDomain>*  vmdisc) {m_pVMDisc = vmdisc;}
 
 	private:
 		virtual void specify_write_function_indices() {UG_THROW("specify_write_function_indices() not implemented!");}
@@ -110,8 +110,8 @@ class IChannel
 		/// vector of subset indices this channel is declared on (sorted)
 		std::vector<int> m_vSI;
 
-		/// joint VMDisc
-		VMDisc<TDomain>* m_pVMDisc;
+		/// joint CableEquation
+		CableEquation<TDomain>* m_pVMDisc;
 
 };
 

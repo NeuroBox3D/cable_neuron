@@ -110,7 +110,7 @@ set (SOURCES
 	leakage.cpp
 	ion_leakage.cpp
 	vdcc_bg.cpp
-	VM_Disc.cpp
+	cable_equation.cpp
 	order.cpp
 	plugin_main.cpp
 	${ConvChanSources}

@@ -185,9 +185,9 @@ void hh_converted_UG<TDomain>::ionic_current(Vertex* ver, const std::vector<numb
 number m = aamGate[ver]; 
 number h = aahGate[ver]; 
 number n = aanGate[ver]; 
-number na = vrt_values[VMDisc<TDomain>::_na_]; 
-number k = vrt_values[VMDisc<TDomain>::_k_]; 
-number v =  vrt_values[VMDisc<TDomain>::_v_]; 
+number na = vrt_values[CableEquation<TDomain>::_na_]; 
+number k = vrt_values[CableEquation<TDomain>::_k_]; 
+number v =  vrt_values[CableEquation<TDomain>::_v_]; 
  
  
 const number helpV = 1e3*(m_R*m_T)/m_F; 

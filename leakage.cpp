@@ -199,8 +199,8 @@ template<typename TDomain>
 void ChannelLeak<TDomain>::
 specify_write_function_indices()
 {
-	// prepare vector containing VMDisc fct indices which this channel writes to
-	this->m_vWFctInd.push_back(VMDisc<TDomain>::_v_);
+	// prepare vector containing CableEquation fct indices which this channel writes to
+	this->m_vWFctInd.push_back(CableEquation<TDomain>::_v_);
 }
 
 

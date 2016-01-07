@@ -93,9 +93,9 @@ void Na_K_Pump<TDomain>::update_gating(number newTime, Vertex* vrt, const std::v
 template<typename TDomain>
 void Na_K_Pump<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
 {
-	//number ca = vrt_values[VMDisc<TDomain>::_ca_];
-	number na = vrt_values[VMDisc<TDomain>::_na_];
-	number k = vrt_values[VMDisc<TDomain>::_k_];
+	//number ca = vrt_values[CableEquation<TDomain>::_ca_];
+	number na = vrt_values[CableEquation<TDomain>::_na_];
+	number k = vrt_values[CableEquation<TDomain>::_k_];
 
 	number napump = 1.0 /(1.0 + K_Na/na * (1.0 + k/K_K));
 	napump *= napump*napump;
@@ -123,10 +123,10 @@ template<typename TDomain>
 void Na_K_Pump<TDomain>::
 specify_write_function_indices()
 {
-	// prepare vector containing VMDisc fct indices which this channel writes to
-	//this->m_vWFctInd.push_back(VMDisc<TDomain>::_v_);
-	this->m_vWFctInd.push_back(VMDisc<TDomain>::_na_);
-	this->m_vWFctInd.push_back(VMDisc<TDomain>::_k_);
+	// prepare vector containing CableEquation fct indices which this channel writes to
+	//this->m_vWFctInd.push_back(CableEquation<TDomain>::_v_);
+	this->m_vWFctInd.push_back(CableEquation<TDomain>::_na_);
+	this->m_vWFctInd.push_back(CableEquation<TDomain>::_k_);
 }
 
 

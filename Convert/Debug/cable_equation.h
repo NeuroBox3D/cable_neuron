@@ -1,5 +1,5 @@
 /*
- * VM_Disc.cpp
+ * cable_equation.h
  *
  *  Created on: 26.11.2014
  *      Author: Pgottmann, mbreit
@@ -48,7 +48,7 @@ template <typename TDomain>
 class IChannel;
 
 template <typename TDomain>
-class VMDisc
+class CableEquation
 	: public IElemDisc<TDomain>
 {
 	public:
@@ -72,10 +72,10 @@ class VMDisc
 	
 	public:
 		///	constructor
-		VMDisc(const char* subsets, const number init_time = 0.0);
+		CableEquation(const char* subsets, const number init_time = 0.0);
 
 		///	destructor
-		virtual ~VMDisc() {};
+		virtual ~CableEquation() {};
 
 		// /////////////////////
 		// setting parameters //
@@ -101,9 +101,9 @@ class VMDisc
 
 		/// set Nernst potentials for ion species in units of mV
 		///	\{
-		void set_ek(number value);
-		void set_ena(number value);
-		void set_eca(number value);
+		void set_rev_pot_k(number value);
+		void set_rev_pot_na(number value);
+		void set_rev_pot_ca(number value);
 		/// \}
 
 		/// set temperature in units of K
@@ -136,9 +136,9 @@ class VMDisc
 
 		/// get Nernst potentials for ion species in units of mV
 		///	\{
-		number ek();
-		number ena();
-		number eca();
+		number rev_pot_k();
+		number rev_pot_na();
+		number rev_pot_ca();
 		/// \}
 
 		/// get temperature in units of K
@@ -164,7 +164,7 @@ class VMDisc
 #endif
 
 		/// adding a channel
-		void add_channel(SmartPtr<IChannel<TDomain> > Channel);
+		void add(SmartPtr<IChannel<TDomain> > Channel);
 
 		// ////////////////////////////////
 		// getters for functional values //
@@ -182,13 +182,13 @@ class VMDisc
 		number time();
 
 		/// get membrane potential at a vertex
-		number get_vm(Vertex* vrt) const;
+		number vm(Vertex* vrt) const;
 
 		/// write all gating values for a position to file
 		void write_gatings_for_position(number x, number y, number z, std::string pfad);
 
 		/// sets Vars for writing output
-		void set_output(bool output, number gating_x, number gating_y, number gating_z, std::string gating_pfad);
+		void set_output_point_and_path(bool output, number gating_x, number gating_y, number gating_z, std::string gating_pfad);
 
 		/// estimate time step size for next step
 		template <typename TVector>
@@ -274,14 +274,14 @@ class VMDisc
 
 		number m_influx_ac;
 
-		bool m_output;
-		number m_gating_x, m_gating_y, m_gating_z;
-		std::string m_gating_pfad;
+		bool m_bOutput;
+		number m_output_x, m_output_y, m_output_z;
+		std::string m_outputPath;
 
 
 	protected:
-		std::vector<number> m_flux_value, m_beg_flux, m_dur_flux;		///< values describing influxes
-		std::vector<MathVector<dim> > m_coords;							///< vector for influx coordinates x, y, z
+		std::vector<number> m_vFluxValue, m_vFluxStart, m_vFluxDur;		///< values describing influxes
+		std::vector<MathVector<dim> > m_vFluxCoords;							///< vector for influx coordinates x, y, z
 
 #ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
 		SmartPtr<synapse_handler::NETISynapseHandler<TDomain> > m_spSH;	///< synapse handler

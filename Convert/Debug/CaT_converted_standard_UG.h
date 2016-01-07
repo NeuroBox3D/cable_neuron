@@ -22,7 +22,7 @@
 #include "common/util/smart_pointer.h" 
 #include "common/util/vector_util.h" 
 
-#include "../../VM_Disc.h" 
+#include "../../cable_equation.h" 
  
 #include <vector> 
 #include <stdio.h> 
@@ -33,7 +33,7 @@ namespace cable {
 
 // forward declaration 
 template <typename TDomain> 
-class VMDisc; 
+class CableEquation; 
  
 template <typename TDomain> 
 class CaT_converted_standard_UG

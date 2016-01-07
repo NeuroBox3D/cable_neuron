@@ -83,7 +83,7 @@ void Ca_PMCA<TDomain>::update_gating(number newTime, Vertex* vrt, const std::vec
 template<typename TDomain>
 void Ca_PMCA<TDomain>::ionic_current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
 {
-	number ca = vrt_values[VMDisc<TDomain>::_ca_];
+	number ca = vrt_values[CableEquation<TDomain>::_ca_];
 
 	//outCurrentValues.push_back(0);	// implement!?
 	outCurrentValues.push_back(ca*ca / (KD_P*KD_P + ca*ca) * IMAX_P); // mol/(m^2*ms)
@@ -103,9 +103,9 @@ template<typename TDomain>
 void Ca_PMCA<TDomain>::
 specify_write_function_indices()
 {
-	// prepare vector containing VMDisc fct indices which this channel writes to
-	//this->m_vWFctInd.push_back(VMDisc<TDomain>::_v_);
-	this->m_vWFctInd.push_back(VMDisc<TDomain>::_ca_);
+	// prepare vector containing CableEquation fct indices which this channel writes to
+	//this->m_vWFctInd.push_back(CableEquation<TDomain>::_v_);
+	this->m_vWFctInd.push_back(CableEquation<TDomain>::_ca_);
 }
 
 

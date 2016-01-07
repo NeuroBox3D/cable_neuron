@@ -60,7 +60,7 @@ class IonLeakage
 		// leaking function name
 		std::string m_leaking_fct;
 
-		// leaking function index in VMDisc
+		// leaking function index in CableEquation
 		size_t m_lfInd;
 
 		number m_flux_at_rest;

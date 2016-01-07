@@ -170,7 +170,7 @@ void VDCC_BG_Cable<TDomain>::init_attachments()
 template<typename TDomain>
 void VDCC_BG_Cable<TDomain>::init(Vertex* vrt, const std::vector<number>& vrt_values)
 {
-	number VM = vrt_values[VMDisc<TDomain>::_v_];
+	number VM = vrt_values[CableEquation<TDomain>::_v_];
 
 	const number& R = m_pVMDisc->R;
 	const number& F = m_pVMDisc->F;
@@ -184,7 +184,7 @@ template<typename TDomain>
 void VDCC_BG_Cable<TDomain>::update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values)
 {
 	number dt = newTime - m_pVMDisc->time();
-	number VM = vrt_values[VMDisc<TDomain>::_v_];
+	number VM = vrt_values[CableEquation<TDomain>::_v_];
 
 	const number& R = m_pVMDisc->R;
 	const number& F = m_pVMDisc->F;
@@ -254,8 +254,8 @@ void VDCC_BG_Cable<TDomain>::ionic_current(Vertex* vrt, const std::vector<number
 	// getting attachments for vertex
 	number MGate = m_aaMGate[vrt];
 	number HGate = m_aaHGate[vrt];
-	number VM 	 = 1e-3*vrt_values[VMDisc<TDomain>::_v_];	// scale from mV to V!
-	number caCyt = vrt_values[VMDisc<TDomain>::_ca_];
+	number VM 	 = 1e-3*vrt_values[CableEquation<TDomain>::_v_];	// scale from mV to V!
+	number caCyt = vrt_values[CableEquation<TDomain>::_ca_];
 	number caExt = m_pVMDisc->ca_out();
 
 	const number& R = m_pVMDisc->R;
@@ -280,8 +280,8 @@ template<typename TDomain>
 void VDCC_BG_Cable<TDomain>::
 specify_write_function_indices()
 {
-	// prepare vector containing VMDisc fct indices which this channel writes to
-	this->m_vWFctInd.push_back(VMDisc<TDomain>::_ca_);
+	// prepare vector containing CableEquation fct indices which this channel writes to
+	this->m_vWFctInd.push_back(CableEquation<TDomain>::_ca_);
 }
 
 
