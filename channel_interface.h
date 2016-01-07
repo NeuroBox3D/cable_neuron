@@ -59,7 +59,7 @@ class ICableMembraneTransport
 		/// called when approximation space is available
 		void approx_space_available();
 
-		/// called when access to the root VM disc is possible
+		/// called when access to the underlying CableEquation object is possible
 		virtual void ce_obj_available() {};
 
 		/// getting values of internal channel states
@@ -107,7 +107,7 @@ class ICableMembraneTransport
 		void subsetNames2Indices(std::vector<int>& ind, const std::vector<std::string>& names);
 
 	protected:
-		/// indices in vmdisc for functions whose defect will be written to by this channel
+		/// indices in underlying CableEquation for functions whose defect will be written to by this channel
 		std::vector<size_t> m_vWFctInd;
 
 		/// vector of subsets this channel is declared on

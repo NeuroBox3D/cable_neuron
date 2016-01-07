@@ -376,7 +376,7 @@ struct Functionality
 						"", "new temperature value in degrees Celsius | default | value=37", "sets new temperature")
 
 				.add_method("set_diff_coeffs", static_cast<void (T::*)(const std::vector<number>&)> (&T::set_diff_coeffs), "",
-						"diffusion coefficient of K, Na and Ca", "sets diffusion coeffizients")
+						"diffusion coefficient of K, Na and Ca", "sets diffusion coefficients")
 
 				.add_method("add", &T::add)
 				.add_method("set_influx", static_cast<void (T::*)(number, number, number, number, number, number)>(&T::set_influx), "",
@@ -386,7 +386,7 @@ struct Functionality
 						"z-coordinate of influx position | default | 0.0 #"
 						"begin time | default | 0 #"
 						"duration time | default | 0 ",
-						"sets Position, duration, ending and influxvalue of an Influx")
+						"sets position, duration and current strength of an influx")
 				.add_method("write_states_for_position", &T::write_states_for_position)
 				.add_method("set_output_point_and_path", &T::set_output_point_and_path)
 				.add_method("set_influx_subset", &T::set_influx_subset)
