@@ -5,15 +5,15 @@
  *      Author: ppgottmann, mbreit
  */
 
-#ifndef __UG__PLUGINS__EXPERIMENTAL__CABLE__CHANNEL_INTERFACE_H__
-#define __UG__PLUGINS__EXPERIMENTAL__CABLE__CHANNEL_INTERFACE_H__
+#ifndef __UG__PLUGINS__CABLE_NEURON__MEMBRANE_TRANSPORT__CABLE_MEMBRANE_TRANSPORT_INTERFACE_H__
+#define __UG__PLUGINS__CABLE_NEURON__MEMBRANE_TRANSPORT__CABLE_MEMBRANE_TRANSPORT_INTERFACE_H__
 
 
-#include "../cable_equation/cable_equation.h"
+#include "../cable_disc/cable_equation.h"
 
 
 namespace ug {
-namespace cable {
+namespace cable_neuron {
 
 
 // forward declaration
@@ -122,7 +122,7 @@ class ICableMembraneTransport
 };
 
 
-} // namespace cable
+} // namespace cable_neuron
 } // namespace ug
 
-#endif // __UG__PLUGINS__EXPERIMENTAL__CABLE__CHANNEL_INTERFACE_H__
+#endif // __UG__PLUGINS__CABLE_NEURON__MEMBRANE_TRANSPORT__CABLE_MEMBRANE_TRANSPORT_INTERFACE_H__

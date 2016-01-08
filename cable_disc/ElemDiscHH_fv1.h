@@ -8,15 +8,15 @@
  * from andreasvogel
  */
 
-#ifndef __H__ElemDisc_fv1__
-#define __H__ElemDisc_fv1__
+#ifndef __UG__PLUGINS__CABLE_NEURON__CABLE_DISC__ELEMDISCHH_FV1_H__
+#define __UG__PLUGINS__CABLE_NEURON__CABLE_DISC__ELEMDISCHH_FV1_H__
 
 // library intern headers
-#include "ElemDiscHH_base.h"
+#include "../cable_disc/ElemDiscHH_base.h"
 #include "lib_disc/spatial_disc/disc_util/conv_shape_interface.h"
 
 namespace ug {
-namespace cable {
+namespace cable_neuron {
 
 
 template<	typename TDomain>
@@ -159,8 +159,8 @@ class ElemDiscHH_FV1 : public ElemDiscHH_Base<TDomain>
 };
 
 
-} // end namspace cable
-} // end namespace ug
+} // namespace cable_neuron
+} // namespace ug
 
 
-#endif /*__H__ElemDisc_fv1__*/
+#endif // __UG__PLUGINS__CABLE_NEURON__CABLE_DISC__ELEMDISCHH_FV1_H__

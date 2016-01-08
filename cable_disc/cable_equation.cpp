@@ -8,13 +8,14 @@
  */
 
 
-#include "cable_equation.h"
+#include "../cable_disc/cable_equation.h"
+
 #include "lib_grid/global_attachments.h"
 //#include "../../NeuronalTopologyImporter/neuronal_topology_importer.h"
 
 
 namespace ug {
-namespace cable {
+namespace cable_neuron {
 
 template <typename TDomain>
 const size_t CableEquation<TDomain>::_v_ = 0;
@@ -1015,5 +1016,5 @@ register_func()
 #endif
 
 
-} // namespace cable
+} // namespace cable_neuron
 } // namespace ug

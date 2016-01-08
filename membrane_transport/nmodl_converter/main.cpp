@@ -7,7 +7,7 @@
 
 #include <iostream>
 #include <stdexcept>
-#include "../nmodl_converter/Converter.h"
+#include "Converter.h"
 
 
 

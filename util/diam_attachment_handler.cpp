@@ -9,7 +9,7 @@
 #include "diam_attachment_handler.h"
 
 namespace ug {
-namespace cable {
+namespace cable_neuron {
 
 
 void DiamAttachmentHandler::copy_from_other_elem_type(GridObject* parent, Vertex* child)
@@ -28,6 +28,6 @@ void DiamAttachmentHandler::copy_from_other_elem_type(GridObject* parent, Vertex
 	m_aa[child] = diam / num_vrt;
 }
 
-} // end namespace cable
+} // end namespace cable_neuron
 } // end namespace ug
 

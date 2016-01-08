@@ -7,8 +7,8 @@
  */
 
 /// guard
-#ifndef __H__UG__SYNAPSE_HANDLER__GRID__SYNAPSE_INFO__
-#define __H__UG__SYNAPSE_HANDLER__GRID__SYNAPSE_INFO__
+#ifndef __UG__PLUGINS__CABLE_NEURON__SYNAPSE_HANDLER__GRID__SYNAPSE_INFO_H__
+#define __UG__PLUGINS__CABLE_NEURON__SYNAPSE_HANDLER__GRID__SYNAPSE_INFO_H__
 
 /// includes
 #include <vector>
@@ -26,6 +26,7 @@
  * \{
  */
 namespace ug {
+namespace cable_neuron {
 namespace synapse_handler {
 
 
@@ -172,8 +173,9 @@ struct synapse_traits<Exp2Syn> : public synapse_traits<void>
 };
 
 
-} // namespace sh
+} // namespace synapse_handler
+} // namespace cable_neuron
 } // namespace ug
 //<! \}
 
-#endif /// __H__UG__SYNAPSE_HANDLER__GRID__SYNAPSE_INFO__
+#endif // __UG__PLUGINS__CABLE_NEURON__SYNAPSE_HANDLER__GRID__SYNAPSE_INFO_H__

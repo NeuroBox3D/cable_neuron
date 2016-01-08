@@ -40,7 +40,7 @@ namespace synapse_handler {
 #endif
 
 
-namespace cable {
+namespace cable_neuron {
 
 
 // forward declaration
@@ -310,7 +310,7 @@ class CableEquation
 };
 
 
-} // namespace cable
+} // namespace cable_neuron
 } // namespace ug
 
 #endif // __UG__PLUGINS__EXPERIMENTAL__CABLE__VM_DISC_H__

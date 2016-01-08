@@ -24,11 +24,11 @@
 #include <vector> 
 #include <stdio.h> 
 
-#include "../../cable_equation.h"
+#include "../../../cable_disc/cable_equation.h"
 #include "../converted/channel_interface.h"
 #include "bindings/lua/lua_user_data.h" 
 namespace ug {
-namespace cable {
+namespace cable_neuron {
 
 
 // forward declaration 
@@ -134,7 +134,7 @@ bool m_log_mGate;
 bool m_log_hGate; 
 }; 
  
-} // namespace cable
+} // namespace cable_neuron
 } // namespace ug
 
 

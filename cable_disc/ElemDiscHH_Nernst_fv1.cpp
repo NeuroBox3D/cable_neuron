@@ -9,7 +9,7 @@
  */
 
 #define _USE_MATH_DEFINES
-#include "ElemDiscHH_Nernst_fv1.h"
+#include "../cable_disc/ElemDiscHH_Nernst_fv1.h"
 
 #include "lib_disc/spatial_disc/disc_util/geom_provider.h"
 #include "lib_disc/spatial_disc/disc_util/fv1_geom.h"
@@ -18,7 +18,7 @@
 #include <math.h>
 
 namespace ug{
-namespace cable {
+namespace cable_neuron {
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -701,6 +701,6 @@ template class ElemDiscHH_Nernst_FV1<Domain3d>;
 #endif
 
 
-} // namespace cable
+} // namespace cable_neuron
 } // namespace ug
 

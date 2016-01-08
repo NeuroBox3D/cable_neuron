@@ -5,8 +5,8 @@
  *      Author: mbreit
  */
 
-#ifndef PLUGINS_EXPERIMENTAL_HH_KABELNEW_ORDER_H_
-#define PLUGINS_EXPERIMENTAL_HH_KABELNEW_ORDER_H_
+#ifndef __UG__PLUGINS__CABLE_NEURON__UTIL__ORDER_H__
+#define __UG__PLUGINS__CABLE_NEURON__UTIL__ORDER_H__
 
 #include <vector>
 
@@ -15,7 +15,7 @@
 
 
 namespace ug {
-namespace cable {
+namespace cable_neuron {
 
 
 void compute_cuthillmckee_order
@@ -30,8 +30,8 @@ template <typename TDomain>
 void order_cuthillmckee(ApproximationSpace<TDomain>& approxSpace);
 
 
-} // namespace cable
+} // namespace cable_neuron
 } // namespace ug
 
 
-#endif // PLUGINS_EXPERIMENTAL_HH_KABELNEW_ORDER_H_
+#endif // __UG__PLUGINS__CABLE_NEURON__UTIL__ORDER_H__

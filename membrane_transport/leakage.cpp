@@ -9,7 +9,7 @@
 
 
 namespace ug {
-namespace cable {
+namespace cable_neuron {
 
 template<typename TDomain>
 ChannelLeak<TDomain>::ChannelLeak(const char* functions, const char* subsets)
@@ -221,5 +221,5 @@ specify_write_function_indices()
 #endif
 
 
-} // namespace cable
+} // namespace cable_neuron
 } // namespace ug

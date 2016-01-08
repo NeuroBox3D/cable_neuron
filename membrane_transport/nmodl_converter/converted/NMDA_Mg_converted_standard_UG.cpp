@@ -5,7 +5,7 @@
 #include "lib_disc/function_spaces/local_transfer_interface.h" 
 #include <cmath> 
 namespace ug { 
-namespace cable { 
+namespace cable_neuron { 
  
  
 // adding function which always inits_attachments 
@@ -723,7 +723,7 @@ template class NMDA_Mg_converted_standard_UG<Domain3d>;
 #endif 
  
  
-} // namespace cable
+} // namespace cable_neuron
 } // namespace ug
 
 

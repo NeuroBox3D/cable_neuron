@@ -9,7 +9,7 @@
 
 
 namespace ug {
-namespace cable {
+namespace cable_neuron {
 
 template <typename TDomain>
 ICableMembraneTransport<TDomain>::ICableMembraneTransport(const char* functions, const char* subsets)
@@ -136,5 +136,5 @@ subsetNames2Indices(std::vector<int>& ind, const std::vector<std::string>& names
 	template class ICableMembraneTransport<Domain3d>;
 #endif
 
-} // namespace cable
+} // namespace cable_neuron
 } // namespace ug

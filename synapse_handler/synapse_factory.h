@@ -7,8 +7,8 @@
  */
 
 /// guard
-#ifndef __H__UG__SYNAPSE_HANDLER__SYNAPSE_FACTORY__
-#define __H__UG__SYNAPSE_HANDLER__SYNAPSE_FACTORY__
+#ifndef __UG__PLUGINS__CABLE_NEURON__SYNAPSE_HANDLER__SYNAPSE_FACTORY_H__
+#define __UG__PLUGINS__CABLE_NEURON__SYNAPSE_HANDLER__SYNAPSE_FACTORY_H__
 
 /// includes
 #include "synapse.h"
@@ -18,25 +18,27 @@
  * \{
  */
 namespace ug {
-	namespace synapse_handler {
+namespace cable_neuron {
+namespace synapse_handler {
+	/*!
+	 * \brief synapse factory interface
+	 */
+	class ISynapseFactory {
+	public:
 		/*!
-		 * \brief synapse factory interface
+		 * \brief creates a synapse
 		 */
-		class ISynapseFactory {
-		public:
-			/*!
-			 * \brief creates a synapse
-			 */
-			virtual ISynapse* create_synapse() = 0;
+		virtual ISynapse* create_synapse() = 0;
 
-			/*!
-			 * \brief mandatory vdtor
-			 */
-			virtual ~ISynapseFactory() {
-			}
-		};
-	} // namespace synapse_handler
+		/*!
+		 * \brief mandatory vdtor
+		 */
+		virtual ~ISynapseFactory() {
+		}
+	};
+} // namespace synapse_handler
+} // namespace cable_neuron
 } // namespace ug
 //<! \}
 
-#endif // __H__UG__SYNAPSE_HANDLER__SYNAPSE_FACTORY__
+#endif // __UG__PLUGINS__CABLE_NEURON__SYNAPSE_HANDLER__SYNAPSE_FACTORY_H__

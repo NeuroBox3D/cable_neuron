@@ -1,23 +1,23 @@
 /*
  * plugin_main.cpp
  *
- *  Created on: ??
- *  Author: pgottmann, mbreit
+ *  Created on: 2014-09-02
+ *  Author: mbreit, pgottmann
  */
 
 #include "bridge/util.h"
 #include "bridge/util_domain_dependent.h"
 #include "bridge/util_domain_algebra_dependent.h"
+#include "cable_disc/cable_equation.h"
+#include "cable_disc/ElemDiscHH_base.h"
+#include "cable_disc/ElemDiscHH_fv1.h"
+#include "cable_disc/ElemDiscHH_Nernst_fv1.h"
+#include "cable_disc/ElemDiscHH_Nernst_neuron_fv1.h"
 
 #include "lib_grid/global_attachments.h" // global attachments
 #include "lib_disc/function_spaces/grid_function.h"
 
 // cable equation includes
-#include "cable_equation/cable_equation.h"
-#include "cable_equation/ElemDiscHH_base.h"
-#include "cable_equation/ElemDiscHH_fv1.h"
-#include "cable_equation/ElemDiscHH_Nernst_fv1.h"
-#include "cable_equation/ElemDiscHH_Nernst_neuron_fv1.h"
 #include "membrane_transport/cable_membrane_transport_interface.h"
 
 // solver includes
@@ -34,7 +34,7 @@
 #include "membrane_transport/pmca.h"
 
 // converted membrane transporters
-#ifdef CONVERTED_CHANNELS_ENABLED
+#ifdef CONVERTED_TRANSPORT_ENABLED
 	#include "membrane_transport/nmodl_converter/converted/includefile.h"
 #endif
 
@@ -54,12 +54,12 @@ using namespace std;
 using namespace ug::bridge;
 
 namespace ug {
-namespace cable {
+namespace cable_neuron {
 
 
 
 /**
- *  \defgroup plugin_cable Plugin cable
+ *  \defgroup plugin_cable_neuron Plugin cable_neuon
  *  \ingroup plugins_experimental
  *  This is a plugin for cable equation functionality.
  *  \{
@@ -93,58 +93,61 @@ struct Functionality
 		// //////// synapse handler ////////////////
 		// /////////////////////////////////////////
 
-		// synapse handler interface
-		typedef ISynapseHandler<TDomain> TISH;
-		std::string name = std::string("ISynapseHandler").append(suffix);
-		reg.add_class_<TISH>(name, grp)
-			.add_method("name", &TISH::name);
-		reg.add_class_to_group(name, "ISynapseHandler", tag);
+		{
+			using namespace synapse_handler;
 
-		// NETI synapse handler
-		typedef NETISynapseHandler<TDomain> TNETISH;
-		name = std::string("NETISynapseHandler").append(suffix);
-		reg.add_class_<TNETISH, TISH>(name, grp)
-			.template add_constructor<void (*)()> ()
-			.add_method("set_vmdisc", &TNETISH::set_vmdisc)
-			.add_method("set_presyn_subset", &TNETISH::set_presyn_subset)
-			.add_method("set_activation_timing",
-				static_cast<void (TNETISH::*)(number, number, number, number)>(&TNETISH::set_activation_timing),
-				"", "start_time#duration#start time deviation#duration deviation", "")
-			.add_method("set_activation_timing",
-				static_cast<void (TNETISH::*)(number, number, number, number, number)>(&TNETISH::set_activation_timing),
-				"", "start_time#duration#start time deviation#duration deviation#peak conductivity", "")
-			.add_method("set_activation_timing",
-				static_cast<void (TNETISH::*)(number, number, number, number, number, bool)>(&TNETISH::set_activation_timing),
-				"", "start_time#duration#start time deviation#duration deviation#peak conductivity#seed", "")
-			//.add_method("set_custom_diameter", &TNETISH::set_custom_diameter, "", "subsets#diameter", "")
-			.add_method("update_presyn", &TNETISH::update_presyn)
-			.add_method("print_synapse_statistics", &TNETISH::print_synapse_statistics, "", "soma subset index", "")
-			.add_method("write_activity_to_file", &TNETISH::write_activity_to_file, "", "file base name#time", "")
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "NETISynapseHandler", tag);
+			// synapse handler interface
+			typedef ISynapseHandler<TDomain> TISH;
+			std::string name = std::string("ISynapseHandler").append(suffix);
+			reg.add_class_<TISH>(name, grp)
+				.add_method("name", &TISH::name);
+			reg.add_class_to_group(name, "ISynapseHandler", tag);
 
-		// SynapseDistributor synapse handler
-		typedef SynapseDistributorSynapseHandler<TDomain> TSDSH;
-		name = std::string("SDSynapseHandler").append(suffix);
-		reg.add_class_<TSDSH, TISH>(name, grp)
-			.add_method("set_sd", &TSDSH::set_sd)
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "SDSynapseHandler", tag);
+			// NETI synapse handler
+			typedef NETISynapseHandler<TDomain> TNETISH;
+			name = std::string("NETISynapseHandler").append(suffix);
+			reg.add_class_<TNETISH, TISH>(name, grp)
+				.template add_constructor<void (*)()> ()
+				.add_method("set_vmdisc", &TNETISH::set_vmdisc)
+				.add_method("set_presyn_subset", &TNETISH::set_presyn_subset)
+				.add_method("set_activation_timing",
+					static_cast<void (TNETISH::*)(number, number, number, number)>(&TNETISH::set_activation_timing),
+					"", "start_time#duration#start time deviation#duration deviation", "")
+				.add_method("set_activation_timing",
+					static_cast<void (TNETISH::*)(number, number, number, number, number)>(&TNETISH::set_activation_timing),
+					"", "start_time#duration#start time deviation#duration deviation#peak conductivity", "")
+				.add_method("set_activation_timing",
+					static_cast<void (TNETISH::*)(number, number, number, number, number, bool)>(&TNETISH::set_activation_timing),
+					"", "start_time#duration#start time deviation#duration deviation#peak conductivity#seed", "")
+				//.add_method("set_custom_diameter", &TNETISH::set_custom_diameter, "", "subsets#diameter", "")
+				.add_method("update_presyn", &TNETISH::update_presyn)
+				.add_method("print_synapse_statistics", &TNETISH::print_synapse_statistics, "", "soma subset index", "")
+				.add_method("write_activity_to_file", &TNETISH::write_activity_to_file, "", "file base name#time", "")
+				.set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "NETISynapseHandler", tag);
 
-		// utility
-		reg.add_function("LoadDomainFromGridInMemory",
-			static_cast<void (*)(TDomain&, const ug::MultiGrid* const grid, const ug::MGSubsetHandler* const sh, int)>
-				(&LoadDomainFromGridInMemory<TDomain>));
-		reg.add_function("LoadDomainFromGridInMemory",
-			static_cast<void (*)(TDomain&, const ug::MultiGrid* const grid, const ug::MGSubsetHandler* const sh)>
-				(&LoadDomainFromGridInMemory<TDomain>));
+			// SynapseDistributor synapse handler
+			typedef SynapseDistributorSynapseHandler<TDomain> TSDSH;
+			name = std::string("SDSynapseHandler").append(suffix);
+			reg.add_class_<TSDSH, TISH>(name, grp)
+				.add_method("set_sd", &TSDSH::set_sd)
+				.set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "SDSynapseHandler", tag);
+
+			// utility
+			reg.add_function("LoadDomainFromGridInMemory",
+				static_cast<void (*)(TDomain&, const ug::MultiGrid* const grid, const ug::MGSubsetHandler* const sh, int)>
+					(&LoadDomainFromGridInMemory<TDomain>));
+			reg.add_function("LoadDomainFromGridInMemory",
+				static_cast<void (*)(TDomain&, const ug::MultiGrid* const grid, const ug::MGSubsetHandler* const sh)>
+					(&LoadDomainFromGridInMemory<TDomain>));
+		}
 
 
 
-
-		// ////////////////////////////////////////
-		// //////// cable equation ////////////////
-		// ////////////////////////////////////////
+		// ////////////////////////////////////
+		// //////// cable disc ////////////////
+		// ////////////////////////////////////
 
 		// Kabel Diff Base
 		{
@@ -466,7 +469,7 @@ struct Functionality
 			reg.add_class_to_group(name, "CableEquation", tag);
 		}
 
-#ifdef CONVERTED_CHANNELS_ENABLED
+#ifdef CONVERTED_TRANSPORT_ENABLED
 		#include "membrane_transport/nmodl_converter/converted/channels.cpp"
 #endif
 
@@ -557,7 +560,7 @@ struct Functionality
 		string constr_params("infile#outfile");
 
 
-		typedef ug::SynapseDistributor TSD;
+		typedef SynapseDistributor TSD;
 
 		reg.add_class_<TSD>(name, grp)
 			.add_constructor<void (*)(string, string, bool)>("infile#outfile", "Initializes a SynapseDistributor", grp, "")
@@ -570,10 +573,10 @@ struct Functionality
 			.add_method("place_synapse", &TSD::place_synapse, "e", "", "Places a synapse.", grp)
 			.add_method("place_synapses_uniform", static_cast<void (TSD::*)(size_t)>(&TSD::place_synapses_uniform), "", "", "Distributes synapses uniformly on grid.", grp)
 			.add_method("place_synapses_uniform", static_cast<void (TSD::*)(int, size_t)>(&TSD::place_synapses_uniform), "", "", "Distributes synapses uniformly on subset.", grp)
-			.add_method("place_synapses",static_cast<void (TSD::*)(std::vector<double>, size_t)>(&TSD::place_synapses), "p#subsetIndex", "", "Distributes synapses on all subsets s.t. a given density vector.", grp)
-			.add_method("set_activation_timing",static_cast<void (TSD::*)(double, double, double, double)>(&TSD::set_activation_timing), "start_time#duration#start_time_dev#duration_dev", "", "Sets activity timing of distributed synapes..", grp)
-			.add_method("degenerate_uniform",static_cast<void (TSD::*)(double)>(&TSD::degenerate_uniform),"","","Degenerates a certain percentage of synapses in the whole grid.",grp)
-			.add_method("degenerate_uniform",static_cast<void (TSD::*)(double, int)>(&TSD::degenerate_uniform),"","","Degenerates a certain percentage of synapses in the given subset.",grp)
+			.add_method("place_synapses",static_cast<void (TSD::*)(std::vector<number>, size_t)>(&TSD::place_synapses), "p#subsetIndex", "", "Distributes synapses on all subsets s.t. a given density vector.", grp)
+			.add_method("set_activation_timing",static_cast<void (TSD::*)(number, number, number, number)>(&TSD::set_activation_timing), "start_time#duration#start_time_dev#duration_dev", "", "Sets activity timing of distributed synapes..", grp)
+			.add_method("degenerate_uniform",static_cast<void (TSD::*)(number)>(&TSD::degenerate_uniform),"","","Degenerates a certain percentage of synapses in the whole grid.",grp)
+			.add_method("degenerate_uniform",static_cast<void (TSD::*)(number, int)>(&TSD::degenerate_uniform),"","","Degenerates a certain percentage of synapses in the given subset.",grp)
 
 			.add_method("num_synapses", static_cast<size_t (TSD::*)()>(&TSD::num_synapses), "", "", "Returns global number of synapses", grp)
 			.add_method("num_synapses", static_cast<size_t (TSD::*)(int)>(&TSD::num_synapses), "", "", "Returns number of synapses in specified subset", grp)
@@ -594,10 +597,10 @@ struct Functionality
 }; // end Functionality
 
 
-// end group plugin_cable
+// end group plugin_cable_neuron
 /// \}
 
-} // end namespace cable
+} // end namespace cable_neuron
 
 
 
@@ -616,7 +619,7 @@ InitUGPlugin_cable_neuron(Registry* reg, string grp)
 	GlobalAttachments::declare_attachment<APresynInd>("presyn_index", true);
 	GlobalAttachments::declare_attachment<AVSynapse>("Synapses", false);
 
-	typedef cable::Functionality Functionality;
+	typedef cable_neuron::Functionality Functionality;
 
 	try
 	{

@@ -9,7 +9,7 @@
 #include <limits> // numeric_limits
 
 namespace ug {
-namespace cable {
+namespace cable_neuron {
 
 
 ////////////////////////////////////////////////
@@ -801,5 +801,5 @@ specify_write_function_indices()
 	template class ChannelHHNernst<Domain3d>;
 #endif
 
-} // namespace cable
+} // namespace cable_neuron
 } // namespace ug

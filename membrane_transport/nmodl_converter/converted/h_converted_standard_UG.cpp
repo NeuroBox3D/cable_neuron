@@ -5,7 +5,7 @@
 #include "lib_disc/function_spaces/local_transfer_interface.h" 
 #include <cmath> 
 namespace ug { 
-namespace cable { 
+namespace cable_neuron { 
  
  
 template<typename TDomain> 
@@ -360,7 +360,7 @@ template class h_converted_standard_UG<Domain3d>;
 #endif 
  
  
-} // namespace cable
+} // namespace cable_neuron
 } // namespace ug
 
 

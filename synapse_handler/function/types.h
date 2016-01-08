@@ -7,26 +7,30 @@
  */
 
 /// guard
-#ifndef __H__UG__SYNAPSE_HANDLER__TYPES__SYNAPSES__
-#define __H__UG__SYNAPSE_HANDLER__TYPES__SYNAPSES__
+#ifndef __UG__PLUGINS__CABLE_NEURON__SYNAPSE_HANDLER__FUNCTION__TYPES_H__
+#define __UG__PLUGINS__CABLE_NEURON__SYNAPSE_HANDLER__FUNCTION__TYPES_H__
 
 /* \defgroup sh_plugin Synapse Handler
  * \ingroup plugins_experimental
  * \{
  */
 namespace ug {
-	namespace synapse_handler {
-		/*!
-		 * \brief synapses types
-		 */
-		enum SynapseType {
-			EMPTY_SYNAPSE=0,
-			ALPHA_SYNAPSE,
-			EXP2_SYNAPSE,
-			CUSTOM_SYNAPSE //!< could be used or another for custom synapses
-		};
-	} // namespace synapse_handler
+namespace cable_neuron {
+namespace synapse_handler {
+
+/*!
+ * \brief synapses types
+ */
+enum SynapseType {
+	EMPTY_SYNAPSE=0,
+	ALPHA_SYNAPSE,
+	EXP2_SYNAPSE,
+	CUSTOM_SYNAPSE //!< could be used or another for custom synapses
+};
+
+} // namespace synapse_handler
+} // namespace cable_neuron
 } // namespace ug
 //<! \}
 
-#endif /// __H__UG__SYNAPSE_HANDLER__TYPES__SYNAPSES__
+#endif // __UG__PLUGINS__CABLE_NEURON__SYNAPSE_HANDLER__FUNCTION__TYPES_H__

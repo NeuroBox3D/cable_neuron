@@ -9,7 +9,7 @@
 
 
 namespace ug {
-namespace cable {
+namespace cable_neuron {
 
 template <typename TDomain>
 ICableMembraneTransport<TDomain>::ICableMembraneTransport(const char* functions, const char* subsets)
@@ -97,5 +97,5 @@ is_def_on_subset(int si) const
 	template class ICableMembraneTransport<Domain3d>;
 #endif
 
-} // namespace cable
+} // namespace cable_neuron
 } // namespace ug

@@ -12,12 +12,12 @@
 #include <boost/test/parameterized_test.hpp>
 
 // ug includes
-#include "../../synapse_handler.h"
-#include "../../synapse.h"
+#include "../../synapse_handler/synapse_handler.h"
+#include "../../synapse_handler/synapse.h"
 
 // using directives
 using namespace boost::unit_test;
-using namespace ug::synapse_handler;
+using namespace ug::cable_neuron;
 
 /// begin of test suite synapse handler
 BOOST_AUTO_TEST_SUITE(SYNAPSE_HANDLER);

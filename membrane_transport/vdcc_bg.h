@@ -5,14 +5,14 @@
  *      Author: pgottmann, mbreit
  */
 
-#ifndef __UG__PLUGINS__EXPERIMENTAL__CABLE__VDCC_BG_CABLE_H__
-#define __UG__PLUGINS__EXPERIMENTAL__CABLE__VDCC_BG_CABLE_H__
+#ifndef __UG__PLUGINS__CABLE_NEURON__MEMBRANE_TRANSPORT__VDCC_BG_H__
+#define __UG__PLUGINS__CABLE_NEURON__MEMBRANE_TRANSPORT__VDCC_BG_H__
 
 
 #include "cable_membrane_transport_interface.h"
 
 namespace ug {
-namespace cable {
+namespace cable_neuron {
 
 
 template <typename TDomain>
@@ -81,7 +81,7 @@ class VDCC_BG_Cable
 
 
 
-} // namespace cable
+} // namespace cable_neuron
 } // namespace ug
 
-#endif // __UG__PLUGINS__EXPERIMENTAL__CABLE__VDCC_BG_CABLE_H__
+#endif // __UG__PLUGINS__CABLE_NEURON__MEMBRANE_TRANSPORT__VDCC_BG_H__

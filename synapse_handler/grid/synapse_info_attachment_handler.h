@@ -4,8 +4,9 @@
  *  Created on: 20.05.2015
  *      Author: mbreit
  */
-#ifndef PLUGINS__SYNAPSE_HANDLER__SYNAPSE_INFO_ATTACHMENT_HANDLER_H_
-#define PLUGINS__SYNAPSE_HANDLER__SYNAPSE_INFO_ATTACHMENT_HANDLER_H_
+
+#ifndef __UG__PLUGINS__CABLE_NEURON__SYNAPSE_HANDLER__GRID__SYNAPSE_INFO_ATTACHMENT_HANDLER_H__
+#define __UG__PLUGINS__CABLE_NEURON__SYNAPSE_HANDLER__GRID__SYNAPSE_INFO_ATTACHMENT_HANDLER_H__
 
 
 #include "lib_grid/lib_grid.h"
@@ -15,6 +16,7 @@
 #include <vector>
 
 namespace ug{
+namespace cable_neuron {
 namespace synapse_handler{
 
 
@@ -50,6 +52,7 @@ class SynapseInfoAttachmentHandler
 };
 
 } // end namespace synapse_handler
+} // namespace cable_neuron
 } // end namespace ug
 
-#endif // PLUGINS__SYNAPSE_HANDLER__SYNAPSE_INFO_ATTACHMENT_HANDLER_H_
+#endif // __UG__PLUGINS__CABLE_NEURON__SYNAPSE_HANDLER__GRID__SYNAPSE_INFO_ATTACHMENT_HANDLER_H__

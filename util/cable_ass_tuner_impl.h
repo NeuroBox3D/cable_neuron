@@ -14,7 +14,7 @@
 
 
 namespace ug {
-namespace cable {
+namespace cable_neuron {
 
 
 template <typename TDomain, typename TAlgebra>
@@ -138,7 +138,7 @@ update_elem_list_for_elem()
 #endif
 
 
-} // namespace cable
+} // namespace cable_neuron
 } // namespace ug
 
 

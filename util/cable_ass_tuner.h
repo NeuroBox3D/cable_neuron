@@ -7,15 +7,15 @@
  *      Author: mbreit
  */
 
-#ifndef __UG__PLUGINS__EXPERIMENTAL__CABLE__CABLE_ASS_TUNER_H__
-#define __UG__PLUGINS__EXPERIMENTAL__CABLE__CABLE_ASS_TUNER_H__
+#ifndef __UG__PLUGINS__CABLE_NEURON__UTIL__CABLE_ASS_TUNER_H__
+#define __UG__PLUGINS__CABLE_NEURON__UTIL__CABLE_ASS_TUNER_H__
 
 #include "lib_disc/spatial_disc/domain_disc.h"
 #include "lib_grid/tools/selector_grid.h"
 
 
 namespace ug {
-namespace cable {
+namespace cable_neuron {
 
 
 template <typename TDomain, typename TAlgebra>
@@ -95,13 +95,13 @@ class CableAssTuner
 
 };
 
-} // namespace cable
+} // namespace cable_neuron
 } // namespace ug
 
 
 #include "cable_ass_tuner_impl.h"
 
 
-#endif // __UG__PLUGINS__EXPERIMENTAL__CABLE__CABLE_ASS_TUNER_H__
+#endif // __UG__PLUGINS__CABLE_NEURON__UTIL__CABLE_ASS_TUNER_H__
 
 

@@ -12,7 +12,7 @@
 
 
 namespace ug {
-namespace cable {
+namespace cable_neuron {
 
 
 /// help class to provide compare operator for indices based on their degree
@@ -249,7 +249,7 @@ void order_cuthillmckee(ApproximationSpace<TDomain>& approxSpace)
 #endif
 
 
-} // namespace cable
+} // namespace cable_neuron
 } // namespace ug
 
 

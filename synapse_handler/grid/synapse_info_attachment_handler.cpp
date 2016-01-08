@@ -9,6 +9,7 @@
 #include "synapse_info_attachment_handler.h"
 
 namespace ug{
+namespace cable_neuron {
 namespace synapse_handler{
 
 
@@ -65,5 +66,6 @@ void SynapseInfoAttachmentHandler::copy(Edge* parent, Edge* child)
 }
 
 } // end namespace synapse_handler
+} // namespace cable_neuron
 } // end namespace ug
 

@@ -5,14 +5,14 @@
  *      Author: ppgottmann, mbreit
  */
 
-#ifndef __UG__PLUGINS__EXPERIMENTAL__CABLE__CHANNEL_HH_H__
-#define __UG__PLUGINS__EXPERIMENTAL__CABLE__CHANNEL_HH_H__
+#ifndef __UG__PLUGINS__CABLE_NEURON__MEMBRANE_TRANSPORT__CHANNEL_HH_H__
+#define __UG__PLUGINS__CABLE_NEURON__MEMBRANE_TRANSPORT__CHANNEL_HH_H__
 
 
 #include "cable_membrane_transport_interface.h"
 
 namespace ug {
-namespace cable {
+namespace cable_neuron {
 
 
 template <typename TDomain>
@@ -167,7 +167,7 @@ class ChannelHHNernst
 		bool m_log_nGate, m_log_hGate, m_log_mGate;
 };
 
-} // namespace cable
+} // namespace cable_neuron
 } // namespace ug
 
-#endif // __UG__PLUGINS__EXPERIMENTAL__CABLE__CHANNEL_HH_H__
+#endif // __UG__PLUGINS__CABLE_NEURON__MEMBRANE_TRANSPORT__CHANNEL_HH_H__

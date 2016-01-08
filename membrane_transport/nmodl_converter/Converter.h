@@ -10,8 +10,8 @@
 #include <string>
 
 
-#ifndef CONVERTER_H_
-#define CONVERTER_H_
+#ifndef __UG__PLUGINS__CABLE_NEURON__MEMBRANE_TRANSPORT__CONVERTER_H__
+#define __UG__PLUGINS__CABLE_NEURON__MEMBRANE_TRANSPORT__CONVERTER_H__
 
 using namespace std;
 
@@ -143,4 +143,4 @@ private:
 
 };
 
-#endif /* CONVERTER_H_ */
+#endif // __UG__PLUGINS__CABLE_NEURON__MEMBRANE_TRANSPORT__CONVERTER_H__

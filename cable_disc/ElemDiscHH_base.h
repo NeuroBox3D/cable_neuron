@@ -8,8 +8,8 @@
  * from andreasvogel
  */
 
-#ifndef __H__ELEMDISCHH_base__
-#define __H__ELEMDISCHH_base__
+#ifndef __UG__PLUGINS__CABLE_NEURON__CABLE_DISC__ELEMDISCHH_BASE_H__
+#define __UG__PLUGINS__CABLE_NEURON__CABLE_DISC__ELEMDISCHH_BASE_H__
 
 // other ug4 modules
 #include "common/common.h"
@@ -21,7 +21,7 @@
 #include "lib_disc/spatial_disc/user_data/data_import.h"
 
 namespace ug {
-namespace cable {
+namespace cable_neuron {
 
 
 // \ingroup lib_disc_elem_disc
@@ -261,8 +261,8 @@ class ElemDiscHH_Base
 };
 
 
-} // end namespace cable
+} // end namespace cable_neuron
 } // end namespace ug
 
 
-#endif /*__H__ELEMDISCHH_base__*/
+#endif // __UG__PLUGINS__CABLE_NEURON__CABLE_DISC__ELEMDISCHH_BASE_H__

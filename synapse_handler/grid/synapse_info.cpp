@@ -9,6 +9,7 @@
 #include "synapse_info.h"
 
 namespace ug {
+namespace cable_neuron {
 namespace synapse_handler {
 
 
@@ -197,6 +198,7 @@ std::istream& operator>>(std::istream& in, SynapseInfo& synapse)
 }
 
 
-} // namespace sh
+} // namespace synapse_handler
+} // namespace cable_neuron
 } // namespace ug
 

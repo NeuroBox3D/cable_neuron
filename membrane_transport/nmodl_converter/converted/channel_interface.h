@@ -13,7 +13,7 @@
 
 
 namespace ug {
-namespace cable {
+namespace cable_neuron {
 
 
 // forward declaration
@@ -116,7 +116,7 @@ class ICableMembraneTransport
 };
 
 
-} // namespace cable
+} // namespace cable_neuron
 } // namespace ug
 
 #endif // __UG__PLUGINS__EXPERIMENTAL__CABLE__CHANNEL_INTERFACE_H__

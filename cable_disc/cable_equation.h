@@ -6,8 +6,8 @@
  */
 
 
-#ifndef __UG__PLUGINS__CABLE_NEURON__CABLE_EQUATION_H__
-#define __UG__PLUGINS__CABLE_NEURON__CABLE_EQUATION_H__
+#ifndef __UG__PLUGINS__CABLE_NEURON__CABLE_DISC__CABLE_EQUATION_H__
+#define __UG__PLUGINS__CABLE_NEURON__CABLE_DISC__CABLE_EQUATION_H__
 
 // other ug4 modules
 #include "common/common.h"
@@ -23,15 +23,14 @@
 
 
 namespace ug {
+namespace cable_neuron {
 
-namespace synapse_handler {
+namespace synapse_handler
+{
 	// forward declaration
 	template <typename TDomain>
 	class NETISynapseHandler;
 }
-
-
-namespace cable {
 
 
 // forward declaration
@@ -318,7 +317,7 @@ class CableEquation
 };
 
 
-} // namespace cable
+} // namespace cable_neuron
 } // namespace ug
 
-#endif // __UG__PLUGINS__CABLE_NEURON__CABLE_EQUATION_H__
+#endif // __UG__PLUGINS__CABLE_NEURON__CABLE_DISC__CABLE_EQUATION_H__

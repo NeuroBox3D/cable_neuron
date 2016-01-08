@@ -6,6 +6,7 @@
 
 
 namespace ug {
+namespace cable_neuron {
 namespace synapse_handler {
 
 
@@ -103,7 +104,7 @@ set_presyn_subset(const char* presynSubset)
 
 template <typename TDomain>
 void NETISynapseHandler<TDomain>::
-set_vmdisc(SmartPtr<cable::CableEquation<TDomain> > disc)
+set_vmdisc(SmartPtr<CableEquation<TDomain> > disc)
 {
 	UG_COND_THROW(m_bInited, "The CableEquation object associated to this synapse handler "
 				  "must not be changed\nafter addition of the original CableEquation object "
@@ -1289,6 +1290,7 @@ has_EXP2_SYNAPSE()
 
 
 } // namespace synapse_handler
+} // namespace cable_neuron
 } // namespace ug
 
 

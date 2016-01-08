@@ -7,7 +7,7 @@
 
 #include "synapses.h"
 
-using namespace ug::synapse_handler;
+using namespace ug::cable_neuron::synapse_handler;
 
 const std::string SynapseFactoryProducer::ALPHA_SYNAPSE_FACTORY = "ALPHA_SYNAPSE_FACTORY";
 const std::string SynapseFactoryProducer::EXP_SYNAPSE_FACTORY = "EXP_SYNAPSE_FACTORY";

@@ -7,8 +7,8 @@
  */
 
 // guard
-#ifndef __H__UG__SYNAPSE_HANDLER__SYNAPSE_HANDLER__
-#define __H__UG__SYNAPSE_HANDLER__SYNAPSE_HANDLER__
+#ifndef __UG__PLUGINS__CABLE_NEURON__SYNAPSE_HANDLER__SYNAPSE_HANDLER_H__
+#define __UG__PLUGINS__CABLE_NEURON__SYNAPSE_HANDLER__SYNAPSE_HANDLER_H__
 
 // includes
 #include <map>
@@ -37,20 +37,17 @@
 
 // synapse distributor and cable equation
 #include "../synapse_distributor/synapse_distributor.h"
-#include "../cable_equation/cable_equation.h"
+#include "../cable_disc/cable_equation.h"
 
 
 namespace ug {
+namespace cable_neuron {
 
 
-namespace cable {
-	template <typename TDomain>
-	class CableEquation;
-
-	template <typename TDomain>
-	class ICableMembraneTransport;
-}
-
+template <typename TDomain>
+class CableEquation;
+template <typename TDomain>
+class ICableMembraneTransport;
 
 
 namespace synapse_handler {
@@ -168,7 +165,7 @@ class NETISynapseHandler : public ISynapseHandler<TDomain>
 		void set_presyn_subset(const char* presynSubset);
 
 		/// set the CableEquation object for which this synapse handler handles the synapses
-		void set_vmdisc(SmartPtr<cable::CableEquation<TDomain> > disc);
+		void set_vmdisc(SmartPtr<CableEquation<TDomain> > disc);
 
 		/**
 		 * @brief sets alpha synapses activity pattern (randomly)
@@ -338,7 +335,7 @@ class NETISynapseHandler : public ISynapseHandler<TDomain>
 
 	private:
 		/// CableEquation
-		SmartPtr<cable::CableEquation<TDomain> > m_spVMDisc;
+		SmartPtr<CableEquation<TDomain> > m_spVMDisc;
 
 		/// approx space
 		SmartPtr<ApproximationSpace<TDomain> > m_spApprox;
@@ -390,6 +387,7 @@ class NETISynapseHandler : public ISynapseHandler<TDomain>
 ///<! \}
 
 } // namespace synapse_handler
+} // namespace cable_neuron
 } // namespace ug
 
-#endif // __H__UG__SYNAPSE_HANDLER__SYNAPSE_HANDLER__
+#endif // __UG__PLUGINS__CABLE_NEURON__SYNAPSE_HANDLER__SYNAPSE_HANDLER_H__

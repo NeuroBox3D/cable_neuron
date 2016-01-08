@@ -12,7 +12,7 @@
 
 
 namespace ug {
-namespace cable {
+namespace cable_neuron {
 
 
 template<typename TDomain>
@@ -148,5 +148,5 @@ specify_write_function_indices()
 #endif
 
 
-} // namespace cable
+} // namespace cable_neuron
 } // namespace ug

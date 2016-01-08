@@ -21,7 +21,7 @@
 #include "common/util/smart_pointer.h" 
 #include "common/util/vector_util.h" 
 
-#include "../../cable_equation.h" 
+#include "../../../cable_disc/cable_equation.h" 
  
 #include <vector> 
 #include <stdio.h> 
@@ -29,7 +29,7 @@
 #include "../../cable_membrane_transport_interface.h"
 #include "bindings/lua/lua_user_data.h" 
 namespace ug {
-namespace cable {
+namespace cable_neuron {
 
 
 // forward declaration 
@@ -319,7 +319,7 @@ bool m_log_OMgGate;
 number F, R, K, celsius; 
 }; 
  
-} // namespace cable
+} // namespace cable_neuron
 } // namespace ug
 
 

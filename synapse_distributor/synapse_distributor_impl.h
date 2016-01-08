@@ -8,9 +8,10 @@
 #include <common/error.h>
 
 namespace ug {
+namespace cable_neuron {
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-//	SynapseDistributor::has_active_synapses(MathVector<dim>& c, double t)
+//	SynapseDistributor::has_active_synapses(MathVector<dim>& c, number t)
 /**
  * Returns true/false whether the given position has an active synapse
  */
@@ -36,4 +37,5 @@ bool SynapseDistributor::has_active_synapses(const MathVector<dim>& c, const num
 }
 
 
-} // end namespace ug
+} // namespace cable_neuron
+} // namespace ug

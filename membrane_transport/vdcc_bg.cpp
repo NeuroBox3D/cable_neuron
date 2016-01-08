@@ -9,7 +9,7 @@
 #include <limits> // numeric_limits
 
 namespace ug {
-namespace cable {
+namespace cable_neuron {
 
 
 ////////////////////////////////////////////////
@@ -301,5 +301,5 @@ specify_write_function_indices()
 	template class VDCC_BG_Cable<Domain3d>;
 #endif
 
-} // namespace cable
+} // namespace cable_neuron
 } // namespace ug

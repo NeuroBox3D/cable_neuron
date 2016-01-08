@@ -5,7 +5,7 @@
  *      Author: unheiliger
  */
 
-#include "../nmodl_converter/Converter.h"
+#include "Converter.h"
 
 #include <fstream>
 #include <iostream>
@@ -2135,7 +2135,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 
 	  mycppfile << "namespace ug { \n";
-	  mycppfile << "namespace cable { \n \n \n";
+	  mycppfile << "namespace cable_neuron { \n \n \n";
 
 	  std::vector<string> mod_funcs_names;
 	  // all function and function_table have to be read in first so later need more attention more
@@ -2475,7 +2475,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  myhfile << "#include \"bindings/lua/lua_user_data.h\" \n";
 
 	  myhfile << "namespace ug {\n";
-	  myhfile << "namespace cable {\n\n\n";
+	  myhfile << "namespace cable_neuron {\n\n\n";
 	  myhfile << "// forward declaration \n";
 	  myhfile << "template <typename TDomain> \n";
 	  myhfile << "class CableEquation; \n \n";
@@ -5323,7 +5323,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  mycppfile << "#endif \n \n \n";
 
 
-	  mycppfile << "} // namespace cable\n";
+	  mycppfile << "} // namespace cable_neuron\n";
 	  mycppfile << "} // namespace ug\n\n\n";
 
 	  mycppfile.close();
@@ -5505,7 +5505,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 
 	  myhfile << "}; \n \n";
 
-	  myhfile << "} // namespace cable\n";
+	  myhfile << "} // namespace cable_neuron\n";
 	  myhfile << "} // namespace ug\n\n\n";
 
 	  myhfile << "#endif // " + filename + "_H_\n";

@@ -4,8 +4,8 @@
  *  Created on: 21.05.2015
  *      Author: mbreit
  */
-#ifndef PLUGINS__HHCABLE__DIAM_ATTACHMENT_HANDLER_H_
-#define PLUGINS__HHCABLE__DIAM_ATTACHMENT_HANDLER_H_
+#ifndef __UG__PLUGINS__CABLE_NEURON__UTIL__DIAM_ATTACHMENT_HANDLER_H__
+#define __UG__PLUGINS__CABLE_NEURON__UTIL__DIAM_ATTACHMENT_HANDLER_H__
 
 
 #include "lib_grid/lib_grid.h"
@@ -14,7 +14,7 @@
 #include <vector>
 
 namespace ug {
-namespace cable {
+namespace cable_neuron {
 
 /**
  * @brief handler for diameter attachment in the CableEquation multi-grid
@@ -45,7 +45,7 @@ class DiamAttachmentHandler
 		virtual void copy_from_other_elem_type(GridObject* parent, Vertex* child);
 };
 
-} // end namespace cable
+} // end namespace cable_neuron
 } // end namespace ug
 
-#endif // PLUGINS__HHCABLE__DIAM_ATTACHMENT_HANDLER_H_
+#endif // __UG__PLUGINS__CABLE_NEURON__UTIL__DIAM_ATTACHMENT_HANDLER_H__

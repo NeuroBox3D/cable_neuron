@@ -6,7 +6,6 @@
  */
 
 
-
 #include "synapse_distributor.h"
 
 #ifdef UG_PARALLEL
@@ -16,8 +15,10 @@
 
 #define SynapseDistributor_verbose
 
-namespace ug
-{
+using namespace std;
+
+namespace ug {
+namespace cable_neuron {
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -261,7 +262,7 @@ void SynapseDistributor::clear(int subsetIndex)
 void SynapseDistributor::place_synapse(Edge* e)
 {
 	/// TODO: rand() and RAND_MAX seem to be platform-dependent
-	double localCoord = static_cast<double>(rand())  / RAND_MAX; //localCoord factor 0 means e[0], 1 means e[1]
+	number localCoord = static_cast<number>(rand())  / RAND_MAX; //localCoord factor 0 means e[0], 1 means e[1]
 
 //	Initialize an alpha synapse with dummy onset and end activity time
 //	(end time is determined by alpha synapse specific parameter m_tau * 6)
@@ -286,7 +287,7 @@ void SynapseDistributor::place_synapse(Edge* e)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-//	SynapseDistributor::set_activation_timing(double start_time, double duration, double start_time_dev, double duration_dev)
+//	SynapseDistributor::set_activation_timing(number start_time, number duration, number start_time_dev, number duration_dev)
 /**
  * Sets electrode activity
  *
@@ -295,18 +296,18 @@ void SynapseDistributor::place_synapse(Edge* e)
  * start_time_dev	: deviation of startvalue
  * duration_dev		: deviation of duration
  */
-void SynapseDistributor::set_activation_timing(double start_time, double duration, double start_time_dev, double duration_dev)
+void SynapseDistributor::set_activation_timing(number start_time, number duration, number start_time_dev, number duration_dev)
 {
 //	Activity timing setup
 //	############## Random normal distribution
 	boost::mt19937 rng;
 	rng.seed(time(NULL));
 
-	boost::normal_distribution<double> start_dist(start_time, start_time_dev);
-	boost::variate_generator<boost::mt19937, boost::normal_distribution<double> > var_start(rng, start_dist);
+	boost::normal_distribution<number> start_dist(start_time, start_time_dev);
+	boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > var_start(rng, start_dist);
 
-	boost::normal_distribution<double> duration_dist(duration, duration_dev);
-	boost::variate_generator<boost::mt19937, boost::normal_distribution<double> > var_duration(rng, duration_dist);
+	boost::normal_distribution<number> duration_dist(duration, duration_dev);
+	boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > var_duration(rng, duration_dist);
 //	##################
 
 //	Initialize with time dependency
@@ -318,12 +319,12 @@ void SynapseDistributor::set_activation_timing(double start_time, double duratio
 
 		for(size_t i = 0; i < m_aaSynInfo[e].size(); ++i)
 		{
-			double t_start = var_start();
+			number t_start = var_start();
 
 			if(t_start < 0)
 				t_start = 0;
 
-			double t_end = t_start + abs( var_duration());
+			number t_end = t_start + abs( var_duration());
 
 			if(t_start > t_end)
 				UG_THROW("ERROR in SynapseDistributor constructor: Synapse activity start time > end time.");
@@ -417,10 +418,10 @@ void SynapseDistributor::place_synapses_uniform(size_t numSynapses)
 /**
  * Places synapses according to set density and given distribution in the single subsets.
  */
-void SynapseDistributor::place_synapses(vector<double> distr, size_t numSynapses)
+void SynapseDistributor::place_synapses(vector<number> distr, size_t numSynapses)
 {
 //	check validity of input
-	double s = 0;
+	number s = 0;
 
 	for(size_t i=0; i<distr.size(); ++i)
 	{
@@ -428,7 +429,7 @@ void SynapseDistributor::place_synapses(vector<double> distr, size_t numSynapses
 	}
 
 	if( abs(s - 1) > 1e-5 || (int)distr.size() != pm_SubsetHandler->num_subsets()) { //sum of probabilities has to be 1
-		UG_THROW("SynapseDistributor::place_synapses(vector<double> distr): Specified distribution incorrect. Probabilities don't sum up to 1 or distr.size() != mg.num_subsets().");
+		UG_THROW("SynapseDistributor::place_synapses(vector<number> distr): Specified distribution incorrect. Probabilities don't sum up to 1 or distr.size() != mg.num_subsets().");
 	}
 
 //	Placing synapses
@@ -500,14 +501,14 @@ void SynapseDistributor::degenerate_uniform(vector<Edge*> vEdges, size_t numSyna
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-//	SynapseDistributor::degenerate_uniform(double p, size_t numSynapses)
+//	SynapseDistributor::degenerate_uniform(number p, size_t numSynapses)
 /**
  * Removes a percentage p of synapses from the whole grid
  */
-void SynapseDistributor::degenerate_uniform(double p)
+void SynapseDistributor::degenerate_uniform(number p)
 {
 	if(p < 0 || p > 1)
-		UG_THROW("SynapseDistributor::degenerate_uniform(double p, size_t numSynapses): Specified percentage incorrect.");
+		UG_THROW("SynapseDistributor::degenerate_uniform(number p, size_t numSynapses): Specified percentage incorrect.");
 
 //	Save coarse grid edges in a vector
 	vector<Edge*> vEdges = vector<Edge*>(pm_Grid->begin<Edge>(0), pm_Grid->end<Edge>(0));
@@ -519,14 +520,14 @@ void SynapseDistributor::degenerate_uniform(double p)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-//	SynapseDistributor::degenerate_uniform(double p, size_t numSynapses, int si)
+//	SynapseDistributor::degenerate_uniform(number p, size_t numSynapses, int si)
 /**
  * Removes a percentage p of synapses from subset subsetIndex
  */
-void SynapseDistributor::degenerate_uniform(double p, int si)
+void SynapseDistributor::degenerate_uniform(number p, int si)
 {
 	if(p < 0 || p > 1)
-		UG_THROW("SynapseDistributor::degenerate_uniform(double p, size_t numSynapses, int subsetIndex): Specified percentage incorrect.");
+		UG_THROW("SynapseDistributor::degenerate_uniform(number p, size_t numSynapses, int subsetIndex): Specified percentage incorrect.");
 
 //	Save subset coarse grid edges in a vector
 	vector<Edge*> vEdges = vector<Edge*>(pm_SubsetHandler->begin<Edge>(si, 0), pm_SubsetHandler->end<Edge>(si, 0));
@@ -640,16 +641,16 @@ void SynapseDistributor::activity_info()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-//	vector<Synapse*> SynapseDistributor::find_synapses(double x, double y, double z) const
+//	vector<Synapse*> SynapseDistributor::find_synapses(number x, number y, number z) const
 /**
  * Returns vector with pointers to synapses at this position, if existent
  */
-vector<SynapseInfo*> SynapseDistributor::find_synapses(double x, double y, double z) const
+vector<SynapseInfo*> SynapseDistributor::find_synapses(number x, number y, number z) const
 {
 ///	TODO: Implement me!
 
 	vector<SynapseInfo*> vSyn;
-	UG_THROW("vector<Synapse*> SynapseDistributor::find_synapses(double x, double y, double z) const. NOT IMPLEMENTED!");
+	UG_THROW("vector<Synapse*> SynapseDistributor::find_synapses(number x, number y, number z) const. NOT IMPLEMENTED!");
 
 	return vSyn;
 }
@@ -771,7 +772,9 @@ MGSubsetHandler* SynapseDistributor::get_subset_handler()
  */
 number SynapseDistributor::get_dummy_current() const { return -2e-14; /*2e-14C/ms=20pA*/}
 
-}
+
+} // namespace cable_neuron
+} // namespace ug
 
 
 

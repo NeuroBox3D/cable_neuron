@@ -6,8 +6,8 @@
  */
 
 
-#ifndef __SynapseDistributor_h__
-#define __SynapseDistributor_h__
+#ifndef __UG__PLUGINS__CABLE_NEURON__SYNAPSE_DISTRIBUTOR__SYNAPSE_DISTRIBUTOR_H__
+#define __UG__PLUGINS__CABLE_NEURON__SYNAPSE_DISTRIBUTOR__SYNAPSE_DISTRIBUTOR_H__
 
 /* system includes */
 #include <stddef.h>
@@ -31,12 +31,8 @@
 #include <boost/random/normal_distribution.hpp>
 
 
-
-
-using namespace std;
-
-
 namespace ug {
+namespace cable_neuron {
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -46,12 +42,12 @@ namespace ug {
 ////////////////////////////////////////////////////////////////////////////////////////////
 class SynapseDistributor
 {
-	typedef Attachment<vector<SynapseInfo> > AVSynapse;
+	typedef Attachment<std::vector<SynapseInfo> > AVSynapse;
 
 public:
 //	Constructor
-	SynapseDistributor(string infile, string outfile, bool bRemoveExistingSynapses);
-	SynapseDistributor(SmartPtr<Domain3d> dom, string outfile, bool bRemoveExistingSynapses);
+	SynapseDistributor(std::string infile, std::string outfile, bool bRemoveExistingSynapses);
+	SynapseDistributor(SmartPtr<Domain3d> dom, std::string outfile, bool bRemoveExistingSynapses);
 
 //	Standard destructor
 	~SynapseDistributor();
@@ -66,19 +62,19 @@ public:
 	void clear();
 	void clear(int subsetIndex);
 
-	void set_activation_timing(double start_time, double duration, double start_time_dev, double duration_dev);
+	void set_activation_timing(number start_time, number duration, number start_time_dev, number duration_dev);
 
 	void place_synapse(Edge* e);
-	void place_synapses_uniform(vector<Edge*> vEdges, size_t numSynapses);
+	void place_synapses_uniform(std::vector<Edge*> vEdges, size_t numSynapses);
 	void place_synapses_uniform(size_t numSynapses);
 	void place_synapses_uniform(int si, size_t numSynapses);
-	void place_synapses(vector<double> distr, size_t numSynapses);
+	void place_synapses(std::vector<number> distr, size_t numSynapses);
 
-	void degenerate_uniform(vector<Edge*> vEdges, size_t numSynapses);
-	void degenerate_uniform(double p);
-	void degenerate_uniform(double p, int si);
+	void degenerate_uniform(std::vector<Edge*> vEdges, size_t numSynapses);
+	void degenerate_uniform(number p);
+	void degenerate_uniform(number p, int si);
 
-	size_t num_synapses(vector<Edge*> vEdges, bool bActive, number time);
+	size_t num_synapses(std::vector<Edge*> vEdges, bool bActive, number time);
 	size_t num_synapses(int si);
 	size_t num_synapses();
 	size_t num_active_synapses(number time);
@@ -86,7 +82,7 @@ public:
 
 	void activity_info();
 
-	vector<SynapseInfo*> find_synapses(double x, double y, double z) const;
+	std::vector<SynapseInfo*> find_synapses(number x, number y, number z) const;
 
 	template <size_t dim>
 	bool has_active_synapses(const MathVector<dim>& c, const number time, number& current) const;
@@ -94,7 +90,7 @@ public:
 
 //	testing and helper
 	void print_status();
-	string get_last_message();
+	std::string get_last_message();
 	bool export_grid();
 	MultiGrid* get_grid();
 	MGSubsetHandler* get_subset_handler();
@@ -110,9 +106,9 @@ private:
 
 	bool m_bDomBased;
 
-	string m_InputFile;
-	string m_OutputFile;
-	string m_LastMessage;
+	std::string m_InputFile;
+	std::string m_OutputFile;
+	std::string m_LastMessage;
 
 //	Pointers to heap memory, have to be freed in destructor
 	MultiGrid* pm_Grid;
@@ -122,9 +118,11 @@ private:
 	Grid::VertexAttachmentAccessor<APosition> m_aaPosition;
 };
 
-}
+
+} // namespace cable_neuron
+} // namespace ug
 
 #include "synapse_distributor_impl.h"
 
-#endif
+#endif // __UG__PLUGINS__CABLE_NEURON__SYNAPSE_DISTRIBUTOR__SYNAPSE_DISTRIBUTOR_H__
 

@@ -8,7 +8,8 @@
  * from andreasvogel
  */
 
-#include "ElemDiscHH_base.h"
+#include "../cable_disc/ElemDiscHH_base.h"
+
 #include "lib_disc/spatial_disc/user_data/const_user_data.h"
 #include "lib_disc/spatial_disc/user_data/data_export.h"
 #ifdef UG_FOR_LUA
@@ -16,7 +17,7 @@
 #endif
 
 namespace ug {
-namespace cable {
+namespace cable_neuron {
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -417,5 +418,5 @@ template class ElemDiscHH_Base<Domain2d>;
 template class ElemDiscHH_Base<Domain3d>;
 #endif
 
-} // namespace cable
+} // namespace cable_neuron
 } // namespace ug
