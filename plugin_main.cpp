@@ -578,10 +578,13 @@ struct Functionality
 			.add_method("set_activation_timing",static_cast<void (TSD::*)(number, number, number, number)>(&TSD::set_activation_timing), "start_time#duration#start_time_dev#duration_dev", "", "Sets activity timing of distributed synapes..", grp)
 			.add_method("degenerate_uniform",static_cast<void (TSD::*)(number)>(&TSD::degenerate_uniform),"","","Degenerates a certain percentage of synapses in the whole grid.",grp)
 			.add_method("degenerate_uniform",static_cast<void (TSD::*)(number, int)>(&TSD::degenerate_uniform),"","","Degenerates a certain percentage of synapses in the given subset.",grp)
+			.add_method("degenerate_uniform",static_cast<void (TSD::*)(number, const char*)>(&TSD::degenerate_uniform),"","","Degenerates a certain percentage of synapses in the given subset.",grp)
 
-			.add_method("get_subset_length",&TSD::get_subset_length,"","number","Calculate and return length of specified subset in micrometer",grp)
+			.add_method("get_subset_length",static_cast<number (TSD::*)(int)>(&TSD::get_subset_length),"","number","Calculate and return length of specified subset in micrometer",grp)
+			.add_method("get_subset_length",static_cast<number (TSD::*)(const char*)>(&TSD::get_subset_length),"","number","Calculate and return length of specified subset in micrometer",grp)
 			.add_method("num_synapses", static_cast<size_t (TSD::*)()>(&TSD::num_synapses), "", "", "Returns global number of synapses", grp)
 			.add_method("num_synapses", static_cast<size_t (TSD::*)(int)>(&TSD::num_synapses), "", "", "Returns number of synapses in specified subset", grp)
+			.add_method("num_synapses", static_cast<size_t (TSD::*)(const char*)>(&TSD::num_synapses), "", "", "Returns number of synapses in specified subset", grp)
 			.add_method("num_active_synapses", static_cast<size_t (TSD::*)(number)>(&TSD::num_active_synapses), "", "", "Returns global number of synapses at the specific time", grp)
 			.add_method("num_active_synapses", static_cast<size_t (TSD::*)(number, int)>(&TSD::num_active_synapses), "", "", "Returns number of synapses at the specific in specified subset", grp)
 

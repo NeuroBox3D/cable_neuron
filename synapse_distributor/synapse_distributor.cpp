@@ -559,7 +559,7 @@ void SynapseDistributor::degenerate_uniform(number p)
 void SynapseDistributor::degenerate_uniform(number p, int si)
 {
 	if(p < 0 || p > 1)
-		UG_THROW("SynapseDistributor::degenerate_uniform(number p, size_t numSynapses, int subsetIndex): Specified percentage incorrect.");
+		UG_THROW("SynapseDistributor::degenerate_uniform(number p, int subsetIndex): Specified percentage incorrect.");
 
 //	Save subset coarse grid edges in a vector
 	vector<Edge*> vEdges = vector<Edge*>(pm_SubsetHandler->begin<Edge>(si, 0), pm_SubsetHandler->end<Edge>(si, 0));
@@ -571,7 +571,23 @@ void SynapseDistributor::degenerate_uniform(number p, int si)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-//	SynapseDistributor::get_subset_length(vector<Edge*> vEdges)
+//	SynapseDistributor::degenerate_uniform(number p, const char* subset)
+/**
+ * Removes a percentage p of synapses from subset subsetIndex
+ */
+void SynapseDistributor::degenerate_uniform(number p, const char* subset)
+{
+	if(p < 0 || p > 1)
+		UG_THROW("SynapseDistributor::degenerate_uniform(number p, const char* subset): Specified percentage incorrect.");
+
+//	Get subset index from subset name
+	int si = pm_SubsetHandler->get_subset_index(subset);
+
+	degenerate_uniform(p, si);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+//	SynapseDistributor::get_subset_length(int si)
 /**
  * Calculate and return length of specified subset in micrometer
  */
@@ -592,6 +608,19 @@ number SynapseDistributor::get_subset_length(int si)
 	}
 
 	return totLength;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+//	SynapseDistributor::get_subset_length(const char* subset)
+/**
+ * Calculate and return length of specified subset in micrometer
+ */
+number SynapseDistributor::get_subset_length(const char* subset)
+{
+//	Get subset index from subset name
+	int si = pm_SubsetHandler->get_subset_index(subset);
+
+	return get_subset_length(si);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -634,6 +663,19 @@ size_t SynapseDistributor::num_synapses(int si)
 	vector<Edge*> vEdges = vector<Edge*>(pm_SubsetHandler->begin<Edge>(si, 0), pm_SubsetHandler->end<Edge>(si, 0));
 
 	return num_synapses(vEdges, false, 0.0);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+//	SynapseDistributor::num_synapses(const char* subset)
+/**
+ * Returns the number of synapses in a given subset.
+ */
+size_t SynapseDistributor::num_synapses(const char* subset)
+{
+//	Get subset index from subset name
+	int si = pm_SubsetHandler->get_subset_index(subset);
+
+	return num_synapses(si);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
