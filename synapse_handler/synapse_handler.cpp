@@ -382,7 +382,6 @@ synapse_on_edge(const Edge* edge, size_t scv, number time, number& current)
 				default:
 					break;
 			}
-			return true;
 		}
 	}
 
