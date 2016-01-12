@@ -20,6 +20,9 @@
 #include <string>
 #include <algorithm>
 
+#include "lib_disc/spatial_disc/user_data/user_data.h"
+#include "common/util/smart_pointer.h"
+
 #include "lib_grid/lib_grid.h"
 #include "lib_grid/global_attachments.h"
 
@@ -68,14 +71,19 @@ public:
 	void place_synapses_uniform(std::vector<Edge*> vEdges, size_t numSynapses);
 	void place_synapses_uniform(size_t numSynapses);
 	void place_synapses_uniform(int si, size_t numSynapses);
+	void place_synapses_uniform(const char*, number density);
 	void place_synapses(std::vector<number> distr, size_t numSynapses);
 
 	void degenerate_uniform(std::vector<Edge*> vEdges, size_t numSynapses);
 	void degenerate_uniform(number p);
 	void degenerate_uniform(number p, int si);
+	void degenerate_uniform(number p, const char* subset);
 
+	number get_subset_length(int si);
+	number get_subset_length(const char* subset);
 	size_t num_synapses(std::vector<Edge*> vEdges, bool bActive, number time);
 	size_t num_synapses(int si);
+	size_t num_synapses(const char* subset);
 	size_t num_synapses();
 	size_t num_active_synapses(number time);
 	size_t num_active_synapses(number time, int si);
@@ -91,7 +99,9 @@ public:
 //	testing and helper
 	void print_status();
 	std::string get_last_message();
+	void set_outfile(std::string outfile);
 	bool export_grid();
+	bool export_grid(std::string outfile);
 	MultiGrid* get_grid();
 	MGSubsetHandler* get_subset_handler();
 
