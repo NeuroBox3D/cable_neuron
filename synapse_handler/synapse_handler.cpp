@@ -74,7 +74,7 @@ name() const
 template <typename TDomain>
 NETISynapseHandler<TDomain>::
 NETISynapseHandler()
-: m_spVMDisc(SPNULL), m_spApprox(SPNULL), m_spGrid(SPNULL),
+: m_spCEDisc(SPNULL), m_spApprox(SPNULL), m_spGrid(SPNULL),
   m_aSynInfo(GlobalAttachments::attachment<AVSynapse>("Synapses")),
   m_aPSI(GlobalAttachments::attachment<AUInt>("presyn_index")),
   m_presynSubset(""), m_presynSI(-1),
@@ -104,14 +104,14 @@ set_presyn_subset(const char* presynSubset)
 
 template <typename TDomain>
 void NETISynapseHandler<TDomain>::
-set_vmdisc(SmartPtr<CableEquation<TDomain> > disc)
+set_ce_object(SmartPtr<CableEquation<TDomain> > disc)
 {
 	UG_COND_THROW(m_bInited, "The CableEquation object associated to this synapse handler "
 				  "must not be changed\nafter addition of the original CableEquation object "
 				  "to the domain discretization.");
 
-	// set vmdisc
-	m_spVMDisc = disc;
+	// set cable equation disc object
+	m_spCEDisc = disc;
 }
 
 
@@ -148,11 +148,11 @@ grid_first_available()
 	UG_COND_THROW(m_bInited, "Second initialization call is not allowed.");
 
 	// check availability of approxSpace and grid; set members
-	UG_COND_THROW(!m_spVMDisc.valid(), "Given CableEquation SmartPtr is not valid.");
+	UG_COND_THROW(!m_spCEDisc.valid(), "Given CableEquation SmartPtr is not valid.");
 
-	m_spApprox = m_spVMDisc->approx_space();
+	m_spApprox = m_spCEDisc->approx_space();
 	UG_COND_THROW(!m_spApprox.valid(), "No valid approximation space available in synapse handler.\n"
-				  "Did you forget to set a CableEquation via set_vmdisc()?");
+				  "Did you forget to set a CableEquation via set_ce_object()?");
 
 	UG_COND_THROW(!m_spApprox->domain().valid(), "The approximation space of the given CableEquation object"
 				  " does not contain a valid domain.\n");
@@ -251,9 +251,9 @@ update_presyn()
 		m_vPresynVmValues.assign(m_vPresynVmValues.size(), -std::numeric_limits<number>::max());
 
 		// loop presynaptic subset and fill known values
-		MGSubsetHandler& ssh = *m_spVMDisc->approx_space()->domain()->subset_handler();
+		MGSubsetHandler& ssh = *m_spCEDisc->approx_space()->domain()->subset_handler();
 
-		const std::vector<Vertex*>& sfv = m_spVMDisc->surface_vertices();
+		const std::vector<Vertex*>& sfv = m_spCEDisc->surface_vertices();
 		size_t sfv_sz = sfv.size();
 		for (size_t sv = 0; sv < sfv_sz; ++sv)
 		{
@@ -261,7 +261,7 @@ update_presyn()
 			if (ssh.get_subset_index(vrt) != m_presynSI) continue;
 
 			uint idx = m_aaPSI[vrt];
-			m_vPresynVmValues[idx] = m_spVMDisc->vm(vrt);
+			m_vPresynVmValues[idx] = m_spCEDisc->vm(vrt);	// todo: adapt SH units to CE !
 		}
 
 		// communicate (all-to-all)
@@ -271,9 +271,6 @@ update_presyn()
 		{
 			pcl::ProcessCommunicator com;
 
-			// I do not know _why_ we need to copy here, but without MPI fails with
-			// MPI ERROR: MPI_ERR_BUFFER: invalid buffer pointer,
-			// so we copy
 			number* localData;
 			size_t sz = m_vPresynVmValues.size();
 			localData = new number[sz];
@@ -307,7 +304,7 @@ synapse_on_edge(const Edge* edge, size_t scv, number time, number& current)
 	std::vector<SynapseInfo>& vInfo = m_aaSynapseInfo[edge];
 
 	bool active_synapse = false;
-	current = 0.0;
+	current = 0.0;		// todo: adapt SH units to CE! here: current in units of A instead of nA
 
 	typedef synapse_traits<> STV;
 	typedef synapse_traits<AlphaSynapse> STA;
@@ -320,7 +317,7 @@ synapse_on_edge(const Edge* edge, size_t scv, number time, number& current)
 		if ((STV::loc_coord(info) < 0.5 && scv == 0) || (STV::loc_coord(info) >= 0.5 && scv == 1))
 		{
 			// get vmDisc potential values for edge
-			number vm_postsyn = m_spVMDisc->vm(edge->vertex(scv));
+			number vm_postsyn = m_spCEDisc->vm(edge->vertex(scv));
 
 			switch (STV::type(info))
 			{
@@ -596,7 +593,7 @@ print_synapse_statistics(size_t soma_si)
 
 	// iterate over somatic subset
 	typedef geometry_traits<Edge>::const_iterator iter_type;
-	MGSubsetHandler& ssh = *m_spVMDisc->approx_space()->domain()->subset_handler();
+	MGSubsetHandler& ssh = *m_spCEDisc->approx_space()->domain()->subset_handler();
 	iter_type eIter = ssh.begin<Edge>(soma_si, 0);
 	iter_type eEnd = ssh.end<Edge>(soma_si, 0);
 
@@ -1073,7 +1070,7 @@ write_activity_to_file(const std::string& fileName, number time)
 	UG_COND_THROW(sz != m_vNeuronType.size(), "size mismatch");
 	for (size_t s = 0; s < sz; ++s)
 	{
-		number vm = m_spVMDisc->vm(m_vSomaVertices[s]);
+		number vm = m_spCEDisc->vm(m_vSomaVertices[s]);
 		if (vm > -45.0)
 		{
 			UG_COND_THROW(m_vNeuronType[s]>=4,"invalid neuron type");
@@ -1195,7 +1192,7 @@ resize_presyn_vector()
 	// loop presynaptic subset
 	MGSubsetHandler& ssh = *m_spApprox->domain()->subset_handler();
 
-	const std::vector<Vertex*>& sfv = m_spVMDisc->surface_vertices();
+	const std::vector<Vertex*>& sfv = m_spCEDisc->surface_vertices();
 	size_t sfv_sz = sfv.size();
 	unsigned long max = 0;
 	for (size_t sv = 0; sv < sfv_sz; ++sv)

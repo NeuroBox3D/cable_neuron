@@ -165,7 +165,7 @@ class NETISynapseHandler : public ISynapseHandler<TDomain>
 		void set_presyn_subset(const char* presynSubset);
 
 		/// set the CableEquation object for which this synapse handler handles the synapses
-		void set_vmdisc(SmartPtr<CableEquation<TDomain> > disc);
+		void set_ce_object(SmartPtr<CableEquation<TDomain> > disc);
 
 		/**
 		 * @brief sets alpha synapses activity pattern (randomly)
@@ -335,7 +335,7 @@ class NETISynapseHandler : public ISynapseHandler<TDomain>
 
 	private:
 		/// CableEquation
-		SmartPtr<CableEquation<TDomain> > m_spVMDisc;
+		SmartPtr<CableEquation<TDomain> > m_spCEDisc;
 
 		/// approx space
 		SmartPtr<ApproximationSpace<TDomain> > m_spApprox;
