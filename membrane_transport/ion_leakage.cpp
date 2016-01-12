@@ -14,8 +14,8 @@ namespace cable_neuron {
 template<typename TDomain>
 IonLeakage<TDomain>::IonLeakage(const char* functions, const char* subsets)
 try : ICableMembraneTransport<TDomain>(functions, subsets),
-m_perm(1.0e-6), m_leaking_fct(std::string("v")), m_lfInd(0),
-m_flux_at_rest(0.0), m_conc_in_rest(5e-5), m_conc_out_rest(1.5), m_vm_rest(-65), m_valency(1) {}
+m_perm(1.0), m_leaking_fct(std::string("ca")), m_lfInd(0),
+m_flux_at_rest(0.0), m_conc_in_rest(5e-5), m_conc_out_rest(1.5), m_vm_rest(-0.065), m_valency(2) {}
 UG_CATCH_THROW("Error in ChannelHH initializer list.");
 
 template<typename TDomain>
@@ -25,8 +25,8 @@ IonLeakage<TDomain>::IonLeakage
 	const std::vector<std::string>& subsets
 )
 try : ICableMembraneTransport<TDomain>(functions, subsets),
-m_perm(1.0e-6), m_leaking_fct(std::string("v")), m_lfInd(0),
-m_flux_at_rest(0.0), m_conc_in_rest(5e-5), m_conc_out_rest(1.5), m_vm_rest(-65), m_valency(1) {}
+m_perm(1.0), m_leaking_fct(std::string("ca")), m_lfInd(0),
+m_flux_at_rest(0.0), m_conc_in_rest(5e-5), m_conc_out_rest(1.5), m_vm_rest(-0.065), m_valency(2) {}
 UG_CATCH_THROW("Error in ChannelHH initializer list.");
 
 
@@ -54,7 +54,7 @@ set_perm(number flux_at_rest, number conc_in_rest, number conc_out_rest, number 
 	m_flux_at_rest = flux_at_rest;
 	m_conc_in_rest = conc_in_rest;
 	m_conc_out_rest = conc_out_rest;
-	m_vm_rest = 1e-3*vm_rest;	// scale from mV to V
+	m_vm_rest = vm_rest;
 	m_valency = valency;
 }
 
@@ -111,7 +111,7 @@ void IonLeakage<TDomain>::current(Vertex* vrt, const std::vector<number>& vrt_va
 	// getting attachments for vertex
 	const number& conc_in 	 = vrt_values[m_lfInd];
 	const number& conc_out 	 = this->m_pCE->conc_out(m_lfInd);
-	const number& VM	 	 = 1e-3*vrt_values[CableEquation<TDomain>::_v_]; // scale to V!
+	const number& VM	 	 = vrt_values[CableEquation<TDomain>::_v_];
 
 	const number& R = m_pCE->R;
 	const number& F = m_pCE->F;

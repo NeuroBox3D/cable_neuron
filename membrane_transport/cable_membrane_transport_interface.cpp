@@ -122,7 +122,7 @@ subsetNames2Indices(std::vector<int>& ind, const std::vector<std::string>& names
 }
 
 
-//	explicit template instantiations //
+//	explicit template instantiations
 
 #ifdef UG_DIM_1
 	template class ICableMembraneTransport<Domain1d>;

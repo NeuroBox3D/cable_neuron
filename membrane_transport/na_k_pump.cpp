@@ -18,7 +18,7 @@ namespace cable_neuron {
 template<typename TDomain>
 Na_K_Pump<TDomain>::Na_K_Pump(const char* functions, const char* subsets)
 try : ICableMembraneTransport<TDomain>(functions, subsets),
-K_K(1.37), K_Na(5.74), IMAX_P(3.6e-5) {}
+K_K(1.37), K_Na(5.74), max_flux(3.6e-2) {}
 UG_CATCH_THROW("Error in Na_K_Pump initializer list.");
 
 template<typename TDomain>
@@ -28,7 +28,7 @@ Na_K_Pump<TDomain>::Na_K_Pump
 	const std::vector<std::string>& subsets
 )
 try : ICableMembraneTransport<TDomain>(functions, subsets),
-K_K(1.37), K_Na(5.74), IMAX_P(3.6e-5) {}
+K_K(1.37), K_Na(5.74), max_flux(3.6e-2) {}
 UG_CATCH_THROW("Error in Na_K_Pump initializer list.");
 
 
@@ -55,9 +55,9 @@ set_K_Na(number Na)
 
 template<typename TDomain>
 void Na_K_Pump<TDomain>::
-set_IMAX_P(number IMAX)
+set_max_flux(number maxFlux)
 {
-	IMAX_P = IMAX;
+	max_flux = maxFlux;
 }
 
 
@@ -93,20 +93,15 @@ void Na_K_Pump<TDomain>::update_gating(number newTime, Vertex* vrt, const std::v
 template<typename TDomain>
 void Na_K_Pump<TDomain>::current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
 {
-	//number ca = vrt_values[CableEquation<TDomain>::_ca_];
 	number na = vrt_values[CableEquation<TDomain>::_na_];
 	number k = vrt_values[CableEquation<TDomain>::_k_];
 
 	number napump = 1.0 /(1.0 + K_Na/na * (1.0 + k/K_K));
-	napump *= napump*napump;
-	napump *= IMAX_P;
+	napump = napump*napump*napump*max_flux;
 
-	//std::cout << "pumping: " << napump << std::endl;
-	//std::cout << "pumping: " << ((-0.66666666)*napump) << std::endl;
-	//outCurrentValues.push_back(0);	// implement!?
-	outCurrentValues.push_back(napump); // mol/(m^2*ms)
 	// 3na vs 2k
-	outCurrentValues.push_back((-2.0/3.0) * napump); // mol/(m^2*ms)
+	outCurrentValues.push_back(napump); 				// mol/(m^2*s)
+	outCurrentValues.push_back((-2.0/3.0) * napump);	// mol/(m^2*s)
 }
 
 

@@ -261,7 +261,7 @@ update_presyn()
 			if (ssh.get_subset_index(vrt) != m_presynSI) continue;
 
 			uint idx = m_aaPSI[vrt];
-			m_vPresynVmValues[idx] = m_spCEDisc->vm(vrt);	// todo: adapt SH units to CE !
+			m_vPresynVmValues[idx] = 1e3*m_spCEDisc->vm(vrt);	// todo: adapt SH units to CE !
 		}
 
 		// communicate (all-to-all)
@@ -304,7 +304,7 @@ synapse_on_edge(const Edge* edge, size_t scv, number time, number& current)
 	std::vector<SynapseInfo>& vInfo = m_aaSynapseInfo[edge];
 
 	bool active_synapse = false;
-	current = 0.0;		// todo: adapt SH units to CE! here: current in units of A instead of nA
+	current = 0.0;
 
 	typedef synapse_traits<> STV;
 	typedef synapse_traits<AlphaSynapse> STA;
@@ -317,7 +317,7 @@ synapse_on_edge(const Edge* edge, size_t scv, number time, number& current)
 		if ((STV::loc_coord(info) < 0.5 && scv == 0) || (STV::loc_coord(info) >= 0.5 && scv == 1))
 		{
 			// get vmDisc potential values for edge
-			number vm_postsyn = m_spCEDisc->vm(edge->vertex(scv));
+			number vm_postsyn = 1e3*m_spCEDisc->vm(edge->vertex(scv));	// todo: adapt SH units to CE !
 
 			switch (STV::type(info))
 			{
@@ -384,6 +384,8 @@ synapse_on_edge(const Edge* edge, size_t scv, number time, number& current)
 			}
 		}
 	}
+
+	current *= 1e-9;	// todo: adapt SH units to CE! here: current in units of A instead of nA
 
 	return active_synapse;
 }
@@ -1069,7 +1071,7 @@ write_activity_to_file(const std::string& fileName, number time)
 	UG_COND_THROW(sz != m_vNeuronType.size(), "size mismatch");
 	for (size_t s = 0; s < sz; ++s)
 	{
-		number vm = m_spCEDisc->vm(m_vSomaVertices[s]);
+		number vm = 1e3*m_spCEDisc->vm(m_vSomaVertices[s]);	// todo: adapt SH units to CE !
 		if (vm > -45.0)
 		{
 			UG_COND_THROW(m_vNeuronType[s]>=4,"invalid neuron type");

@@ -17,16 +17,16 @@ namespace cable_neuron {
 ////////////////////////////////////////////////
 
 template<typename TDomain>
-VDCC_BG_Cable<TDomain>::VDCC_BG_Cable(const char* functions, const char* subsets)
+VDCC_BG_cable<TDomain>::VDCC_BG_cable(const char* functions, const char* subsets)
 try : ICableMembraneTransport<TDomain>(functions, subsets),
 	m_mp(2), m_z_m(3.4), m_v12_m(-21.0), m_tau0_m(1.5),
 	m_hp(1), m_z_h(-2.0), m_v12_h(-40.0), m_tau0_h(75.0),
-	m_perm(3.8e-10),
+	m_perm(3.8e-7),
 	m_log_hGate(false), m_log_mGate(false) {}
-UG_CATCH_THROW("Error in VDCC_BG_Cable initializer list.");
+UG_CATCH_THROW("Error in VDCC_BG_cable initializer list.");
 
 template<typename TDomain>
-VDCC_BG_Cable<TDomain>::VDCC_BG_Cable
+VDCC_BG_cable<TDomain>::VDCC_BG_cable
 (
 	const std::vector<std::string>& functions,
 	const std::vector<std::string>& subsets
@@ -34,32 +34,32 @@ VDCC_BG_Cable<TDomain>::VDCC_BG_Cable
 try : ICableMembraneTransport<TDomain>(functions, subsets),
 	m_mp(2), m_z_m(3.4), m_v12_m(-21.0), m_tau0_m(1.5),
 	m_hp(1), m_z_h(-2.0), m_v12_h(-40.0), m_tau0_h(75.0),
-	m_perm(3.8e-10),
+	m_perm(3.8e-7),
 	m_log_hGate(false), m_log_mGate(false) {}
-UG_CATCH_THROW("Error in VDCC_BG_Cable initializer list.");
+UG_CATCH_THROW("Error in VDCC_BG_cable initializer list.");
 
 
 template<typename TDomain>
-std::string VDCC_BG_Cable<TDomain>::
+std::string VDCC_BG_cable<TDomain>::
 name()
 {
-	return std::string("VDCC_BG_Cable");
+	return std::string("VDCC_BG_cable");
 }
 
 
-template<typename TDomain> void VDCC_BG_Cable<TDomain>::set_log_hGate(bool bLogHGate) { m_log_hGate = bLogHGate; }
-template<typename TDomain> void VDCC_BG_Cable<TDomain>::set_log_mGate(bool bLogMGate) { m_log_mGate = bLogMGate; }
+template<typename TDomain> void VDCC_BG_cable<TDomain>::set_log_hGate(bool bLogHGate) { m_log_hGate = bLogHGate; }
+template<typename TDomain> void VDCC_BG_cable<TDomain>::set_log_mGate(bool bLogMGate) { m_log_mGate = bLogMGate; }
 
 
 
 template<typename TDomain>
-void VDCC_BG_Cable<TDomain>::ce_obj_available()
+void VDCC_BG_cable<TDomain>::ce_obj_available()
 {
 	init_attachments();
 }
 
 template<typename TDomain>
-std::vector<number> VDCC_BG_Cable<TDomain>::state_values(number x, number y, number z)
+std::vector<number> VDCC_BG_cable<TDomain>::state_values(number x, number y, number z)
 {
 	//var for output
 	std::vector<number> GatingAccesors;
@@ -101,7 +101,7 @@ std::vector<number> VDCC_BG_Cable<TDomain>::state_values(number x, number y, num
 	Vertex* bestVrt = NULL;
 
 
-	// Iterate only if there is one Gatting needed
+	// iterate only if any state is needed
 	if (m_log_mGate || m_log_hGate)
 	{
 		// iterating over all elements
@@ -145,7 +145,7 @@ std::vector<number> VDCC_BG_Cable<TDomain>::state_values(number x, number y, num
 
 
 template<typename TDomain>
-void VDCC_BG_Cable<TDomain>::init_attachments()
+void VDCC_BG_cable<TDomain>::init_attachments()
 {
 	// attach attachments
 	SmartPtr<Grid> spGrid = m_pCE->approx_space()->domain()->grid();
@@ -168,9 +168,9 @@ void VDCC_BG_Cable<TDomain>::init_attachments()
 
 // Methods for using gatings
 template<typename TDomain>
-void VDCC_BG_Cable<TDomain>::init(Vertex* vrt, const std::vector<number>& vrt_values)
+void VDCC_BG_cable<TDomain>::init(Vertex* vrt, const std::vector<number>& vrt_values)
 {
-	number VM = vrt_values[CableEquation<TDomain>::_v_];
+	number VM = 1e3*vrt_values[CableEquation<TDomain>::_v_];	// potential in units of mV
 
 	const number& R = m_pCE->R;
 	const number& F = m_pCE->F;
@@ -181,10 +181,10 @@ void VDCC_BG_Cable<TDomain>::init(Vertex* vrt, const std::vector<number>& vrt_va
 }
 
 template<typename TDomain>
-void VDCC_BG_Cable<TDomain>::update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values)
+void VDCC_BG_cable<TDomain>::update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values)
 {
-	number dt = newTime - m_pCE->time();
-	number VM = vrt_values[CableEquation<TDomain>::_v_];
+	number dt = 1e3*(newTime - m_pCE->time());					// time in units of ms
+	number VM = 1e3*vrt_values[CableEquation<TDomain>::_v_];	// potential in units of mV
 
 	const number& R = m_pCE->R;
 	const number& F = m_pCE->F;
@@ -240,7 +240,7 @@ void VDCC_BG_Cable<TDomain>::update_gating(number newTime, Vertex* vrt, const st
 	// backward step: explicit // TODO: do the above backwards!
 	else
 	{
-		if (dt < -1e-2) UG_THROW("timestep too large; not implemented yet!");
+		if (dt < -1e-2) UG_THROW("time step too large; not implemented yet!");
 
 		mGate += dt/m_tau0_m * (m_inf - mGate);
 		hGate += dt/m_tau0_h * (h_inf - hGate);
@@ -249,12 +249,12 @@ void VDCC_BG_Cable<TDomain>::update_gating(number newTime, Vertex* vrt, const st
 
 
 template<typename TDomain>
-void VDCC_BG_Cable<TDomain>::current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
+void VDCC_BG_cable<TDomain>::current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
 {
 	// getting attachments for vertex
 	number MGate = m_aaMGate[vrt];
 	number HGate = m_aaHGate[vrt];
-	number VM 	 = 1e-3*vrt_values[CableEquation<TDomain>::_v_];	// scale from mV to V!
+	number VM 	 = vrt_values[CableEquation<TDomain>::_v_];
 	number caCyt = vrt_values[CableEquation<TDomain>::_ca_];
 	number caExt = m_pCE->ca_out();
 
@@ -277,7 +277,7 @@ void VDCC_BG_Cable<TDomain>::current(Vertex* vrt, const std::vector<number>& vrt
 
 
 template<typename TDomain>
-void VDCC_BG_Cable<TDomain>::
+void VDCC_BG_cable<TDomain>::
 specify_write_function_indices()
 {
 	// prepare vector containing CableEquation fct indices which this channel writes to
@@ -290,15 +290,15 @@ specify_write_function_indices()
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifdef UG_DIM_1
-	template class VDCC_BG_Cable<Domain1d>;
+	template class VDCC_BG_cable<Domain1d>;
 #endif
 
 #ifdef UG_DIM_2
-	template class VDCC_BG_Cable<Domain2d>;
+	template class VDCC_BG_cable<Domain2d>;
 #endif
 
 #ifdef UG_DIM_3
-	template class VDCC_BG_Cable<Domain3d>;
+	template class VDCC_BG_cable<Domain3d>;
 #endif
 
 } // namespace cable_neuron

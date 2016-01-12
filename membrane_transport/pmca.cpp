@@ -13,54 +13,54 @@ namespace cable_neuron {
 
 
 template<typename TDomain>
-Ca_PMCA<TDomain>::Ca_PMCA(const char* functions, const char* subsets)
+PMCA_cable<TDomain>::PMCA_cable(const char* functions, const char* subsets)
 try : ICableMembraneTransport<TDomain>(functions, subsets),
-KD_P(6.0e-5), IMAX_P(8.5e-12) {}
-UG_CATCH_THROW("Error in Ca_PMCA initializer list.");
+m_kd(6.0e-5), m_maxFlux(8.5e-9) {}
+UG_CATCH_THROW("Error in PMCA_cable initializer list.");
 
 template<typename TDomain>
-Ca_PMCA<TDomain>::Ca_PMCA
+PMCA_cable<TDomain>::PMCA_cable
 (
 	const std::vector<std::string>& functions,
 	const std::vector<std::string>& subsets
 )
 try : ICableMembraneTransport<TDomain>(functions, subsets),
-KD_P(6.0e-5), IMAX_P(8.5e-12) {}
-UG_CATCH_THROW("Error in Ca_PMCA initializer list.");
+m_kd(6.0e-5), m_maxFlux(8.5e-9) {}
+UG_CATCH_THROW("Error in PMCA_cable initializer list.");
 
 
 template<typename TDomain>
-std::string Ca_PMCA<TDomain>::
+std::string PMCA_cable<TDomain>::
 name()
 {
-	return std::string("Ca_PMCA");
+	return std::string("PMCA_cable");
 }
 
 template<typename TDomain>
-void Ca_PMCA<TDomain>::
-set_KD_P(number KD)
+void PMCA_cable<TDomain>::
+set_kd(number kd)
 {
-	KD_P = KD;
+	m_kd = kd;
 }
 
 template<typename TDomain>
-void Ca_PMCA<TDomain>::
-set_IMAX_P(number IMAX)
+void PMCA_cable<TDomain>::
+set_max_flux(number maxFlux)
 {
-	IMAX_P = IMAX;
+	m_maxFlux = maxFlux;
 }
 
 
 
 template<typename TDomain>
-void Ca_PMCA<TDomain>::ce_obj_available()
+void PMCA_cable<TDomain>::ce_obj_available()
 {
 
 }
 
 
 template<typename TDomain>
-void Ca_PMCA<TDomain>::init_attachments()
+void PMCA_cable<TDomain>::init_attachments()
 {
 
 }
@@ -68,31 +68,31 @@ void Ca_PMCA<TDomain>::init_attachments()
 
 // Methods for using gatings
 template<typename TDomain>
-void Ca_PMCA<TDomain>::init(Vertex* vrt, const std::vector<number>& vrt_values)
+void PMCA_cable<TDomain>::init(Vertex* vrt, const std::vector<number>& vrt_values)
 {
 
 }
 
 template<typename TDomain>
-void Ca_PMCA<TDomain>::update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values)
+void PMCA_cable<TDomain>::update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values)
 {
 
 }
 
 
 template<typename TDomain>
-void Ca_PMCA<TDomain>::current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
+void PMCA_cable<TDomain>::current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
 {
 	number ca = vrt_values[CableEquation<TDomain>::_ca_];
 
 	//outCurrentValues.push_back(0);	// implement!?
-	outCurrentValues.push_back(ca*ca / (KD_P*KD_P + ca*ca) * IMAX_P); // mol/(m^2*ms)
+	outCurrentValues.push_back(ca*ca / (m_kd*m_kd + ca*ca) * m_maxFlux); // mol/(m^2*ms)
 }
 
 
 
 template<typename TDomain>
-number Ca_PMCA<TDomain>::
+number PMCA_cable<TDomain>::
 lin_dep_on_pot(Vertex* vrt, const std::vector<number>& vrt_values)
 {
 	return 0;
@@ -100,7 +100,7 @@ lin_dep_on_pot(Vertex* vrt, const std::vector<number>& vrt_values)
 
 
 template<typename TDomain>
-void Ca_PMCA<TDomain>::
+void PMCA_cable<TDomain>::
 specify_write_function_indices()
 {
 	// prepare vector containing CableEquation fct indices which this channel writes to
@@ -115,15 +115,15 @@ specify_write_function_indices()
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifdef UG_DIM_1
-	template class Ca_PMCA<Domain1d>;
+	template class PMCA_cable<Domain1d>;
 #endif
 
 #ifdef UG_DIM_2
-	template class Ca_PMCA<Domain2d>;
+	template class PMCA_cable<Domain2d>;
 #endif
 
 #ifdef UG_DIM_3
-	template class Ca_PMCA<Domain3d>;
+	template class PMCA_cable<Domain3d>;
 #endif
 
 

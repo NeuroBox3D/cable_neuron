@@ -68,9 +68,9 @@ class ChannelLeak
 	private:
 		struct Params
 		{
-			Params() : g(1.0e-6), E(-65.0) {};
-			number g; ///< membrane conductance [C / (m^2 * mV * ms)]
-			number E; ///< reversal potential [mV]
+			Params() : g(1.0), E(-0.065) {};
+			number g; ///< membrane conductance (S/m^2)
+			number E; ///< reversal potential (V)
 		};
 
 		std::map<std::string, Params> m_mSubsetParams2Save;

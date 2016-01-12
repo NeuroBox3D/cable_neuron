@@ -17,20 +17,20 @@ namespace cable_neuron {
 
 
 template <typename TDomain>
-class Ca_NCX
+class NCX_cable
 	: public ICableMembraneTransport<TDomain>
 {
 	public:
 		using ICableMembraneTransport<TDomain>::m_pCE;
 
 		/// @copydoc ICableMembraneTransport<TDomain>::ICableMembraneTransport(const char*)
-		Ca_NCX(const char* functions, const char* subsets);
+		NCX_cable(const char* functions, const char* subsets);
 
 		/// @copydoc ICableMembraneTransport<TDomain>::ICableMembraneTransport(const std::vector<std::string>&)
-		Ca_NCX(const std::vector<std::string>& functions, const std::vector<std::string>& subsets);
+		NCX_cable(const std::vector<std::string>& functions, const std::vector<std::string>& subsets);
 
 		/// destructor
-		virtual ~Ca_NCX() {};
+		virtual ~NCX_cable() {};
 
 		/// name
 		virtual std::string name();
@@ -38,9 +38,9 @@ class Ca_NCX
 		/// create attachments and accessors
 		void init_attachments();
 
-		void set_KD_N(number KD);
+		void set_kd(number kd);
 
-		void set_IMAX_N(number IMAX);
+		void set_max_flux(number maxFlux);
 
 		// inherited from ICableMembraneTransport
 		virtual void init(Vertex* vrt, const std::vector<number>& vrt_values);
@@ -54,9 +54,9 @@ class Ca_NCX
 		virtual void specify_write_function_indices();
 
 	private:
-		number KD_N;					// mol*m^-3 (Elwess et al.)
-		//const number KD_P = 3.4e-04;		// mol*m^-3 (Graupner)
-		number IMAX_N;				// mol*s^-1
+		number m_kd;					// mM (Elwess et al.)
+		//number m_kd = 3.4e-04;		// mM (Graupner)
+		number m_max_flux;				// mol/(m^2*s)
 };
 
 

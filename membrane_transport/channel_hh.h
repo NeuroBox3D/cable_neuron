@@ -69,9 +69,9 @@ class ChannelHH
 	private:
 		struct Params
 		{
-			Params() : gK(3.6e-4), gNa(1.2e-3) {};
-			number gK; ///< potassium conductance [C / (m^2 * mV * ms)]
-			number gNa; ///< sodium conductance [C / (m^2 * mV * ms)]
+			Params() : gK(3.6e2), gNa(1.2e3) {};
+			number gK;	///< potassium conductance [S/m^2)]
+			number gNa;	///< sodium conductance [S/m^2]
 		};
 
 		std::map<std::string, Params> m_mSubsetParams2Save;
@@ -146,9 +146,9 @@ class ChannelHHNernst
 	private:
 		struct Params
 		{
-			Params() : gK(3.6e-4), gNa(1.2e-3) {};
-			number gK; ///< potassium conductance [C / (m^2 * mV * ms)]
-			number gNa; ///< sodium conductance [C / (m^2 * mV * ms)]
+			Params() : gK(3.6e2), gNa(1.2e3) {};
+			number gK;	///< potassium conductance [S/m^2)]
+			number gNa;	///< sodium conductance [S/m^2]
 		};
 
 		std::map<std::string, Params> m_mSubsetParams2Save;

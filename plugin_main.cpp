@@ -108,7 +108,7 @@ struct Functionality
 			name = std::string("NETISynapseHandler").append(suffix);
 			reg.add_class_<TNETISH, TISH>(name, grp)
 				.template add_constructor<void (*)()> ()
-				.add_method("set_vmdisc", &TNETISH::set_vmdisc)
+				.add_method("set_ce_object", &TNETISH::set_ce_object)
 				.add_method("set_presyn_subset", &TNETISH::set_presyn_subset)
 				.add_method("set_activation_timing",
 					static_cast<void (TNETISH::*)(number, number, number, number)>(&TNETISH::set_activation_timing),
@@ -119,8 +119,7 @@ struct Functionality
 				.add_method("set_activation_timing",
 					static_cast<void (TNETISH::*)(number, number, number, number, number, bool)>(&TNETISH::set_activation_timing),
 					"", "start_time#duration#start time deviation#duration deviation#peak conductivity#seed", "")
-				//.add_method("set_custom_diameter", &TNETISH::set_custom_diameter, "", "subsets#diameter", "")
-				.add_method("update_presyn", &TNETISH::update_presyn)
+				//.add_method("update_presyn", &TNETISH::update_presyn)	// no, handled internally
 				.add_method("print_synapse_statistics", &TNETISH::print_synapse_statistics, "", "soma subset index", "")
 				.add_method("write_activity_to_file", &TNETISH::write_activity_to_file, "", "file base name#time", "")
 				.set_construct_as_smart_pointer(true);
@@ -248,17 +247,17 @@ struct Functionality
 				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
 				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
 				.add_method("set_conductances",  static_cast<void (T::*)(number, number)>(&T::set_conductances), "",
-						"K conductance [10^6 S/m^2]| default | value=3.6e-4#"
-						"Na conductance [10^6 S/m^2] | default | value=1.2e-3",
+						"K conductance (S/m^2)| default | value=3.6e2#"
+						"Na conductance (S/m^2) | default | value=1.2e3",
 						"sets Na and K conductance values for HH mechanism")
 				.add_method("set_conductances",  static_cast<void (T::*)(number, number, const char*)>(&T::set_conductances), "",
-						"K conductance [10^6 S/m^2]| default | value=3.6e-4#"
-						"Na conductance [10^6 S/m^2] | default | value=1.2e-3#"
+						"K conductance (S/m^2) | default | value=3.6e2#"
+						"Na conductance (S/m^2) | default | value=1.2e3#"
 						"subset(s) as C-type string",
 						"sets Na and K conductance values for HH mechanism")
 				.add_method("set_conductances",  static_cast<void (T::*)(number, number, const std::vector<std::string>&)>(&T::set_conductances), "",
-						"K conductance [10^6 S/m^2]| default | value=3.6e-4#"
-						"Na conductance [10^6 S/m^2] | default | value=1.2e-3#"
+						"K conductance (S/m^2) | default | value=3.6e2#"
+						"Na conductance (S/m^2) | default | value=1.2e3#"
 						"subset(s) as vector of string",
 						"sets Na and K conductance values for HH mechanism")
 				.add_method("set_log_mGate", &T::set_log_mGate)
@@ -279,17 +278,17 @@ struct Functionality
 				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
 				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
 				.add_method("set_conductances",  static_cast<void (T::*)(number, number)>(&T::set_conductances), "",
-						"K conductance [10^6 S/m^2]| default | value=3.6e-4#"
-						"Na conductance [10^6 S/m^2] | default | value=1.2e-3",
+						"K conductance (S/m^2) | default | value=3.6e2#"
+						"Na conductance (S/m^2) | default | value=1.2e3",
 						"sets Na and K conductance values for HH mechanism")
 				.add_method("set_conductances",  static_cast<void (T::*)(number, number, const char*)>(&T::set_conductances), "",
-						"K conductance [10^6 S/m^2]| default | value=3.6e-4#"
-						"Na conductance [10^6 S/m^2] | default | value=1.2e-3#"
+						"K conductance (S/m^2) | default | value=3.6e2#"
+						"Na conductance (S/m^2) | default | value=1.2e3#"
 						"subset(s) as C-type string",
 						"sets Na and K conductance values for HH mechanism")
 				.add_method("set_conductances",  static_cast<void (T::*)(number, number, const std::vector<std::string>&)>(&T::set_conductances), "",
-						"K conductance [10^6 S/m^2]| default | value=3.6e-4#"
-						"Na conductance [10^6 S/m^2] | default | value=1.2e-3#"
+						"K conductance (S/m^2) | default | value=3.6e2#"
+						"Na conductance (S/m^2) | default | value=1.2e3#"
 						"subset(s) as vector of string",
 						"sets Na and K conductance values for HH mechanism")
 				.add_method("set_log_mGate", &T::set_log_mGate)
@@ -310,22 +309,22 @@ struct Functionality
 				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
 				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
 				.add_method("set_cond", static_cast<void (T::*)(number)>(&T::set_cond),
-							"", "leak conductance in C/m^2/mV/ms| default | value=3.0e-6",
+							"", "leak conductance (S/m^2) | default | value=1.0",
 							"sets leak conductance for leak channel")
 				.add_method("set_cond", static_cast<void (T::*)(number, const char*)>(&T::set_cond),
-							"", "leak conductance in C/m^2/mV/ms| default | value=3.0e-6 # subset(s) as C-type string",
+							"", "leak conductance (S/m^2) | default | value=1.0 # subset(s) as C-type string",
 							"sets leak conductance for leak channel")
 				.add_method("set_cond", static_cast<void (T::*)(number, const std::vector<std::string>&)>(&T::set_cond),
-							"", "leak conductance in C/m^2/mV/ms| default | value=3.0e-6 # subset(s) as vector of strings",
+							"", "leak conductance (S/m^2) | default | value=1.0 # subset(s) as vector of strings",
 							"sets leak conductance for leak channel")
 				.add_method("set_rev_pot",  static_cast<void (T::*)(number)>(&T::set_rev_pot), "",
-							"leakage equilibrium potential in mV | default | value=-65.0",
+							"leakage equilibrium potential (V) | default | value=-0.065",
 							"sets leakage equilibrium potential")
 				.add_method("set_rev_pot",  static_cast<void (T::*)(number, const char*)>(&T::set_rev_pot),
-							"", "leakage equilibrium potential in mV | default | value=-65.0 # subset(s) as C-type string",
+							"", "leakage equilibrium potential (V) | default | value=-0.065 # subset(s) as C-type string",
 							"sets leakage equilibrium potential")
 				.add_method("set_rev_pot",  static_cast<void (T::*)(number, const std::vector<std::string>&)>(&T::set_rev_pot),
-							"", "leakage equilibrium potential in mV | default | value=-65.0 # subset(s) as vector of strings",
+							"", "leakage equilibrium potential (V) | default | value=-0.065 # subset(s) as vector of strings",
 							"sets leakage equilibrium potential")
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "ChannelLeak", tag);
@@ -340,7 +339,7 @@ struct Functionality
 			reg.add_class_<T, TBase >(name, grp)
 				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
 				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
-				.add_method("set_perm", &T::set_perm, "", "flux at rest#inner concentration at rest# outer concentration at rest#potential at rest",
+				.add_method("set_perm", &T::set_perm, "", "flux at rest (mol/(m^2*s))#inner concentration at rest (mM)# outer concentration at rest (mM)#potential at rest (V)",
 						    "tunes the channel to equilibrate fluxes at resting conditions")
 				.add_method("set_leaking_quantity", &T::set_leaking_quantity, "", "", "")
 				.set_construct_as_smart_pointer(true);
@@ -350,44 +349,44 @@ struct Functionality
 
 		// VDCC BG
 		{
-			typedef VDCC_BG_Cable<TDomain> T;
+			typedef VDCC_BG_cable<TDomain> T;
 			typedef ICableMembraneTransport<TDomain> TBase;
-			string name = string("VDCC_BG_Cable").append(suffix);
+			string name = string("VDCC_BG_cable").append(suffix);
 			reg.add_class_<T, TBase >(name, grp)
 				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
 				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
 				.add_method("set_log_mGate" , &T::set_log_mGate)
 				.add_method("set_log_hGate" , &T::set_log_hGate)
 				.set_construct_as_smart_pointer(true);
-			reg.add_class_to_group(name, "VDCC_BG_Cable", tag);
+			reg.add_class_to_group(name, "VDCC_BG_cable", tag);
 		}
 
-		// ca "channel" (pump)
+		// PMCA
 		{
-			typedef Ca_PMCA<TDomain> T;
+			typedef PMCA_cable<TDomain> T;
 			typedef ICableMembraneTransport<TDomain> TBase;
-			string name = string("Ca_PMCA").append(suffix);
+			string name = string("PMCA_cable").append(suffix);
 			reg.add_class_<T, TBase >(name, grp)
 				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
 				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
-				.add_method("set_IMAX_P", &T::set_IMAX_P)
-				.add_method("set_KD_P", &T::set_KD_P)
+				.add_method("set_max_flux", &T::set_max_flux, "", "max. flux density (mol/(m^2*s)) | default | value=8.5e-9", "sets maximal flux density")
+				.add_method("set_kd", &T::set_kd, "", "K_D value inner [Ca] (mM) | default | value=6.0e-5", "sets K_D value for inner [Ca]")
 				.set_construct_as_smart_pointer(true);
-			reg.add_class_to_group(name, "Ca_PMCA", tag);
+			reg.add_class_to_group(name, "PMCA_cable", tag);
 		}
 
-		// ca "channel" (pump)
+		// NCX
 		{
-			typedef Ca_NCX<TDomain> T;
+			typedef NCX_cable<TDomain> T;
 			typedef ICableMembraneTransport<TDomain> TBase;
-			string name = string("Ca_NCX").append(suffix);
+			string name = string("NCX_cable").append(suffix);
 			reg.add_class_<T, TBase >(name, grp)
 				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
 				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
-				.add_method("set_IMAX_N", &T::set_IMAX_N)
-				.add_method("set_KD_N", &T::set_KD_N)
+				.add_method("set_max_flux", &T::set_max_flux, "", "max. flux density (mol/(m^2*s)) | default | value=3.75e-8", "sets maximal flux density")
+				.add_method("set_kd", &T::set_kd, "", "K_D value inner [Ca] (mM) | default | value=1.8e-3", "sets K_D value for inner [Ca]")
 				.set_construct_as_smart_pointer(true);
-			reg.add_class_to_group(name, "Ca_NCX", tag);
+			reg.add_class_to_group(name, "NCX_cable", tag);
 		}
 
 
@@ -399,16 +398,15 @@ struct Functionality
 			reg.add_class_<T, TBase >(name, grp)
 				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
 				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
-				.add_method("set_IMAX_P", &T::set_IMAX_P)
-				.add_method("set_K_K", &T::set_K_K)
-				.add_method("set_K_Na", &T::set_K_Na)
+				.add_method("set_max_flux", &T::set_max_flux, "", "max. flux density (mol/(m^2*s)) | default | value=3.6e-2", "sets maximal flux density")
+				.add_method("set_K_K", &T::set_K_K, "", "K_D value outer [K] (mM) | default | value=1.37", "sets K_D value for outer [K]")
+				.add_method("set_K_Na", &T::set_K_Na, "", "K_D value inner [Na] (mM) | default | value=5.74", "sets K_D value for inner [Na]")
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "Na_K_Pump", tag);
 		}
 
-		// VM-Disc class
+		// CableEquation discretization class
 		{
-			typedef ICableMembraneTransport<TDomain> TIChannel;
 			typedef CableEquation<TDomain> T;
 			typedef IElemDisc<TDomain> TBase;
 			string name = string("CableEquation").append(suffix);
@@ -420,43 +418,43 @@ struct Functionality
 				.template add_constructor<void (*)(const char*, bool, number)>
 					("Subset(s)#with ion concentrations?#InitTime")
 				.add_method("set_diameter", static_cast<void (T::*)(number)>(&T::set_diameter),
-						"", "new diameter | default | value=1e6", "sets a new diameter")
+						"", "diameter (m) | default | value=1e-6", "sets a new diameter")
 
 				.add_method("set_spec_res", static_cast<void (T::*)(number)>(&T::set_spec_res),
-						"", "new specific resistance | default | value=1e6", "sets a new specific resistance")
+						"", "specific resistance (Ohm m) | default | value=1.0", "sets a new specific resistance")
 				.add_method("set_spec_cap", static_cast<void (T::*)(number)>(&T::set_spec_cap),
-						"", "new specific capacity | default | value=1e-5", "sets a new specific capacity")
+						"", "specific capacitance (F/m^2) | default | value=1e-2", "sets a new specific capacitance")
 
 				.add_method("set_k_out", static_cast<void (T::*)(number)>(&T::set_k_out),
-						"", "extracellular [K] in units of mM | default | value=2.5", "sets extracellular [K]")
+						"", "extracellular [K] (mM) | default | value=4.0", "sets extracellular [K]")
 				.add_method("set_na_out", static_cast<void (T::*)(number)>(&T::set_na_out),
-						"", "extracellular [Na] in units of mM | default | value=65.0", "sets extracellular [Na]")
+						"", "extracellular [Na] (mM) | default | value=150.0", "sets extracellular [Na]")
 				.add_method("set_ca_out", static_cast<void (T::*)(number)>(&T::set_ca_out),
-						"", "extracellular [Ca] in units of mM | default | value=1.5", "sets extracellular [Ca]")
+						"", "extracellular [Ca] (mM) | default | value=1.5", "sets extracellular [Ca]")
 
 				.add_method("set_rev_pot_na", static_cast<void (T::*)(number)>(&T::set_rev_pot_na),
-						"", "reversal potential for Na | default | value=50.0", "sets reversal potential for Na")
+						"", "Na reversal potential (V) | default | value=0.06", "sets reversal potential for Na")
 				.add_method("set_rev_pot_k", static_cast<void (T::*)(number)>(&T::set_rev_pot_k),
-						"", "reversal potential for K | default | value=-77.0", "sets reversal potential for K")
+						"", "K reversal potential (V) | default | value=-0.09", "sets reversal potential for K")
 				.add_method("set_rev_pot_ca", static_cast<void (T::*)(number)>(&T::set_rev_pot_ca),
-						"", "reversal potential for Ca | default | value=138.0", "sets reversal potential for Ca")
+						"", "Ca reversal potential (V) | default | value=0.14", "sets reversal potential for Ca")
 
 				.add_method("set_temperature", static_cast<void (T::*)(number)>(&T::set_temperature),
-						"", "new temperature value in units of K | default | value=310", "sets new temperature")
+						"", "temperature (K) | default | value=310", "sets new temperature")
 				.add_method("set_temperature_celsius", static_cast<void (T::*)(number)>(&T::set_temperature_celsius),
-						"", "new temperature value in degrees Celsius | default | value=37", "sets new temperature")
+						"", "temperature (°C) | default | value=37", "sets new temperature")
 
 				.add_method("set_diff_coeffs", static_cast<void (T::*)(const std::vector<number>&)> (&T::set_diff_coeffs), "",
-						"diffusion coefficient of K, Na and Ca", "sets diffusion coefficients")
+						"diffusion coefficients of K, Na and Ca (m^2/s)", "sets diffusion coefficients")
 
 				.add_method("add", &T::add)
 				.add_method("set_influx", static_cast<void (T::*)(number, number, number, number, number, number)>(&T::set_influx), "",
-						"flux value | default | value=1e-12 #"
-						"x-coordinate of influx position | default | 0.0 #"
-						"y-coordinate of influx position | default | 0.0 #"
-						"z-coordinate of influx position | default | 0.0 #"
-						"begin time | default | 0 #"
-						"duration time | default | 0 ",
+						"current (A) | default | value=1e-9 #"
+						"x-coordinate of influx position (m) | default | 0.0 #"
+						"y-coordinate of influx position (m) | default | 0.0 #"
+						"z-coordinate of influx position (m) | default | 0.0 #"
+						"start time (s) | default | 0 #"
+						"duration (s) | default | 0 ",
 						"sets position, duration and current strength of an influx")
 				.add_method("write_states_for_position", &T::write_states_for_position)
 				.add_method("set_output_point_and_path", &T::set_output_point_and_path)

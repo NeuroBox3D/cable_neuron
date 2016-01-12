@@ -16,20 +16,20 @@ namespace cable_neuron {
 
 
 template <typename TDomain>
-class VDCC_BG_Cable
+class VDCC_BG_cable
 	: public ICableMembraneTransport<TDomain>
 {
 	public:
 		using ICableMembraneTransport<TDomain>::m_pCE;
 
 		/// @copydoc ICableMembraneTransport<TDomain>::ICableMembraneTransport(const char*)
-		VDCC_BG_Cable(const char* functions, const char* subsets);
+		VDCC_BG_cable(const char* functions, const char* subsets);
 
 		/// @copydoc ICableMembraneTransport<TDomain>::ICableMembraneTransport(const std::vector<std::string>&)
-		VDCC_BG_Cable(const std::vector<std::string>& functions, const std::vector<std::string>& subsets);;
+		VDCC_BG_cable(const std::vector<std::string>& functions, const std::vector<std::string>& subsets);;
 
 		/// destructor
-		virtual ~VDCC_BG_Cable() {};
+		virtual ~VDCC_BG_cable() {};
 
 		/// name
 		virtual std::string name();
@@ -57,16 +57,16 @@ class VDCC_BG_Cable
 		// membrane conductivities
 		int m_mp;
 		number m_z_m;
-		number m_v12_m;
-		number m_tau0_m;
+		number m_v12_m;		// in units of mV
+		number m_tau0_m;	// in units of ms
 
 		int m_hp;
 		number m_z_h;
-		number m_v12_h;
-		number m_tau0_h;
+		number m_v12_h;		// in units of mV
+		number m_tau0_h;	// in units of ms
 
 		// permeability
-		number m_perm;	// in units of m/ms
+		number m_perm;		// in units of m/s
 
 		// one attachment per state variable
 		ANumber m_MGate;

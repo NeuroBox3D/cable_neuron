@@ -41,7 +41,7 @@ class Na_K_Pump
 		void set_K_K(number K);
 		void set_K_Na(number Na);
 
-		void set_IMAX_P(number IMAX);
+		void set_max_flux(number maxFlux);
 
 		// inherited from ICableMembraneTransport
 		virtual void init(Vertex* vrt, const std::vector<number>& vrt_values);
@@ -55,9 +55,9 @@ class Na_K_Pump
 		virtual void specify_write_function_indices();
 
 	private:
-		number K_K;
-		number K_Na;
-		number IMAX_P;				// mol*s^-1
+		number K_K;			// mM
+		number K_Na;		// mM
+		number max_flux;	// mol/(m^2*s)
 
 };
 

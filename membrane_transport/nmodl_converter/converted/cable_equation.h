@@ -280,8 +280,8 @@ class CableEquation
 
 
 	protected:
-		std::vector<number> m_vFluxValue, m_vFluxStart, m_vFluxDur;		///< values describing influxes
-		std::vector<MathVector<dim> > m_vFluxCoords;							///< vector for influx coordinates x, y, z
+		std::vector<number> m_vCurrent, m_vCurrentStart, m_vCurrentDur;		///< values describing influxes
+		std::vector<MathVector<dim> > m_vCurrentCoords;							///< vector for influx coordinates x, y, z
 
 #ifdef PLUGIN_SYNAPSE_HANDLER_ENABLED
 		SmartPtr<synapse_handler::NETISynapseHandler<TDomain> > m_spSH;	///< synapse handler

@@ -258,21 +258,21 @@ class CableEquation
 		bool m_bConstDiamSet;										///< whether const diameter is set
 
 	private:
-		number m_spec_res;					///< specific resistance in units of mV/(C/ms)*m = 1e-6 Ohm*m
-		number m_spec_cap;					///< specific capacity in units of C/mV/m^2 = 1e-3 F/m^2
+		number m_spec_res;					///< specific resistance in units of Ohm*m
+		number m_spec_cap;					///< specific capacitance in units of F/m^2
 
 		number m_k_out;     				///< outer [K] in units of  mol/m^3 = mM
 		number m_na_out;     				///< outer [Na] in units of  mol/m^3 = mM
 		number m_ca_out;     				///< outer [Ca] in units of  mol/m^3 = mM
 
-		std::vector<number> m_diff;			///< vector for diffusion constants of K, Na and Ca in units of m^2/ms
+		std::vector<number> m_diff;			///< vector for diffusion constants of K, Na and Ca in units of m^2/s
 
 		number m_ek;						///< reversal potential K in units of mV
 		number m_ena;						///< reversal potential Na in units of mV
 		number m_eca;						///< reversal potential Ca in units of mV
 
 		number m_eqConc_ca;					///< equilibrium concentration Ca
-		number m_reactionRate_ca;			///< reaction rate in Ca source/sink term (units of ms^-1)
+		number m_reactionRate_ca;			///< reaction rate in Ca source/sink term (units of 1/s)
 
 		number m_temperature;				///< temperature in units of K
 
@@ -287,8 +287,8 @@ class CableEquation
 		std::vector<number> m_vSubsetInflux, m_vSubsetInfluxStart, m_vSubsetInfluxDur;
 
 	protected:
-		std::vector<number> m_vFluxValue, m_vFluxStart, m_vFluxDur;		///< values describing influxes
-		std::vector<MathVector<dim> > m_vFluxCoords;					///< vector for influx coordinates x, y, z
+		std::vector<number> m_vCurrent, m_vCurrentStart, m_vCurrentDur;		///< values describing influxes
+		std::vector<MathVector<dim> > m_vCurrentCoords;					///< vector for influx coordinates x, y, z
 
 		SmartPtr<synapse_handler::NETISynapseHandler<TDomain> > m_spSH;	///< synapse handler
 

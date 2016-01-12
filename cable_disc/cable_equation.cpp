@@ -38,10 +38,10 @@ CableEquation<TDomain>::CableEquation(const char* subsets, bool withConcs, numbe
 	R(8.314), F(96485.0),
 	m_aDiameter(GlobalAttachments::attachment<ANumber>("diameter")),
 	m_constDiam(1e-6), m_bConstDiamSet(false),
-	m_spec_res(1.0e6), m_spec_cap(1.0e-5),
+	m_spec_res(1.0), m_spec_cap(1.0e-2),
 	m_k_out(4.0), m_na_out(150.0), m_ca_out(1.5),
-	m_ek(-90.0), m_ena(60.0), m_eca(140.0),
-	m_eqConc_ca(5e-5), m_reactionRate_ca(0.011),
+	m_ek(-0.09), m_ena(0.06), m_eca(0.14),
+	m_eqConc_ca(5e-5), m_reactionRate_ca(11.0),
 	m_temperature(310.0),
 	m_influx_ac(1e-9),
 	m_bOutput(false),
@@ -57,9 +57,9 @@ CableEquation<TDomain>::CableEquation(const char* subsets, bool withConcs, numbe
 	// set diff constants
 	if (withConcs)
 	{	m_diff.resize(3);
-		m_diff[0] = 1.0e-12;
-		m_diff[1] = 1.0e-12;
-		m_diff[2] = 2.2e-13;
+		m_diff[0] = 1.0e-9;
+		m_diff[1] = 1.0e-9;
+		m_diff[2] = 2.2e-10;
 	}
 }
 
@@ -159,16 +159,16 @@ template<typename TDomain>
 void CableEquation<TDomain>::
 set_influx(number Flux, number x, number y, number z, number beg, number dur)
 {
-	m_vFluxValue.push_back(Flux);
+	m_vCurrent.push_back(Flux);
 
-	m_vFluxStart.push_back(beg);
-	m_vFluxDur.push_back(dur);
+	m_vCurrentStart.push_back(beg);
+	m_vCurrentDur.push_back(dur);
 
 	// TODO: a little bit ugly; maybe save influx positions differently?
-	m_vFluxCoords.resize(m_vFluxCoords.size()+1);
-	m_vFluxCoords[m_vFluxCoords.size()-1][0] = x;
-	if (dim >= 2) m_vFluxCoords[m_vFluxCoords.size()-1][1] = y;
-	if (dim >= 3) m_vFluxCoords[m_vFluxCoords.size()-1][2] = z;
+	m_vCurrentCoords.resize(m_vCurrentCoords.size()+1);
+	m_vCurrentCoords[m_vCurrentCoords.size()-1][0] = x;
+	if (dim >= 2) m_vCurrentCoords[m_vCurrentCoords.size()-1][1] = y;
+	if (dim >= 3) m_vCurrentCoords[m_vCurrentCoords.size()-1][2] = z;
 }
 
 template <typename TDomain>
@@ -633,10 +633,6 @@ void CableEquation<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u
 		// scale by 1/resistance and by length of element
 		number diff_flux = grad_normal * element_length / (m_spec_res*pre_resistance);
 
-		// debug
-		UG_ASSERT(std::fabs(diff_flux) < 1.0,
-				  "m_spec_res: " << m_spec_res << "   pre_res: " << pre_resistance << std::endl);
-
 		// add to local defect of VM
 		d(_v_, scvf.from()) -= diff_flux;
 		d(_v_, scvf.to()  ) += diff_flux;
@@ -687,12 +683,8 @@ void CableEquation<TDomain>::add_def_M_elem(LocalVector& d, const LocalVector& u
 		//get Diameter from element
 		number diam = m_aaDiameter[pElem->vertex(co)];
 
-		// get spec capacity
-		number spec_capacity = m_spec_cap;
-
-
 		// potential equation time derivative
-		d(_v_, co) += PI*diam*scv.volume()*u(_v_, co)*spec_capacity;
+		d(_v_, co) += PI*diam*scv.volume()*u(_v_, co)*m_spec_cap;
 
 		// ion species time derivative
 		for (size_t k = 1; k < m_numb_ion_funcs+1; k++)
@@ -728,22 +720,16 @@ void CableEquation<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, cons
 
 		// influx handling coordinates
 		number time = this->time();
-		// TODO: This has to be reworked; here, effective influx depends on number of associated edges
-		//       of the node defined to be point of influx. This should not be the case.
-		for (size_t i = 0; i < m_vFluxValue.size(); i++)
+		for (size_t i = 0; i < m_vCurrent.size(); i++)
 		{
-			/*std::cout << "coords: " << m_coords[i][0] << " - " << vCornerCoords[0][1] << std::endl;
-			std::cout << "times: " << time << " - " << m_beg_flux[i] << std::endl;
-			std::cout << "echtes erg: " << (vCornerCoords[0][2] - m_coords[i][2]) << std::endl;
-			std::cout << "abs erg: " << ((fabs((vCornerCoords[0][2] - m_coords[i][2])))) << std::endl;*/
-			// Time depending vars
-			// Influx to edge center
-			if (m_vFluxStart[i] <= time && m_vFluxDur[i] + m_vFluxStart[i] >= time
-				&& fabs(0.5*(vCornerCoords[co][0]+vCornerCoords[(co+1)%2][0]) - m_vFluxCoords[i][0]) < m_influx_ac
-				&& fabs(0.5*(vCornerCoords[co][1]+vCornerCoords[(co+1)%2][1]) - m_vFluxCoords[i][1]) < m_influx_ac
-				&& fabs(0.5*(vCornerCoords[co][2]+vCornerCoords[(co+1)%2][2]) - m_vFluxCoords[i][2]) < m_influx_ac
+			// TODO: Decide for one of the cases!
+			// influx to edge center
+			if (m_vCurrentStart[i] <= time && m_vCurrentDur[i] + m_vCurrentStart[i] >= time
+				&& fabs(0.5*(vCornerCoords[co][0]+vCornerCoords[(co+1)%2][0]) - m_vCurrentCoords[i][0]) < m_influx_ac
+				&& fabs(0.5*(vCornerCoords[co][1]+vCornerCoords[(co+1)%2][1]) - m_vCurrentCoords[i][1]) < m_influx_ac
+				&& fabs(0.5*(vCornerCoords[co][2]+vCornerCoords[(co+1)%2][2]) - m_vCurrentCoords[i][2]) < m_influx_ac
 			   )
-//			//	Influx to vertex x (if used, the specified influx has to be scaled by 1/valence of vertex x)
+//			//	influx to vertex x (if used, the specified influx has to be scaled by 1/valence of vertex x)
 //			if (m_beg_flux[i] <= time && m_dur_flux[i] + m_beg_flux[i] >= time
 //				&& fabs(vCornerCoords[co][0] - m_coords[i][0]) < m_influx_ac
 //				&& fabs(vCornerCoords[co][1] - m_coords[i][1]) < m_influx_ac
@@ -751,79 +737,70 @@ void CableEquation<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, cons
 //			   )
 			{
 				// use real current here, thus the influx is independent from the geometry
-				d(_v_, co) += m_vFluxValue[i];
+				d(_v_, co) += m_vCurrent[i];
 			}
 		}
 
-		// TODO: It would be preferable to have point (not elems) as influx source.
+		// TODO: It would be preferable to have vertices (not edges) as influx source.
 		for (size_t i=0; i<m_influx_subset.size(); i++)
 		{
 			// influx handling subset
 			int si = ssh.get_subset_index(elem);
 			if (m_influx_subset[i] == si)
 			{
-				//std::cout << "time: " << time << "influx_start: " << m_subset_influx_start << std::endl;
-				//std::cout << "influx dur: " << m_subset_influx_dur << std::endl;
 				if (m_vSubsetInfluxStart[i] <= time && (m_vSubsetInfluxDur[i] + m_vSubsetInfluxStart[i]) >= time)
 				{
 					d(_v_, co) += m_vSubsetInflux[i];
-					//std::cout << "influx working" << std::endl;
 				}
 			}
 		}
 
-		// synapses handled by synapse_handler
+		// synapses (handled by synapse_handler)
 		if	(m_spSH.valid())
 		{
 			number current = 0;
-			//UG_LOG_ALL_PROCS("In synapse Provider!!!" << "!"<<std::endl);
-			// ... and assemble to defect if synapse present
 			if (m_spSH->synapse_on_edge(pElem, co, time, current))
 			{
-				//UG_LOG_ALL_PROCS("Setting Current" << "!"<<std::endl);
-				//UG_LOG_ALL_PROCS("Current: " << current << std::endl);
-				d(_v_, co) -= 1e-12*current; // scaling from nA to C/ms
+				d(_v_, co) -= current;		// current is in A
 
-				//TODO CALCIUM einstrom 4000 ionen
-				//Only for calciumdyns needed
+				// calcium current through synapse
 				if (m_numb_ion_funcs >= 3)
 				{
-					number fac = 0.1 / (2*F);
-					fac *= 0.01; // 99% directly buffered
-					d(_ca_, co) -= 1e-12*current*fac;
+					// current carried by Ca around 1%, 90% directly buffered
+					d(_ca_, co) -= current/(2*F)*1e-3;
 				}
 			}
 		}
 
 		// membrane transport mechanisms (IChannels)
-		std::vector<number> allOutCurrentValues(m_numb_ion_funcs+1, 0.0);
+		std::vector<number> allOutCurrentDensityValues(m_numb_ion_funcs+1, 0.0);
 
 		size_t ch_sz = m_channelsOnCurrSubset.size();
 		for (size_t ch = 0; ch < ch_sz; ++ch)
 		{
-			std::vector<number> outCurrentValues;
+			std::vector<number> outCurrentDensityValues;
 
 			// values we are getting from ionic_flux function in channels
-			m_channelsOnCurrSubset[ch]->current(pElem->vertex(co), m_currVrtValues[co], outCurrentValues);
+			m_channelsOnCurrSubset[ch]->current(pElem->vertex(co), m_currVrtValues[co], outCurrentDensityValues);
 
-			UG_ASSERT(outCurrentValues.size() == m_vvCurrChWFctInd[ch].size(),
+			UG_ASSERT(outCurrentDensityValues.size() == m_vvCurrChWFctInd[ch].size(),
 					  "mismatch in number of currents in channel \"" << m_channelsOnCurrSubset[ch]->name() << "\"");
 
 			// adding defect for every ion species involved
-			for (size_t k = 0; k < outCurrentValues.size(); ++k)
+			for (size_t k = 0; k < outCurrentDensityValues.size(); ++k)
 			{
 				UG_ASSERT(m_vvCurrChWFctInd[ch][k] < m_numb_ion_funcs+1,
 						  "wrong function index in channel \"" << m_channelsOnCurrSubset[ch]->name() << "\"");
-				allOutCurrentValues[m_vvCurrChWFctInd[ch][k]] += (outCurrentValues[k]);
+				allOutCurrentDensityValues[m_vvCurrChWFctInd[ch][k]] += (outCurrentDensityValues[k]);
 			}
 		}
 
-		// writing potential defects
-		d(_v_, co) -= scv.volume()*PI*diam * allOutCurrentValues[0];
+		// adding summed up electric channel currents
+		d(_v_, co) -= scv.volume()*PI*diam * allOutCurrentDensityValues[0];
 
-		// writing ion species defects
+		// adding summed up ionic channel currents
 		for (size_t k = 1; k < m_numb_ion_funcs+1; ++k)
-			d(k, co) -= scv.volume()*PI*diam * allOutCurrentValues[k];
+			d(k, co) -= scv.volume()*PI*diam * allOutCurrentDensityValues[k];
 	}
 }
 
@@ -920,15 +897,11 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		// get associated node
 		const int co = scv.node_id();
 
-		//get Diameter from element later in attachment
+		// get diameter at corner
 		number diam = m_aaDiameter[pElem->vertex(co)];
-		//UG_COND_THROW(fabs(Diam) <= 1e-12, "Diam zero!\n");
 
-
-		// get spec capacity
-		number spec_capacity = m_spec_cap;
 		// potential equation
-		J(_v_, co, _v_, co) += PI*diam*scv.volume()*spec_capacity;
+		J(_v_, co, _v_, co) += PI*diam*scv.volume()*m_spec_cap;
 
 		// mass part for ion diffusion
 		for (size_t k = 1; k < m_numb_ion_funcs+1; k++)

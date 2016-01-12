@@ -162,16 +162,14 @@ std::vector<number> ChannelHH<TDomain>::state_values(number x, number y, number 
 	try{ ssGrp = SubsetGroup(m_pCE->approx_space()->domain()->subset_handler(), this->m_vSubset);}
 	UG_CATCH_THROW("Subset group creation failed.");
 
-	//UG_LOG("Channel: Before iteration" << std::endl);
-
 	itType iter;
 	number bestDistSq = std::numeric_limits<number>::max();
 	number distSq;
 	Vertex* bestVrt = NULL;
 
 
-	// Iterate only if there is one Gatting needed
-	if (m_log_mGate==true || m_log_hGate==true || m_log_nGate==true)
+	// iterate only if any state is needed
+	if (m_log_mGate || m_log_hGate || m_log_nGate)
 	{
 		// iterating over all elements
 		for (size_t si=0; si < ssGrp.size(); si++)
@@ -247,7 +245,8 @@ void ChannelHH<TDomain>::init_attachments()
 template<typename TDomain>
 void ChannelHH<TDomain>::init(Vertex* vrt, const std::vector<number>& vrt_values)
 {
-	number VM = vrt_values[CableEquation<TDomain>::_v_];
+	// membrane potential needed in units of mV
+	number VM = 1e3*vrt_values[CableEquation<TDomain>::_v_];
 
 	// values for m gate
 	number AlphaHm = 0.1 * vtrap(-(VM+40.0),10.0);
@@ -270,8 +269,8 @@ void ChannelHH<TDomain>::init(Vertex* vrt, const std::vector<number>& vrt_values
 template<typename TDomain>
 void ChannelHH<TDomain>::update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values)
 {
-	number dt = newTime - m_pCE->time();
-	number VM = vrt_values[CableEquation<TDomain>::_v_];
+	number dt = 1e3*(newTime - m_pCE->time());					// time step in ms
+	number VM = 1e3*vrt_values[CableEquation<TDomain>::_v_];	// potential in mV
 	number tmp = m_pCE->temperature_celsius();
 	number tmp_factor = std::pow(2.3, (tmp-23.0)/10.0);
 
@@ -552,8 +551,8 @@ std::vector<number> ChannelHHNernst<TDomain>::state_values(number x, number y, n
 	Vertex* bestVrt = NULL;
 
 
-	// Iterate only if there is one Gatting needed
-	if (m_log_mGate==true || m_log_hGate==true || m_log_nGate==true)
+	// iterate only if any state is needed
+	if (m_log_mGate || m_log_hGate || m_log_nGate)
 	{
 		// iterating over all elements
 		for (size_t si=0; si < ssGrp.size(); si++)
@@ -629,7 +628,8 @@ void ChannelHHNernst<TDomain>::init_attachments()
 template<typename TDomain>
 void ChannelHHNernst<TDomain>::init(Vertex* vrt, const std::vector<number>& vrt_values)
 {
-	number VM = vrt_values[CableEquation<TDomain>::_v_];
+	// membrane potential needed in units of mV
+	number VM = 1e3*vrt_values[CableEquation<TDomain>::_v_];
 
 	// values for m gate
 	number AlphaHm = 0.1 * vtrap(-(VM+40.0),10.0);
@@ -652,8 +652,8 @@ void ChannelHHNernst<TDomain>::init(Vertex* vrt, const std::vector<number>& vrt_
 template<typename TDomain>
 void ChannelHHNernst<TDomain>::update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values)
 {
-	number dt = newTime - m_pCE->time();
-	number VM = vrt_values[CableEquation<TDomain>::_v_];
+	number dt = 1e3*(newTime - m_pCE->time());					// time in ms
+	number VM = 1e3*vrt_values[CableEquation<TDomain>::_v_];	// potential in mV
 	number tmp = m_pCE->temperature_celsius();
 	number tmp_factor = std::pow(2.3, (tmp-23.0)/10.0);
 
@@ -699,8 +699,7 @@ void ChannelHHNernst<TDomain>::current(Vertex* vrt, const std::vector<number>& v
 	const number F = m_pCE->F;
 	const number T = m_pCE->temperature();
 
-	//UG_ASSERT(m_pCE->valid(), "Channel has not been assigned a vmDisc object yet!");
-	const number helpV = 1e3 * R*T/F;
+	const number helpV = R*T/F;
 	number potassium_nernst_eq 	= helpV*(std::log(m_pCE->k_out()/k));
 	number sodium_nernst_eq	 	= helpV*(std::log(m_pCE->na_out()/na));
 

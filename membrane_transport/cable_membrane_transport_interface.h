@@ -53,7 +53,7 @@ class ICableMembraneTransport
 		/// updates the gating parameters
 		virtual void update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values) = 0;
 
-		/// provides the current densities for flowing quantities (C/(m^2*ms) or mol/(m^2*ms)) at a given vertex
+		/// provides the current densities for flowing quantities (C/(m^2*s) or mol/(m^2*s)) at a given vertex
 		virtual void current(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues) = 0;
 
 		/// called when approximation space is available

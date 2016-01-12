@@ -54,8 +54,8 @@ class IonLeakage
 		virtual void specify_write_function_indices();
 
 	private:
-		// membrane conductivities
-		number m_perm;		// C / (m^2 * mV * ms)
+		// membrane permeability (m/s)
+		number m_perm;
 
 		// leaking function name
 		std::string m_leaking_fct;
