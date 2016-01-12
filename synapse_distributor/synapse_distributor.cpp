@@ -311,7 +311,7 @@ void SynapseDistributor::set_activation_timing(number start_time, number duratio
 //	##################
 
 //	Initialize with time dependency
-// 	INFO: * end time is determined by alpha synapse specific parameter m_tau * 6
+// 	INFO: * end time is determined by start time AND alpha synapse specific parameter tau: t_end = t_start + m_tau * 6
 //		  * correspondingly, m_tau is used in methods where end time is needed
 	for(EdgeIterator eIter = pm_Grid->begin<Edge>(0); eIter != pm_Grid->end<Edge>(0) ; eIter++)
 	{
@@ -324,13 +324,16 @@ void SynapseDistributor::set_activation_timing(number start_time, number duratio
 			if(t_start < 0)
 				t_start = 0;
 
+			number dur = var_duration();
+			dur = dur < 0 ? 0 : dur;
+
 			number t_end = t_start + abs( var_duration());
 
 			if(t_start > t_end)
 				UG_THROW("ERROR in SynapseDistributor constructor: Synapse activity start time > end time.");
 
 			m_aaSynInfo[e][i].m_onset = t_start;
-			m_aaSynInfo[e][i].m_tau = t_end / 6.0;
+			m_aaSynInfo[e][i].m_tau = dur / 6.0;
 		}
 	}
 
@@ -412,6 +415,35 @@ void SynapseDistributor::place_synapses_uniform(size_t numSynapses)
 //	Call wrapper
 	place_synapses_uniform(vEdges, numSynapses);
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////
+//	SynapseDistributor::place_synapses_uniform(const char* subset, number density)
+
+/**
+ * Places synapses in the grid on edges of given subset, uniformly distributed according to set density.
+ */
+void SynapseDistributor::place_synapses_uniform(const char* subset, number density)
+{
+//	Get subset index from subset name
+	int si = pm_SubsetHandler->get_subset_index(subset);
+
+//	Get total length of given subset
+	number length = this->get_subset_length(si);
+
+//	translate length in [m] to [um]
+	length*=1e6;
+
+//	Get number of synapses to place from density value
+	size_t numSynapses = (size_t)(length * density);
+
+//	Save subset coarse grid edges in a vector
+	vector<Edge*> vEdges = vector<Edge*>(pm_SubsetHandler->begin<Edge>(si, 0),
+										 pm_SubsetHandler->end<Edge>(si, 0));
+
+//	Call wrapper
+	place_synapses_uniform(vEdges, numSynapses);
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //	SynapseDistributor::place_synapses(vector<size_t> distr)
@@ -539,6 +571,30 @@ void SynapseDistributor::degenerate_uniform(number p, int si)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
+//	SynapseDistributor::get_subset_length(vector<Edge*> vEdges)
+/**
+ * Calculate and return length of specified subset in micrometer
+ */
+number SynapseDistributor::get_subset_length(int si)
+{
+//	Save subset coarse grid edges in a vector
+	vector<Edge*> vEdges = vector<Edge*>(pm_SubsetHandler->begin<Edge>(si, 0),
+										 pm_SubsetHandler->end<Edge>(si, 0));
+
+	number totLength = 0.0;
+
+	for(size_t i = 0; i < vEdges.size(); ++i)
+	{
+		Edge* e = vEdges[i];
+		number edgeLength = EdgeLength(e, m_aaPosition);
+
+		totLength += edgeLength;
+	}
+
+	return totLength;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
 //	SynapseDistributor::num_synapses(vector<Edge*> vEdges, bool bActive)
 /**
  * Wrapper for num_synapses: Returns number of synapses in the given vector of edges
@@ -556,7 +612,7 @@ size_t SynapseDistributor::num_synapses(vector<Edge*> vEdges, bool bActive, numb
 		{
 			for(size_t j = 0; j < m_aaSynInfo[vEdges[i]].size(); ++j)
 			{
-				if(m_aaSynInfo[vEdges[i]][j].m_onset <= time && m_aaSynInfo[vEdges[i]][j].m_tau*6.0 >= time)
+				if(m_aaSynInfo[vEdges[i]][j].m_onset <= time && m_aaSynInfo[vEdges[i]][j].m_onset + m_aaSynInfo[vEdges[i]][j].m_tau*6.0 >= time)
 					numSynapses += 1;
 				else
 					continue;
@@ -634,7 +690,7 @@ void SynapseDistributor::activity_info()
 
 		for(size_t i = 0; i < m_aaSynInfo[e].size(); ++i)
 		{
-			UG_LOG("Start: " << m_aaSynInfo[e][i].m_onset << " ; End: " << m_aaSynInfo[e][i].m_tau*6.0 << endl);
+			UG_LOG("Start: " << m_aaSynInfo[e][i].m_onset << " ; End: " << m_aaSynInfo[e][i].m_onset + m_aaSynInfo[e][i].m_tau*6.0 << endl);
 			counter += 1;
 		}
 	}
@@ -674,7 +730,7 @@ bool SynapseDistributor::has_active_synapses(const Edge* e, const size_t corner,
 		const SynapseInfo* syn = &m_aaSynInfo[e][i];
 
 	//	Check, if synapse is active at that time
-		if((syn->m_onset > time) || (syn->m_tau*6.0 < time))
+		if((syn->m_onset > time) || (syn->m_onset + syn->m_tau*6.0 < time))
 			continue;
 
 	//	Check, if synapse belongs to given corner
@@ -727,6 +783,16 @@ string SynapseDistributor::get_last_message()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
+//	SynapseDistributor::set_output_filename()
+/**
+ * Sets the output filename in member m_OutputFile
+ */
+void SynapseDistributor::set_outfile(std::string outfile)
+{
+	m_OutputFile = outfile;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
 //	SynapseDistributor::save_changes()
 /**
  * Saves all changes made to the input geometry file on disk.
@@ -734,7 +800,7 @@ string SynapseDistributor::get_last_message()
 bool SynapseDistributor::export_grid()
 {
 
-	m_LastMessage = "save_changes(): Saving to "+m_OutputFile+"...";
+	m_LastMessage = "export_grid(): Saving to "+m_OutputFile+"...";
 
 	if(SaveGridToFile(*pm_Grid, *pm_SubsetHandler, m_OutputFile.c_str())) {
 		m_LastMessage.append("done.");
@@ -742,6 +808,26 @@ bool SynapseDistributor::export_grid()
 	}
 	else {
 		m_LastMessage.append("SaveGridToFile(*pm_Grid, *pm_SubsetHandler, m_outputFile.c_str()) failed.");
+		return false;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+//	SynapseDistributor::export_grid(string outfile)
+/**
+ * Saves all changes made to the input geometry file by exporting to specified outfile.
+ */
+bool SynapseDistributor::export_grid(std::string outfile)
+{
+
+	m_LastMessage = "export_grid(): Saving to "+outfile+"...";
+
+	if(SaveGridToFile(*pm_Grid, *pm_SubsetHandler, outfile.c_str())) {
+		m_LastMessage.append("done.");
+		return true;
+	}
+	else {
+		m_LastMessage.append("SaveGridToFile(*pm_Grid, *pm_SubsetHandler, outfile.c_str()) failed.");
 		return false;
 	}
 }
