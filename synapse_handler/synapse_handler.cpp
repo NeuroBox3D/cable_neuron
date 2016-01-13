@@ -10,6 +10,13 @@ namespace cable_neuron {
 namespace synapse_handler {
 
 
+// TODO:
+// There are several todos marked with "units" in this file.
+// They are to be addressed once units in the SynapseInfo struct are
+// defined to be prefix-less SI units.
+// This also has effects on the NeTI plugin, consider this!
+
+
 template <typename TDomain>
 bool SynapseDistributorSynapseHandler<TDomain>::
 synapse_on_edge(const Edge* edge, size_t scv, number time, number& current)
@@ -317,7 +324,7 @@ synapse_on_edge(const Edge* edge, size_t scv, number time, number& current)
 		if ((STV::loc_coord(info) < 0.5 && scv == 0) || (STV::loc_coord(info) >= 0.5 && scv == 1))
 		{
 			// get vmDisc potential values for edge
-			number vm_postsyn = 1e3*m_spCEDisc->vm(edge->vertex(scv));	// todo: adapt SH units to CE !
+			number vm_postsyn = m_spCEDisc->vm(edge->vertex(scv));
 
 			switch (STV::type(info))
 			{
@@ -327,7 +334,8 @@ synapse_on_edge(const Edge* edge, size_t scv, number time, number& current)
 					//if (SynapseSelector::is_declared(ALPHA_SYNAPSE))
 					//{
 						// create a default alpha synapse and populate with parameters
-						AlphaSynapse alpha(STA::g_max(info), STA::onset(info), STA::tau(info), STA::v_rev(info), vm_postsyn);
+						AlphaSynapse alpha(1e-6*STA::g_max(info), 1e-3*STA::onset(info),	// TODO units
+										   1e-3*STA::tau(info), 1e-3*STA::v_rev(info), vm_postsyn);
 						current += alpha.current(time);
 						/*if (STA::onset(info) <= time)
 						{
@@ -344,7 +352,8 @@ synapse_on_edge(const Edge* edge, size_t scv, number time, number& current)
 					//if (SynapseSelector::is_declared(EXP2_SYNAPSE))
 					//{
 						// create a default exp2syn and populate with parameters
-						Exp2Syn exp(STB::tau1(info), STB::tau2(info), STB::v_rev(info), STB::g_max(info), vm_postsyn);
+						Exp2Syn exp(1e-3*STB::tau1(info), 1e-3*STB::tau2(info),				// TODO units
+									1e-3*STB::v_rev(info), 1e-6*STB::g_max(info), vm_postsyn);
 
 						// get potential for presynapse
 						unsigned int presynInd = STB::presyn_ind(info);
@@ -355,7 +364,7 @@ synapse_on_edge(const Edge* edge, size_t scv, number time, number& current)
 						number vm_presyn = m_vPresynVmValues[presynInd];
 
 						// activate synapse if V_m > threshold
-						if (vm_presyn > STB::threshold(info) && !STB::activated(info))
+						if (vm_presyn > 1e-3*STB::threshold(info) && !STB::activated(info))	// TODO units
 							STB::activate(info, time);
 
 						// handle synapse time
@@ -365,9 +374,8 @@ synapse_on_edge(const Edge* edge, size_t scv, number time, number& current)
 							//UG_LOG_ALL_PROCS("Active synapse " << STB::name() << "!" << std::endl);
 							number syn_time = time - STB::onset(info);
 
-
 							// deactivate if time past activity
-							if (syn_time >= STB::activity_time(info))
+							if (syn_time >= 1e-3*STB::activity_time(info))					// TODO units
 								STB::deactivate(info);
 
 							current += exp.current(syn_time);
@@ -384,8 +392,6 @@ synapse_on_edge(const Edge* edge, size_t scv, number time, number& current)
 			}
 		}
 	}
-
-	current *= 1e-9;	// todo: adapt SH units to CE! here: current in units of A instead of nA
 
 	return active_synapse;
 }

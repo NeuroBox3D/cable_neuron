@@ -16,7 +16,7 @@
 
 #include <common/util/smart_pointer.h>
 
-#include "../synapse_factory.h"
+//#include "../synapse_factory.h"
 #include "../synapse.h"
 
 /* \defgroup sh_plugin Synapse Handler plugin
@@ -32,17 +32,17 @@ namespace synapse_handler {
 	 */
 	class AlphaSynapse : public ISynapse {
 	private:
-		number m_gMax;
-		number m_onset;
-		number m_tau;
-		number m_e;
-		number m_vm;
+		number m_gMax;		///< conductance (S)
+		number m_onset;		///< activity onset (s)
+		number m_tau;		///< time constant (s)
+		number m_e;			///< reversal potential (V)
+		number m_vm;		///< membrane potential (V)
 
 	public:
 		number current(const number& t) const {
 			if (t < m_onset) return 0.0;
 			return m_gMax * (t - m_onset)/m_tau * std::exp(-(t - m_onset - m_tau)/m_tau)
-				  * (m_vm - m_e);
+				  * (m_vm - m_e);	// current (in units of A)
 		}
 
 		void set_vm(const number& vm) {
@@ -56,14 +56,11 @@ namespace synapse_handler {
 			m_e = e;
 		}
 
-		AlphaSynapse() : m_gMax(0), m_onset(0), m_tau(1), m_e(0), m_vm(0) {
+		// we might not want to allow this
+		//AlphaSynapse() : m_gMax(0), m_onset(0), m_tau(1), m_e(0), m_vm(0) {}
 
-		}
-
-		AlphaSynapse(number gmax, number onset, number tau, number e, number vm) :
-			m_gMax(gmax), m_onset(onset), m_tau(tau), m_e(e), m_vm(vm) {
-
-		}
+		AlphaSynapse(number gmax, number onset, number tau, number e, number vm)
+			: m_gMax(gmax), m_onset(onset), m_tau(tau), m_e(e), m_vm(vm) {}
 
 		virtual ~AlphaSynapse() {
 
@@ -75,18 +72,18 @@ namespace synapse_handler {
 	 */
 	class Exp2Syn : public ISynapse {
 	private:
-		number m_tau1;
-		number m_tau2;
-		number m_e;
-		number m_w;
-		number m_vm;
+		number m_tau1;	///< time constant (s)
+		number m_tau2;	///< time constant (s)
+		number m_e;		///< reversal potential (V)
+		number m_w;		///< conductance (S)
+		number m_vm;	///< membrane potential (V)
 
 	public:
 		number current(const number& t) const {
 			number tp = (m_tau1*m_tau2)/(m_tau2 - m_tau1) * std::log(m_tau2/m_tau1);	// time of maximal current
 			number factor = 1.0 / (std::exp(-tp/m_tau2) - std::exp(-tp/m_tau1));		// normalization factor
 			number i = m_w * factor * (m_vm - m_e) * (std::exp(-t/m_tau2) - std::exp(-t/m_tau1));
-			return i; //!< i: current [nA]
+			return i; //!< i: current (in units of A)
 		}
 
 		void set_vm(const number& vm) {
@@ -100,20 +97,17 @@ namespace synapse_handler {
 			m_w = w;
 		}
 
-		Exp2Syn() : m_tau1(1), m_tau2(1), m_e(0), m_w(0), m_vm(0) {
+		// we might not want to allow this
+		//Exp2Syn() : m_tau1(1), m_tau2(1), m_e(0), m_w(0), m_vm(0) {}
 
-		}
+		Exp2Syn(number tau1, number tau2, number e, number w, number vm)
+			: m_tau1(tau1), m_tau2(tau2), m_e(e), m_w(w), m_vm(vm) {}
 
-		Exp2Syn(number tau1, number tau2, number e, number w, number vm) : m_tau1(tau1), m_tau2(tau2), m_e(e), m_w(w), m_vm(vm) {
-
-		}
-
-		virtual ~Exp2Syn() {
-
-		}
+		virtual ~Exp2Syn() {}
 	};
 
 
+#if 0 // not needed atm
 // ///////////////////////////////
 // factories 					//
 // ///////////////////////////////
@@ -150,6 +144,7 @@ namespace synapse_handler {
 		virtual ~Exp2SynapseFactory() {
 		}
 };
+#endif
 
 } // namespace synapse_handler
 } // namespace cable_neuron

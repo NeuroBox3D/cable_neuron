@@ -27,10 +27,10 @@
 
 // synapses
 #include "synapse.h"
-#include "synapse_factory.h"
-#include "selector/synapse_selector.h"
-#include "selector/synapse_mapping.h"
-#include "function/synapse_factory_producer.h"
+//#include "synapse_factory.h"
+//#include "selector/synapse_selector.h"
+//#include "selector/synapse_mapping.h"
+//#include "function/synapse_factory_producer.h"
 #include "function/types.h"
 #include "grid/synapse_info_attachment_handler.h"
 #include "grid/synapse_info_io_traits.h"
@@ -355,7 +355,7 @@ class NETISynapseHandler : public ISynapseHandler<TDomain>
 		/// presynaptic subset index
 		int m_presynSI;
 
-		/// handling of presynaptic vm values
+		/// handling of presynaptic vm values (in units of V)
 		std::vector<number> m_vPresynVmValues;
 
 		/// alpha synapse timing params

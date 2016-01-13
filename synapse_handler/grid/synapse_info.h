@@ -44,9 +44,9 @@ struct SynapseInfo {
    /////////////////////////////////////////////
    number m_locCoords; //!< local coordinates on edge
    unsigned char m_type; //!< type of synapse (\see types.h for types)
-   number m_onset; //!< onset of synapse
-   number m_tau; //!< decay constant or rise constant
-   number m_gMax; //!< g_max - maximal conductance (including all NEURON factors)
+   number m_onset; //!< onset of synapse (ms)
+   number m_tau; //!< decay constant or rise constant (ms)
+   number m_gMax; //!< g_max - maximal conductance (uS)
    number m_vRev; //!< v_rev - reversal potential (mV)
    number m_param1; //!< generic parameter #1
    number m_param2; //!< generic parameter #2

@@ -24,7 +24,6 @@ namespace synapse_handler {
 	public:
 		/*!
 		 * \brief return the current
-		 * \param[in] vm membrane potential
 		 * \param[in] time current time
 		 */
 		virtual number current(const number& t) const = 0;
