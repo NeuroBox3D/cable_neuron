@@ -286,9 +286,9 @@ void SynapseDistributor::place_synapse(Edge* e)
 	syn.m_locCoords = localCoord;
 	syn.m_type = synapse_handler::ALPHA_SYNAPSE;
 	syn.m_onset = 0.0;				// to be set by set_activation_timing method
-	syn.m_tau = 0.0;				// to be set by set_activation_timing method
-	syn.m_gMax = 6e-4; 				// = 600pS
-	syn.m_vRev = 0.0;
+	syn.m_tau 	= 0.0;				// to be set by set_activation_timing method
+	syn.m_gMax 	= 1.2e-3;			// in [uS]
+	syn.m_vRev 	= 0.0;
 
 //	Add synapse to edge
 	m_aaSynInfo[e].push_back(syn);
