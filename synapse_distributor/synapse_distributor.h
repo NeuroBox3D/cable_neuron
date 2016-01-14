@@ -9,29 +9,16 @@
 #ifndef __UG__PLUGINS__CABLE_NEURON__SYNAPSE_DISTRIBUTOR__SYNAPSE_DISTRIBUTOR_H__
 #define __UG__PLUGINS__CABLE_NEURON__SYNAPSE_DISTRIBUTOR__SYNAPSE_DISTRIBUTOR_H__
 
-/* system includes */
-#include <stddef.h>
-#include <cmath>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <fstream>
+// system includes
 #include <vector>
 #include <string>
-#include <algorithm>
 
-#include "lib_disc/spatial_disc/user_data/user_data.h"
+// ugcore includes
 #include "common/util/smart_pointer.h"
-
 #include "lib_grid/lib_grid.h"
-#include "lib_grid/global_attachments.h"
 
-#include "../synapse_handler/grid/synapse_info_io_traits.h"
-
-/// boost
-#include "boost/lexical_cast.hpp"
-#include <boost/random.hpp>
-#include <boost/random/normal_distribution.hpp>
+// plugin includes
+#include "../synapse_handler/grid/synapse_info.h"
 
 
 namespace ug {
@@ -45,7 +32,7 @@ namespace cable_neuron {
 ////////////////////////////////////////////////////////////////////////////////////////////
 class SynapseDistributor
 {
-	typedef Attachment<std::vector<SynapseInfo> > AVSynapse;
+	typedef Attachment<std::vector<synapse_handler::SynapseInfo> > AVSynapse;
 
 public:
 //	Constructor
@@ -90,7 +77,7 @@ public:
 
 	void activity_info();
 
-	std::vector<SynapseInfo*> find_synapses(number x, number y, number z) const;
+	std::vector<synapse_handler::SynapseInfo*> find_synapses(number x, number y, number z) const;
 
 	template <size_t dim>
 	bool has_active_synapses(const MathVector<dim>& c, const number time, number& current) const;

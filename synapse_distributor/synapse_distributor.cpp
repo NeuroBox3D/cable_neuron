@@ -5,12 +5,27 @@
  *      Author: Lukas Reinhardt
  */
 
-
 #include "synapse_distributor.h"
 
+// system includes
+#include <iostream>	// cout
+#include <sstream>	// stringstream
+#include <stdlib.h>	// rand()
+
+// boost includes
+#include "boost/lexical_cast.hpp"
+#include <boost/random.hpp>
+#include <boost/random/normal_distribution.hpp>
+
+// ugcore includes
 #ifdef UG_PARALLEL
 #include "lib_disc/parallelization/parallelization_util.h"
 #endif
+#include "lib_grid/global_attachments.h"
+
+// plugin includes
+#include "../synapse_handler/grid/synapse_info_io_traits.h"
+#include "../synapse_handler/function/types.h"
 
 
 #define SynapseDistributor_verbose
@@ -153,7 +168,7 @@ void SynapseDistributor::CopySynapsesFromParentToChild(Edge* parent)
 
 	//	Get correct child edge and the parent's synapse
 		Edge* child = pm_Grid->get_child_edge(parent, childEdgeIndex);
-		SynapseInfo syn = m_aaSynInfo[parent][i];
+		synapse_handler::SynapseInfo syn = m_aaSynInfo[parent][i];
 
 	//	Copy synapse to child
 		m_aaSynInfo[child].push_back(syn);
@@ -267,13 +282,13 @@ void SynapseDistributor::place_synapse(Edge* e)
 //	Initialize an alpha synapse with dummy onset and end activity time
 //	(end time is determined by alpha synapse specific parameter m_tau * 6)
 
-	SynapseInfo syn;
+	synapse_handler::SynapseInfo syn;
 	syn.m_locCoords = localCoord;
-	syn.m_type 	= ALPHA_SYNAPSE;
+	syn.m_type = synapse_handler::ALPHA_SYNAPSE;
 	syn.m_onset = 0.0;				// to be set by set_activation_timing method
-	syn.m_tau 	= 0.0;				// to be set by set_activation_timing method
-	syn.m_gMax 	= 1.2e-3; 			// peak conductivity in [uS]
-	syn.m_vRev 	= 0.0;
+	syn.m_tau = 0.0;				// to be set by set_activation_timing method
+	syn.m_gMax = 6e-4; 				// = 600pS
+	syn.m_vRev = 0.0;
 
 //	Add synapse to edge
 	m_aaSynInfo[e].push_back(syn);
@@ -741,11 +756,11 @@ void SynapseDistributor::activity_info()
 /**
  * Returns vector with pointers to synapses at this position, if existent
  */
-vector<SynapseInfo*> SynapseDistributor::find_synapses(number x, number y, number z) const
+vector<synapse_handler::SynapseInfo*> SynapseDistributor::find_synapses(number x, number y, number z) const
 {
 ///	TODO: Implement me!
 
-	vector<SynapseInfo*> vSyn;
+	vector<synapse_handler::SynapseInfo*> vSyn;
 	UG_THROW("vector<Synapse*> SynapseDistributor::find_synapses(number x, number y, number z) const. NOT IMPLEMENTED!");
 
 	return vSyn;
@@ -767,7 +782,7 @@ bool SynapseDistributor::has_active_synapses(const Edge* e, const size_t corner,
 
 	for(size_t i = 0; i < m_aaSynInfo[e].size(); ++i)
 	{
-		const SynapseInfo* syn = &m_aaSynInfo[e][i];
+		const synapse_handler::SynapseInfo* syn = &m_aaSynInfo[e][i];
 
 	//	Check, if synapse is active at that time
 		if((syn->m_onset > time) || (syn->m_onset + syn->m_tau*6.0 < time))
