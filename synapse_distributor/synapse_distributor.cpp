@@ -269,11 +269,11 @@ void SynapseDistributor::place_synapse(Edge* e)
 
 	SynapseInfo syn;
 	syn.m_locCoords = localCoord;
-	syn.m_type = ALPHA_SYNAPSE;
+	syn.m_type 	= ALPHA_SYNAPSE;
 	syn.m_onset = 0.0;				// to be set by set_activation_timing method
-	syn.m_tau = 0.0;				// to be set by set_activation_timing method
-	syn.m_gMax = 6e-4; 				// = 600pS
-	syn.m_vRev = 0.0;
+	syn.m_tau 	= 0.0;				// to be set by set_activation_timing method
+	syn.m_gMax 	= 1.2e-3; 			// peak conductivity in [uS]
+	syn.m_vRev 	= 0.0;
 
 //	Add synapse to edge
 	m_aaSynInfo[e].push_back(syn);
@@ -421,6 +421,7 @@ void SynapseDistributor::place_synapses_uniform(size_t numSynapses)
 
 /**
  * Places synapses in the grid on edges of given subset, uniformly distributed according to set density.
+ * Specification of density in [1/m]
  */
 void SynapseDistributor::place_synapses_uniform(const char* subset, number density)
 {
@@ -429,9 +430,6 @@ void SynapseDistributor::place_synapses_uniform(const char* subset, number densi
 
 //	Get total length of given subset
 	number length = this->get_subset_length(si);
-
-//	translate length in [m] to [um]
-	length*=1e6;
 
 //	Get number of synapses to place from density value
 	size_t numSynapses = (size_t)(length * density);
@@ -589,7 +587,7 @@ void SynapseDistributor::degenerate_uniform(number p, const char* subset)
 ////////////////////////////////////////////////////////////////////////////////////////////
 //	SynapseDistributor::get_subset_length(int si)
 /**
- * Calculate and return length of specified subset in micrometer
+ * Calculate and return length of specified subset in [m]
  */
 number SynapseDistributor::get_subset_length(int si)
 {
@@ -613,7 +611,7 @@ number SynapseDistributor::get_subset_length(int si)
 ////////////////////////////////////////////////////////////////////////////////////////////
 //	SynapseDistributor::get_subset_length(const char* subset)
 /**
- * Calculate and return length of specified subset in micrometer
+ * Calculate and return length of specified subset in [m]
  */
 number SynapseDistributor::get_subset_length(const char* subset)
 {
