@@ -7,6 +7,8 @@
 
 #include "cable_membrane_transport_interface.h"
 
+#include <algorithm>
+
 
 namespace ug {
 namespace cable_neuron {
@@ -71,6 +73,47 @@ void ICableMembraneTransport<TDomain>::approx_space_available()
 	// we want to do this _after_ ce_obj_available()
 	// as some implementations (e.g. IonLeakage) need this
 	specify_write_function_indices();
+}
+
+
+template <typename TDomain>
+number ICableMembraneTransport<TDomain>::lin_dep_on_pot
+(
+	Vertex* vrt,
+	const std::vector<number>& vrt_values
+)
+{
+	// for easy access to membrane potential index
+	size_t vi = CableEquation<TDomain>::_v_;
+
+	// find index in current() output vector corresponding to membrane potential
+	size_t i = 0;
+	size_t sz = m_vWFctInd.size();
+	while (i < sz)
+	{
+		if (m_vWFctInd[i++] == vi)
+		{
+			--i;
+			break;
+		}
+	}
+
+	// no influence on membrane potential; return 0
+	if (i == sz) return 0.0;
+
+	// call current twice
+	std::vector<number> currentDensity;
+	std::vector<number> vrt_vals2(vrt_values);
+	vrt_vals2[vi] *= 1.0+1e-8;
+	number dv = vrt_vals2[vi] - vrt_values[vi];
+
+	current(vrt, vrt_vals2, currentDensity);
+	number dcd = currentDensity[i];
+	currentDensity.clear();
+	current(vrt, vrt_values, currentDensity);
+	dcd -= currentDensity[i];
+
+	return dcd / dv;
 }
 
 

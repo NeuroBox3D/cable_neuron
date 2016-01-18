@@ -65,9 +65,6 @@ class ICableMembraneTransport
 		/// getting values of internal channel states
 		virtual std::vector<number> state_values(number x, number y, number z) {return std::vector<number>(0);};
 
-		/// adding some Jacobian infos at given vertex
-		//virtual void Jacobi_sets(Vertex* v, const std::vector<number>& vrt_values, std::vector<number>& outJFlux) = 0;
-
 		// TODO: think about generalizing this to a real Jacobian;
 		// and about making implementation of this method mandatory (for time step security!)
 		/**
@@ -78,12 +75,15 @@ class ICableMembraneTransport
 		 *	of the electric current through the mechanism on the given potential. This is used in
 		 *	the CableEquation to get an estimate for the CFL condition that has to be fulfilled by the
 		 *	time step size.
+		 *	The default implementation in this base class is to call the current() function with the given
+		 *	value for the potential (if at all dependent on it) and with a value slightly bigger. Both values
+		 *	are then used to estimate the dependency through a finite difference.
 		 *
 		 * @param vrt			vertex to compute dependency for
 		 * @param vrt_values	current solution at this vertex
 		 * @return				linear dependency
 		 */
-		virtual number lin_dep_on_pot(Vertex* vrt, const std::vector<number>& vrt_values) {return 0.0;}
+		virtual number lin_dep_on_pot(Vertex* vrt, const std::vector<number>& vrt_values);
 
 
 		const std::vector<size_t>& fct_indices() const {return m_vWFctInd;}
