@@ -286,6 +286,7 @@ void ChannelHH<TDomain>::update_gating(number newTime, Vertex* vrt, const std::v
 	number AlphaHh = 0.07 * exp(-(VM+65.0)/20.0);
 	number BetaHh = 1.0 / (exp(-(VM+35.0)/10.0) + 1.0);
 
+	// explicit
 	number rate_h = tmp_factor * (AlphaHh - m_aaHGate[vrt] * (AlphaHh+BetaHh));
 	number rate_m = tmp_factor * (AlphaHm - m_aaMGate[vrt] * (AlphaHm+BetaHm));
 	number rate_n = tmp_factor * (AlphaHn - m_aaNGate[vrt] * (AlphaHn+BetaHn));
@@ -293,6 +294,12 @@ void ChannelHH<TDomain>::update_gating(number newTime, Vertex* vrt, const std::v
 	m_aaHGate[vrt] += rate_h * dt;
 	m_aaMGate[vrt] += rate_m * dt;
 	m_aaNGate[vrt] += rate_n * dt;
+
+	// implicit version
+	//m_aaHGate[vrt] = (m_aaHGate[vrt] + dt*tmp_factor*AlphaHh) / (1.0 + (AlphaHh+BetaHh)*tmp_factor*dt);
+	//m_aaMGate[vrt] = (m_aaMGate[vrt] + dt*tmp_factor*AlphaHm) / (1.0 + (AlphaHm+BetaHm)*tmp_factor*dt);
+	//m_aaNGate[vrt] = (m_aaNGate[vrt] + dt*tmp_factor*AlphaHn) / (1.0 + (AlphaHn+BetaHn)*tmp_factor*dt);
+
 	//std::cout << "VM: " << VM << "   h: "<< m_aaHGate[vrt] << "   m: "<< m_aaMGate[vrt] <<  "   n: "<< m_aaNGate[vrt] <<std::endl;
 	//std::cout << "Rates: " << rate_h << " , " << rate_m << " , " << rate_n << std::endl;
 }

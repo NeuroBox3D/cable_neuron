@@ -288,15 +288,16 @@ estimate_cfl_cond(ConstSmartPtr<TVector> u)
 {
 	PROFILE_BEGIN_GROUP(estimate_cfl_cond, "CableEquation");
 
+	TDomain& dom = *this->approx_space()->domain();
 	ConstSmartPtr<DoFDistribution> dd = this->approx_space()->dof_distribution(GridLevel(), false);
 	std::vector<DoFIndex> dofIndex;
-	MGSubsetHandler& ssh = *this->approx_space()->domain()->subset_handler();
+	MGSubsetHandler& ssh = *dom.subset_handler();
 
 	std::vector<number> vrt_values(m_numb_ion_funcs+1);
 	size_t ch_sz = m_channel.size();
 
 	// iterate over surface level
-	number maxLinDep = 0.0;
+	double minCFL = std::numeric_limits<double>::max();
 	size_t sv_sz = m_vSurfVrt.size();
 
 	for (size_t sv = 0; sv < sv_sz; ++sv)
@@ -311,51 +312,59 @@ estimate_cfl_cond(ConstSmartPtr<TVector> u)
 			vrt_values[j] = DoFRef(*m_spUOld, dofIndex[0]);
 		}
 
-		// find channels active on this vertex (and save the corresponding subset)
-		std::vector<int> chActive(ch_sz, -2);	// -2 as code for "not defined here"
-
+		number linDep = 0.0;
+		number massFac = 0.0;
 		typedef typename MultiGrid::traits<Edge>::secure_container edge_list;
 		edge_list el;
-		this->approx_space()->domain()->grid()->associated_elements(el, vrt);
+		dom.grid()->associated_elements(el, vrt);
 		for (size_t k = 0; k < el.size(); ++k)
 		{
 			Edge* edge = el[k];
-			int si = ssh.get_subset_index(edge);
+			number scvSurf = PI*m_aaDiameter[vrt] * 0.5*ElementSize(*edge, dom);
+			m_si = ssh.get_subset_index(edge);
 
-			// iterate over channels and check whether they are defined on edge subset
-			for (size_t ch = 0; ch < m_channel.size(); ++ch)
+			massFac += scvSurf;
+
+			// calculate linear dependence on potential for all membrane transporters
+			// beware: it is imperative that m_si is set correctly, for lin_dep_on_pot
+			//         uses this variable!
+			for (size_t ch = 0; ch < ch_sz; ++ch)
 			{
-				if (chActive[ch] == -2 && m_channel[ch]->is_def_on_subset(si))
-					chActive[ch] = si;
+				if (m_channel[ch]->is_def_on_subset(m_si))
+					linDep += scvSurf * m_channel[ch]->lin_dep_on_pot(vrt, vrt_values);
+			}
+
+			// consider synapse currents too (important for large number of active synapses)
+			// TODO: This assumes any synaptic current is of the form: conductivity * (-V).
+			// Better implement a Jacobian for synapses, equivalent to channel functionality
+			if	(m_spSH.valid())
+			{
+				number current = 0.0;
+
+				// find corner
+				size_t co = 0;
+				if (edge->vertex(1) == vrt) co = 1;
+
+				if (m_spSH->synapse_on_edge(edge, co, m_time, current))
+					linDep += current / vrt_values[_v_];
 			}
 		}
 
-		// loop active channels and compute linear dependency
-		number linDep = 0.0;
-		for (size_t ch = 0; ch < ch_sz; ++ch)
-		{
-			if (chActive[ch] != 2)
-			{
-				m_si = chActive[ch];
-				linDep += m_channel[ch]->lin_dep_on_pot(vrt, vrt_values);
-			}
-		}
-		maxLinDep = std::max(maxLinDep, linDep);
+		number cfl = 2.0 * m_spec_cap * massFac / linDep;
+		minCFL = std::min(minCFL, cfl);
 	}
 
-	double cfl = 2.0 * m_spec_cap / maxLinDep;
-
-	// communicate
+		// communicate
 #ifdef UG_PARALLEL
 	if (pcl::NumProcs() > 1)
 	{
 		pcl::ProcessCommunicator com;
-		double localCFL = cfl;
-		com.allreduce(&localCFL, &cfl, 1, PCL_DT_DOUBLE, PCL_RO_MIN);
+		double localCFL = minCFL;
+		com.allreduce(&localCFL, &minCFL, 1, PCL_DT_DOUBLE, PCL_RO_MIN);
 	}
 #endif
 
-	return (number) cfl;
+	return (number) minCFL;
 }
 
 
@@ -759,7 +768,7 @@ void CableEquation<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, cons
 		if	(m_spSH.valid())
 		{
 			number current = 0;
-			if (m_spSH->synapse_on_edge(pElem, co, time, current))
+			if (m_spSH->synapse_on_edge(pElem, co, m_time, current))
 			{
 				d(_v_, co) -= current;		// current is in A
 
