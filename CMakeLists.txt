@@ -44,6 +44,7 @@ set (SOURCES
 	membrane_transport/vdcc_bg.cpp
 	util/diam_attachment_handler.cpp
 	util/order.cpp
+	util/functions.cpp
 )
 
 if (CNConvertedTransport)

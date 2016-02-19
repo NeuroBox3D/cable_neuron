@@ -49,6 +49,9 @@
 // synapse distributor
 #include "synapse_distributor/synapse_distributor.h"
 
+// utility
+#include "util/functions.h"
+
 
 using namespace std;
 using namespace ug::bridge;
@@ -475,6 +478,12 @@ struct Functionality
 		{
 			reg.add_function("order_cuthillmckee", &order_cuthillmckee<TDomain>, grp.c_str(),
 							 "", "approxSpace", "vertex ordering for solver optimization");
+		}
+
+		// check for acyclicity
+		{
+			reg.add_function("is_acyclic", &is_acyclic<TDomain>, grp.c_str(),
+							 "", "domain", "Checks whether given domain is acyclic.");
 		}
 	}
 
