@@ -197,15 +197,15 @@ grid_first_available()
 	// set activation timing for AlphaSynapses
 	set_activation_timing_with_grid();
 
-	// set all Exp2Syn synapses to deactivated status (currently nor guaranteed by grid)
+	// set all Exp2Syn synapses to deactivated status (currently not guaranteed by grid)
 	deactivate_all_biexp();
 
 	// propagate attachments through levels
 	m_cah.set_grid(m_spGrid);
 	m_siah.set_grid(m_spGrid);
 
-	// presynapic vertex indexing in case of EXP2_SYNAPSE presence
-	if(!has_EXP2_SYNAPSE())
+	// presynaptic vertex indexing in case of EXP2_SYNAPSE presence
+	if (!has_EXP2_SYNAPSE())
 	{
 		m_bEXP2_SYNAPSE = false;
 	}
@@ -221,17 +221,9 @@ grid_first_available()
 					  "CableEquation object is not valid.")
 
 		bool found = false;
-		for (int si = 0; si < sh->num_subsets(); ++si)
-		{
-			if (strcmp (m_presynSubset.c_str(), sh->get_subset_name(si)) == 0)
-			{
-				m_presynSI = si;
-				found = true;
-				break;
-			}
-		}
-		UG_COND_THROW(!found, "The subset "<< m_presynSubset << "' is not defined in the domain taken from\n"
-					  "the passed CableEquation object.");
+		m_presynSI = sh->get_subset_index(m_presynSubset.c_str());
+		UG_COND_THROW(m_presynSI == -1, "The subset "<< m_presynSubset << "' is not defined\n"
+					  "in the domain taken from the passed CableEquation object.");
 
 		// find number of presynaptic indices
 		resize_presyn_vector();
