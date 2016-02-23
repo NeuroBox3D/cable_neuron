@@ -480,10 +480,20 @@ struct Functionality
 							 "", "approxSpace", "vertex ordering for solver optimization");
 		}
 
-		// check for acyclicity
+		// checks for acyclicity, presynaptic indices, both
 		{
-			reg.add_function("is_acyclic", &is_acyclic<TDomain>, grp.c_str(),
+			reg.add_function("is_acyclic", static_cast<bool (*) (SmartPtr<TDomain>)>(&is_acyclic<TDomain>), grp.c_str(),
 							 "", "domain", "Checks whether given domain is acyclic.");
+			reg.add_function("is_acyclic", static_cast<bool (*) (SmartPtr<TDomain>, int)>(&is_acyclic<TDomain>), grp.c_str(),
+							 "", "domain, verbosity", "Checks whether given domain is acyclic.");
+			reg.add_function("check_presyn_indices", static_cast<int (*) (SmartPtr<TDomain>)>(&check_presyn_indices<TDomain>), grp.c_str(),
+							 "", "domain", "Checks whether presynaptic indices are in order.");
+			reg.add_function("check_presyn_indices", static_cast<int (*) (SmartPtr<TDomain>, int)>(&check_presyn_indices<TDomain>), grp.c_str(),
+							 "", "domain, verbosity", "Checks whether presynaptic indices are in order.");
+			reg.add_function("check_domain", static_cast<int (*) (SmartPtr<TDomain>)>(&check_domain<TDomain>), grp.c_str(),
+							 "", "domain", "Checks whether given domain is sound.");
+			reg.add_function("check_domain", static_cast<int (*) (SmartPtr<TDomain>, int)>(&check_domain<TDomain>), grp.c_str(),
+							 "", "domain, verbosity", "Checks whether given domain is sound.");
 		}
 	}
 
