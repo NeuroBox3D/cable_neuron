@@ -220,7 +220,6 @@ grid_first_available()
 		UG_COND_THROW(!sh.valid(), "The subset handler assigned to the domain taken from the passed\n"
 					  "CableEquation object is not valid.")
 
-		bool found = false;
 		m_presynSI = sh->get_subset_index(m_presynSubset.c_str());
 		UG_COND_THROW(m_presynSI == -1, "The subset "<< m_presynSubset << "' is not defined\n"
 					  "in the domain taken from the passed CableEquation object.");
