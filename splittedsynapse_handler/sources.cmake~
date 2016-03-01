@@ -1,0 +1,3 @@
+set (SOURCES ${SOURCES}
+		splittedsynapse_handler/IPreSynapse.cpp
+	)
