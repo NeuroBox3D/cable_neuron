@@ -14,16 +14,18 @@ namespace synapse_handler {
 
 
 IPreSynapse::
-IPreSynapse(number location)
-:m_location(location)
+IPreSynapse(const number& location)
+:m_location(location),m_id(0)
 {
-	std::cout<<"IPreSynapse()"<<std::endl;
+	//std::cout<<"IPreSynapse()"<<std::endl;
+
 }
 
 
-IPreSynapse::~IPreSynapse()
+IPreSynapse::
+~IPreSynapse()
 {
-	std::cout<<"~IPreSynapse()"<<std::endl;
+	//std::cout<<"~IPreSynapse()"<<std::endl;
 }
 
 } /* namespace synapse_handler */

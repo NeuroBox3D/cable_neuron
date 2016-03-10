@@ -19,14 +19,21 @@ namespace synapse_handler {
 
 class IPreSynapse {
 	number m_location;
+	long m_id;
 public:
-	IPreSynapse(number location);
-	number location() {return m_location;}
-
+	IPreSynapse(const number& location);
 	virtual ~IPreSynapse();
-	virtual std::string name() = 0;
-	virtual SynapseType type() = 0;
-	virtual void update(number t, VectorProxyBase* up) = 0;
+
+	number location() const {return m_location;}
+	void set_location(const number& location) {m_location = location;}
+
+	long id() const {return m_id;}
+	void set_id(const int id) {m_id = id;}
+
+	virtual std::string name() const = 0;
+	virtual SynapseType type() const = 0;
+	virtual void update(const number& t, VectorProxyBase* up=NULL) = 0;
+	virtual bool active(const number& t, VectorProxyBase* up=NULL) = 0;
 };
 
 } /* namespace synapse_handler */
