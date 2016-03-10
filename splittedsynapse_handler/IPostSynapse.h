@@ -8,21 +8,33 @@
 #ifndef SPLITTEDSYNAPSE_HANDLER_IPOSTSYNAPSE_H_
 #define SPLITTEDSYNAPSE_HANDLER_IPOSTSYNAPSE_H_
 
+#include <common/types.h> //number
+#include "../synapse_handler/function/types.h" 	//SynapseType
+#include <string>
+#include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h" //VectorProxyBase
+
+
 namespace ug {
 namespace cable_neuron {
 namespace synapse_handler {
 
 class IPostSynapse {
 private:
-
-	long m_pre_synapse_id;
+	number m_location;
+	long m_presynapse_id;
 
 public:
 	IPostSynapse();
 	virtual ~IPostSynapse();
 
-	void set_id(const long id) {m_pre_synapse_id = id;}
-	long id() const {return m_pre_synapse_id;}
+	virtual SynapseType type() = 0;
+	virtual std::string name() = 0;
+
+	void set_location(const number& loc) {m_location = loc;}
+	number location() const {return m_location;}
+
+	void set_presynapse_id(const long id) {m_presynapse_id = id;}
+	long presynapse_id() const {return m_presynapse_id;}
 
 	virtual number current(const number& t) = 0;
 

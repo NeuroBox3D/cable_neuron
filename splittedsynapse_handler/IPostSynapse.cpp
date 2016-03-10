@@ -6,6 +6,7 @@
  */
 
 #include "IPostSynapse.h"
+#include <common/types.h> //number
 
 namespace ug {
 namespace cable_neuron {
@@ -13,7 +14,7 @@ namespace synapse_handler {
 
 IPostSynapse::
 IPostSynapse()
-:m_pre_synapse_id(0)
+:m_presynapse_id(0)
 {
 }
 

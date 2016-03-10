@@ -14,16 +14,14 @@ namespace cable_neuron {
 namespace synapse_handler {
 
 PostAlphaSynapse::
-PostAlphaSynapse(const number& gMax, const number& onset, const number& tau, const number& tau, const number& e)
+PostAlphaSynapse(const number& gMax, const number& onset, const number& tau, const number& vm, const number& e)
 :m_gMax(gMax), m_onset(onset), m_tau(tau), m_vm(vm), m_e(e)
 {
-	// TODO Auto-generated constructor stub
-
 }
 
 PostAlphaSynapse::
-~PostAlphaSynapse() {
-	// TODO Auto-generated destructor stub
+~PostAlphaSynapse()
+{
 }
 
 number

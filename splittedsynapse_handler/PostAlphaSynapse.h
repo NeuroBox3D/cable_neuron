@@ -9,6 +9,7 @@
 #define SPLITTEDSYNAPSE_HANDLER_POSTALPHASYNAPSE_H_
 
 #include <common/types.h> //number
+#include "IPostSynapse.h"
 
 namespace ug {
 namespace cable_neuron {
@@ -23,9 +24,32 @@ private:
 	number m_e;
 
 public:
-	PostAlphaSynapse(const number& gMax, const number& onset, const number& tau, const number& tau, const number& e);
+	//ctor and dtor
+	PostAlphaSynapse(const number& gMax, const number& onset, const number& tau, const number& vm, const number& e);
 	virtual ~PostAlphaSynapse();
 
+	SynapseType type() {return POST_ALPHA_SYNAPSE;}
+	std::string name() {return "POST_ALPHA_SYNAPSE";}
+
+
+	//setter and getter
+	number gMax() const {return m_gMax;}
+	void set_gMax(const number& gMax) {m_gMax = gMax;}
+
+	number onset() const {return m_onset;}
+	void set_onset(const number& onset) {m_onset = onset;}
+
+	number tau() const {return m_tau;}
+	void set_tau(const number& tau) {m_tau = tau;}
+
+	number vm() const {return m_vm;}
+	void set_vm(const number& vm) {m_vm = vm;}
+
+	number e() const {return m_e;}
+	void set_e(const number& e) {m_e = e;}
+
+
+	//functionality
 	number current(const number& t);
 };
 
