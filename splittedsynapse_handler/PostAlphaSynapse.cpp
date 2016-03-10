@@ -7,6 +7,7 @@
 
 #include "PostAlphaSynapse.h"
 #include <cmath>
+#include <common/types.h> //number
 
 namespace ug {
 namespace cable_neuron {

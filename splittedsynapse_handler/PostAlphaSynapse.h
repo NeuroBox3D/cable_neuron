@@ -8,6 +8,7 @@
 #ifndef SPLITTEDSYNAPSE_HANDLER_POSTALPHASYNAPSE_H_
 #define SPLITTEDSYNAPSE_HANDLER_POSTALPHASYNAPSE_H_
 
+#include <common/types.h> //number
 
 namespace ug {
 namespace cable_neuron {
