@@ -14,18 +14,17 @@ namespace synapse_handler {
 
 class IPostSynapse {
 private:
-	number m_gMax;
-	number m_tau;
-	number m_vm;
-	number m_e;
 
-	int m_pre_synapse_id;
+	long m_pre_synapse_id;
 
 public:
-	IPostSynapse(const number& gMax,const number& tau,const number& vm,const number& e);
+	IPostSynapse();
 	virtual ~IPostSynapse();
 
-	virtual number current(const number& t);
+	void set_id(const long id) {m_pre_synapse_id = id;}
+	long id() const {return m_pre_synapse_id;}
+
+	virtual number current(const number& t) = 0;
 
 };
 
