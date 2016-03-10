@@ -25,7 +25,11 @@ enum SynapseType {
 	EMPTY_SYNAPSE=0,
 	ALPHA_SYNAPSE,
 	EXP2_SYNAPSE,
-	CUSTOM_SYNAPSE //!< could be used or another for custom synapses
+	CUSTOM_SYNAPSE, //!< could be used or another for custom synapses
+	PRE_ALPHA_SYNAPSE,
+	POST_ALPHA_SYNAPSE,
+	PRE_EXP2_SYNAPSE,
+	POST_EXP2_SYNAPSE
 };
 
 } // namespace synapse_handler
