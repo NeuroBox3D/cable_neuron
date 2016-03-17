@@ -16,7 +16,7 @@ namespace ug {
 namespace cable_neuron {
 namespace synapse_handler {
 
-class PostAlphaSynapse : public IPostSynapse {
+class AlphaPostSynapse : public IPostSynapse {
 private:
 	number m_gMax;
 	number m_onset;
@@ -26,7 +26,7 @@ private:
 
 public:
 	//ctor & dtor
-	PostAlphaSynapse(
+	AlphaPostSynapse(
 		const number& location,
 		const number& gMax,
 		const number& onset,
@@ -34,7 +34,7 @@ public:
 		const number& vm,
 		const number& e);
 
-	PostAlphaSynapse(
+	AlphaPostSynapse(
 		const unsigned long id,
 		const unsigned long presynapse_id,
 		const number& location,
@@ -44,7 +44,7 @@ public:
 		const number& vm,
 		const number& e);
 
-	virtual ~PostAlphaSynapse();
+	virtual ~AlphaPostSynapse();
 
 	//setter & getter
 	void set_gMax(const number& gMax) {m_gMax = gMax;}

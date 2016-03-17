@@ -14,7 +14,7 @@ namespace synapse_handler {
 /**
  * Synapse with id=0
  */
-PreExp2Synapse::PreExp2Synapse(
+Exp2PreSynapse::Exp2PreSynapse(
 		const number& location,
 		const number& onset)
 
@@ -23,7 +23,7 @@ PreExp2Synapse::PreExp2Synapse(
 {
 }
 
-PreExp2Synapse::PreExp2Synapse(
+Exp2PreSynapse::Exp2PreSynapse(
 		const unsigned long id,
 		const unsigned long postsynapse_id,
 		const number& location,
@@ -34,17 +34,17 @@ PreExp2Synapse::PreExp2Synapse(
 {
 }
 
-PreExp2Synapse::~PreExp2Synapse()
+Exp2PreSynapse::~Exp2PreSynapse()
 {
 }
 
-void PreExp2Synapse::update(const number& t, VectorProxyBase* up)
+void Exp2PreSynapse::update(const number& t, VectorProxyBase* up)
 {
 	//todo:
 	//dummy update atm
 }
 
-bool PreExp2Synapse::is_active(const number& t, VectorProxyBase* up)
+bool Exp2PreSynapse::is_active(const number& t, VectorProxyBase* up)
 {
 	//todo:
 	//dummy

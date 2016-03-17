@@ -18,7 +18,7 @@ namespace ug {
 namespace cable_neuron {
 namespace synapse_handler {
 
-class PostExp2Synapse : public IPostSynapse
+class Exp2PostSynapse : public IPostSynapse
 {
 private:
 	number m_tau1;	///< time constant (s)
@@ -29,7 +29,7 @@ private:
 
 public:
 	//ctor & dtor
-	PostExp2Synapse(
+	Exp2PostSynapse(
 			const number& location,
 			const number& tau1,
 			const number& tau2,
@@ -37,7 +37,7 @@ public:
 			const number& w,
 			const number& vm);
 
-	PostExp2Synapse(
+	Exp2PostSynapse(
 			const unsigned long id,
 			const unsigned long presynapse_id,
 			const number& location,
@@ -47,7 +47,7 @@ public:
 			const number& w,
 			const number& vm);
 
-	virtual ~PostExp2Synapse();
+	virtual ~Exp2PostSynapse();
 
 	//setter & getter
 	void set_tau1(const number& tau1) {m_tau1=tau1;}

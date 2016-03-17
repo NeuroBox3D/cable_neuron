@@ -13,7 +13,7 @@ namespace ug {
 namespace cable_neuron {
 namespace synapse_handler {
 
-PostAlphaSynapse::PostAlphaSynapse(
+AlphaPostSynapse::AlphaPostSynapse(
 		const number& location,
 		const number& gMax,
 		const number& onset,
@@ -30,7 +30,7 @@ PostAlphaSynapse::PostAlphaSynapse(
 {
 }
 
-PostAlphaSynapse::PostAlphaSynapse(
+AlphaPostSynapse::AlphaPostSynapse(
 		const unsigned long id,
 		const unsigned long presynapse_id,
 		const number& location,
@@ -49,11 +49,11 @@ PostAlphaSynapse::PostAlphaSynapse(
 {
 }
 
-PostAlphaSynapse::~PostAlphaSynapse()
+AlphaPostSynapse::~AlphaPostSynapse()
 {
 }
 
-number PostAlphaSynapse::current(const number& t)
+number AlphaPostSynapse::current(const number& t)
 {
 	return m_gMax * (t - m_onset)/m_tau * std::exp(-(t - m_onset - m_tau)/m_tau) * (m_vm - m_e);	// current (in units of A)
 }

@@ -11,7 +11,7 @@ namespace ug {
 namespace cable_neuron {
 namespace synapse_handler {
 
-PreAlphaSynapse::PreAlphaSynapse(
+AlphaPreSynapse::AlphaPreSynapse(
 		const number& location,
 		const number& onset)
 
@@ -20,7 +20,7 @@ PreAlphaSynapse::PreAlphaSynapse(
 {
 }
 
-PreAlphaSynapse::PreAlphaSynapse(
+AlphaPreSynapse::AlphaPreSynapse(
 		const unsigned long id,
 		const unsigned long postsynapse_id,
 		const number& location,
@@ -31,18 +31,18 @@ PreAlphaSynapse::PreAlphaSynapse(
 {
 }
 
-PreAlphaSynapse::~PreAlphaSynapse()
+AlphaPreSynapse::~AlphaPreSynapse()
 {
 }
 
-void PreAlphaSynapse::update(const number& t, VectorProxyBase* up)
+void AlphaPreSynapse::update(const number& t, VectorProxyBase* up)
 {
 	//todo:
 	//dummy update atm
 }
 
 
-bool PreAlphaSynapse::is_active(const number& t, VectorProxyBase* up)
+bool AlphaPreSynapse::is_active(const number& t, VectorProxyBase* up)
 {
 	//todo:
 	//dummy

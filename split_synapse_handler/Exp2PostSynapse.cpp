@@ -11,7 +11,7 @@ namespace ug {
 namespace cable_neuron {
 namespace synapse_handler {
 
-PostExp2Synapse::PostExp2Synapse(
+Exp2PostSynapse::Exp2PostSynapse(
 		const number& location,
 		const number& tau1,
 		const number& tau2,
@@ -28,7 +28,7 @@ PostExp2Synapse::PostExp2Synapse(
 {
 }
 
-PostExp2Synapse::PostExp2Synapse(
+Exp2PostSynapse::Exp2PostSynapse(
 		const unsigned long id,
 		const unsigned long presynapse_id,
 		const number& location,
@@ -47,11 +47,11 @@ PostExp2Synapse::PostExp2Synapse(
 {
 }
 
-PostExp2Synapse::~PostExp2Synapse()
+Exp2PostSynapse::~Exp2PostSynapse()
 {
 }
 
-number PostExp2Synapse::current(const number& t)
+number Exp2PostSynapse::current(const number& t)
 {
 	number tp = (m_tau1*m_tau2)/(m_tau2 - m_tau1) * std::log(m_tau2/m_tau1);	// time of maximal current
 	number factor = 1.0 / (std::exp(-tp/m_tau2) - std::exp(-tp/m_tau1));		// normalization factor

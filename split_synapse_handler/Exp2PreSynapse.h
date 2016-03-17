@@ -18,24 +18,24 @@ namespace ug {
 namespace cable_neuron {
 namespace synapse_handler {
 
-class PreExp2Synapse : public IPreSynapse
+class Exp2PreSynapse : public IPreSynapse
 {
 private:
 	number m_onset;
 
 public:
 	//ctor & dtor
-	PreExp2Synapse(
+	Exp2PreSynapse(
 			const number& location,
 			const number& onset);
 
-	PreExp2Synapse(
+	Exp2PreSynapse(
 			const unsigned long id,
 			const unsigned long postsynapse_id,
 			const number& location,
 			const number& onset);
 
-	virtual ~PreExp2Synapse();
+	virtual ~Exp2PreSynapse();
 
 	//setter & getter
 	void set_onset(const number& onset) {m_onset = onset;}

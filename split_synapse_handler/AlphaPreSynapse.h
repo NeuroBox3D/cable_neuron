@@ -19,24 +19,24 @@ namespace ug {
 namespace cable_neuron {
 namespace synapse_handler {
 
-class PreAlphaSynapse : public IPreSynapse
+class AlphaPreSynapse : public IPreSynapse
 {
 private:
 	number m_onset;
 
 public:
 	//ctor & dtor
-	PreAlphaSynapse(
+	AlphaPreSynapse(
 			const number& location,
 			const number& onset);
 
-	PreAlphaSynapse(
+	AlphaPreSynapse(
 			const unsigned long id,
 			const unsigned long postsynapse_id,
 			const number& location,
 			const number& onset);
 
-	virtual ~PreAlphaSynapse();
+	virtual ~AlphaPreSynapse();
 
 	//setter & getter
 	SynapseType type() const {return ALPHA_PRE_SYNAPSE;}
