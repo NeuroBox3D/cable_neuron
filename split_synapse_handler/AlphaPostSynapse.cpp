@@ -5,7 +5,8 @@
  *      Author: lreinhardt
  */
 
-#include "PostAlphaSynapse.h"
+#include "AlphaPostSynapse.h"
+
 #include <cmath>
 
 namespace ug {
@@ -20,7 +21,7 @@ PostAlphaSynapse::PostAlphaSynapse(
 		const number& vm,
 		const number& e)
 
-:IPostSynapse(0, location),
+:IPostSynapse(0, 0, location),
  m_gMax(gMax),
  m_onset(onset),
  m_tau(tau),
@@ -30,6 +31,7 @@ PostAlphaSynapse::PostAlphaSynapse(
 }
 
 PostAlphaSynapse::PostAlphaSynapse(
+		const unsigned long id,
 		const unsigned long presynapse_id,
 		const number& location,
 		const number& gMax,
@@ -38,7 +40,7 @@ PostAlphaSynapse::PostAlphaSynapse(
 		const number& vm,
 		const number& e)
 
-:IPostSynapse(presynapse_id, location),
+:IPostSynapse(id, presynapse_id, location),
  m_gMax(gMax),
  m_onset(onset),
  m_tau(tau),

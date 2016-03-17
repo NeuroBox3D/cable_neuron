@@ -5,14 +5,14 @@
  *      Author: lreinhardt
  */
 
-#ifndef SPLITTEDSYNAPSE_HANDLER_POSTEXP2SYNAPSE_H_
-#define SPLITTEDSYNAPSE_HANDLER_POSTEXP2SYNAPSE_H_
+#ifndef SPLIT_SYNAPSE_HANDLER_EXP2POSTSYNAPSE_H_
+#define SPLIT_SYNAPSE_HANDLER_EXP2POSTSYNAPSE_H_
 
 #include <string>													//std::string
 #include "../synapse_handler/function/types.h" 						//SynapseType
 #include <common/types.h>											//number
+#include "../split_synapse_handler/IPostSynapse.h"											//IPostSynapse
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"	//VectorProxyBase
-#include "IPostSynapse.h"											//IPostSynapse
 
 namespace ug {
 namespace cable_neuron {
@@ -30,7 +30,6 @@ private:
 public:
 	//ctor & dtor
 	PostExp2Synapse(
-			const unsigned long presynapse_id,
 			const number& location,
 			const number& tau1,
 			const number& tau2,
@@ -39,6 +38,8 @@ public:
 			const number& vm);
 
 	PostExp2Synapse(
+			const unsigned long id,
+			const unsigned long presynapse_id,
 			const number& location,
 			const number& tau1,
 			const number& tau2,
@@ -61,9 +62,10 @@ public:
 	number w() const {return m_w;}
 	number vm() const {return m_vm;}
 
-	std::string name() const {return "POST_EXP2_SYNAPSE";}
-	SynapseType type() const {return POST_EXP2_SYNAPSE;}
+	SynapseType type() const {return EXP2_POST_SYNAPSE;}
+	std::string name() const {return "EXP2_POST_SYNAPSE";}
 
+	//functionality
 	number current(const number& t);
 };
 
@@ -71,4 +73,4 @@ public:
 } /* namespace cable_neuron */
 } /* namespace ug */
 
-#endif /* SPLITTEDSYNAPSE_HANDLER_POSTEXP2SYNAPSE_H_ */
+#endif /* SPLIT_SYNAPSE_HANDLER_EXP2POSTSYNAPSE_H_ */

@@ -5,13 +5,13 @@
  *      Author: lreinhardt
  */
 
-#ifndef SPLITTEDSYNAPSE_HANDLER_PREEXP2SYNAPSE_H_
-#define SPLITTEDSYNAPSE_HANDLER_PREEXP2SYNAPSE_H_
+#ifndef SPLIT_SYNAPSE_HANDLER_EXP2PRESYNAPSE_H_
+#define SPLIT_SYNAPSE_HANDLER_EXP2PRESYNAPSE_H_
 
-#include "IPreSynapse.h"											//IPreSynapse
 #include "../synapse_handler/function/types.h"						//SynapseType
 #include <string>													//std::string
 #include <common/types.h>											//number
+#include "../split_synapse_handler/IPreSynapse.h"											//IPreSynapse
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"	//VectorProxyBase
 
 namespace ug {
@@ -24,21 +24,33 @@ private:
 	number m_onset;
 
 public:
-	PreExp2Synapse(const number& location, const number& onset);
-	PreExp2Synapse(const unsigned long id, const number& location, const number& onset);
+	//ctor & dtor
+	PreExp2Synapse(
+			const number& location,
+			const number& onset);
+
+	PreExp2Synapse(
+			const unsigned long id,
+			const unsigned long postsynapse_id,
+			const number& location,
+			const number& onset);
+
 	virtual ~PreExp2Synapse();
 
-	std::string name() const {return "PRE_EXP2_SYNAPSE";}
-	SynapseType type() const {return PRE_EXP2_SYNAPSE;}
-	number onset() const {return m_onset;}
+	//setter & getter
 	void set_onset(const number& onset) {m_onset = onset;}
+	number onset() const {return m_onset;}
 
+	SynapseType type() const {return EXP2_PRE_SYNAPSE;}
+	std::string name() const {return "EXP2_PRE_SYNAPSE";}
+
+	//interface methods
 	void update(const number& t, VectorProxyBase* up=NULL);
-	bool active(const number& t, VectorProxyBase* up=NULL);
+	bool is_active(const number& t, VectorProxyBase* up=NULL);
 };
 
 } /* namespace synapse_handler */
 } /* namespace cable_neuron */
 } /* namespace ug */
 
-#endif /* SPLITTEDSYNAPSE_HANDLER_PREEXP2SYNAPSE_H_ */
+#endif /* SPLIT_SYNAPSE_HANDLER_EXP2PRESYNAPSE_H_ */

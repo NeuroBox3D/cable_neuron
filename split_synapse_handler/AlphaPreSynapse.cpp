@@ -5,7 +5,7 @@
  *      Author: lreinhardt
  */
 
-#include "PreAlphaSynapse.h"
+#include "AlphaPreSynapse.h"
 
 namespace ug {
 namespace cable_neuron {
@@ -15,25 +15,24 @@ PreAlphaSynapse::PreAlphaSynapse(
 		const number& location,
 		const number& onset)
 
-:IPreSynapse(0, location),
+:IPreSynapse(0, 0, location),
  m_onset(onset)
 {
-	//std::cout<<"PreAlphaSynapse()"<<std::endl;
 }
 
 PreAlphaSynapse::PreAlphaSynapse(
 		const unsigned long id,
+		const unsigned long postsynapse_id,
 		const number& location,
 		const number& onset)
 
-:IPreSynapse(id, location),
+:IPreSynapse(id, postsynapse_id, location),
  m_onset(onset)
 {
-	//std::cout<<"PreAlphaSynapse()"<<std::endl;
 }
 
-PreAlphaSynapse::~PreAlphaSynapse() {
-	//std::cout<<"~PreAlphaSynapse()"<<std::endl;
+PreAlphaSynapse::~PreAlphaSynapse()
+{
 }
 
 void PreAlphaSynapse::update(const number& t, VectorProxyBase* up)
@@ -43,7 +42,7 @@ void PreAlphaSynapse::update(const number& t, VectorProxyBase* up)
 }
 
 
-bool PreAlphaSynapse::active(const number& t, VectorProxyBase* up)
+bool PreAlphaSynapse::is_active(const number& t, VectorProxyBase* up)
 {
 	//todo:
 	//dummy

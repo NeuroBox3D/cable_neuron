@@ -16,20 +16,6 @@ namespace ug {
 namespace cable_neuron {
 namespace synapse_handler {
 
-IPostSynapse::IPostSynapse()
-:m_id(0),
- m_presynapse_id(0),
- m_location(0.0)
-{
-}
-
-IPostSynapse::IPostSynapse(const number& location)
-:m_id(0),
- m_presynapse_id(0),
- m_location(location)
-{
-}
-
 IPostSynapse::IPostSynapse(
 		const unsigned long id,
 		const unsigned long presynapse_id,

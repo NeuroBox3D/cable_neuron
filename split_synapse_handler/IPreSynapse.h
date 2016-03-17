@@ -19,14 +19,12 @@ namespace synapse_handler {
 
 class IPreSynapse
 {
-	unsigned long m_id;
-	unsigned long m_postsynapse_id;
-	number m_location;
+	unsigned long m_id;					//own presynapse id / alternative: shared id if there is a 1:1 relation?
+	unsigned long m_postsynapse_id;		//postsynapse id
+	number m_location;					//location on edge
 
 public:
 	//ctor & dtor
-	IPreSynapse();
-	IPreSynapse(const number& location);
 	IPreSynapse(
 			const unsigned long id,
 			const unsigned long postsynapse_id,
@@ -48,7 +46,7 @@ public:
 	virtual SynapseType type() const = 0;
 
 	virtual void update(const number& t, VectorProxyBase* up=NULL) = 0;
-	virtual bool active(const number& t, VectorProxyBase* up=NULL) = 0;
+	virtual bool is_active(const number& t, VectorProxyBase* up=NULL) = 0;
 };
 
 } /* namespace synapse_handler */

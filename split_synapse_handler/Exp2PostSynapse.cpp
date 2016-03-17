@@ -5,20 +5,21 @@
  *      Author: lreinhardt
  */
 
-#include "PostExp2Synapse.h"
+#include "Exp2PostSynapse.h"
 
 namespace ug {
 namespace cable_neuron {
 namespace synapse_handler {
 
 PostExp2Synapse::PostExp2Synapse(
-			const number& location,
-			const number& tau1,
-			const number& tau2,
-			const number& e,
-			const number& w,
-			const number& vm)
-:IPostSynapse(0, location),
+		const number& location,
+		const number& tau1,
+		const number& tau2,
+		const number& e,
+		const number& w,
+		const number& vm)
+
+:IPostSynapse(0, 0, location),
  m_tau1(tau1),
  m_tau2(tau2),
  m_e(e),
@@ -28,6 +29,7 @@ PostExp2Synapse::PostExp2Synapse(
 }
 
 PostExp2Synapse::PostExp2Synapse(
+		const unsigned long id,
 		const unsigned long presynapse_id,
 		const number& location,
 		const number& tau1,
@@ -36,7 +38,7 @@ PostExp2Synapse::PostExp2Synapse(
 		const number& w,
 		const number& vm)
 
-:IPostSynapse(presynapse_id, location),
+:IPostSynapse(id, presynapse_id, location),
  m_tau1(tau1),
  m_tau2(tau2),
  m_e(e),

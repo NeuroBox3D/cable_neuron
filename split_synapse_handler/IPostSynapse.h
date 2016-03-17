@@ -19,14 +19,12 @@ namespace synapse_handler {
 
 class IPostSynapse {
 private:
-	unsigned long m_id;					//own postsynapse id
-	unsigned long m_presynapse_id;		//presynapse id (if needed)
+	unsigned long m_id;					//own postsynapse id / alternative: shared id if there is a 1:1 relation?
+	unsigned long m_presynapse_id;		//presynapse id (if needed/existing)
 	number m_location;					//location on edge
 
 public:
 	//ctor & dtor
-	IPostSynapse();
-	IPostSynapse(const number& location);
 	IPostSynapse(
 			const unsigned long id,
 			const unsigned long presynapseid,

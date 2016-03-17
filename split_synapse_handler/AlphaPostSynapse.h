@@ -5,12 +5,12 @@
  *      Author: lreinhardt
  */
 
-#ifndef SPLITTEDSYNAPSE_HANDLER_POSTALPHASYNAPSE_H_
-#define SPLITTEDSYNAPSE_HANDLER_POSTALPHASYNAPSE_H_
+#ifndef SPLIT_SYNAPSE_HANDLER_ALPHAPOSTSYNAPSE_H_
+#define SPLIT_SYNAPSE_HANDLER_ALPHAPOSTSYNAPSE_H_
 
 #include <common/types.h> 							//number
-#include "IPostSynapse.h" 							//IPostSynapse
 #include <string>									//std::string
+#include "../split_synapse_handler/IPostSynapse.h" 	//IPostSynapse
 
 namespace ug {
 namespace cable_neuron {
@@ -35,6 +35,7 @@ public:
 		const number& e);
 
 	PostAlphaSynapse(
+		const unsigned long id,
 		const unsigned long presynapse_id,
 		const number& location,
 		const number& gMax,
@@ -58,8 +59,8 @@ public:
 	number vm() const {return m_vm;}
 	number e() const {return m_e;}
 
-	SynapseType type() const {return POST_ALPHA_SYNAPSE;}
-	std::string name() const {return "POST_ALPHA_SYNAPSE";}
+	SynapseType type() const {return ALPHA_POST_SYNAPSE;}
+	std::string name() const {return "ALPHA_POST_SYNAPSE";}
 
 	//functionality
 	number current(const number& t);
@@ -69,4 +70,4 @@ public:
 } /* namespace cable_neuron */
 } /* namespace ug */
 
-#endif /* SPLITTEDSYNAPSE_HANDLER_POSTALPHASYNAPSE_H_ */
+#endif /* SPLIT_SYNAPSE_HANDLER_ALPHAPOSTSYNAPSE_H_ */

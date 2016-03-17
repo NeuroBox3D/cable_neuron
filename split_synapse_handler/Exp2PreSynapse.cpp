@@ -5,7 +5,7 @@
  *      Author: lreinhardt
  */
 
-#include "PreExp2Synapse.h"
+#include "Exp2PreSynapse.h"
 
 namespace ug {
 namespace cable_neuron {
@@ -18,17 +18,18 @@ PreExp2Synapse::PreExp2Synapse(
 		const number& location,
 		const number& onset)
 
-:IPreSynapse(0, location),
+:IPreSynapse(0, 0, location),
  m_onset(onset)
 {
 }
 
 PreExp2Synapse::PreExp2Synapse(
 		const unsigned long id,
+		const unsigned long postsynapse_id,
 		const number& location,
 		const number& onset)
 
-:IPreSynapse(id, location),
+:IPreSynapse(id, postsynapse_id, location),
  m_onset(onset)
 {
 }
@@ -43,7 +44,7 @@ void PreExp2Synapse::update(const number& t, VectorProxyBase* up)
 	//dummy update atm
 }
 
-bool PreExp2Synapse::active(const number& t, VectorProxyBase* up)
+bool PreExp2Synapse::is_active(const number& t, VectorProxyBase* up)
 {
 	//todo:
 	//dummy
