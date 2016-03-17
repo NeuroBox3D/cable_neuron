@@ -26,12 +26,13 @@ private:
 
 public:
 	PreAlphaSynapse(const number& location, const number& onset);
+	PreAlphaSynapse(const unsigned long id, const number& location, const number& onset);
 	virtual ~PreAlphaSynapse();
 
 	std::string name() const {return "PRE_ALPHA_SYNAPSE";}
 	SynapseType type() const {return PRE_ALPHA_SYNAPSE;}
-	virtual number onset() const {return m_onset;}
-	virtual void set_onset(const number& onset) {m_onset = onset;}
+	number onset() const {return m_onset;}
+	void set_onset(const number& onset) {m_onset = onset;}
 
 	void update(const number& t, VectorProxyBase* up=NULL);
 	bool active(const number& t, VectorProxyBase* up=NULL);
