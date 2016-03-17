@@ -42,8 +42,8 @@ BOOST_AUTO_TEST_CASE(ALPHASYNAPSE) {
 	IPreSynapse *s2 = new AlphaPreSynapse(1, 1, 0.0, 0.0);
 	IPreSynapse *s3 = new AlphaPreSynapse(3, 2, 0.0, 0.0);
 
-	BOOST_REQUIRE_MESSAGE(s1->type() == ALPHA_PRE_SYNAPSE,"s1's type is PRE_ALPHA_SYNAPSE");
-	BOOST_REQUIRE_MESSAGE(s1->name() == "ALPHA_PRE_SYNAPSE","s1 is a PRE_ALPHA_SYNAPSE");
+	BOOST_REQUIRE_MESSAGE(s1->type() == ALPHA_PRE_SYNAPSE,"s1's type is ALPHA_PRE_SYNAPSE");
+	BOOST_REQUIRE_MESSAGE(s1->name() == "ALPHA_PRE_SYNAPSE","s1 is a ALPHA_PRE_SYNAPSE");
 
 	s1->set_id(0);
 	s1->set_postsynapse_id(3);
@@ -135,8 +135,8 @@ BOOST_AUTO_TEST_CASE(ALPHASYNAPSE) {
 	IPostSynapse *s2 = new AlphaPostSynapse(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 	IPostSynapse *s3 = new AlphaPostSynapse(1, 2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 
-	BOOST_REQUIRE_MESSAGE(s1->name() == "POST_ALPHA_SYNAPSE","s1 is a POST_ALPHA_SYNAPSE");
-	BOOST_REQUIRE_MESSAGE(s1->type() == ALPHA_POST_SYNAPSE,"s1's type is POST_ALPHA_SYNAPSE");
+	BOOST_REQUIRE_MESSAGE(s1->name() == "ALPHA_POST_SYNAPSE","s1 is a ALPHA_POST_SYNAPSE");
+	BOOST_REQUIRE_MESSAGE(s1->type() == ALPHA_POST_SYNAPSE,"s1's type is ALPHA_POST_SYNAPSE");
 
 	s1->set_id(3);
 	s1->set_presynapse_id(4);
@@ -192,8 +192,8 @@ BOOST_AUTO_TEST_CASE(EXP2SYNAPSE) {
 	BOOST_REQUIRE_MESSAGE(s3->id() == 5, "presynapse id getter and setter test");
 	BOOST_REQUIRE_MESSAGE(s3->presynapse_id() == 6, "presynapse id getter and setter test");
 
-	BOOST_REQUIRE_MESSAGE(s1->name() == "POST_EXP2_SYNAPSE","s1 is a POST_ALPHA_SYNAPSE");
-	BOOST_REQUIRE_MESSAGE(s1->type() == EXP2_POST_SYNAPSE,"s1's type is POST_ALPHA_SYNAPSE");
+	BOOST_REQUIRE_MESSAGE(s1->name() == "EXP2_POST_SYNAPSE","s1 is a EXP2_POST_SYNAPSE");
+	BOOST_REQUIRE_MESSAGE(s1->type() == EXP2_POST_SYNAPSE,"s1's type is EXP2_POST_SYNAPSE");
 
 	static_cast<Exp2PostSynapse*>(s1)->set_tau1(tau1);
 	static_cast<Exp2PostSynapse*>(s1)->set_w(w);
