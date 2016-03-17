@@ -1,8 +1,10 @@
 set (SOURCES ${SOURCES}
-		splittedsynapse_handler/IPreSynapse.cpp
-		splittedsynapse_handler/PreAlphaSynapse.cpp
-		splittedsynapse_handler/IPostSynapse.cpp
-		splittedsynapse_handler/PostAlphaSynapse.cpp
-		splittedsynapse_handler/PreExp2Synapse.cpp
-		splittedsynapse_handler/PostExp2Synapse.cpp
+		split_synapse_handler/IPreSynapse.cpp
+		split_synapse_handler/IPostSynapse.cpp
+		
+		split_synapse_handler/AlphaPreSynapse.cpp
+		split_synapse_handler/AlphaPostSynapse.cpp
+		
+		split_synapse_handler/Exp2PreSynapse.cpp
+		split_synapse_handler/Exp2PostSynapse.cpp
 	)
