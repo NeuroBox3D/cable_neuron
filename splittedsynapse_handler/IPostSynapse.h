@@ -13,31 +13,32 @@
 #include <string>
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h" //VectorProxyBase
 
-
 namespace ug {
 namespace cable_neuron {
 namespace synapse_handler {
 
 class IPostSynapse {
 private:
+	unsigned long m_presynapse_id;
 	number m_location;
-	long m_presynapse_id;
 
 public:
-	IPostSynapse();
+	//ctor & dtor
+	IPostSynapse(const number& location);
+	IPostSynapse(const unsigned long presynapseid, const number& location);
 	virtual ~IPostSynapse();
 
-	virtual SynapseType type() = 0;
-	virtual std::string name() = 0;
-
+	//setter & getter
+	void set_presynapse_id(const unsigned long id) {m_presynapse_id = id;}
 	void set_location(const number& loc) {m_location = loc;}
+	unsigned long presynapse_id() const {return m_presynapse_id;}
 	number location() const {return m_location;}
 
-	void set_presynapse_id(const long id) {m_presynapse_id = id;}
-	long presynapse_id() const {return m_presynapse_id;}
+	//virtual interface methods
+	virtual SynapseType type() const = 0;
+	virtual std::string name() const = 0;
 
 	virtual number current(const number& t) = 0;
-
 };
 
 } /* namespace synapse_handler */

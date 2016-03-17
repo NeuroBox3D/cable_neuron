@@ -6,24 +6,34 @@
  */
 
 #include "IPreSynapse.h"
-#include <iostream>
 
 namespace ug {
 namespace cable_neuron {
 namespace synapse_handler {
 
+/**
+ * Synapse with id=0
+ */
+IPreSynapse::IPreSynapse(const number& location)
 
-IPreSynapse::
-IPreSynapse(const number& location)
-:m_location(location),m_id(0)
+:m_id(0),
+ m_location(location)
 {
 	//std::cout<<"IPreSynapse()"<<std::endl;
+}
 
+IPreSynapse::IPreSynapse(
+		const unsigned long id,
+		const number& location)
+
+:m_id(id),
+ m_location(location)
+{
+	//std::cout<<"IPreSynapse()"<<std::endl;
 }
 
 
-IPreSynapse::
-~IPreSynapse()
+IPreSynapse::~IPreSynapse()
 {
 	//std::cout<<"~IPreSynapse()"<<std::endl;
 }
