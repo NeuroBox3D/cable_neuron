@@ -20,19 +20,27 @@ namespace synapse_handler {
 class IPreSynapse
 {
 	unsigned long m_id;
+	unsigned long m_postsynapse_id;
 	number m_location;
 
 public:
 	//ctor & dtor
+	IPreSynapse();
 	IPreSynapse(const number& location);
-	IPreSynapse(const unsigned long id, const number& location);
+	IPreSynapse(
+			const unsigned long id,
+			const unsigned long postsynapse_id,
+			const number& location);
+
 	virtual ~IPreSynapse();
 
 	//setter & getter
-	void set_location(const number& location) {m_location = location;}
 	void set_id(const unsigned long id) {m_id = id;}
+	void set_postsynapse_id(const unsigned long id) {m_postsynapse_id = id;}
+	void set_location(const number& location) {m_location = location;}
 
 	unsigned long id() const {return m_id;}
+	unsigned long postsynapse_id() const {return m_postsynapse_id;}
 	number location() const {return m_location;}
 
 	//virtual interface methods
