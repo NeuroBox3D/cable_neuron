@@ -21,13 +21,13 @@ message(STATUS "Info: Additional options (-DCN) for the cable_neuron plugin")
 option(CNConvertedTransport "ConvertedTransport")
 message(STATUS "      ConvertedTransport: " ${CNConvertedTransport} " (options are: ON, OFF)")
 
-# compile SplittedSynapses only if # SplittedSynapses is set
-option(CNSplittedSynapses "SplittedSynapses")
-message(STATUS "      SplittedSynapses: " ${CNSplittedSynapses} " (options are: ON, OFF)")
+# compile SplitSynapses only if # SplitSynapses is set
+option(CNSplitSynapses "CNSplitSynapses")
+message(STATUS "      CNSplitSynapses: " ${CNSplitSynapses} " (options are: ON, OFF)")
 
 # whether to build the test suite
 option(CNTestsuite "Build Testsuite" OFF)
-message(STATUS "      Testsuite:          " ${CNTestsuite} " (options are: ON, OFF)")
+message(STATUS "      CNTestsuite:          " ${CNTestsuite} " (options are: ON, OFF)")
 
 
 
@@ -55,9 +55,9 @@ if (CNConvertedTransport)
     include(membrane_transport/nmodl_converter/converted/sources.cmake)
 endif (CNConvertedTransport)
 
-if (CNSplittedSynapses)
-    include(splittedsynapse_handler/sources.cmake)
-endif (CNSplittedSynapses)
+if (CNSplitSynapses)
+    include(split_synapse_handler/sources.cmake)
+endif (CNSplitSynapses)
 
 
 # synapse_handler sources
