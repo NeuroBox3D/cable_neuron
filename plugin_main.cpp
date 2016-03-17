@@ -45,8 +45,8 @@
 #include "synapse_handler/grid/synapse_info_io_traits.h"
 #include "synapse_handler/grid/synapse_info.h"
 
-//splittedsynapse handler
-#include "splittedsynapse_handler/IPreSynapse.h"
+//split_synapse handler
+//#include "split_synapse_handler/IPreSynapse.h"
 
 // synapse distributor
 #include "synapse_distributor/synapse_distributor.h"
