@@ -447,7 +447,7 @@ struct Functionality
 				.add_method("set_temperature", static_cast<void (T::*)(number)>(&T::set_temperature),
 						"", "temperature (K) | default | value=310", "sets new temperature")
 				.add_method("set_temperature_celsius", static_cast<void (T::*)(number)>(&T::set_temperature_celsius),
-						"", "temperature (°C) | default | value=37", "sets new temperature")
+						"", "temperature (��C) | default | value=37", "sets new temperature")
 
 				.add_method("set_diff_coeffs", static_cast<void (T::*)(const std::vector<number>&)> (&T::set_diff_coeffs), "",
 						"diffusion coefficients of K, Na and Ca (m^2/s)", "sets diffusion coefficients")
@@ -593,8 +593,10 @@ struct Functionality
 			.add_method("place_synapses_uniform", static_cast<void (TSD::*)(size_t)>(&TSD::place_synapses_uniform), "", "", "Distributes synapses uniformly on grid.", grp)
 			.add_method("place_synapses_uniform", static_cast<void (TSD::*)(int, size_t)>(&TSD::place_synapses_uniform), "", "", "Distributes synapses uniformly on subset.", grp)
 			.add_method("place_synapses_uniform", static_cast<void (TSD::*)(const char*, number)>(&TSD::place_synapses_uniform), "", "", "Distributes synapses uniformly on subset s.t. given density of synapses.", grp)
+			.add_method("place_synapses_uniform", static_cast<void (TSD::*)(number, number, number, number, number)>(&TSD::place_synapses_uniform), "", "", "Distributes synapses uniformly on edges contained within a given ball specified by center coordinates and radius s.t. given density of synapses is reached.", grp)
 			.add_method("place_synapses",static_cast<void (TSD::*)(std::vector<number>, size_t)>(&TSD::place_synapses), "p#subsetIndex", "", "Distributes synapses on all subsets s.t. a given density vector.", grp)
 			.add_method("set_activation_timing",static_cast<void (TSD::*)(number, number, number, number)>(&TSD::set_activation_timing), "start_time#duration#start_time_dev#duration_dev", "", "Sets activity timing of distributed synapes..", grp)
+			.add_method("set_activation_timing",static_cast<void (TSD::*)(number, number, number, number, number, number, number, number)>(&TSD::set_activation_timing), "start_time#duration#start_time_dev#duration_dev#x coord of ball#y coord of ball#z coord of ball#radius of ball", "", "Sets activity timing of distributed synapes on a given ball by center and radius", grp)
 			.add_method("degenerate_uniform",static_cast<void (TSD::*)(number)>(&TSD::degenerate_uniform),"","","Degenerates a certain percentage of synapses in the whole grid.",grp)
 			.add_method("degenerate_uniform",static_cast<void (TSD::*)(number, int)>(&TSD::degenerate_uniform),"","","Degenerates a certain percentage of synapses in the given subset.",grp)
 			.add_method("degenerate_uniform",static_cast<void (TSD::*)(number, const char*)>(&TSD::degenerate_uniform),"","","Degenerates a certain percentage of synapses in the given subset.",grp)

@@ -61,6 +61,31 @@ public:
 	void place_synapses_uniform(const char*, number density);
 	void place_synapses(std::vector<number> distr, size_t numSynapses);
 
+	/*!
+	 * \brief places synapses uniformly on all edges contained within the ball
+	 * Use this whenever you want to distribute synapses within a ball
+	 * \param[in] x coordinate of center
+	 * \param[in] y coordinate of center
+	 * \param[in] z coordinate of center
+	 * \param[in] radius radius of the ball
+	 */
+	void place_synapses_uniform(number density, number x, number y, number z, number radius);
+
+	/*!
+	 * \brief set activation timing for a given ball
+	 * Use this whenever you want to change the activation timing for one ball
+	 *
+	 * \param[in] start_time
+	 * \param[in] duration
+	 * \param[in] start_time_dev
+	 * \param[in] duration_dev
+	 * \param[in] x
+	 * \param[in] y
+	 * \param[in] z
+	 * \param[in] radius
+	 */
+	void set_activation_timing(number start_time, number duration, number start_time_dev, number duration_dev, number x, number y, number z, number radius);
+
 	void degenerate_uniform(std::vector<Edge*> vEdges, size_t numSynapses);
 	void degenerate_uniform(number p);
 	void degenerate_uniform(number p, int si);
@@ -106,6 +131,9 @@ private:
 	std::string m_InputFile;
 	std::string m_OutputFile;
 	std::string m_LastMessage;
+
+	/// balls / stimulation regions
+	std::vector<std::pair<vector3, number> >m_balls;
 
 //	Pointers to heap memory, have to be freed in destructor
 	MultiGrid* pm_Grid;

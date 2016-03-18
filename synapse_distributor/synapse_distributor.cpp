@@ -457,6 +457,89 @@ void SynapseDistributor::place_synapses_uniform(const char* subset, number densi
 	place_synapses_uniform(vEdges, numSynapses);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////
+//	SynapseDistributor::place_synapses_uniform(number density, number x, number y, number z, number radius)
+/*!
+ * Places synapses according to the given density for all edges (for any subset)
+ * within the ball specified by center and radius on the base grid level (0)
+ */
+void SynapseDistributor::place_synapses_uniform(number density, number x, number y, number z, number radius) {
+	/// save ball / stimulation region
+	vector3 center(x, y, z);
+	m_balls.push_back(std::pair<vector3, number>(center, radius));
+
+	/// place synapses on this ball
+	number length = 0.;
+	vector<Edge*> vEdges;
+	EdgeIterator it = pm_Grid->begin<Edge>(0);
+	for (; it != pm_Grid->end<Edge>(0); ++it) {
+		Edge* e = *it;
+		vector3 a = m_aaPosition[e->vertex(0)];
+		vector3 b = m_aaPosition[e->vertex(1)];
+
+		if ( (std::pow(a.x() - x, 2) + std::pow(a.y() - y, 2) + std::pow(a.z() - z, 2)) < std::pow(radius, 2) &&
+		     (std::pow(b.x() - x, 2) + std::pow(b.y() - y, 2) + std::pow(b.z() - z, 2)) < std::pow(radius, 2) ) {
+			number edgeLength = EdgeLength(e, m_aaPosition);
+			length+=edgeLength;
+			vEdges.push_back(e);
+		}
+	}
+
+	size_t numSynapses = (size_t)(length * density);
+	place_synapses_uniform(vEdges, numSynapses);
+
+}
+
+void SynapseDistributor::set_activation_timing(number start_time, number duration, number start_time_dev, number duration_dev, number x, number y, number z, number radius)
+{
+//	Activity timing setup
+//	############## Random normal distribution
+	boost::mt19937 rng;
+	rng.seed(time(NULL));
+
+	boost::normal_distribution<number> start_dist(start_time, start_time_dev);
+	boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > var_start(rng, start_dist);
+
+	boost::normal_distribution<number> duration_dist(duration, duration_dev);
+	boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > var_duration(rng, duration_dist);
+//	##################
+
+	EdgeIterator it = pm_Grid->begin<Edge>(0);
+		for (; it != pm_Grid->end<Edge>(0); ++it) {
+			Edge* e = *it;
+			vector3 a = m_aaPosition[e->vertex(0)];
+			vector3 b = m_aaPosition[e->vertex(1)];
+
+			if ( (std::pow(a.x() - x, 2) + std::pow(a.y() - y, 2) + std::pow(a.z() - z, 2)) < std::pow(radius, 2) &&
+			     (std::pow(b.x() - x, 2) + std::pow(b.y() - y, 2) + std::pow(b.z() - z, 2)) < std::pow(radius, 2) ) {
+				number edgeLength = EdgeLength(e, m_aaPosition);
+		for(size_t i = 0; i < m_aaSynInfo[e].size(); ++i)
+		{
+			number t_start = var_start();
+
+			if(t_start < 0)
+				t_start = 0;
+
+			number dur = var_duration();
+			dur = dur < 0 ? 0 : dur;
+
+			number t_end = t_start + abs( var_duration());
+
+			if(t_start > t_end)
+				UG_THROW("ERROR in SynapseDistributor constructor: Synapse activity start time > end time.");
+
+			m_aaSynInfo[e][i].m_onset = t_start;
+			m_aaSynInfo[e][i].m_tau = dur / 6.0;
+		}
+			}
+	}
+
+//	Handle multigrid transfer
+	if(m_bDomBased)
+		CopySynapsesToAllLevels();
+}
+
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //	SynapseDistributor::place_synapses(vector<size_t> distr)
