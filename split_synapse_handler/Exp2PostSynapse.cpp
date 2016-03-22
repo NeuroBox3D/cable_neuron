@@ -59,6 +59,34 @@ number Exp2PostSynapse::current(const number& t)
 	return i; //!< i: current (in units of A)
 }
 
+void Exp2PostSynapse::put_to(std::ostream& os) const
+{
+	using std::ostringstream;
+	ostringstream strs;
+	strs << static_cast<int>(type()) << " ";					//identifier for reconstruction
+	strs << id() << " ";
+	strs << presynapse_id() << " ";
+	strs << location() << " ";
+	strs << m_tau1 << " ";
+	strs << m_tau2 << " ";
+	strs <<  m_e << " ";
+	strs << m_w << " ";
+	strs << m_vm;
+	os << strs.str();
+}
+
+void Exp2PostSynapse::get_from(std::istream& is)
+{
+	int t; is >> t;
+	unsigned long long id; is >> id; set_id(id);
+	unsigned long long presyn_id; is >> presyn_id; set_presynapse_id(presyn_id);
+	number loc; is >> loc; set_location(loc);
+	is >> m_tau1;
+	is >> m_tau2;
+	is >> m_e;
+	is >> m_w;
+	is >> m_vm;
+}
 
 } /* namespace synapse_handler */
 } /* namespace cable_neuron */

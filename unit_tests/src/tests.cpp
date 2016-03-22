@@ -7,6 +7,8 @@
 
 #define BOOST_TEST_MODULE __CPP__UNIT_TESTS__UG__SYNAPSE_HANDLER__
 
+//#include <sstream>
+
 // boost includes
 #include <boost/test/included/unit_test.hpp>
 #include <boost/test/parameterized_test.hpp>
@@ -32,7 +34,7 @@ using namespace std;
 /// begin of test suite presynapses
 BOOST_AUTO_TEST_SUITE(PRESYNAPSES);
 
-BOOST_AUTO_TEST_CASE(ALPHASYNAPSE) {
+BOOST_AUTO_TEST_CASE(ALPHAPRESYNAPSE) {
 	number onset = 1e-6;
 	number location = 0.3;
 	number t1 = 1e-7;
@@ -64,6 +66,16 @@ BOOST_AUTO_TEST_CASE(ALPHASYNAPSE) {
 	//todo:
 	//test update() somehow
 
+	//serialization
+	ostringstream oss1;
+	ostringstream oss2;
+	istringstream iss("4 111 10 1.4 3e-08");
+	oss1 << s1;
+	BOOST_REQUIRE_MESSAGE(oss1.str() == "4 0 3 0.3 1e-06", "serialization check");
+
+	iss >> s1;
+	oss2 << s1;
+	BOOST_REQUIRE_MESSAGE(oss2.str() == "4 111 10 1.4 3e-08", "deserialization check");
 
 	delete s1;
 	delete s2;
@@ -73,7 +85,7 @@ BOOST_AUTO_TEST_CASE(ALPHASYNAPSE) {
 	cout<<"AlphaPreSynapse working."<<endl;
 }
 
-BOOST_AUTO_TEST_CASE(EXP2SYNAPSE) {
+BOOST_AUTO_TEST_CASE(EXP2PRESYNAPSE) {
 	number location = 0.3;
 	number onset = 1e-6;
 	number t1 = 1e-7;
@@ -106,6 +118,17 @@ BOOST_AUTO_TEST_CASE(EXP2SYNAPSE) {
 	//todo:
 	//test update() somehow
 
+	//serialization
+	ostringstream oss1;
+	ostringstream oss2;
+	istringstream iss("6 111 10 1.4 3e-08");
+	oss1 << s1;
+	BOOST_REQUIRE_MESSAGE(oss1.str() == "6 0 0 0.3 1e-06", "serialization check");
+
+	iss >> s1;
+	oss2 << s1;
+	BOOST_REQUIRE_MESSAGE(oss2.str() == "6 111 10 1.4 3e-08", "deserialization check");
+
 	delete s1;
 	delete s2;
 	delete s3;
@@ -123,7 +146,7 @@ BOOST_AUTO_TEST_SUITE_END();
 /// begin of test suite postsynapses
 BOOST_AUTO_TEST_SUITE(POSTSYNAPSES);
 
-BOOST_AUTO_TEST_CASE(ALPHASYNAPSE) {
+BOOST_AUTO_TEST_CASE(ALPHAPOSTSYNAPSE) {
 	number gmax = 1;
 	number onset = 2;
 	number tau = 3;
@@ -163,6 +186,17 @@ BOOST_AUTO_TEST_CASE(ALPHASYNAPSE) {
 	//todo:
 	//test current?
 
+	//serialization
+	ostringstream oss1;
+	ostringstream oss2;
+	istringstream iss("5 1 2 4 3 1 2 2 1");
+	oss1 << s1;
+	BOOST_REQUIRE_MESSAGE(oss1.str() == "5 3 4 6 1 2 3 4 5", "serialization check");
+
+	iss >> s1;
+	oss2 << s1;
+	BOOST_REQUIRE_MESSAGE(oss2.str() == "5 1 2 4 3 1 2 2 1", "deserialization check");
+
 	delete s1;
 	delete s2;
 	delete s3;
@@ -171,7 +205,7 @@ BOOST_AUTO_TEST_CASE(ALPHASYNAPSE) {
 	cout<<"AlphaPostSynapse working."<<endl;
 }
 
-BOOST_AUTO_TEST_CASE(EXP2SYNAPSE) {
+BOOST_AUTO_TEST_CASE(EXP2POSTSYNAPSE) {
 	number tau1 = 2;
 	number tau2 = 3;
 	number w = 1;
@@ -207,6 +241,18 @@ BOOST_AUTO_TEST_CASE(EXP2SYNAPSE) {
 	BOOST_REQUIRE_MESSAGE(fabs(static_cast<Exp2PostSynapse*>(s1)->w() - w) < 1e-16 ,"tau setter and getter test");
 	BOOST_REQUIRE_MESSAGE(fabs(static_cast<Exp2PostSynapse*>(s1)->vm() - vm) < 1e-16 ,"vm etter and getter test");
 	BOOST_REQUIRE_MESSAGE(fabs(static_cast<Exp2PostSynapse*>(s1)->e() - e) < 1e-16 ,"e setter and getter test");
+
+	//serialization
+	ostringstream oss1;
+	ostringstream oss2;
+	istringstream iss("7 1 22 3 1 1 2 4 1");
+	oss1 << s1;
+	BOOST_REQUIRE_MESSAGE(oss1.str() == "7 32 42 6 2 3 5 1 4", "serialization check");
+
+	iss >> s1;
+	oss2 << s1;
+	BOOST_REQUIRE_MESSAGE(oss2.str() == "7 1 22 3 1 1 2 4 1", "deserialization check");
+
 
 	delete s1;
 	delete s2;

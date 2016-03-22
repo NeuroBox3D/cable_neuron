@@ -67,6 +67,10 @@ public:
 
 	//functionality
 	number current(const number& t);
+
+	//serialization interface methods
+	void put_to(std::ostream& os) const;			//'put_to' == operator<<
+	void get_from(std::istream& is);				//'get_from' == operator>>
 };
 
 } /* namespace synapse_handler */

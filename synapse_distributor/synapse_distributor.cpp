@@ -274,7 +274,7 @@ void SynapseDistributor::clear(int subsetIndex)
 /**
  * Places a Synapse on Edge e.
  */
-void SynapseDistributor::place_synapse(Edge* e)
+void SynapseDistributor::place_synapse(Edge* e, int t)
 {
 	/// TODO: rand() and RAND_MAX seem to be platform-dependent
 	number localCoord = static_cast<number>(rand())  / RAND_MAX; //localCoord factor 0 means e[0], 1 means e[1]
@@ -284,11 +284,12 @@ void SynapseDistributor::place_synapse(Edge* e)
 
 	synapse_handler::SynapseInfo syn;
 	syn.m_locCoords = localCoord;
-	syn.m_type = synapse_handler::ALPHA_SYNAPSE;
-	syn.m_onset = 0.0;				// to be set by set_activation_timing method
-	syn.m_tau 	= 0.0;				// to be set by set_activation_timing method
-	syn.m_gMax 	= 1.2e-3;			// in [uS]
+	syn.m_type = (unsigned char)t;			//ALPHA_SYNAPSE | JANA_SYNAPSE_FROM_MARKUS_WITH_LOVE
+	syn.m_onset = 0.0;						// to be set by set_activation_timing method
+	syn.m_tau 	= 0.0;//biexp: tau1			// to be set by set_activation_timing method
+	syn.m_gMax 	= 1.2e-3;					// in [uS]
 	syn.m_vRev 	= 0.0;
+	syn.m_param3 = 0.0;//biexp: tau2		//to be set by set_activation_timing method
 
 //	Add synapse to edge
 	m_aaSynInfo[e].push_back(syn);
@@ -301,68 +302,14 @@ void SynapseDistributor::place_synapse(Edge* e)
 	m_LastMessage =  msg.str();
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////
-//	SynapseDistributor::set_activation_timing(number start_time, number duration, number start_time_dev, number duration_dev)
-/**
- * Sets electrode activity
- *
- * start_time		: average startvalue
- * duration			: average duration of activity
- * start_time_dev	: deviation of startvalue
- * duration_dev		: deviation of duration
- */
-void SynapseDistributor::set_activation_timing(number start_time, number duration, number start_time_dev, number duration_dev)
-{
-//	Activity timing setup
-//	############## Random normal distribution
-	boost::mt19937 rng;
-	rng.seed(time(NULL));
 
-	boost::normal_distribution<number> start_dist(start_time, start_time_dev);
-	boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > var_start(rng, start_dist);
-
-	boost::normal_distribution<number> duration_dist(duration, duration_dev);
-	boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > var_duration(rng, duration_dist);
-//	##################
-
-//	Initialize with time dependency
-// 	INFO: * end time is determined by start time AND alpha synapse specific parameter tau: t_end = t_start + m_tau * 6
-//		  * correspondingly, m_tau is used in methods where end time is needed
-	for(EdgeIterator eIter = pm_Grid->begin<Edge>(0); eIter != pm_Grid->end<Edge>(0) ; eIter++)
-	{
-		Edge* e = *eIter;
-
-		for(size_t i = 0; i < m_aaSynInfo[e].size(); ++i)
-		{
-			number t_start = var_start();
-
-			if(t_start < 0)
-				t_start = 0;
-
-			number dur = var_duration();
-			dur = dur < 0 ? 0 : dur;
-
-			number t_end = t_start + abs( var_duration());
-
-			if(t_start > t_end)
-				UG_THROW("ERROR in SynapseDistributor constructor: Synapse activity start time > end time.");
-
-			m_aaSynInfo[e][i].m_onset = t_start;
-			m_aaSynInfo[e][i].m_tau = dur / 6.0;
-		}
-	}
-
-//	Handle multigrid transfer
-	if(m_bDomBased)
-		CopySynapsesToAllLevels();
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //	SynapseDistributor::place_synapses(vector<Edge*> vEdges)
 /**
  * Wrapper for placing synapses in the grid on specified edges uniformly
  */
-void SynapseDistributor::place_synapses_uniform(vector<Edge*> vEdges, size_t numSynapses)
+void SynapseDistributor::place_synapses_uniform(vector<Edge*> vEdges, size_t numSynapses, int t)
 {
 //	Determine discrete random distribution of given edges by their lengths
 	vector<number> probs;
@@ -394,7 +341,7 @@ void SynapseDistributor::place_synapses_uniform(vector<Edge*> vEdges, size_t num
 	size_t i = 0;
 	while(i < numSynapses)
 	{
-		place_synapse(vEdges[randomIndex()]);
+		place_synapse(vEdges[randomIndex()], t);
 		i++;
 	}
 
@@ -409,26 +356,26 @@ void SynapseDistributor::place_synapses_uniform(vector<Edge*> vEdges, size_t num
 /**
  * Places synapses in the grid on edges of given subset, uniform distributed according to set density.
  */
-void SynapseDistributor::place_synapses_uniform(int si, size_t numSynapses)
+void SynapseDistributor::place_synapses_uniform(int si, size_t numSynapses, int t)
 {
 //	Save subset coarse grid edges in a vector
 	vector<Edge*> vEdges = vector<Edge*>(pm_SubsetHandler->begin<Edge>(si, 0),
 										 pm_SubsetHandler->end<Edge>(si, 0));
 
 //	Call wrapper
-	place_synapses_uniform(vEdges, numSynapses);
+	place_synapses_uniform(vEdges, numSynapses, t);
 }
 
 /**
  * Places synapses in the grid on edges, uniform distributed according to set density.
  */
-void SynapseDistributor::place_synapses_uniform(size_t numSynapses)
+void SynapseDistributor::place_synapses_uniform(size_t numSynapses, int t)
 {
 //	Save coarse grid edges in a vector
 	vector<Edge*> vEdges = vector<Edge*>(pm_Grid->begin<Edge>(0), pm_Grid->end<Edge>(0));
 
 //	Call wrapper
-	place_synapses_uniform(vEdges, numSynapses);
+	place_synapses_uniform(vEdges, numSynapses, t);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -438,7 +385,7 @@ void SynapseDistributor::place_synapses_uniform(size_t numSynapses)
  * Places synapses in the grid on edges of given subset, uniformly distributed according to set density.
  * Specification of density in [1/m]
  */
-void SynapseDistributor::place_synapses_uniform(const char* subset, number density)
+void SynapseDistributor::place_synapses_uniform(const char* subset, number density, int t)
 {
 //	Get subset index from subset name
 	int si = pm_SubsetHandler->get_subset_index(subset);
@@ -454,7 +401,7 @@ void SynapseDistributor::place_synapses_uniform(const char* subset, number densi
 										 pm_SubsetHandler->end<Edge>(si, 0));
 
 //	Call wrapper
-	place_synapses_uniform(vEdges, numSynapses);
+	place_synapses_uniform(vEdges, numSynapses, t);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -463,7 +410,10 @@ void SynapseDistributor::place_synapses_uniform(const char* subset, number densi
  * Places synapses according to the given density for all edges (for any subset)
  * within the ball specified by center and radius on the base grid level (0)
  */
-void SynapseDistributor::place_synapses_uniform(number density, number x, number y, number z, number radius) {
+void SynapseDistributor::place_synapses_uniform(
+		number density,
+		number x, number y, number z, number radius,
+		int t) {
 	/// save ball / stimulation region
 	vector3 center(x, y, z);
 	m_balls.push_back(std::pair<vector3, number>(center, radius));
@@ -486,23 +436,190 @@ void SynapseDistributor::place_synapses_uniform(number density, number x, number
 	}
 
 	size_t numSynapses = (size_t)(length * density);
-	place_synapses_uniform(vEdges, numSynapses);
+	place_synapses_uniform(vEdges, numSynapses, t);
 
 }
 
-void SynapseDistributor::set_activation_timing(number start_time, number duration, number start_time_dev, number duration_dev, number x, number y, number z, number radius)
+////////////////////////////////////////////////////////////////////////////////////////////
+//	SynapseDistributor::set_activation_timing
+/**
+ * Sets electrode activity
+ * alpha_timings is expected to have four entries:
+ * start_time		: average startvalue
+ * start_time_dev	: deviation of startvalue
+ * duration			: average duration of activity
+ * duration_dev		: deviation of duration
+ *
+ * biexp_timings is expected to have six entries:
+ * onset			: average startvalue
+ * onset deviation	: deviation of startvalue
+ * tau1				: mean of tau1
+ * tau1_dev			: deviation of tau1
+ * tau2 			: mean of tau2
+ * tau2_dev			: deviation of tau2
+ */
+void SynapseDistributor::set_activation_timing(std::vector<number> alpha_timings, std::vector<number> biexp_timings)
 {
+
+	//alpha timings
+	if(alpha_timings.size() != 4) UG_THROW("Expected timing values: 4");
+	number start_time = alpha_timings[0];
+	number start_time_dev = alpha_timings[1];
+	number duration = alpha_timings[2];
+	number duration_dev = alpha_timings[3];
+
+	//jana timings
+	if(biexp_timings.size() != 6) UG_THROW("Expected timing values: 6");
+	number biexp_onset_time = biexp_timings[0];
+	number biexp_onset_time_dev = biexp_timings[1];
+	number biexp_tau1_mean = biexp_timings[2];
+	number biexp_tau1_dev = biexp_timings[3];
+	number biexp_tau2_mean = biexp_timings[4];
+	number biexp_tau2_dev = biexp_timings[5];
+
 //	Activity timing setup
 //	############## Random normal distribution
 	boost::mt19937 rng;
+	boost::mt19937 rng_biexp;
 	rng.seed(time(NULL));
+	rng_biexp.seed(time(NULL));
 
 	boost::normal_distribution<number> start_dist(start_time, start_time_dev);
 	boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > var_start(rng, start_dist);
 
 	boost::normal_distribution<number> duration_dist(duration, duration_dev);
 	boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > var_duration(rng, duration_dist);
+
+	// biexp synapse distributions
+	boost::normal_distribution<number> onset_dist(biexp_onset_time, biexp_onset_time_dev);
+	boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > var_onset(rng_biexp, onset_dist);
+	boost::normal_distribution<double> tau1_dist(biexp_tau1_mean, biexp_tau1_dev);
+	boost::variate_generator<boost::mt19937, boost::normal_distribution<double> > var_tau1(rng_biexp, tau1_dist);
+	boost::normal_distribution<double> tau2_dist(biexp_tau2_mean, biexp_tau2_dev);
+	boost::variate_generator<boost::mt19937, boost::normal_distribution<double> > var_tau2(rng_biexp, tau2_dist);
 //	##################
+
+//	Initialize with time dependency
+// 	INFO: * end time is determined by start time AND alpha synapse specific parameter tau: t_end = t_start + m_tau * 6
+//		  * correspondingly, m_tau is used in methods where end time is needed
+	for(EdgeIterator eIter = pm_Grid->begin<Edge>(0); eIter != pm_Grid->end<Edge>(0) ; eIter++)
+	{
+		Edge* e = *eIter;
+
+		for(size_t i = 0; i < m_aaSynInfo[e].size(); ++i)
+		{
+			number t_start = var_start();
+
+			if(t_start < 0)
+				t_start = 0;
+
+			number dur = var_duration();
+			dur = dur < 0 ? 0 : dur;
+
+			number t_end = t_start + abs( var_duration());
+
+			number t_onset = var_onset();
+			if (t_onset < 0) t_onset = 0;
+
+			number tau1 = var_tau1();
+			tau1 = tau1 < 0 ? 0 : tau1;
+
+			number tau2 = var_tau2();
+			tau2 = tau2 < 0 ? 0 : tau2;
+
+			if(t_start > t_end)
+				UG_THROW("ERROR in SynapseDistributor constructor: Synapse activity start time > end time.");
+
+			unsigned char t = m_aaSynInfo[e][i].m_type;
+			switch(t) {
+
+			//normal alpha synapse timings
+			case ALPHA_SYNAPSE:
+			{
+				m_aaSynInfo[e][i].m_onset = t_start;
+				m_aaSynInfo[e][i].m_tau = dur / 6.0;
+				break;
+			}
+			//set for JANA_SYNAPSE_FROM_MARKUS_WITH_LOVE biexp activation timings
+			case JANA_SYNAPSE_FROM_MARKUS_WITH_LOVE:
+			{
+				m_aaSynInfo[e][i].m_onset = t_onset;
+				m_aaSynInfo[e][i].m_tau = tau1;
+				m_aaSynInfo[e][i].m_param3 = tau2;
+				break;
+			}
+			default:
+				break;
+			}
+
+		}
+	}
+
+//	Handle multigrid transfer
+	if(m_bDomBased)
+		CopySynapsesToAllLevels();
+}
+
+/**
+ * Sets electrode activity within a ball
+ *
+ * alpha_timings is expected to have four entries:
+ * start_time		: average startvalue
+ * start_time_dev	: deviation of startvalue
+ * duration			: average duration of activity
+ * duration_dev		: deviation of duration
+ *
+ * biexp_timings is expected to have six entries:
+ * onset			: average startvalue
+ * onset deviation	: deviation of startvalue
+ * tau1				: mean of tau1
+ * tau1_dev			: deviation of tau1
+ * tau2 			: mean of tau2
+ * tau2_dev			: deviation of tau2
+ */
+void SynapseDistributor::set_activation_timing(
+		std::vector<number> alpha_timings,
+		std::vector<number> biexp_timings,
+		number x, number y, number z, number radius)
+{
+
+	//alpha timings
+	if(alpha_timings.size() != 4) UG_THROW("Expected timing values: 4");
+	number start_time = alpha_timings[0];
+	number start_time_dev = alpha_timings[1];
+	number duration = alpha_timings[2];
+	number duration_dev = alpha_timings[3];
+
+	//jana timings
+	if(biexp_timings.size() != 6) UG_THROW("Expected timing values: 6");
+	number biexp_onset_time = biexp_timings[0];
+	number biexp_onset_time_dev = biexp_timings[1];
+	number biexp_tau1_mean = biexp_timings[2];
+	number biexp_tau1_dev = biexp_timings[3];
+	number biexp_tau2_mean = biexp_timings[4];
+	number biexp_tau2_dev = biexp_timings[5];
+
+	//	Activity timing setup
+	//	############## Random normal distribution
+		boost::mt19937 rng;
+		boost::mt19937 rng_biexp;
+		rng.seed(time(NULL));
+		rng_biexp.seed(time(NULL));
+
+		boost::normal_distribution<number> start_dist(start_time, start_time_dev);
+		boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > var_start(rng, start_dist);
+
+		boost::normal_distribution<number> duration_dist(duration, duration_dev);
+		boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > var_duration(rng, duration_dist);
+
+		// biexp synapse distributions
+		boost::normal_distribution<number> onset_dist(biexp_onset_time, biexp_onset_time_dev);
+		boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > var_onset(rng_biexp, onset_dist);
+		boost::normal_distribution<double> tau1_dist(biexp_tau1_mean, biexp_tau1_dev);
+		boost::variate_generator<boost::mt19937, boost::normal_distribution<double> > var_tau1(rng_biexp, tau1_dist);
+		boost::normal_distribution<double> tau2_dist(biexp_tau2_mean, biexp_tau2_dev);
+		boost::variate_generator<boost::mt19937, boost::normal_distribution<double> > var_tau2(rng_biexp, tau2_dist);
+	//	##################
 
 	EdgeIterator it = pm_Grid->begin<Edge>(0);
 		for (; it != pm_Grid->end<Edge>(0); ++it) {
@@ -522,13 +639,41 @@ void SynapseDistributor::set_activation_timing(number start_time, number duratio
 					number dur = var_duration();
 					dur = dur < 0 ? 0 : dur;
 
-					m_aaSynInfo[e][i].m_onset = t_start;
-					m_aaSynInfo[e][i].m_tau = dur / 6.0;
+					number t_onset = var_onset();
+					if (t_onset < 0) t_onset = 0;
+
+					number tau1 = var_tau1();
+					tau1 = tau1 < 0 ? 0 : tau1;
+
+					number tau2 = var_tau2();
+					tau2 = tau2 < 0 ? 0 : tau2;
+
+					unsigned char t = m_aaSynInfo[e][i].m_type;
+					switch(t) {
+
+					//normal alpha synapse timings
+					case ALPHA_SYNAPSE:
+					{
+						m_aaSynInfo[e][i].m_onset = t_start;
+						m_aaSynInfo[e][i].m_tau = dur / 6.0;
+						break;
+					}
+					//set for JANA_SYNAPSE_FROM_MARKUS_WITH_LOVE biexp activation timings
+					case JANA_SYNAPSE_FROM_MARKUS_WITH_LOVE:
+					{
+						m_aaSynInfo[e][i].m_onset = t_onset;
+						m_aaSynInfo[e][i].m_tau = tau1;
+						m_aaSynInfo[e][i].m_param3 = tau2;
+						break;
+					}
+					default:
+						break;
+					}
 				}
 			}
 	}
 
-//	Handle multigrid transfer
+	//Handle multigrid transfer
 	if(m_bDomBased)
 		CopySynapsesToAllLevels();
 }
@@ -540,7 +685,7 @@ void SynapseDistributor::set_activation_timing(number start_time, number duratio
 /**
  * Places synapses according to set density and given distribution in the single subsets.
  */
-void SynapseDistributor::place_synapses(vector<number> distr, size_t numSynapses)
+void SynapseDistributor::place_synapses(vector<number> distr, size_t numSynapses, int t)
 {
 //	check validity of input
 	number s = 0;
@@ -561,7 +706,7 @@ void SynapseDistributor::place_synapses(vector<number> distr, size_t numSynapses
 
 		vector<Edge*> vEdges = vector<Edge*>(pm_SubsetHandler->begin<Edge>(i, 0), pm_SubsetHandler->end<Edge>(i, 0));
 
-		place_synapses_uniform(vEdges, numSynPerSubset);
+		place_synapses_uniform(vEdges, numSynPerSubset, t);
 	}
 
 //	Handle multigrid transfer

@@ -52,14 +52,12 @@ public:
 	void clear();
 	void clear(int subsetIndex);
 
-	void set_activation_timing(number start_time, number duration, number start_time_dev, number duration_dev);
-
-	void place_synapse(Edge* e);
-	void place_synapses_uniform(std::vector<Edge*> vEdges, size_t numSynapses);
-	void place_synapses_uniform(size_t numSynapses);
-	void place_synapses_uniform(int si, size_t numSynapses);
-	void place_synapses_uniform(const char*, number density);
-	void place_synapses(std::vector<number> distr, size_t numSynapses);
+	void place_synapse(Edge* e, int t);
+	void place_synapses_uniform(std::vector<Edge*> vEdges, size_t numSynapses, int t);
+	void place_synapses_uniform(size_t numSynapses, int t);
+	void place_synapses_uniform(int si, size_t numSynapses, int t);
+	void place_synapses_uniform(const char*, number density, int t);
+	void place_synapses(std::vector<number> distr, size_t numSynapses, int t);
 
 	/*!
 	 * \brief places synapses uniformly on all edges contained within the ball
@@ -69,7 +67,16 @@ public:
 	 * \param[in] z coordinate of center
 	 * \param[in] radius radius of the ball
 	 */
-	void place_synapses_uniform(number density, number x, number y, number z, number radius);
+	void place_synapses_uniform(
+			number density,
+			number x,
+			number y,
+			number z,
+			number radius,
+			int t);
+
+
+	void set_activation_timing(std::vector<number> alpha_timings, std::vector<number> biexp_timings);
 
 	/*!
 	 * \brief set activation timing for a given ball
@@ -84,7 +91,10 @@ public:
 	 * \param[in] z
 	 * \param[in] radius
 	 */
-	void set_activation_timing(number start_time, number duration, number start_time_dev, number duration_dev, number x, number y, number z, number radius);
+	void set_activation_timing(
+			std::vector<number> alpha_timings,
+			std::vector<number> biexp_timings,
+			number x, number y, number z, number radius);
 
 	void degenerate_uniform(std::vector<Edge*> vEdges, size_t numSynapses);
 	void degenerate_uniform(number p);

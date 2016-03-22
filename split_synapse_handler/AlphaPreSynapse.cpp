@@ -53,15 +53,17 @@ void AlphaPreSynapse::put_to(std::ostream& os) const
 {
 	using std::ostringstream;
 	ostringstream strs;
+	strs << type() << " ";
 	strs << id() << " ";
 	strs << postsynapse_id() << " ";
 	strs << location() << " ";
-	strs << m_onset << " ";
+	strs << m_onset;
 	os << strs.str();
 }
 
 void AlphaPreSynapse::get_from(std::istream& is)
 {
+	int t; is >> t;
 	unsigned long long id; is >> id; set_id(id);
 	unsigned long long postsyn_id; is >> postsyn_id; set_postsynapse_id(postsyn_id);
 	number loc; is >> loc; set_location(loc);

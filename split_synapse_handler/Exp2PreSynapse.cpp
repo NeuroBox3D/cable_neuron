@@ -51,6 +51,28 @@ bool Exp2PreSynapse::is_active(const number& t, VectorProxyBase* up)
 	return (t >= m_onset);
 }
 
+void Exp2PreSynapse::put_to(std::ostream& os) const
+{
+	using std::ostringstream;
+	ostringstream strs;
+	strs << type() << " ";
+	strs << id() << " ";
+	strs << postsynapse_id() << " ";
+	strs << location() << " ";
+	strs << m_onset;
+	os << strs.str();
+}
+
+
+void Exp2PreSynapse::get_from(std::istream& is)
+{
+	int t; is >> t;
+	unsigned long long id; is >> id; set_id(id);
+	unsigned long long postsyn_id; is >> postsyn_id; set_postsynapse_id(postsyn_id);
+	number loc; is >> loc; set_location(loc);
+	is >> m_onset;
+}
+
 
 } /* namespace synapse_handler */
 } /* namespace cable_neuron */

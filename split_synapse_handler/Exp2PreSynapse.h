@@ -47,6 +47,10 @@ public:
 	//interface methods
 	void update(const number& t, VectorProxyBase* up=NULL);
 	bool is_active(const number& t, VectorProxyBase* up=NULL);
+
+	//serialization interface methods
+	void put_to(std::ostream& os) const;					//'put_to' == operator<<
+	void get_from(std::istream& is);				//'get_from' == operator>>
 };
 
 } /* namespace synapse_handler */
