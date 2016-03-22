@@ -38,8 +38,8 @@ public:
 			const number& vm);
 
 	Exp2PostSynapse(
-			const unsigned long id,
-			const unsigned long presynapse_id,
+			const unsigned long long id,
+			const unsigned long long presynapse_id,
 			const number& location,
 			const number& tau1,
 			const number& tau2,

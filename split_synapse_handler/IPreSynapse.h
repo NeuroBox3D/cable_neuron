@@ -12,33 +12,34 @@
 #include "../synapse_handler/function/types.h" 						//SynapseType
 #include <common/types.h>											//number
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"	//VectorProxyBase
+#include "IBaseSynapse.h"											//IBaseSynapse
 
 namespace ug {
 namespace cable_neuron {
 namespace synapse_handler {
 
-class IPreSynapse
+class IPreSynapse : public IBaseSynapse
 {
-	unsigned long m_id;					//own presynapse id / alternative: shared id if there is a 1:1 relation?
-	unsigned long m_postsynapse_id;		//postsynapse id
+	unsigned long long m_id;					//own presynapse id / alternative: shared id if there is a 1:1 relation?
+	unsigned long long m_postsynapse_id;		//postsynapse id
 	number m_location;					//location on edge
 
 public:
 	//ctor & dtor
 	IPreSynapse(
-			const unsigned long id,
-			const unsigned long postsynapse_id,
+			const unsigned long long id,
+			const unsigned long long postsynapse_id,
 			const number& location);
 
 	virtual ~IPreSynapse();
 
 	//setter & getter
-	void set_id(const unsigned long id) {m_id = id;}
-	void set_postsynapse_id(const unsigned long id) {m_postsynapse_id = id;}
+	void set_id(const unsigned long long id) {m_id = id;}
+	void set_postsynapse_id(const unsigned long long id) {m_postsynapse_id = id;}
 	void set_location(const number& location) {m_location = location;}
 
-	unsigned long id() const {return m_id;}
-	unsigned long postsynapse_id() const {return m_postsynapse_id;}
+	unsigned long long id() const {return m_id;}
+	unsigned long long postsynapse_id() const {return m_postsynapse_id;}
 	number location() const {return m_location;}
 
 	//virtual interface methods
@@ -47,6 +48,10 @@ public:
 
 	virtual void update(const number& t, VectorProxyBase* up=NULL) = 0;
 	virtual bool is_active(const number& t, VectorProxyBase* up=NULL) = 0;
+
+	//from serialization interface IBaseSynapse
+	virtual void put_to(std::ostream& os) const = 0;			//'put_to' == operator<<
+	virtual void get_from(std::istream& is) = 0;
 };
 
 } /* namespace synapse_handler */

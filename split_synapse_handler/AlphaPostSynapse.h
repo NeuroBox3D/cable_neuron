@@ -35,8 +35,8 @@ public:
 		const number& e);
 
 	AlphaPostSynapse(
-		const unsigned long id,
-		const unsigned long presynapse_id,
+		const unsigned long long id,
+		const unsigned long long presynapse_id,
 		const number& location,
 		const number& gMax,
 		const number& onset,
@@ -64,6 +64,11 @@ public:
 
 	//functionality
 	number current(const number& t);
+
+	//serialization from IBaseSynapse interface
+	void put_to(std::ostream& os) const;			//'put_to' == operator<<
+	void get_from(std::istream& is);				//'get_from' == operator>>
+
 };
 
 } /* namespace synapse_handler */

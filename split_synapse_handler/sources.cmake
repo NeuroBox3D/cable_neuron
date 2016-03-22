@@ -1,4 +1,6 @@
 set (SOURCES ${SOURCES}
+		split_synapse_handler/IBaseSynapse.cpp
+		
 		split_synapse_handler/IPreSynapse.cpp
 		split_synapse_handler/IPostSynapse.cpp
 		

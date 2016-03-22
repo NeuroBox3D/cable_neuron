@@ -24,8 +24,8 @@ Exp2PreSynapse::Exp2PreSynapse(
 }
 
 Exp2PreSynapse::Exp2PreSynapse(
-		const unsigned long id,
-		const unsigned long postsynapse_id,
+		const unsigned long long id,
+		const unsigned long long postsynapse_id,
 		const number& location,
 		const number& onset)
 

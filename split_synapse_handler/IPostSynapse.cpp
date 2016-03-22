@@ -17,8 +17,8 @@ namespace cable_neuron {
 namespace synapse_handler {
 
 IPostSynapse::IPostSynapse(
-		const unsigned long id,
-		const unsigned long presynapse_id,
+		const unsigned long long id,
+		const unsigned long long presynapse_id,
 		const number& location)
 
 :m_id(id),

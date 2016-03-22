@@ -31,8 +31,8 @@ public:
 			const number& onset);
 
 	AlphaPreSynapse(
-			const unsigned long id,
-			const unsigned long postsynapse_id,
+			const unsigned long long id,
+			const unsigned long long postsynapse_id,
 			const number& location,
 			const number& onset);
 
@@ -48,6 +48,10 @@ public:
 	//Interface dummy's
 	void update(const number& t, VectorProxyBase* up=NULL);
 	bool is_active(const number& t, VectorProxyBase* up=NULL);
+
+	//serialization from IBaseSynapse interface
+	void put_to(std::ostream& os) const;			//'put_to' == operator<<
+	void get_from(std::istream& is);				//'get_from' == operator>>
 };
 
 } /* namespace synapse_handler */

@@ -31,8 +31,8 @@ AlphaPostSynapse::AlphaPostSynapse(
 }
 
 AlphaPostSynapse::AlphaPostSynapse(
-		const unsigned long id,
-		const unsigned long presynapse_id,
+		const unsigned long long id,
+		const unsigned long long presynapse_id,
 		const number& location,
 		const number& gMax,
 		const number& onset,
@@ -56,6 +56,33 @@ AlphaPostSynapse::~AlphaPostSynapse()
 number AlphaPostSynapse::current(const number& t)
 {
 	return m_gMax * (t - m_onset)/m_tau * std::exp(-(t - m_onset - m_tau)/m_tau) * (m_vm - m_e);	// current (in units of A)
+}
+
+void AlphaPostSynapse::put_to(std::ostream& os) const
+{
+	using std::ostringstream;
+	ostringstream strs;
+	strs << id() << " ";
+	strs << presynapse_id() << " ";
+	strs << location() << " ";
+	strs << m_gMax << " ";
+	strs << m_onset << " ";
+	strs <<  m_tau << " ";
+	strs << m_vm << " ";
+	strs << m_e;
+	os << strs.str();
+}
+
+void AlphaPostSynapse::get_from(std::istream& is)
+{
+	unsigned long long id; is >> id; set_id(id);
+	unsigned long long presyn_id; is >> presyn_id; set_presynapse_id(presyn_id);
+	number loc; is >> loc; set_location(loc);
+	is >> m_gMax;
+	is >> m_onset;
+	is >> m_tau;
+	is >> m_vm;
+	is >> m_e;
 }
 
 } /* namespace synapse_handler */
