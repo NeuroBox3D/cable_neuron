@@ -512,25 +512,19 @@ void SynapseDistributor::set_activation_timing(number start_time, number duratio
 
 			if ( (std::pow(a.x() - x, 2) + std::pow(a.y() - y, 2) + std::pow(a.z() - z, 2)) < std::pow(radius, 2) &&
 			     (std::pow(b.x() - x, 2) + std::pow(b.y() - y, 2) + std::pow(b.z() - z, 2)) < std::pow(radius, 2) ) {
-				number edgeLength = EdgeLength(e, m_aaPosition);
-		for(size_t i = 0; i < m_aaSynInfo[e].size(); ++i)
-		{
-			number t_start = var_start();
+				for(size_t i = 0; i < m_aaSynInfo[e].size(); ++i)
+				{
+					number t_start = var_start();
 
-			if(t_start < 0)
-				t_start = 0;
+					if(t_start < 0)
+						t_start = 0;
 
-			number dur = var_duration();
-			dur = dur < 0 ? 0 : dur;
+					number dur = var_duration();
+					dur = dur < 0 ? 0 : dur;
 
-			number t_end = t_start + abs( var_duration());
-
-			if(t_start > t_end)
-				UG_THROW("ERROR in SynapseDistributor constructor: Synapse activity start time > end time.");
-
-			m_aaSynInfo[e][i].m_onset = t_start;
-			m_aaSynInfo[e][i].m_tau = dur / 6.0;
-		}
+					m_aaSynInfo[e][i].m_onset = t_start;
+					m_aaSynInfo[e][i].m_tau = dur / 6.0;
+				}
 			}
 	}
 
