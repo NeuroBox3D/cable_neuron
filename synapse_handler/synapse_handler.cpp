@@ -146,6 +146,34 @@ set_activation_timing
 }
 
 
+template <typename TDomain>
+void NETISynapseHandler<TDomain>::
+set_activation_timing_biexp
+(
+	number onset_mean,
+	number tau1_mean,
+	number tau2_mean,
+	number onset_dev,
+	number tau1_dev,
+	number tau2_dev,
+	number peak_cond,
+	bool constSeed
+)
+{
+	UG_COND_THROW(m_bInited, "The activation timing cannot be changed after addition of the\n"
+				  "original CableEquation object to the domain discretization.");
+
+	m_prim_biexp_onset_mean = onset_mean;
+	m_prim_biexp_tau1_mean = tau1_mean;
+	m_prim_biexp_tau2_mean = tau2_mean;
+	m_prim_biexp_onset_dev = onset_dev;
+	m_prim_biexp_tau1_dev = tau1_dev;
+	m_prim_biexp_tau2_dev = tau2_dev;
+	m_prim_biexp_peak_cond = peak_cond;
+	m_prim_biexp_constSeed = constSeed;
+}
+
+
 
 template <typename TDomain>
 void NETISynapseHandler<TDomain>::
@@ -238,12 +266,11 @@ void NETISynapseHandler<TDomain>::
 update_presyn()
 {
 //	update only in case of EXP2_SYNAPSE presence
-	if(m_bEXP2_SYNAPSE == true)
+	// TODO: not a good idea; what if there are other updatable synapse types in the future?!
+	if (m_bEXP2_SYNAPSE == true)
 	{
 		// check that handler has been init'ed
 		UG_COND_THROW(!m_bInited, "Cannot update before initialization.");
-
-		// TODO: ensure consistency!?
 
 		// reset presynaptic index values
 		m_vPresynVmValues.assign(m_vPresynVmValues.size(), -std::numeric_limits<number>::max());
@@ -305,8 +332,6 @@ synapse_on_edge(const Edge* edge, size_t scv, number time, number& current)
 	current = 0.0;
 
 	typedef synapse_traits<> STV;
-	typedef synapse_traits<AlphaSynapse> STA;
-	typedef synapse_traits<Exp2Syn> STB;
 
 	for (size_t i = 0; i < vInfo.size(); ++i)
 	{
@@ -322,6 +347,7 @@ synapse_on_edge(const Edge* edge, size_t scv, number time, number& current)
 				// treat alpha synapse
 				case ALPHA_SYNAPSE:
 				{
+					typedef synapse_traits<AlphaSynapse> STA;
 					//if (SynapseSelector::is_declared(ALPHA_SYNAPSE))
 					//{
 						// create a default alpha synapse and populate with parameters
@@ -340,6 +366,7 @@ synapse_on_edge(const Edge* edge, size_t scv, number time, number& current)
 				// treat bi-exponential synapse
 				case EXP2_SYNAPSE:
 				{
+					typedef synapse_traits<Exp2Syn> STB;
 					//if (SynapseSelector::is_declared(EXP2_SYNAPSE))
 					//{
 						// create a default exp2syn and populate with parameters
@@ -374,6 +401,19 @@ synapse_on_edge(const Edge* edge, size_t scv, number time, number& current)
 						}
 						//UG_LOG_ALL_PROCS("current current (exp2syn): " << current << std::endl);
 					//}
+					break;
+				}
+
+				case JANA_SYNAPSE_FROM_MARKUS_WITH_LOVE:
+				{
+					// create a default Jana synapse and populate with parameters
+					typedef synapse_traits<JanaSynapseFromMarkusWithLove> STJ;
+					JanaSynapseFromMarkusWithLove jsyn(1e-3*STJ::tau1(info), 1e-3*STJ::tau2(info),	// TODO units
+							1e-3*STJ::onset(info), 1e-3*STJ::v_rev(info), 1e-6*STJ::g_max(info), vm_postsyn);
+
+					current += jsyn.current(time);
+					active_synapse = true;
+
 					break;
 				}
 
@@ -445,24 +485,43 @@ void NETISynapseHandler<TDomain>::
 set_activation_timing_with_grid()
 {
 	// activity timing setup: random normal distribution
-	boost::mt19937 rng;
+	boost::mt19937 rng_alpha;
+	boost::mt19937 rng_biexp;
 #ifdef UG_PARALLEL
 	if (m_constSeed)
-		rng.seed(0);//pcl::ProcRank());
+		rng_alpha.seed(0);//pcl::ProcRank());
 	else
-		rng.seed(pcl::ProcRank()*time(NULL));
+		rng_alpha.seed(pcl::ProcRank()*time(NULL));
+
+	if (m_prim_biexp_constSeed)
+		rng_biexp.seed(0);//pcl::ProcRank());
+	else
+		rng_biexp.seed(pcl::ProcRank()*time(NULL));
 #else
 	if (m_constSeed)
-		rng.seed(0);
+		rng_alpha.seed(0);
 	else
-		rng.seed(time(NULL));
+		rng_alpha.seed(time(NULL));
+
+	if (m_prim_biexp_constSeed)
+		rng_biexp.seed(0);
+	else
+		rng_biexp.seed(time(NULL));
 #endif
 
+	// alpha synapse distributions
 	boost::normal_distribution<double> start_dist(m_start_time, m_start_time_dev);
-	boost::variate_generator<boost::mt19937, boost::normal_distribution<double> > var_start(rng, start_dist);
-
+	boost::variate_generator<boost::mt19937, boost::normal_distribution<double> > var_start(rng_alpha, start_dist);
 	boost::normal_distribution<double> duration_dist(m_duration, m_duration_dev);
-	boost::variate_generator<boost::mt19937, boost::normal_distribution<double> > var_duration(rng, duration_dist);
+	boost::variate_generator<boost::mt19937, boost::normal_distribution<double> > var_duration(rng_alpha, duration_dist);
+
+	// biexp synapse distributions
+	boost::normal_distribution<double> onset_dist(m_prim_biexp_onset_mean, m_prim_biexp_onset_dev);
+	boost::variate_generator<boost::mt19937, boost::normal_distribution<double> > var_onset(rng_biexp, onset_dist);
+	boost::normal_distribution<double> tau1_dist(m_prim_biexp_tau1_mean, m_prim_biexp_tau1_dev);
+	boost::variate_generator<boost::mt19937, boost::normal_distribution<double> > var_tau1(rng_biexp, tau1_dist);
+	boost::normal_distribution<double> tau2_dist(m_prim_biexp_tau2_mean, m_prim_biexp_tau2_dev);
+	boost::variate_generator<boost::mt19937, boost::normal_distribution<double> > var_tau2(rng_biexp, tau2_dist);
 
 	// check availability of all needed structures
 	UG_COND_THROW(!m_spGrid.valid(), "No valid grid. Make sure that the synapse handler has a grid to work on!");
@@ -472,6 +531,7 @@ set_activation_timing_with_grid()
 	iter_type eEnd = m_spGrid->end<Edge>(0);
 
 	typedef synapse_traits<AlphaSynapse> STA;
+	typedef synapse_traits<JanaSynapseFromMarkusWithLove> STJ;
 	typedef synapse_traits<void> STV;
 
 	// loop edges and change alpha synapses
@@ -483,26 +543,53 @@ set_activation_timing_with_grid()
 		{
 			SynapseInfo& info = vSI[i];
 
-			// only treat alpha synapses
-			if (STV::type(info) != ALPHA_SYNAPSE)
-				continue;
+			// only treat alpha synapses // TODO: treat all synapses without presynaptic input!
+			switch (STV::type(info))
+			{
+				case ALPHA_SYNAPSE:
+				{
+					number t_onset = var_start();
 
-			number t_start = var_start();
+					if (t_onset < 0)
+						t_onset = 0;
 
-			if (t_start < 0)
-				t_start = 0;
+					number dur = var_duration();
+					dur = dur < 0 ? 0 : dur;
 
-			number dur = var_duration();
-			dur = dur < 0 ? 0 : dur;
+					// set start and duration time
+					STA::onset(info) = t_onset;
+					// This will parameterize the alpha_synapse in such a way that
+					// at time = 6*tau, the current will be < 0.05 times its maximal strength.
+					STA::tau(info) = dur / 6.0;
+					STA::nSpikes(info) = 1;
+					STA::freq(info) = 1;
+					STA::g_max(info) = m_peak_cond;
 
-			// set start and duration time
-			STA::onset(info) = t_start;
-			// This will parameterize the alpha_synapse in such a way that
-			// at time = 6*tau, the current will be < 0.05 times its maximal strength.
-			STA::tau(info) = dur / 6.0;
-			STA::nSpikes(info) = 1;
-			STA::freq(info) = 1;
-			STA::g_max(info) = m_peak_cond;
+					break;
+				}
+				case JANA_SYNAPSE_FROM_MARKUS_WITH_LOVE:
+				{
+					number t_onset = var_onset();
+
+					if (t_onset < 0) t_onset = 0;
+
+					number tau1 = var_tau1();
+					tau1 = tau1 < 0 ? 0 : tau1;
+
+					number tau2 = var_tau2();
+					tau2 = tau2 < 0 ? 0 : tau2;
+
+					// set onset, tau1 and tau2
+					STJ::onset(info) = t_onset;
+					STJ::tau1(info) = tau1;
+					STJ::tau2(info) = tau2;
+					STJ::g_max(info) = m_prim_biexp_peak_cond;
+
+					break;
+				}
+				default:
+					break;
+			}
 		}
 	}
 }

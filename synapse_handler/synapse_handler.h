@@ -195,6 +195,46 @@ class NETISynapseHandler : public ISynapseHandler<TDomain>
 			{set_activation_timing(start_time, duration, start_time_dev, duration_dev, 6e-4, true);}
 
 		/**
+		 * @brief sets alpha synapses activity pattern (randomly)
+		 *
+		 * The settings are only written to the base level. A call to propagate_synapses_to_levels()
+		 * is required afterwards to ensure that all grid levels are up to date.
+		 *
+		 * @param onset_mean		average onset of activity
+		 * @param tau1_mean			average tau1 time constant
+		 * @param tau2_mean			average tau2 time constant
+		 * @param onset_dev			deviation of onset
+		 * @param onset_tau1		deviation of tau1
+		 * @param onset_tau2		deviation of tau2
+		 * @param peak_cond			maximal conductivity
+		 * @param constSeed			if true: take 0 as seed; if false: take time-dependent seed (default: true)
+		 */
+		void set_activation_timing_biexp
+		(
+			number onset_mean,
+			number tau1_mean,
+			number tau2_mean,
+			number onset_dev,
+			number tau1_dev,
+			number tau2_dev,
+			number peak_cond,
+			bool constSeed
+		);
+		void set_activation_timing_biexp(number onset_mean, number tau1_mean, number tau2_mean,
+			number onset_dev, number tau1_dev, number tau2_dev, number peak_cond)
+		{
+			set_activation_timing_biexp(onset_mean, tau1_mean, tau2_mean,
+										onset_dev, tau1_dev, tau2_dev, peak_cond, true);
+		}
+		void set_activation_timing_biexp(number onset_mean, number tau1_mean, number tau2_mean,
+			number onset_dev, number tau1_dev, number tau2_dev)
+		{
+			set_activation_timing_biexp(onset_mean, tau1_mean, tau2_mean,
+										onset_dev, tau1_dev, tau2_dev, 6e-4, true);
+		}
+
+
+		/**
 		 * @brief functionality executed when the grid is first known to synapse handler
 		 *
 		 * This method will be called be the assigned CableEquation object when its approximation space is valid,
@@ -366,6 +406,18 @@ class NETISynapseHandler : public ISynapseHandler<TDomain>
 		number m_duration_dev;
 		number m_peak_cond;
 		bool m_constSeed;
+		/// @}
+
+		/// bi-exp primary synapse timing params
+		///	@{
+		number m_prim_biexp_onset_mean;
+		number m_prim_biexp_tau1_mean;
+		number m_prim_biexp_tau2_mean;
+		number m_prim_biexp_onset_dev;
+		number m_prim_biexp_tau1_dev;
+		number m_prim_biexp_tau2_dev;
+		number m_prim_biexp_peak_cond;
+		bool m_prim_biexp_constSeed;
 		/// @}
 
 		/// attachment handler for presynapse index attachment

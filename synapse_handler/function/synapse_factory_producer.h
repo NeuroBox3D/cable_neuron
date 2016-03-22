@@ -32,7 +32,7 @@ private:
 	static const std::string ALPHA_SYNAPSE_FACTORY;
 	static const std::string EXP_SYNAPSE_FACTORY;
 	static const std::string EMPTY_SYNAPSE_FACTORY;
-	static const std::string CUSTOM_SYNAPSE_FACTORY;
+	static const std::string JANA_SYNAPSE_FROM_MARKUS_WITH_LOVE_FACTORY;
 
 public:
 	/*!

@@ -49,8 +49,15 @@ void SynapseInfo::print_to_log() const
 			UG_LOG("duration    : " << STB::activity_time(*this) << std::endl);
 			return;
 
-		case CUSTOM_SYNAPSE:
-			UG_LOG("type: CUSTOM_SYNAPSE" << std::endl);
+		case JANA_SYNAPSE_FROM_MARKUS_WITH_LOVE:
+			typedef synapse_traits<JanaSynapseFromMarkusWithLove> STJ;
+			UG_LOG("type        : " << STJ::name() << std::endl);
+			UG_LOG("local coords: " << STJ::loc_coord(*this) << std::endl);
+			UG_LOG("onset       : " << STJ::onset(*this) << std::endl);
+			UG_LOG("max conduct.: " << STJ::g_max(*this) << std::endl);
+			UG_LOG("revers. pot.: " << STJ::v_rev(*this) << std::endl);
+			UG_LOG("tau1        : " << STJ::tau1(*this) << std::endl);
+			UG_LOG("tau2        : " << STJ::tau2(*this) << std::endl);
 			return;
 
 		default:
@@ -94,8 +101,15 @@ std::string SynapseInfo::format() const {
 			os << "duration    : " << STB::activity_time(*this) << std::endl;
 			break;
 
-		case CUSTOM_SYNAPSE:
-			os << "type: CUSTOM_SYNAPSE" << std::endl;
+		case JANA_SYNAPSE_FROM_MARKUS_WITH_LOVE:
+			typedef synapse_traits<JanaSynapseFromMarkusWithLove> STJ;
+			os << "type:       : " << STJ::name() << std::endl;
+			os << "local coords: " << STJ::loc_coord(*this) << std::endl;
+			os << "onset       : " << STJ::onset(*this) << std::endl;
+			os << "max conduct.: " << STJ::g_max(*this) << std::endl;
+			os << "revers. pot.: " << STJ::v_rev(*this) << std::endl;
+			os << "tau1        : " << STJ::tau1(*this) << std::endl;
+			os << "tau2        : " << STJ::tau2(*this) << std::endl;
 			break;
 
 		default:

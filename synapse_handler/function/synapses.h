@@ -106,6 +106,49 @@ namespace synapse_handler {
 		virtual ~Exp2Syn() {}
 	};
 
+	/*!
+	 * \brief bi-exponential synapse, i. e. functional synapse / bilateral synapse
+	 */
+	class JanaSynapseFromMarkusWithLove : public ISynapse {
+	private:
+		number m_tau1;	///< time constant (s)
+		number m_tau2;	///< time constant (s)
+		number m_onset;		///< activity onset (s)
+		number m_e;		///< reversal potential (V)
+		number m_w;		///< conductance (S)
+		number m_vm;	///< membrane potential (V)
+
+	public:
+		number current(const number& t) const
+		{
+			if (t < m_onset) return 0.0;
+			number tp = (m_tau1*m_tau2)/(m_tau2 - m_tau1) * std::log(m_tau2/m_tau1);	// time of maximal current
+			number factor = 1.0 / (std::exp(-tp/m_tau2) - std::exp(-tp/m_tau1));		// normalization factor
+			number i = m_w * factor * (m_vm - m_e) * (std::exp(-t/m_tau2) - std::exp(-t/m_tau1));
+			return i; //!< i: current (in units of A)
+		}
+
+		void set_vm(const number& vm) {
+			m_vm = vm;
+		}
+
+		void set_parameters(number tau1, number tau2, number onset, number e, number w) {
+			m_tau1 = tau1;
+			m_tau2 = tau2;
+			m_onset = onset;
+			m_e = e;
+			m_w = w;
+		}
+
+		// we might not want to allow this
+		//Exp2Syn() : m_tau1(1), m_tau2(1), m_e(0), m_w(0), m_vm(0) {}
+
+		JanaSynapseFromMarkusWithLove(number tau1, number tau2, number onset, number e, number w, number vm)
+			: m_tau1(tau1), m_tau2(tau2), m_onset(onset), m_e(e), m_w(w), m_vm(vm) {}
+
+		virtual ~JanaSynapseFromMarkusWithLove() {}
+	};
+
 
 #if 0 // not needed atm
 // ///////////////////////////////

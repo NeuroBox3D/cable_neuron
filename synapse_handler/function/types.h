@@ -25,7 +25,7 @@ enum SynapseType {
 	EMPTY_SYNAPSE=0,
 	ALPHA_SYNAPSE,
 	EXP2_SYNAPSE,
-	CUSTOM_SYNAPSE, //!< could be used or another for custom synapses
+	JANA_SYNAPSE_FROM_MARKUS_WITH_LOVE, // credit to M.S. for creative naming :)
 	ALPHA_PRE_SYNAPSE,
 	ALPHA_POST_SYNAPSE,
 	EXP2_PRE_SYNAPSE,

@@ -172,6 +172,19 @@ struct synapse_traits<Exp2Syn> : public synapse_traits<void>
 	}
 };
 
+template<>
+struct synapse_traits<JanaSynapseFromMarkusWithLove> : public synapse_traits<void>
+{
+	// write access
+	static number& tau1(SynapseInfo& syn) {return syn.m_tau;}
+	static number& tau2(SynapseInfo& syn) {return syn.m_param3;}
+
+	// const access
+	static number tau1(const SynapseInfo& syn) {return syn.m_tau;}
+	static number tau2(const SynapseInfo& syn) {return syn.m_param3;}
+	static std::string name() {return std::string("Bi-exp synapse for Jana");}
+};
+
 
 } // namespace synapse_handler
 } // namespace cable_neuron
