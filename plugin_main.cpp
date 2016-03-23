@@ -46,7 +46,8 @@
 #include "synapse_handler/grid/synapse_info.h"
 
 //split_synapse handler
-//#include "split_synapse_handler/IPreSynapse.h"
+#include "split_synapse_handler/IBaseSynapse.h"
+#include "split_synapse_handler/split_synapse_info_io_traits.h"
 
 // synapse distributor
 #include "synapse_distributor/synapse_distributor.h"
@@ -654,10 +655,12 @@ InitUGPlugin_cable_neuron(Registry* reg, string grp)
 	typedef ANumber ADiameter;
 	typedef Attachment<uint> APresynInd;
 	typedef Attachment<std::vector<SynapseInfo> >AVSynapse;
+	typedef Attachment<std::vector<IBaseSynapse*> >AVSplitSynapse;
 
 	GlobalAttachments::declare_attachment<ADiameter>("diameter", true);
 	GlobalAttachments::declare_attachment<APresynInd>("presyn_index", true);
 	GlobalAttachments::declare_attachment<AVSynapse>("Synapses", false);
+	GlobalAttachments::declare_attachment<AVSplitSynapse>("SplitSynapses", false);
 
 	typedef cable_neuron::Functionality Functionality;
 

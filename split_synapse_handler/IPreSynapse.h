@@ -44,6 +44,10 @@ public:
 	number location() const {return m_location;}
 
 	//virtual interface methods
+	/**
+	 * important: pre synapse implementations have to end with '_PRE_SYNAPSE'
+	 * e.g. EXP2_PRE_SYNAPSE
+	 */
 	virtual std::string name() const = 0;
 	virtual SynapseType type() const = 0;
 

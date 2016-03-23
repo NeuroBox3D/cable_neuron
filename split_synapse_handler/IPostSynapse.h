@@ -46,6 +46,10 @@ public:
 
 	//virtual interface methods
 	virtual SynapseType type() const = 0;
+	/**
+	 * important: post synapse implementations have to end with _POST_SYNAPSE
+	 * e.g. ALPHA_POST_SYNAPSE
+	 */
 	virtual std::string name() const = 0;
 
 	virtual number current(const number& t) = 0;

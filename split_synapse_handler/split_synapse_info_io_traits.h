@@ -12,6 +12,7 @@
 #include <string>
 #include <boost/lexical_cast.hpp>
 #include "SynapseDealer.h"
+#include "IBaseSynapse.h"
 
 #include "lib_grid/attachments/attachment_info_traits.h"
 #include "lib_grid/attachments/attachment_io_traits.h"
@@ -56,6 +57,7 @@ struct attachment_io_traits<Attachment<std::vector<IBaseSynapse*> > > {
 			IBaseSynapse* s = SynapseDealer::instance()->deal(identifier); //todo
 			in >> s;
 			v[i] = s;
+
 		}
 	}
 };

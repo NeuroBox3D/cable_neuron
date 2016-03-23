@@ -49,8 +49,6 @@ public:
 	}
 };
 
-SynapseDealer *SynapseDealer::m_instance = 0;
-
 } /* namespace synapse_handler */
 } /* namespace cable_neuron */
 } /* namespace ug */

@@ -22,7 +22,8 @@
 #include "../../split_synapse_handler/IPostSynapse.h"
 #include "../../split_synapse_handler/AlphaPostSynapse.h"
 #include "../../split_synapse_handler/Exp2PostSynapse.h"
-#include "../../synapse_handler/function/types.h" 				//SynapseType
+#include "../../synapse_handler/function/types.h"
+#include "../../split_synapse_handler/SynapseDealer.h"
 
 
 // using directives
@@ -40,7 +41,7 @@ BOOST_AUTO_TEST_CASE(ALPHAPRESYNAPSE) {
 	number t1 = 1e-7;
 	number t2 = 3e-6;
 
-	IPreSynapse *s1 = new AlphaPreSynapse(0.0, 0.0);
+	IBaseSynapse *s1 = new AlphaPreSynapse(0.0, 0.0);
 	IPreSynapse *s2 = new AlphaPreSynapse(1, 1, 0.0, 0.0);
 	IPreSynapse *s3 = new AlphaPreSynapse(3, 2, 0.0, 0.0);
 
@@ -76,6 +77,9 @@ BOOST_AUTO_TEST_CASE(ALPHAPRESYNAPSE) {
 	iss >> s1;
 	oss2 << s1;
 	BOOST_REQUIRE_MESSAGE(oss2.str() == "4 111 10 1.4 3e-08", "deserialization check");
+
+	//synapse dealer
+	IBaseSynapse
 
 	delete s1;
 	delete s2;

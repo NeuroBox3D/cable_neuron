@@ -23,6 +23,7 @@ std::istream& operator>>(std::istream& is, IBaseSynapse* s)
 	return is;
 }
 
+
 } /* namespace synapse_handler */
 } /* namespace cable_neuron */
 } /* namespace ug */

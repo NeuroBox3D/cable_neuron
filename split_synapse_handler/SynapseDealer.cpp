@@ -36,6 +36,8 @@ IBaseSynapse* SynapseDealer::deal(std::string t)
 	return (it == m_register.end()) ? 0 : it->second->generate();
 }
 
+SynapseDealer *SynapseDealer::m_instance = 0;
+
 } /* namespace synapse_handler */
 } /* namespace cable_neuron */
 } /* namespace ug */

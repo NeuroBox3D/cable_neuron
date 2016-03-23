@@ -9,4 +9,6 @@ set (SOURCES ${SOURCES}
 		
 		split_synapse_handler/Exp2PreSynapse.cpp
 		split_synapse_handler/Exp2PostSynapse.cpp
+		
+		split_synapse_handler/SplitSynapseHandler.cpp
 	)
