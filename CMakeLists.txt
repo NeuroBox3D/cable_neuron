@@ -95,6 +95,11 @@ if(buildEmbeddedPlugins)
 		ExportSingleFileDefinitions(${CMAKE_CURRENT_SOURCE_DIR}/plugin_main.cpp CONVERTED_TRANSPORT_ENABLED)
 	endif (CNConvertedTransport)
 	
+	if (CNSplitSynapses)
+		# add definition to plugin_main.cpp to include all converted transport mechanisms
+		ExportSingleFileDefinitions(${CMAKE_CURRENT_SOURCE_DIR}/plugin_main.cpp SPLIT_SYNAPSES_ENABLED)
+	endif (CNSplitSynapses)	
+	
 	if (CNTestsuite)
 		target_link_libraries (CNTestsuite ug4)
 	endif (CNTestsuite)
@@ -106,6 +111,11 @@ else(buildEmbeddedPlugins)
 		# add definition to plugin_main.cpp to include all converted transport mechanisms
 		set_source_files_properties(plugin_main.cpp PROPERTIES COMPILE_DEFINITIONS CONVERTED_TRANSPORT_ENABLED)
 	endif (CNConvertedTransport)
+	
+	if (CNSplitSynapses)
+		# add definition to plugin_main.cpp to include all converted transport mechanisms
+		set_source_files_properties(plugin_main.cpp PROPERTIES COMPILE_DEFINITIONS SPLIT_SYNAPSES_ENABLED)
+	endif (CNSplitSynapses)
 	
 	target_link_libraries(${pluginName} ug4)
 	
