@@ -1,20 +1,17 @@
 /*
- * PreExp2Synapse.cpp
+ * PreAlphaSynapse.cpp
  *
- *  Created on: Mar 16, 2016
+ *  Created on: Mar 1, 2016
  *      Author: lreinhardt
  */
 
-#include "Exp2PreSynapse.h"
+#include "alpha_pre_synapse.h"
 
 namespace ug {
 namespace cable_neuron {
 namespace synapse_handler {
 
-/**
- * Synapse with id=0
- */
-Exp2PreSynapse::Exp2PreSynapse(
+AlphaPreSynapse::AlphaPreSynapse(
 		const number& location,
 		const number& onset)
 
@@ -23,7 +20,7 @@ Exp2PreSynapse::Exp2PreSynapse(
 {
 }
 
-Exp2PreSynapse::Exp2PreSynapse(
+AlphaPreSynapse::AlphaPreSynapse(
 		const unsigned long long id,
 		const unsigned long long postsynapse_id,
 		const number& location,
@@ -34,24 +31,25 @@ Exp2PreSynapse::Exp2PreSynapse(
 {
 }
 
-Exp2PreSynapse::~Exp2PreSynapse()
+AlphaPreSynapse::~AlphaPreSynapse()
 {
 }
 
-void Exp2PreSynapse::update(const number& t, VectorProxyBase* up)
+void AlphaPreSynapse::update(const number& t, VectorProxyBase* up)
 {
 	//todo:
 	//dummy update atm
 }
 
-bool Exp2PreSynapse::is_active(const number& t, VectorProxyBase* up)
+
+bool AlphaPreSynapse::is_active(const number& t, VectorProxyBase* up)
 {
 	//todo:
 	//dummy
 	return (t >= m_onset);
 }
 
-void Exp2PreSynapse::put_to(std::ostream& os) const
+void AlphaPreSynapse::put_to(std::ostream& os) const
 {
 	using std::ostringstream;
 	ostringstream strs;
@@ -63,8 +61,7 @@ void Exp2PreSynapse::put_to(std::ostream& os) const
 	os << strs.str();
 }
 
-
-void Exp2PreSynapse::get_from(std::istream& is)
+void AlphaPreSynapse::get_from(std::istream& is)
 {
 	std::string t; is >> t;
 	unsigned long long id; is >> id; set_id(id);

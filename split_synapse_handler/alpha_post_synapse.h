@@ -5,12 +5,13 @@
  *      Author: lreinhardt
  */
 
-#ifndef SPLIT_SYNAPSE_HANDLER_ALPHAPOSTSYNAPSE_H_
-#define SPLIT_SYNAPSE_HANDLER_ALPHAPOSTSYNAPSE_H_
+#ifndef SPLIT_SYNAPSE_HANDLER_ALPHA_POST_SYNAPSE_H_
+#define SPLIT_SYNAPSE_HANDLER_ALPHA_POST_SYNAPSE_H_
 
 #include <common/types.h> 							//number
 #include <string>									//std::string
-#include "../split_synapse_handler/IPostSynapse.h" 	//IPostSynapse
+
+#include "post_synapse.h" 	//IPostSynapse
 
 namespace ug {
 namespace cable_neuron {
@@ -76,4 +77,4 @@ public:
 } /* namespace cable_neuron */
 } /* namespace ug */
 
-#endif /* SPLIT_SYNAPSE_HANDLER_ALPHAPOSTSYNAPSE_H_ */
+#endif /* SPLIT_SYNAPSE_HANDLER_ALPHA_POST_SYNAPSE_H_ */

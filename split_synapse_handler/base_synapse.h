@@ -5,8 +5,8 @@
  *      Author: lreinhardt
  */
 
-#ifndef SPLIT_SYNAPSE_HANDLER_IBASESYNAPSE_H_
-#define SPLIT_SYNAPSE_HANDLER_IBASESYNAPSE_H_
+#ifndef SPLIT_SYNAPSE_HANDLER_BASE_SYNAPSE_H_
+#define SPLIT_SYNAPSE_HANDLER_BASE_SYNAPSE_H_
 
 #include <iostream>
 
@@ -31,4 +31,4 @@ public:
 } /* namespace cable_neuron */
 } /* namespace ug */
 
-#endif /* SPLIT_SYNAPSE_HANDLER_IBASESYNAPSE_H_ */
+#endif /* SPLIT_SYNAPSE_HANDLER_BASE_SYNAPSE_H_ */

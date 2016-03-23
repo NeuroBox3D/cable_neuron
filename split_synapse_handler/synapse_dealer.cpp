@@ -5,7 +5,7 @@
  *      Author: lreinhardt
  */
 
-#include "SynapseDealer.h"
+#include "synapse_dealer.h"
 
 namespace ug {
 namespace cable_neuron {

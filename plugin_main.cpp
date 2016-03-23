@@ -47,9 +47,9 @@
 
 #ifdef SPLIT_SYNAPSES_ENABLED
 //split_synapse handler
-#include "split_synapse_handler/IBaseSynapse.h"
+#include "split_synapse_handler/base_synapse.h"
 #include "split_synapse_handler/split_synapse_info_io_traits.h"
-#include "split_synapse_handler/AlphaPreSynapse.h"
+#include "split_synapse_handler/alpha_pre_synapse.h"
 #endif
 
 // synapse distributor

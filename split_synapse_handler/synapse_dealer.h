@@ -5,12 +5,13 @@
  *      Author: lreinhardt
  */
 
-#ifndef SPLIT_SYNAPSE_HANDLER_SYNAPSEDEALER_H_
-#define SPLIT_SYNAPSE_HANDLER_SYNAPSEDEALER_H_
+#ifndef SPLIT_SYNAPSE_HANDLER_SYNAPSE_DEALER_H_
+#define SPLIT_SYNAPSE_HANDLER_SYNAPSE_DEALER_H_
 
-#include "IBaseSynapse.h"
 #include <map>
 #include <string>
+
+#include "base_synapse.h"
 
 namespace ug {
 namespace cable_neuron {
@@ -57,4 +58,4 @@ public:
 
 #include "synapse_dealer_impl.h"
 
-#endif /* SPLIT_SYNAPSE_HANDLER_SYNAPSEDEALER_H_ */
+#endif /* SPLIT_SYNAPSE_HANDLER_SYNAPSE_DEALER_H_ */

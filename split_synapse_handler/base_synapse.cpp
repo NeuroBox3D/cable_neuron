@@ -5,7 +5,7 @@
  *      Author: lreinhardt
  */
 
-#include "IBaseSynapse.h"
+#include "base_synapse.h"
 
 namespace ug {
 namespace cable_neuron {

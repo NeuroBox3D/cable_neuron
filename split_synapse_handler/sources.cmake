@@ -1,14 +1,14 @@
 set (SOURCES ${SOURCES}
-		split_synapse_handler/IBaseSynapse.cpp
-		split_synapse_handler/SynapseDealer.cpp
-		split_synapse_handler/IPreSynapse.cpp
-		split_synapse_handler/IPostSynapse.cpp
+		split_synapse_handler/base_synapse.cpp
+		split_synapse_handler/synapse_dealer.cpp
+		split_synapse_handler/pre_synapse.cpp
+		split_synapse_handler/post_synapse.cpp
 		
-		split_synapse_handler/AlphaPreSynapse.cpp
-		split_synapse_handler/AlphaPostSynapse.cpp
+		split_synapse_handler/alpha_pre_synapse.cpp
+		split_synapse_handler/alpha_post_synapse.cpp
 		
-		split_synapse_handler/Exp2PreSynapse.cpp
-		split_synapse_handler/Exp2PostSynapse.cpp
+		split_synapse_handler/exp2_pre_synapse.cpp
+		split_synapse_handler/exp2_post_synapse.cpp
 		
-		split_synapse_handler/SplitSynapseHandler.cpp
+		split_synapse_handler/split_synapse_handler.cpp
 	)

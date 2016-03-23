@@ -11,14 +11,13 @@
 #include <vector>
 #include <string>
 #include <boost/lexical_cast.hpp>
-#include "SynapseDealer.h"
-#include "IBaseSynapse.h"
-
 #include "lib_grid/attachments/attachment_info_traits.h"
 #include "lib_grid/attachments/attachment_io_traits.h"
 #include "lib_grid/global_attachments.h"
 
 #include "../synapse_handler/function/types.h"
+#include "base_synapse.h"
+#include "synapse_dealer.h"
 
 namespace ug {
 using namespace cable_neuron::synapse_handler;

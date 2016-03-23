@@ -5,7 +5,7 @@
  *      Author: lreinhardt
  */
 
-#include "AlphaPostSynapse.h"
+#include "alpha_post_synapse.h"
 
 #include <cmath>
 

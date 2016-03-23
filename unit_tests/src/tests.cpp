@@ -16,14 +16,14 @@
 // ug includes
 #include "../../synapse_handler/synapse_handler.h"
 #include "../../synapse_handler/synapse.h"
-#include "../../split_synapse_handler/IPreSynapse.h"
-#include "../../split_synapse_handler/AlphaPreSynapse.h"
-#include "../../split_synapse_handler/Exp2PreSynapse.h"
-#include "../../split_synapse_handler/IPostSynapse.h"
-#include "../../split_synapse_handler/AlphaPostSynapse.h"
-#include "../../split_synapse_handler/Exp2PostSynapse.h"
+#include "../../split_synapse_handler/pre_synapse.h"
+#include "../../split_synapse_handler/alpha_pre_synapse.h"
+#include "../../split_synapse_handler/exp2_pre_synapse.h"
+#include "../../split_synapse_handler/post_synapse.h"
+#include "../../split_synapse_handler/alpha_post_synapse.h"
+#include "../../split_synapse_handler/exp2_post_synapse.h"
 #include "../../synapse_handler/function/types.h"
-#include "../../split_synapse_handler/SynapseDealer.h"
+#include "../../split_synapse_handler/synapse_dealer.h"
 
 
 // using directives

@@ -5,7 +5,7 @@
  *      Author: lreinhardt
  */
 
-#include "../split_synapse_handler/IPostSynapse.h"
+#include "post_synapse.h"
 
 #include <common/types.h> 											//number
 #include "../synapse_handler/function/types.h" 						//SynapseType

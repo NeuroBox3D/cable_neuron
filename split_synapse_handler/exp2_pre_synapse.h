@@ -5,14 +5,14 @@
  *      Author: lreinhardt
  */
 
-#ifndef SPLIT_SYNAPSE_HANDLER_EXP2PRESYNAPSE_H_
-#define SPLIT_SYNAPSE_HANDLER_EXP2PRESYNAPSE_H_
+#ifndef SPLIT_SYNAPSE_HANDLER_EXP2_PRE_SYNAPSE_H_
+#define SPLIT_SYNAPSE_HANDLER_EXP2_PRE_SYNAPSE_H_
 
 #include "../synapse_handler/function/types.h"						//SynapseType
 #include <string>													//std::string
 #include <common/types.h>											//number
-#include "../split_synapse_handler/IPreSynapse.h"											//IPreSynapse
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"	//VectorProxyBase
+#include "pre_synapse.h"											//IPreSynapse
 
 namespace ug {
 namespace cable_neuron {
@@ -58,4 +58,4 @@ public:
 } /* namespace cable_neuron */
 } /* namespace ug */
 
-#endif /* SPLIT_SYNAPSE_HANDLER_EXP2PRESYNAPSE_H_ */
+#endif /* SPLIT_SYNAPSE_HANDLER_EXP2_PRE_SYNAPSE_H_ */

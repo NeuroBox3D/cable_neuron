@@ -5,7 +5,7 @@
  *      Author: lreinhardt
  */
 
-#include "Exp2PostSynapse.h"
+#include "exp2_post_synapse.h"
 
 namespace ug {
 namespace cable_neuron {

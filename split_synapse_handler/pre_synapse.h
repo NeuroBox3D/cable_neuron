@@ -11,8 +11,8 @@
 #include <string>													//std::string
 #include "../synapse_handler/function/types.h" 						//SynapseType
 #include <common/types.h>											//number
+#include "base_synapse.h"											//IBaseSynapse
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"	//VectorProxyBase
-#include "IBaseSynapse.h"											//IBaseSynapse
 
 namespace ug {
 namespace cable_neuron {

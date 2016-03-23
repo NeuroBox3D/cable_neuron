@@ -11,8 +11,8 @@
 #include "../synapse_handler/function/types.h" 						//SynapseType
 #include <string>													//std::string
 #include <common/types.h> 											//number
-#include "../split_synapse_handler/IPreSynapse.h"					//IPreSynapse
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h" 	//VectorProxyBase
+#include "pre_synapse.h"					//IPreSynapse
 
 
 namespace ug {

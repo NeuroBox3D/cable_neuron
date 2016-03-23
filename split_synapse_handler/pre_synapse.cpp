@@ -5,7 +5,7 @@
  *      Author: lreinhardt
  */
 
-#include "../split_synapse_handler/IPreSynapse.h"
+#include "pre_synapse.h"
 
 namespace ug {
 namespace cable_neuron {
