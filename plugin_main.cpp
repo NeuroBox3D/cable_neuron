@@ -49,6 +49,7 @@
 //split_synapse handler
 #include "split_synapse_handler/IBaseSynapse.h"
 #include "split_synapse_handler/split_synapse_info_io_traits.h"
+#include "split_synapse_handler/AlphaPreSynapse.h"
 #endif
 
 // synapse distributor
@@ -665,6 +666,10 @@ InitUGPlugin_cable_neuron(Registry* reg, string grp)
 	GlobalAttachments::declare_attachment<AVSynapse>("Synapses", false);
 #ifdef SPLIT_SYNAPSES_ENABLED
 	GlobalAttachments::declare_attachment<AVSplitSynapse>("SplitSynapses", false);
+
+	// register synapse types
+	SynapseDealer::instance()->register_synapse_type<AlphaPreSynapse>("ALPHA_PRE_SYNAPSE");
+		// usw.
 #endif
 	typedef cable_neuron::Functionality Functionality;
 
