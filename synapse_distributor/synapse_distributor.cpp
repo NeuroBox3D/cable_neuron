@@ -590,20 +590,22 @@ void SynapseDistributor::set_activation_timing(
 {
 
 	//alpha timings
-	if(alpha_timings.size() != 4) UG_THROW("Expected timing values: 4");
+	if(alpha_timings.size() != 5) UG_THROW("Expected timing values: 5");
 	number start_time = alpha_timings[0];
 	number start_time_dev = alpha_timings[1];
 	number duration = alpha_timings[2];
 	number duration_dev = alpha_timings[3];
+	number peak_cond = alpha_timings[4];
 
 	//jana timings
-	if(biexp_timings.size() != 6) UG_THROW("Expected timing values: 6");
+	if(biexp_timings.size() != 7) UG_THROW("Expected timing values: 7");
 	number biexp_onset_time = biexp_timings[0];
 	number biexp_onset_time_dev = biexp_timings[1];
 	number biexp_tau1_mean = biexp_timings[2];
 	number biexp_tau1_dev = biexp_timings[3];
 	number biexp_tau2_mean = biexp_timings[4];
 	number biexp_tau2_dev = biexp_timings[5];
+	number biexp_peak_cond = biexp_timings[6];
 
 	//	Activity timing setup
 	//	############## Random normal distribution
@@ -662,6 +664,7 @@ void SynapseDistributor::set_activation_timing(
 					{
 						m_aaSynInfo[e][i].m_onset = t_start;
 						m_aaSynInfo[e][i].m_tau = dur / 6.0;
+						m_aaSynInfo[e][i].m_gMax = peak_cond;
 						break;
 					}
 					//set for JANA_SYNAPSE_FROM_MARKUS_WITH_LOVE biexp activation timings
@@ -670,6 +673,7 @@ void SynapseDistributor::set_activation_timing(
 						m_aaSynInfo[e][i].m_onset = t_onset;
 						m_aaSynInfo[e][i].m_tau = tau1;
 						m_aaSynInfo[e][i].m_param3 = tau2;
+						m_aaSynInfo[e][i].m_gMax = biexp_peak_cond;
 						break;
 					}
 					default:
