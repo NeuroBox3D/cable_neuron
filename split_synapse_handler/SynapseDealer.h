@@ -27,7 +27,7 @@ template<typename TSyn>
 class SynapseGenerator : public ISynapseGenerator
 {
 public:
-	IBaseSynapse* generate() {return new TSyn;}
+	IBaseSynapse* generate() {return new TSyn();}
 };
 
 class SynapseDealer {
@@ -38,7 +38,7 @@ public:
 	SynapseDealer();
 	virtual ~SynapseDealer();
 
-	void register_synapsetype(std::string t, ISynapseGenerator* image);
+	template <typename TSyn> void register_synapse_type(std::string t);
 	IBaseSynapse* deal(std::string t);
 
 	static SynapseDealer* instance() {
@@ -49,8 +49,12 @@ public:
 	}
 };
 
+
 } /* namespace synapse_handler */
 } /* namespace cable_neuron */
 } /* namespace ug */
+
+
+#include "synapse_dealer_impl.h"
 
 #endif /* SPLIT_SYNAPSE_HANDLER_SYNAPSEDEALER_H_ */

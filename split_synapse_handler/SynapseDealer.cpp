@@ -24,11 +24,6 @@ SynapseDealer::~SynapseDealer() {
 	}
 }
 
-void SynapseDealer::register_synapsetype(std::string t, ISynapseGenerator* image)
-{
-	m_register[t] = image;
-}
-
 IBaseSynapse* SynapseDealer::deal(std::string t)
 {
 	std::map<std::string, ISynapseGenerator*>::iterator it = m_register.find(t);
