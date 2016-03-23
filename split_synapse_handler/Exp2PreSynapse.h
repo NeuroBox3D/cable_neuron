@@ -25,6 +25,7 @@ private:
 
 public:
 	//ctor & dtor
+	Exp2PreSynapse() {}					//needed for template generator
 	Exp2PreSynapse(
 			const number& location,
 			const number& onset);

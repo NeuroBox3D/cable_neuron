@@ -26,6 +26,7 @@ private:
 
 public:
 	//ctor & dtor
+	AlphaPostSynapse() {}		//needed for template generator
 	AlphaPostSynapse(
 		const number& location,
 		const number& gMax,

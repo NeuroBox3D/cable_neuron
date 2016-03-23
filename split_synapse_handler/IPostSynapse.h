@@ -22,11 +22,12 @@ class IPostSynapse : public IBaseSynapse
 {
 private:
 	unsigned long long m_id;					//own postsynapse id / alternative: shared id if there is a 1:1 relation?
-	unsigned long long m_presynapse_id;		//presynapse id (if needed/existing)
-	number m_location;					//location on edge
+	unsigned long long m_presynapse_id;			//presynapse id (if needed/existing)
+	number m_location;							//location on edge
 
 public:
 	//ctor & dtor
+	IPostSynapse() {} 							//needed for SynapseDealer
 	IPostSynapse(
 			const unsigned long long id,
 			const unsigned long long presynapseid,

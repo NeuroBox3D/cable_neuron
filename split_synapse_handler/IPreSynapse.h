@@ -26,6 +26,7 @@ class IPreSynapse : public IBaseSynapse
 
 public:
 	//ctor & dtor
+	IPreSynapse() {}						//needed for SynapseDealer
 	IPreSynapse(
 			const unsigned long long id,
 			const unsigned long long postsynapse_id,

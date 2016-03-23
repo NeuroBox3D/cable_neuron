@@ -29,6 +29,7 @@ private:
 
 public:
 	//ctor & dtor
+	Exp2PostSynapse() {}					//needed for template generator
 	Exp2PostSynapse(
 			const number& location,
 			const number& tau1,

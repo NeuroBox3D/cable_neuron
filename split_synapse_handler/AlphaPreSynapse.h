@@ -26,6 +26,7 @@ private:
 
 public:
 	//ctor & dtor
+	AlphaPreSynapse() {} 					//needed for template generator
 	AlphaPreSynapse(
 			const number& location,
 			const number& onset);

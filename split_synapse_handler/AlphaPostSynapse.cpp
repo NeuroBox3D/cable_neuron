@@ -65,7 +65,7 @@ void AlphaPostSynapse::put_to(std::ostream& os) const
 {
 	using std::ostringstream;
 	ostringstream strs;
-	strs << static_cast<int>(type()) << " ";					//identifier for reconstruction
+	strs << name() << " ";					//identifier for reconstruction
 	strs << id() << " ";
 	strs << presynapse_id() << " ";
 	strs << location() << " ";
@@ -82,7 +82,7 @@ void AlphaPostSynapse::put_to(std::ostream& os) const
  */
 void AlphaPostSynapse::get_from(std::istream& is)
 {
-	int t; is >> t;
+	std::string t; is >> t;
 	unsigned long long id; is >> id; set_id(id);
 	unsigned long long presyn_id; is >> presyn_id; set_presynapse_id(presyn_id);
 	number loc; is >> loc; set_location(loc);
