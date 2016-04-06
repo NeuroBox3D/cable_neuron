@@ -643,8 +643,10 @@ struct Functionality
 			.set_construct_as_smart_pointer(true);
 
 	}
+#ifdef SPLIT_SYNAPSES_ENABLED
+	{
 		// /////////////////////////////////////////////
-		// //////// synapse distributor ////////////////
+		// //////// split synapse distributor ////////////////
 		// /////////////////////////////////////////////
 
 		// TODO: might better be registered (and implemented) in a domain-dependent manner
@@ -696,9 +698,10 @@ struct Functionality
 			.add_method("get_subset_handler",&TSD::get_subset_handler,"","SubsetHandler*","Pointer to current subsethandler object",grp)
 
 			.set_construct_as_smart_pointer(true);
-	{
+
 
 	}
+#endif
 	}
 
 }; // end Functionality
