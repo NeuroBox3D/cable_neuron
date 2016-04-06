@@ -24,11 +24,10 @@ class IPostSynapse : public IBaseSynapse
 private:
 	unsigned long long m_id;					//own postsynapse id / alternative: shared id if there is a 1:1 relation?
 	unsigned long long m_presynapse_id;			//presynapse id (if needed/existing)
-	number m_location;							//location on edge
 
 public:
 	//ctor & dtor
-	IPostSynapse() {} 							//needed for SynapseDealer
+	IPostSynapse(); 							//needed for SynapseDealer
 	IPostSynapse(
 			const unsigned long long id,
 			const unsigned long long presynapseid,
@@ -39,19 +38,13 @@ public:
 	//setter & getter
 	void set_presynapse_id(const unsigned long long id) {m_presynapse_id = id;}
 	void set_id(const unsigned long long id) {m_id = id;}
-	void set_location(const number& loc) {m_location = loc;}
+
 
 	unsigned long long presynapse_id() const {return m_presynapse_id;}
 	unsigned long long id() const {return m_id;}
-	number location() const {return m_location;}
 
-	//virtual interface methods
-	virtual SynapseType type() const = 0;
-	/**
-	 * important: post synapse implementations have to end with _POST_SYNAPSE
-	 * e.g. ALPHA_POST_SYNAPSE
-	 */
-	virtual std::string name() const = 0;
+	//post synapses are false
+	bool split_type() const {return false;}
 
 	virtual number current(const number& t) = 0;
 

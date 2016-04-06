@@ -49,9 +49,9 @@ struct attachment_io_traits<Attachment<std::vector<IBaseSynapse*> > > {
 			// create synapse
 			std::string identifier;
 			in >> identifier;
-			for(size_t j = 0; j < identifier.size(); ++j) {
-				in.unget();										//reset input stream
-			}
+//			for(size_t j = 0; j < identifier.size(); ++j) {
+//				in.unget();										//reset input stream
+//			}
 
 			IBaseSynapse* s = SynapseDealer::instance()->deal(identifier); //todo
 			in >> s;

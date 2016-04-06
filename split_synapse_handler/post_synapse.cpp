@@ -16,14 +16,21 @@ namespace ug {
 namespace cable_neuron {
 namespace synapse_handler {
 
+IPostSynapse::IPostSynapse()
+:IBaseSynapse(0),
+ m_id(0),
+ m_presynapse_id(0)
+{
+}
+
 IPostSynapse::IPostSynapse(
 		const unsigned long long id,
 		const unsigned long long presynapse_id,
 		const number& location)
 
-:m_id(id),
- m_presynapse_id(presynapse_id),
- m_location(location)
+:IBaseSynapse(location),
+ m_id(id),
+ m_presynapse_id(presynapse_id)
 {
 }
 

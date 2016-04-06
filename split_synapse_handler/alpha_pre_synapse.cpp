@@ -11,6 +11,11 @@ namespace ug {
 namespace cable_neuron {
 namespace synapse_handler {
 
+AlphaPreSynapse::AlphaPreSynapse()
+:IPreSynapse(0, 0, 0),
+ m_onset(0)
+{}
+
 AlphaPreSynapse::AlphaPreSynapse(
 		const number& location,
 		const number& onset)
@@ -63,13 +68,18 @@ void AlphaPreSynapse::put_to(std::ostream& os) const
 
 void AlphaPreSynapse::get_from(std::istream& is)
 {
-	std::string t; is >> t;
+	//std::string t; is >> t;
 	unsigned long long id; is >> id; set_id(id);
 	unsigned long long postsyn_id; is >> postsyn_id; set_postsynapse_id(postsyn_id);
 	number loc; is >> loc; set_location(loc);
 	is >> m_onset;
 }
 
+void AlphaPreSynapse::set_activation_timing(std::vector<number> timings)
+{
+	if(timings.size() != 1) UG_THROW("Expected timing values: 1");
+	m_onset = timings[0];
+}
 
 } /* namespace synapse_handler */
 } /* namespace cable_neuron */

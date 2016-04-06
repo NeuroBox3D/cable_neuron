@@ -23,11 +23,11 @@ message(STATUS "      ConvertedTransport: " ${CNConvertedTransport} " (options a
 
 # compile SplitSynapses only if # SplitSynapses is set
 option(CNSplitSynapses "CNSplitSynapses")
-message(STATUS "      CNSplitSynapses:    " ${CNSplitSynapses} " (options are: ON, OFF)")
+message(STATUS "      SplitSynapses:      " ${CNSplitSynapses} " (options are: ON, OFF)")
 
 # whether to build the test suite
 option(CNTestsuite "Build Testsuite" OFF)
-message(STATUS "      CNTestsuite:        " ${CNTestsuite} " (options are: ON, OFF)")
+message(STATUS "      Testsuite:          " ${CNTestsuite} " (options are: ON, OFF)")
 
 
 
@@ -57,6 +57,7 @@ endif (CNConvertedTransport)
 
 if (CNSplitSynapses)
     include(split_synapse_handler/sources.cmake)
+    include(split_synapse_distributor/sources.cmake)
 endif (CNSplitSynapses)
 
 

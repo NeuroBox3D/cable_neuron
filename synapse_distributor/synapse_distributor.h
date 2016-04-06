@@ -118,7 +118,7 @@ public:
 	bool has_active_synapses(const MathVector<dim>& c, const number time, number& current) const;
 	bool has_active_synapses(const Edge* e, const size_t corner, const number time, number& current) const;
 
-//	testing and helper
+	//	testing and helper
 	void print_status();
 	std::string get_last_message();
 	void set_outfile(std::string outfile);

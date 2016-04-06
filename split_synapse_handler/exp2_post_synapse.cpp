@@ -11,6 +11,15 @@ namespace ug {
 namespace cable_neuron {
 namespace synapse_handler {
 
+Exp2PostSynapse::Exp2PostSynapse()
+:IPostSynapse(0, 0, 0),
+ m_tau1(0),
+ m_tau2(0),
+ m_e(0),
+ m_w(0),
+ m_vm(0)
+{}
+
 Exp2PostSynapse::Exp2PostSynapse(
 		const number& location,
 		const number& tau1,
@@ -77,7 +86,7 @@ void Exp2PostSynapse::put_to(std::ostream& os) const
 
 void Exp2PostSynapse::get_from(std::istream& is)
 {
-	std::string t; is >> t;
+	//std::string t; is >> t;
 	unsigned long long id; is >> id; set_id(id);
 	unsigned long long presyn_id; is >> presyn_id; set_presynapse_id(presyn_id);
 	number loc; is >> loc; set_location(loc);
@@ -86,6 +95,13 @@ void Exp2PostSynapse::get_from(std::istream& is)
 	is >> m_e;
 	is >> m_w;
 	is >> m_vm;
+}
+
+void Exp2PostSynapse::set_activation_timing(std::vector<number> timings)
+{
+	if(timings.size() != 2) UG_THROW("Expected timing values: 2");
+	m_tau1 = timings[0];
+	m_tau2 = timings[1];
 }
 
 } /* namespace synapse_handler */

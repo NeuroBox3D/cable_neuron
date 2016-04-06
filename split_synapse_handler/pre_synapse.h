@@ -22,11 +22,10 @@ class IPreSynapse : public IBaseSynapse
 {
 	unsigned long long m_id;					//own presynapse id / alternative: shared id if there is a 1:1 relation?
 	unsigned long long m_postsynapse_id;		//postsynapse id
-	number m_location;					//location on edge
 
 public:
 	//ctor & dtor
-	IPreSynapse() {}						//needed for SynapseDealer
+	IPreSynapse();						//needed for SynapseDealer
 	IPreSynapse(
 			const unsigned long long id,
 			const unsigned long long postsynapse_id,
@@ -37,22 +36,15 @@ public:
 	//setter & getter
 	void set_id(const unsigned long long id) {m_id = id;}
 	void set_postsynapse_id(const unsigned long long id) {m_postsynapse_id = id;}
-	void set_location(const number& location) {m_location = location;}
 
 	unsigned long long id() const {return m_id;}
 	unsigned long long postsynapse_id() const {return m_postsynapse_id;}
-	number location() const {return m_location;}
-
-	//virtual interface methods
-	/**
-	 * important: pre synapse implementations have to end with '_PRE_SYNAPSE'
-	 * e.g. EXP2_PRE_SYNAPSE
-	 */
-	virtual std::string name() const = 0;
-	virtual SynapseType type() const = 0;
 
 	virtual void update(const number& t, VectorProxyBase* up=NULL) = 0;
 	virtual bool is_active(const number& t, VectorProxyBase* up=NULL) = 0;
+
+	//pre synapses are true
+	bool split_type() const {return true;}
 
 	//from serialization interface IBaseSynapse
 	virtual void put_to(std::ostream& os) const = 0;			//'put_to' == operator<<

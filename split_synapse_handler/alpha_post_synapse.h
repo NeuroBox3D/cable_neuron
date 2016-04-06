@@ -27,7 +27,7 @@ private:
 
 public:
 	//ctor & dtor
-	AlphaPostSynapse() {}		//needed for template generator
+	AlphaPostSynapse();		//needed for template generator
 	AlphaPostSynapse(
 		const number& location,
 		const number& gMax,
@@ -61,8 +61,13 @@ public:
 	number vm() const {return m_vm;}
 	number e() const {return m_e;}
 
+	void set_activation_timing(std::vector<number> timings);
+
 	SynapseType type() const {return ALPHA_POST_SYNAPSE;}
 	std::string name() const {return "ALPHA_POST_SYNAPSE";}
+
+	//post synapses are false
+	bool split_type() const {return false;}
 
 	//functionality
 	number current(const number& t);

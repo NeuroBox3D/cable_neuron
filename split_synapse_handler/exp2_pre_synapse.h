@@ -25,7 +25,7 @@ private:
 
 public:
 	//ctor & dtor
-	Exp2PreSynapse() {}					//needed for template generator
+	Exp2PreSynapse();					//needed for template generator
 	Exp2PreSynapse(
 			const number& location,
 			const number& onset);
@@ -42,8 +42,13 @@ public:
 	void set_onset(const number& onset) {m_onset = onset;}
 	number onset() const {return m_onset;}
 
+	void set_activation_timing(std::vector<number> timings);
+
 	SynapseType type() const {return EXP2_PRE_SYNAPSE;}
 	std::string name() const {return "EXP2_PRE_SYNAPSE";}
+
+	//pre synapses are true
+	bool split_type() const {return true;}
 
 	//interface methods
 	void update(const number& t, VectorProxyBase* up=NULL);

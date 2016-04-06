@@ -35,9 +35,9 @@ class SynapseDealer {
 private:
 	std::map<std::string, ISynapseGenerator*> m_register;
 	static SynapseDealer *m_instance;
-public:
+	~SynapseDealer();
 	SynapseDealer();
-	virtual ~SynapseDealer();
+public:
 
 	template <typename TSyn> void register_synapse_type(std::string t);
 	IBaseSynapse* deal(std::string t);

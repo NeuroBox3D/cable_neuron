@@ -14,8 +14,6 @@
 #include <boost/test/parameterized_test.hpp>
 
 // ug includes
-#include "../../synapse_handler/synapse_handler.h"
-#include "../../synapse_handler/synapse.h"
 #include "../../split_synapse_handler/pre_synapse.h"
 #include "../../split_synapse_handler/alpha_pre_synapse.h"
 #include "../../split_synapse_handler/exp2_pre_synapse.h"
@@ -24,6 +22,8 @@
 #include "../../split_synapse_handler/exp2_post_synapse.h"
 #include "../../synapse_handler/function/types.h"
 #include "../../split_synapse_handler/synapse_dealer.h"
+#include "../../split_synapse_distributor/split_synapse_distributor.h"
+
 
 
 // using directives
@@ -41,7 +41,7 @@ BOOST_AUTO_TEST_CASE(ALPHAPRESYNAPSE) {
 	number t1 = 1e-7;
 	number t2 = 3e-6;
 
-	IBaseSynapse *s1 = new AlphaPreSynapse(0.0, 0.0);
+	IPreSynapse *s1 = new AlphaPreSynapse(0.0, 0.0);
 	IPreSynapse *s2 = new AlphaPreSynapse(1, 1, 0.0, 0.0);
 	IPreSynapse *s3 = new AlphaPreSynapse(3, 2, 0.0, 0.0);
 
@@ -70,16 +70,19 @@ BOOST_AUTO_TEST_CASE(ALPHAPRESYNAPSE) {
 	//serialization
 	ostringstream oss1;
 	ostringstream oss2;
-	istringstream iss("4 111 10 1.4 3e-08");
+	istringstream iss("ALPHA_PRE_SYNAPSE 111 10 1.4 3e-08");
 	oss1 << s1;
-	BOOST_REQUIRE_MESSAGE(oss1.str() == "4 0 3 0.3 1e-06", "serialization check");
+	BOOST_REQUIRE_MESSAGE(oss1.str() == "ALPHA_PRE_SYNAPSE 0 3 0.3 1e-06", "serialization check");
+
+	std::string ident;
+	iss >> ident; //pop identifier away
 
 	iss >> s1;
 	oss2 << s1;
-	BOOST_REQUIRE_MESSAGE(oss2.str() == "4 111 10 1.4 3e-08", "deserialization check");
+	BOOST_REQUIRE_MESSAGE(oss2.str() == "ALPHA_PRE_SYNAPSE 111 10 1.4 3e-08", "deserialization check");
 
 	//synapse dealer
-	IBaseSynapse
+
 
 	delete s1;
 	delete s2;
@@ -125,17 +128,26 @@ BOOST_AUTO_TEST_CASE(EXP2PRESYNAPSE) {
 	//serialization
 	ostringstream oss1;
 	ostringstream oss2;
-	istringstream iss("6 111 10 1.4 3e-08");
+	istringstream iss("EXP2_PRE_SYNAPSE 111 10 1.4 3e-08");
 	oss1 << s1;
-	BOOST_REQUIRE_MESSAGE(oss1.str() == "6 0 0 0.3 1e-06", "serialization check");
+	BOOST_REQUIRE_MESSAGE(oss1.str() == "EXP2_PRE_SYNAPSE 0 0 0.3 1e-06", "serialization check");
+
+	std::string ident;
+	iss >> ident; //pop identifier away
 
 	iss >> s1;
 	oss2 << s1;
-	BOOST_REQUIRE_MESSAGE(oss2.str() == "6 111 10 1.4 3e-08", "deserialization check");
+	BOOST_REQUIRE_MESSAGE(oss2.str() == "EXP2_PRE_SYNAPSE 111 10 1.4 3e-08", "deserialization check");
+
+	//synapse dealer
+	SynapseDealer::instance()->register_synapse_type<Exp2PreSynapse>("EXP2_PRE_SYNAPSE");
+	IBaseSynapse* s4 = SynapseDealer::instance()->deal("EXP2_PRE_SYNAPSE");
+	BOOST_REQUIRE_MESSAGE(s4->name() == "EXP2_PRE_SYNAPSE", "SynapseDealer check");
 
 	delete s1;
 	delete s2;
 	delete s3;
+	delete s4;
 
 	BOOST_MESSAGE("Exp2PreSynapse working.");
 	cout<<"Exp2PreSynapse working."<<endl;
@@ -193,13 +205,21 @@ BOOST_AUTO_TEST_CASE(ALPHAPOSTSYNAPSE) {
 	//serialization
 	ostringstream oss1;
 	ostringstream oss2;
-	istringstream iss("5 1 2 4 3 1 2 2 1");
+	istringstream iss("ALPHA_POST_SYNAPSE 1 2 4 3 1 2 2 1");
 	oss1 << s1;
-	BOOST_REQUIRE_MESSAGE(oss1.str() == "5 3 4 6 1 2 3 4 5", "serialization check");
+	BOOST_REQUIRE_MESSAGE(oss1.str() == "ALPHA_POST_SYNAPSE 3 4 6 1 2 3 4 5", "serialization check");
+
+	std::string ident;
+	iss >> ident; //pop identifier away
 
 	iss >> s1;
 	oss2 << s1;
-	BOOST_REQUIRE_MESSAGE(oss2.str() == "5 1 2 4 3 1 2 2 1", "deserialization check");
+	BOOST_REQUIRE_MESSAGE(oss2.str() == "ALPHA_POST_SYNAPSE 1 2 4 3 1 2 2 1", "deserialization check");
+
+	//synapse dealer
+	SynapseDealer::instance()->register_synapse_type<AlphaPostSynapse>("ALPHA_POST_SYNAPSE");
+	IBaseSynapse* s4 = SynapseDealer::instance()->deal("ALPHA_POST_SYNAPSE");
+	BOOST_REQUIRE_MESSAGE(s4->name() == "ALPHA_POST_SYNAPSE", "SynapseDealer check");
 
 	delete s1;
 	delete s2;
@@ -249,14 +269,21 @@ BOOST_AUTO_TEST_CASE(EXP2POSTSYNAPSE) {
 	//serialization
 	ostringstream oss1;
 	ostringstream oss2;
-	istringstream iss("7 1 22 3 1 1 2 4 1");
+	istringstream iss("EXP2_POST_SYNAPSE 1 22 3 1 1 2 4 1");
 	oss1 << s1;
-	BOOST_REQUIRE_MESSAGE(oss1.str() == "7 32 42 6 2 3 5 1 4", "serialization check");
+	BOOST_REQUIRE_MESSAGE(oss1.str() == "EXP2_POST_SYNAPSE 32 42 6 2 3 5 1 4", "serialization check");
+
+	std::string ident;
+	iss >> ident; //pop identifier away
 
 	iss >> s1;
 	oss2 << s1;
-	BOOST_REQUIRE_MESSAGE(oss2.str() == "7 1 22 3 1 1 2 4 1", "deserialization check");
+	BOOST_REQUIRE_MESSAGE(oss2.str() == "EXP2_POST_SYNAPSE 1 22 3 1 1 2 4 1", "deserialization check");
 
+	//synapse dealer
+	SynapseDealer::instance()->register_synapse_type<Exp2PostSynapse>("EXP2_POST_SYNAPSE");
+	IBaseSynapse* s4 = SynapseDealer::instance()->deal("EXP2_POST_SYNAPSE");
+	BOOST_REQUIRE_MESSAGE(s4->name() == "EXP2_POST_SYNAPSE", "SynapseDealer check");
 
 	delete s1;
 	delete s2;
@@ -268,3 +295,12 @@ BOOST_AUTO_TEST_CASE(EXP2POSTSYNAPSE) {
 
 /// end of test suite postsynapses
 BOOST_AUTO_TEST_SUITE_END();
+
+BOOST_AUTO_TEST_SUITE(SPLITSYNAPSEDISTRIBUTOR);
+
+BOOST_AUTO_TEST_CASE(SSD) {
+	//SplitSynapseDistributor ssd("../apps/cable_neuron_app/grids/31o_pyramidal19aFI.CNG.ugx", "../apps/cable_neuron_app/grids/31o_pyramidal19aFI.CNG_out.ugx", false);
+}
+
+BOOST_AUTO_TEST_SUITE_END();
+

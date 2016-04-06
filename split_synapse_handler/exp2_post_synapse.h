@@ -29,7 +29,7 @@ private:
 
 public:
 	//ctor & dtor
-	Exp2PostSynapse() {}					//needed for template generator
+	Exp2PostSynapse();					//needed for template generator
 	Exp2PostSynapse(
 			const number& location,
 			const number& tau1,
@@ -63,8 +63,13 @@ public:
 	number w() const {return m_w;}
 	number vm() const {return m_vm;}
 
+	void set_activation_timing(std::vector<number> timings);
+
 	SynapseType type() const {return EXP2_POST_SYNAPSE;}
 	std::string name() const {return "EXP2_POST_SYNAPSE";}
+
+	//post synapses are false
+	bool split_type() const {return false;}
 
 	//functionality
 	number current(const number& t);

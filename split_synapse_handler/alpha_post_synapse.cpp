@@ -13,6 +13,15 @@ namespace ug {
 namespace cable_neuron {
 namespace synapse_handler {
 
+AlphaPostSynapse::AlphaPostSynapse()
+:IPostSynapse(0, 0, 0),
+ m_gMax(1.2e-3),
+ m_onset(0),
+ m_tau(0),
+ m_vm(0),
+ m_e(0)
+{}
+
 AlphaPostSynapse::AlphaPostSynapse(
 		const number& location,
 		const number& gMax,
@@ -82,7 +91,7 @@ void AlphaPostSynapse::put_to(std::ostream& os) const
  */
 void AlphaPostSynapse::get_from(std::istream& is)
 {
-	std::string t; is >> t;
+	//std::string t; is >> t;
 	unsigned long long id; is >> id; set_id(id);
 	unsigned long long presyn_id; is >> presyn_id; set_presynapse_id(presyn_id);
 	number loc; is >> loc; set_location(loc);
@@ -91,6 +100,13 @@ void AlphaPostSynapse::get_from(std::istream& is)
 	is >> m_tau;
 	is >> m_vm;
 	is >> m_e;
+}
+
+void AlphaPostSynapse::set_activation_timing(std::vector<number> timings)
+{
+	if(timings.size() != 2) UG_THROW("Expected timing values: 2");
+	m_onset = timings[0];
+	m_tau = timings[1];
 }
 
 } /* namespace synapse_handler */

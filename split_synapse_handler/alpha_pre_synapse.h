@@ -26,7 +26,7 @@ private:
 
 public:
 	//ctor & dtor
-	AlphaPreSynapse() {} 					//needed for template generator
+	AlphaPreSynapse();					//needed for template generator
 	AlphaPreSynapse(
 			const number& location,
 			const number& onset);
@@ -43,8 +43,13 @@ public:
 	SynapseType type() const {return ALPHA_PRE_SYNAPSE;}
 	std::string name() const {return "ALPHA_PRE_SYNAPSE";}
 
+	//pre synapses are true
+	bool split_type() const {return true;}
+
 	void set_onset(const number& onset) {m_onset = onset;}
 	number onset() const {return m_onset;}
+
+	void set_activation_timing(std::vector<number> timings);
 
 	//Interface dummy's
 	void update(const number& t, VectorProxyBase* up=NULL);
