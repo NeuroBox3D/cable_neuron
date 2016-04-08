@@ -10,5 +10,6 @@ set (SOURCES ${SOURCES}
 		split_synapse_handler/exp2_pre_synapse.cpp
 		split_synapse_handler/exp2_post_synapse.cpp
 		
-		split_synapse_handler/split_synapse_handler.cpp
+#		split_synapse_handler/split_synapse_handler.cpp
+#		split_synapse_handler/split_synapse_attachment_handler.cpp
 	)
