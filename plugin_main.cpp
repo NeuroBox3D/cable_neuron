@@ -502,7 +502,6 @@ struct Functionality
 
 		// checks for acyclicity, presynaptic indices, both
 		{
-			/*
 			reg.add_function("is_acyclic", static_cast<bool (*) (SmartPtr<TDomain>)>(&is_acyclic<TDomain>), grp.c_str(),
 							 "", "domain", "Checks whether given domain is acyclic.");
 			reg.add_function("is_acyclic", static_cast<bool (*) (SmartPtr<TDomain>, int)>(&is_acyclic<TDomain>), grp.c_str(),
@@ -515,7 +514,6 @@ struct Functionality
 							 "", "domain", "Checks whether given domain is sound.");
 			reg.add_function("check_domain", static_cast<int (*) (SmartPtr<TDomain>, int)>(&check_domain<TDomain>), grp.c_str(),
 							 "", "domain, verbosity", "Checks whether given domain is sound.");
-							 */
 		}
 	}
 
