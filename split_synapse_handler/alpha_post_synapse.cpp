@@ -18,7 +18,7 @@ AlphaPostSynapse::AlphaPostSynapse()
  m_gMax(1.2e-3),
  m_onset(0),
  m_tau(0),
- m_vm(0),
+// m_vm(0),
  m_e(0)
 {}
 
@@ -27,14 +27,14 @@ AlphaPostSynapse::AlphaPostSynapse(
 		const number& gMax,
 		const number& onset,
 		const number& tau,
-		const number& vm,
+//		const number& vm,
 		const number& e)
 
 :IPostSynapse(0, 0, location),
  m_gMax(gMax),
  m_onset(onset),
  m_tau(tau),
- m_vm(vm),
+// m_vm(vm),
  m_e(e)
 {
 }
@@ -46,14 +46,14 @@ AlphaPostSynapse::AlphaPostSynapse(
 		const number& gMax,
 		const number& onset,
 		const number& tau,
-		const number& vm,
+//		const number& vm,
 		const number& e)
 
 :IPostSynapse(id, presynapse_id, location),
  m_gMax(gMax),
  m_onset(onset),
  m_tau(tau),
- m_vm(vm),
+// m_vm(vm),
  m_e(e)
 {
 }
@@ -62,9 +62,9 @@ AlphaPostSynapse::~AlphaPostSynapse()
 {
 }
 
-number AlphaPostSynapse::current(const number& t)
+number AlphaPostSynapse::current(const number& t, const number& vm)
 {
-	return m_gMax * (t - m_onset)/m_tau * std::exp(-(t - m_onset - m_tau)/m_tau) * (m_vm - m_e);	// current (in units of A)
+	return m_gMax * (t - m_onset)/m_tau * std::exp(-(t - m_onset - m_tau)/m_tau) * (vm - m_e);	// current (in units of A)
 }
 
 /**
@@ -81,7 +81,7 @@ void AlphaPostSynapse::put_to(std::ostream& os) const
 	strs << m_gMax << " ";
 	strs << m_onset << " ";
 	strs <<  m_tau << " ";
-	strs << m_vm << " ";
+//	strs << m_vm << " ";
 	strs << m_e;
 	os << strs.str();
 }
@@ -98,16 +98,10 @@ void AlphaPostSynapse::get_from(std::istream& is)
 	is >> m_gMax;
 	is >> m_onset;
 	is >> m_tau;
-	is >> m_vm;
+//	is >> m_vm;
 	is >> m_e;
 }
 
-void AlphaPostSynapse::set_activation_timing(std::vector<number> timings)
-{
-	if(timings.size() != 2) UG_THROW("Expected timing values: 2");
-	m_onset = timings[0];
-	m_tau = timings[1];
-}
 
 } /* namespace synapse_handler */
 } /* namespace cable_neuron */

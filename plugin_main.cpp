@@ -55,6 +55,7 @@
 #include "split_synapse_handler/exp2_post_synapse.h"
 #include "split_synapse_handler/synapse_dealer.h"
 #include "split_synapse_distributor/split_synapse_distributor.h"
+#include "split_synapse_handler/synapse_container.h"
 #endif
 
 // synapse distributor
@@ -644,6 +645,86 @@ struct Functionality
 
 	}
 #ifdef SPLIT_SYNAPSES_ENABLED
+
+		{
+			typedef IBaseSynapse TBS;
+			reg.add_class_<TBS>("IBaseSynapse", grp)
+					;
+		}
+
+		{
+			string name = "ISynapseContainer";
+
+			typedef ISynapseContainer TSC;
+			reg.add_class_<TSC>(name, grp)
+				//.add_constructor<void (*)(const size_t)>("infile#outfile", "Initializes a SynapseDistributor", grp, "")
+				//.add_constructor<void (*)(const size_t, number, number, number, number, number, number, number, number)>("dom#outfile", "Initializes a SynapseDistributor", grp, "")
+				//.add_method("set_mean_gMax",&TSC::set_mean_gMax)
+				;
+		}
+		{
+			string name = "AlphaPreSynapses";
+			typedef AlphaPreSynapses TSC;
+			reg.add_class_<TSC>(name, grp)
+				.add_constructor<void (*)(const size_t)>("infile#outfile", "Initializes a SynapseDistributor", grp, "")
+				.add_method("set_mean_onset",&TSC::set_mean_onset)
+				.add_method("set_dev_onset",&TSC::set_dev_onset)
+				.add_method("size",&TSC::size)
+				.add_method("get_synapses",&TSC::get_synapses)
+				;
+		}
+
+		{
+			string name = "Exp2PreSynapses";
+			typedef Exp2PreSynapses TSC;
+			reg.add_class_<TSC>(name, grp)
+				.add_constructor<void (*)(const size_t)>("infile#outfile", "Initializes a SynapseDistributor", grp, "")
+				.add_method("set_mean_onset",&TSC::set_mean_onset)
+				.add_method("set_dev_onset",&TSC::set_dev_onset)
+				.add_method("size",&TSC::size)
+				.add_method("get_synapses",&TSC::get_synapses)
+				;
+		}
+
+		{
+			string name = "Exp2PostSynapses";
+
+			typedef Exp2PostSynapses TSC;
+			reg.add_class_<TSC>(name, grp)
+				.add_constructor<void (*)(const size_t)>("infile#outfile", "Initializes a SynapseDistributor", grp, "")
+				//.add_constructor<void (*)(const size_t, number, number, number, number, number, number, number)>("dom#outfile", "Initializes a SynapseDistributor", grp, "")
+				.add_method("set_mean_tau1",&TSC::set_mean_tau1)
+				.add_method("set_dev_tau1",&TSC::set_dev_tau1)
+				.add_method("set_mean_tau2",&TSC::set_mean_tau2)
+				.add_method("set_dev_tau2",&TSC::set_dev_tau2)
+				.add_method("set_mean_e",&TSC::set_mean_e)
+				.add_method("set_dev_e",&TSC::set_dev_e)
+				.add_method("set_mean_w",&TSC::set_mean_w)
+				.add_method("set_dev_w",&TSC::set_dev_w)
+				.add_method("size",&TSC::size)
+				.add_method("get_synapses",&TSC::get_synapses)
+				;
+		}
+
+		{
+			string name = "AlphaPostSynapses";
+
+			typedef AlphaPostSynapses TSC;
+			reg.add_class_<TSC>(name, grp)
+				.add_constructor<void (*)(const size_t)>("infile#outfile", "Initializes a SynapseDistributor", grp, "")
+				//.add_constructor<void (*)(const size_t, number, number, number, number, number, number, number)>("dom#outfile", "Initializes a SynapseDistributor", grp, "")
+				.add_method("set_mean_gMax",&TSC::set_mean_gMax)
+				.add_method("set_dev_gMax",&TSC::set_dev_gMax)
+				.add_method("set_mean_onset",&TSC::set_mean_onset)
+				.add_method("set_dev_onset",&TSC::set_dev_onset)
+				.add_method("set_mean_tau",&TSC::set_mean_tau)
+				.add_method("set_dev_tau",&TSC::set_dev_tau)
+				.add_method("set_mean_e",&TSC::set_mean_e)
+				.add_method("set_dev_e",&TSC::set_dev_e)
+				.add_method("size",&TSC::size)
+				.add_method("get_synapses",&TSC::get_synapses)
+				;
+		}
 	{
 		// /////////////////////////////////////////////
 		// //////// split synapse distributor ////////////////
@@ -651,9 +732,7 @@ struct Functionality
 
 		// TODO: might better be registered (and implemented) in a domain-dependent manner
 		string name = "SplitSynapseDistributor";
-
 		string constr_params("infile#outfile");
-
 
 		typedef SplitSynapseDistributor TSD;
 
@@ -665,16 +744,8 @@ struct Functionality
 			.add_method("remove_all_synapses", &TSD::remove_all_synapses, "e","","Removes all synapses from edge",grp)
 			.add_method("clear", static_cast<void (TSD::*)()>(&TSD::clear),"","","Removes all Synapses from grid",grp)
 			.add_method("clear", static_cast<void (TSD::*)(int)>(&TSD::clear),"subsetIndex","","Removes all Synapses from subset",grp)
-			.add_method("place_synapse", &TSD::place_synapse, "e", "", "Places a synapse.", grp)
-			.add_method("place_synapses",static_cast<void (TSD::*)(std::vector<number>, size_t, std::string)>(&TSD::place_synapses), "p#subsetIndex", "", "Distributes synapses on all subsets s.t. a given density vector.", grp)
-			.add_method("place_synapses_uniform", static_cast<void (TSD::*)(size_t, std::string)>(&TSD::place_synapses_uniform), "", "", "Distributes synapses uniformly on grid.", grp)
-			.add_method("place_synapses_uniform", static_cast<void (TSD::*)(int, size_t, std::string)>(&TSD::place_synapses_uniform), "", "", "Distributes synapses uniformly on subset.", grp)
-			.add_method("place_synapses_uniform", static_cast<void (TSD::*)(const char*, number, std::string)>(&TSD::place_synapses_uniform), "", "", "Distributes synapses uniformly on subset s.t. given density of synapses.", grp)
-			.add_method("place_synapses_uniform", static_cast<void (TSD::*)(number, number, number, number, number, std::string)>(&TSD::place_synapses_uniform), "", "", "Distributes synapses uniformly on edges contained within a given ball specified by center coordinates and radius s.t. given density of synapses is reached.", grp)
-//			.add_method("set_activation_timing",static_cast<void (TSD::*)(number, number, number, number, number, number, number, number, number, number)>(&TSD::set_activation_timing), "start_time#duration#start_time_dev#duration_dev", "", "Sets activity timing of distributed synapes..", grp)
-//			.add_method("set_activation_timing",static_cast<void (TSD::*)(number, number, number, number,number, number, number, number,number, number,number,number,number,number)>(&TSD::set_activation_timing), "start_time#duration#start_time_dev#duration_dev#x coord of ball#y coord of ball#z coord of ball#radius of ball", "", "Sets activity timing of distributed synapes on a given ball by center and radius", grp)
-//			.add_method("set_activation_timing",static_cast<void (TSD::*)(std::vector<number>,std::vector<number>)>(&TSD::set_activation_timing), "start_time#duration#start_time_dev#duration_dev", "", "Sets activity timing of distributed synapes..", grp)
-//			.add_method("set_activation_timing",static_cast<void (TSD::*)(std::vector<number>,std::vector<number>,number,number,number,number)>(&TSD::set_activation_timing), "start_time#duration#start_time_dev#duration_dev", "", "Sets activity timing of distributed synapes..", grp)
+			.add_method("place_synapses_uniform", static_cast<void (TSD::*)(std::vector<IBaseSynapse*>)>(&TSD::place_synapses_uniform), "", "", "Distributes synapses uniformly on grid.", grp)
+			.add_method("place_synapses_uniform", static_cast<void (TSD::*)(int, std::vector<IBaseSynapse*>)>(&TSD::place_synapses_uniform), "", "", "Distributes synapses uniformly on subset.", grp)
 			.add_method("degenerate_uniform",static_cast<void (TSD::*)(number)>(&TSD::degenerate_uniform),"","","Degenerates a certain percentage of synapses in the whole grid.",grp)
 			.add_method("degenerate_uniform",static_cast<void (TSD::*)(number, int)>(&TSD::degenerate_uniform),"","","Degenerates a certain percentage of synapses in the given subset.",grp)
 			.add_method("degenerate_uniform",static_cast<void (TSD::*)(number, const char*)>(&TSD::degenerate_uniform),"","","Degenerates a certain percentage of synapses in the given subset.",grp)
@@ -701,6 +772,8 @@ struct Functionality
 
 
 	}
+
+
 #endif
 	}
 

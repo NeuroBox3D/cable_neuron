@@ -16,8 +16,8 @@ Exp2PostSynapse::Exp2PostSynapse()
  m_tau1(0),
  m_tau2(0),
  m_e(0),
- m_w(0),
- m_vm(0)
+ m_w(0)
+// m_vm(0)
 {}
 
 Exp2PostSynapse::Exp2PostSynapse(
@@ -25,15 +25,16 @@ Exp2PostSynapse::Exp2PostSynapse(
 		const number& tau1,
 		const number& tau2,
 		const number& e,
-		const number& w,
-		const number& vm)
+		const number& w
+//		const number& vm
+		)
 
 :IPostSynapse(0, 0, location),
  m_tau1(tau1),
  m_tau2(tau2),
  m_e(e),
- m_w(w),
- m_vm(vm)
+ m_w(w)
+// m_vm(vm)
 {
 }
 
@@ -44,15 +45,16 @@ Exp2PostSynapse::Exp2PostSynapse(
 		const number& tau1,
 		const number& tau2,
 		const number& e,
-		const number& w,
-		const number& vm)
+		const number& w
+//		const number& vm
+		)
 
 :IPostSynapse(id, presynapse_id, location),
  m_tau1(tau1),
  m_tau2(tau2),
  m_e(e),
- m_w(w),
- m_vm(vm)
+ m_w(w)
+// m_vm(vm)
 {
 }
 
@@ -60,11 +62,11 @@ Exp2PostSynapse::~Exp2PostSynapse()
 {
 }
 
-number Exp2PostSynapse::current(const number& t)
+number Exp2PostSynapse::current(const number& t, const number &vm)
 {
 	number tp = (m_tau1*m_tau2)/(m_tau2 - m_tau1) * std::log(m_tau2/m_tau1);	// time of maximal current
 	number factor = 1.0 / (std::exp(-tp/m_tau2) - std::exp(-tp/m_tau1));		// normalization factor
-	number i = m_w * factor * (m_vm - m_e) * (std::exp(-t/m_tau2) - std::exp(-t/m_tau1));
+	number i = m_w * factor * (vm - m_e) * (std::exp(-t/m_tau2) - std::exp(-t/m_tau1));
 	return i; //!< i: current (in units of A)
 }
 
@@ -80,7 +82,7 @@ void Exp2PostSynapse::put_to(std::ostream& os) const
 	strs << m_tau2 << " ";
 	strs <<  m_e << " ";
 	strs << m_w << " ";
-	strs << m_vm;
+//	strs << m_vm;
 	os << strs.str();
 }
 
@@ -94,15 +96,9 @@ void Exp2PostSynapse::get_from(std::istream& is)
 	is >> m_tau2;
 	is >> m_e;
 	is >> m_w;
-	is >> m_vm;
+//	is >> m_vm;
 }
 
-void Exp2PostSynapse::set_activation_timing(std::vector<number> timings)
-{
-	if(timings.size() != 2) UG_THROW("Expected timing values: 2");
-	m_tau1 = timings[0];
-	m_tau2 = timings[1];
-}
 
 } /* namespace synapse_handler */
 } /* namespace cable_neuron */

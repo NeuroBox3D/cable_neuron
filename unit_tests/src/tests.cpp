@@ -170,9 +170,9 @@ BOOST_AUTO_TEST_CASE(ALPHAPOSTSYNAPSE) {
 	number e = 5;
 	number location = 6;
 
-	IPostSynapse *s1 = new AlphaPostSynapse(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-	IPostSynapse *s2 = new AlphaPostSynapse(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-	IPostSynapse *s3 = new AlphaPostSynapse(1, 2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+	IPostSynapse *s1 = new AlphaPostSynapse(0.0, 0.0, 0.0, 0.0, 0.0);
+	IPostSynapse *s2 = new AlphaPostSynapse(0.0, 0.0, 0.0, 0.0, 0.0);
+	IPostSynapse *s3 = new AlphaPostSynapse(1, 2, 0.0, 0.0, 0.0, 0.0, 0.0);
 
 	BOOST_REQUIRE_MESSAGE(s1->name() == "ALPHA_POST_SYNAPSE","s1 is a ALPHA_POST_SYNAPSE");
 	BOOST_REQUIRE_MESSAGE(s1->type() == ALPHA_POST_SYNAPSE,"s1's type is ALPHA_POST_SYNAPSE");
@@ -183,7 +183,7 @@ BOOST_AUTO_TEST_CASE(ALPHAPOSTSYNAPSE) {
 	static_cast<AlphaPostSynapse*>(s1)->set_gMax(gmax);
 	static_cast<AlphaPostSynapse*>(s1)->set_onset(onset);
 	static_cast<AlphaPostSynapse*>(s1)->set_tau(tau);
-	static_cast<AlphaPostSynapse*>(s1)->set_vm(vm);
+//	static_cast<AlphaPostSynapse*>(s1)->set_vm(vm);
 	static_cast<AlphaPostSynapse*>(s1)->set_e(e);
 
 	BOOST_REQUIRE_MESSAGE(s1->id() == 3, "id getter and setter test");
@@ -196,7 +196,7 @@ BOOST_AUTO_TEST_CASE(ALPHAPOSTSYNAPSE) {
 	BOOST_REQUIRE_MESSAGE(fabs(static_cast<AlphaPostSynapse*>(s1)->gMax() - gmax) < 1e-16 ,"gmax setter and getter test");
 	BOOST_REQUIRE_MESSAGE(fabs(static_cast<AlphaPostSynapse*>(s1)->onset() - onset) < 1e-16 ,"onset setter and getter test");
 	BOOST_REQUIRE_MESSAGE(fabs(static_cast<AlphaPostSynapse*>(s1)->tau() - tau) < 1e-16 ,"tau setter and getter test");
-	BOOST_REQUIRE_MESSAGE(fabs(static_cast<AlphaPostSynapse*>(s1)->vm() - vm) < 1e-16 ,"vm etter and getter test");
+//	BOOST_REQUIRE_MESSAGE(fabs(static_cast<AlphaPostSynapse*>(s1)->vm() - vm) < 1e-16 ,"vm etter and getter test");
 	BOOST_REQUIRE_MESSAGE(fabs(static_cast<AlphaPostSynapse*>(s1)->e() - e) < 1e-16 ,"e setter and getter test");
 
 	//todo:
@@ -205,16 +205,16 @@ BOOST_AUTO_TEST_CASE(ALPHAPOSTSYNAPSE) {
 	//serialization
 	ostringstream oss1;
 	ostringstream oss2;
-	istringstream iss("ALPHA_POST_SYNAPSE 1 2 4 3 1 2 2 1");
+	istringstream iss("ALPHA_POST_SYNAPSE 1 2 4 3 1 2 1");
 	oss1 << s1;
-	BOOST_REQUIRE_MESSAGE(oss1.str() == "ALPHA_POST_SYNAPSE 3 4 6 1 2 3 4 5", "serialization check");
+	BOOST_REQUIRE_MESSAGE(oss1.str() == "ALPHA_POST_SYNAPSE 3 4 6 1 3 4 5", "serialization check");
 
 	std::string ident;
 	iss >> ident; //pop identifier away
 
 	iss >> s1;
 	oss2 << s1;
-	BOOST_REQUIRE_MESSAGE(oss2.str() == "ALPHA_POST_SYNAPSE 1 2 4 3 1 2 2 1", "deserialization check");
+	BOOST_REQUIRE_MESSAGE(oss2.str() == "ALPHA_POST_SYNAPSE 1 2 4 3 1 2 1", "deserialization check");
 
 	//synapse dealer
 	SynapseDealer::instance()->register_synapse_type<AlphaPostSynapse>("ALPHA_POST_SYNAPSE");
@@ -233,13 +233,13 @@ BOOST_AUTO_TEST_CASE(EXP2POSTSYNAPSE) {
 	number tau1 = 2;
 	number tau2 = 3;
 	number w = 1;
-	number vm = 4;
+//	number vm = 4;
 	number e = 5;
 	number location = 6;
 
-	IPostSynapse *s1 = new Exp2PostSynapse(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-	IPostSynapse *s2 = new Exp2PostSynapse(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-	IPostSynapse *s3 = new Exp2PostSynapse(5, 6, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+	IPostSynapse *s1 = new Exp2PostSynapse(0.0, 0.0, 0.0, 0.0, 0.0);
+	IPostSynapse *s2 = new Exp2PostSynapse(0.0, 0.0, 0.0, 0.0, 0.0);
+	IPostSynapse *s3 = new Exp2PostSynapse(5, 6, 0.0, 0.0, 0.0, 0.0, 0.0);
 
 	s1->set_id(32);
 	s1->set_presynapse_id(42);
@@ -256,14 +256,14 @@ BOOST_AUTO_TEST_CASE(EXP2POSTSYNAPSE) {
 	static_cast<Exp2PostSynapse*>(s1)->set_tau1(tau1);
 	static_cast<Exp2PostSynapse*>(s1)->set_w(w);
 	static_cast<Exp2PostSynapse*>(s1)->set_tau2(tau2);
-	static_cast<Exp2PostSynapse*>(s1)->set_vm(vm);
+//	static_cast<Exp2PostSynapse*>(s1)->set_vm(vm);
 	static_cast<Exp2PostSynapse*>(s1)->set_e(e);
 	s1->set_location(location);
 	BOOST_REQUIRE_MESSAGE(fabs(s1->location() - location) < 1e-16, "location setter and getter test");
 	BOOST_REQUIRE_MESSAGE(fabs(static_cast<Exp2PostSynapse*>(s1)->tau1() - tau1) < 1e-16 ,"gmax setter and getter test");
 	BOOST_REQUIRE_MESSAGE(fabs(static_cast<Exp2PostSynapse*>(s1)->tau2() - tau2) < 1e-16 ,"onset setter and getter test");
 	BOOST_REQUIRE_MESSAGE(fabs(static_cast<Exp2PostSynapse*>(s1)->w() - w) < 1e-16 ,"tau setter and getter test");
-	BOOST_REQUIRE_MESSAGE(fabs(static_cast<Exp2PostSynapse*>(s1)->vm() - vm) < 1e-16 ,"vm etter and getter test");
+//	BOOST_REQUIRE_MESSAGE(fabs(static_cast<Exp2PostSynapse*>(s1)->vm() - vm) < 1e-16 ,"vm etter and getter test");
 	BOOST_REQUIRE_MESSAGE(fabs(static_cast<Exp2PostSynapse*>(s1)->e() - e) < 1e-16 ,"e setter and getter test");
 
 	//serialization
@@ -304,3 +304,12 @@ BOOST_AUTO_TEST_CASE(SSD) {
 
 BOOST_AUTO_TEST_SUITE_END();
 
+
+BOOST_AUTO_TEST_SUITE(SPLITSYNAPSEHANDLER);
+
+BOOST_AUTO_TEST_CASE(SSH) {
+
+}
+
+
+BOOST_AUTO_TEST_SUITE_END();

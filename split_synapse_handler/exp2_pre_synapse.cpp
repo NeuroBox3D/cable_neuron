@@ -79,11 +79,6 @@ void Exp2PreSynapse::get_from(std::istream& is)
 	is >> m_onset;
 }
 
-void Exp2PreSynapse::set_activation_timing(std::vector<number> timings)
-{
-	if(timings.size() != 1) UG_THROW("Expected timing values: 1");
-	m_onset = timings[0];
-}
 
 } /* namespace synapse_handler */
 } /* namespace cable_neuron */

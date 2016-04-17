@@ -46,7 +46,7 @@ public:
 	//post synapses are false
 	bool split_type() const {return false;}
 
-	virtual number current(const number& t) = 0;
+	virtual number current(const number& t, const number& vm) = 0;
 
 	//from serialization interface IBaseSynapse
 	virtual void put_to(std::ostream& os) const = 0;			//'put_to' == operator<<

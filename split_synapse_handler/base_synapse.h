@@ -38,8 +38,6 @@ public:
 	virtual void put_to(std::ostream& os) const = 0;							//'put_to' == operator<<
 	virtual void get_from(std::istream& is) = 0;								//'get_from' == operator>>
 
-	virtual void set_activation_timing(std::vector<number> timings) = 0;		//sets timings
-
 	virtual std::string name() const = 0;
 	virtual SynapseType type() const = 0;
 	virtual bool split_type() const = 0;

@@ -22,6 +22,7 @@
 #include "lib_grid/lib_grid.h"
 #include "lib_grid/global_attachments.h"
 #include "lib_grid/tools/copy_attachment_handler.h"
+#include "synapse_dealer.h"
 
 
 #include "split_synapse_info_io_traits.h"
@@ -33,7 +34,7 @@ namespace ug {
 namespace cable_neuron {
 namespace synapse_handler {
 
-
+template <typename TDomain>
 class SplitSynapseHandler
 {
 private:
@@ -44,13 +45,55 @@ private:
 	Grid::EdgeAttachmentAccessor<AVSSynapse> m_aaSSyn;
 	bool m_bInited;
 	SmartPtr<MultiGrid> m_spGrid;
+	SmartPtr<CableEquation<TDomain> > m_spCEDisc;
 	SplitSynapseAttachmentHandler m_ssah;
+	SmartPtr<ApproximationSpace<TDomain> > m_spApprox;
+
+	std::vector<IBaseSynapse*> m_vSynapses;
 
 public:
 	SplitSynapseHandler();
 	virtual ~SplitSynapseHandler() {}
 
-	number current_on_edge(Edge* e, number t);
+	void set_ce_object(SmartPtr<CableEquation<TDomain> > disc);
+
+	number current_on_edge(const Edge* e, size_t scv, number t);
+
+//	template <typename TSyn>
+//	std::vector<TSyn*>::iterator begin()
+//	{
+//		std::vector<IBaseSynapse*> vSyn = all_synapses();
+//		std::vector<TSyn*> vTSyn;
+//		TSyn* s = new TSyn;
+//
+//		for(size_t i = 0; i<vSyn.size(); ++i) {
+//			if(vSyn[i]->type() == s->type()) {
+//				vTSyn.push_back(vSyn[i]);
+//			}
+//		}
+//
+//		delete s;
+//		return vTSyn.begin();
+//	}
+//
+//	template <typename TSyn>
+//	std::vector<TSyn*>::iterator end()
+//	{
+//		std::vector<IBaseSynapse*> vSyn = all_synapses();
+//		std::vector<TSyn*> vTSyn;
+//		TSyn* s = new TSyn;
+//
+//		for(size_t i = 0; i<vSyn.size(); ++i) {
+//			if(vSyn[i]->type() == s->type()) {
+//				vTSyn.push_back(vSyn[i]);
+//			}
+//		}
+//
+//		delete s;
+//		return vTSyn.end();
+//	}
+
+	std::vector<IBaseSynapse*> all_synapses();
 
 	//interface for cable_equation
 	bool synapse_on_edge(const Edge* edge, size_t scv, number time, number& current);
