@@ -24,6 +24,7 @@
 #include "../split_synapse_handler/post_synapse.h"
 #include "../split_synapse_handler/synapse_dealer.h"
 #include "../split_synapse_handler/split_synapse_info_io_traits.h"
+#include "../split_synapse_handler/alpha_post_synapse.h"
 
 // boost includes
 #include "boost/lexical_cast.hpp"
@@ -70,17 +71,13 @@ public:
 	void clear();
 	void clear(int subsetIndex);
 
-	void place_synapse(Edge* e, std::string t);
-	void place_synapses(std::vector<number> distr, size_t numSynapses, std::string t);
-	void place_synapses_uniform(std::vector<Edge*> vEdges, size_t numSynapses, std::string t);
-	void place_synapses_uniform(size_t numSynapses, std::string t);
-	void place_synapses_uniform(int si, size_t numSynapses, std::string t);
-	void place_synapses_uniform(const char*, number density, std::string t);
-	void place_synapses_uniform(number density,	number x, number y, number z, number radius, std::string t);
+	void place_synapse(Edge* e, IBaseSynapse* s);
+	void place_synapses_uniform(std::vector<Edge*> vEdges, std::vector<IBaseSynapse*> s);
 
-	//todo:
-	void set_activation_timing(std::vector<number> timings, std::string t);
-	void set_activation_timing(std::vector<number> timings, number x, number y, number z, number radius, std::string t);
+	void place_synapses_uniform(std::vector<IBaseSynapse*> s);
+	void place_synapses_uniform(int si, std::vector<IBaseSynapse*> s);
+	void place_synapses_uniform(std::vector<number> s);
+	void place_synapses_uniform(int si, std::vector<number> s);
 
 	void degenerate_uniform(std::vector<Edge*> vEdges, size_t numSynapses);
 	void degenerate_uniform(number p);
