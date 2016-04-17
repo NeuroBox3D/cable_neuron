@@ -265,19 +265,19 @@ int check_domain(SmartPtr<TDomain> dom, int verbosity)
 
 
 #ifdef UG_DIM_1
-	template bool is_acyclic<Domain1d>(SmartPtr<Domain1d>);
-	template int check_presyn_indices<Domain1d>(SmartPtr<Domain1d>);
-	template int check_domain<Domain1d>(SmartPtr<Domain1d>);
+	template bool is_acyclic<Domain1d>(SmartPtr<Domain1d>, int);
+	template int check_presyn_indices<Domain1d>(SmartPtr<Domain1d>, int);
+	template int check_domain<Domain1d>(SmartPtr<Domain1d>, int);
 #endif
 #ifdef UG_DIM_2
-	template bool is_acyclic<Domain2d>(SmartPtr<Domain2d>);
-	template int check_presyn_indices<Domain2d>(SmartPtr<Domain2d>);
-	template int check_domain<Domain2d>(SmartPtr<Domain2d>);
+	template bool is_acyclic<Domain2d>(SmartPtr<Domain2d>, int);
+	template int check_presyn_indices<Domain2d>(SmartPtr<Domain2d>, int);
+	template int check_domain<Domain2d>(SmartPtr<Domain2d>, int);
 #endif
 #ifdef UG_DIM_3
-	template bool is_acyclic<Domain3d>(SmartPtr<Domain3d>);
-	template int check_presyn_indices<Domain3d>(SmartPtr<Domain3d>);
-	template int check_domain<Domain3d>(SmartPtr<Domain3d>);
+	template bool is_acyclic<Domain3d>(SmartPtr<Domain3d>, int);
+	template int check_presyn_indices<Domain3d>(SmartPtr<Domain3d>, int);
+	template int check_domain<Domain3d>(SmartPtr<Domain3d>, int);
 #endif
 
 
