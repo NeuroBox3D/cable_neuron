@@ -662,37 +662,18 @@ struct Functionality
 				//.add_method("set_mean_gMax",&TSC::set_mean_gMax)
 				;
 		}
-		{
-			string name = "AlphaPreSynapses";
-			typedef AlphaPreSynapses TSC;
-			reg.add_class_<TSC>(name, grp)
-				.add_constructor<void (*)(const size_t)>("infile#outfile", "Initializes a SynapseDistributor", grp, "")
-				.add_method("set_mean_onset",&TSC::set_mean_onset)
-				.add_method("set_dev_onset",&TSC::set_dev_onset)
-				.add_method("size",&TSC::size)
-				.add_method("get_synapses",&TSC::get_synapses)
-				;
-		}
+
+
 
 		{
-			string name = "Exp2PreSynapses";
-			typedef Exp2PreSynapses TSC;
-			reg.add_class_<TSC>(name, grp)
-				.add_constructor<void (*)(const size_t)>("infile#outfile", "Initializes a SynapseDistributor", grp, "")
-				.add_method("set_mean_onset",&TSC::set_mean_onset)
-				.add_method("set_dev_onset",&TSC::set_dev_onset)
-				.add_method("size",&TSC::size)
-				.add_method("get_synapses",&TSC::get_synapses)
-				;
-		}
+			string name = "Exp2Synapses";
 
-		{
-			string name = "Exp2PostSynapses";
-
-			typedef Exp2PostSynapses TSC;
+			typedef Exp2Synapses TSC;
 			reg.add_class_<TSC>(name, grp)
-				.add_constructor<void (*)(const size_t)>("infile#outfile", "Initializes a SynapseDistributor", grp, "")
+				.add_constructor<void (*)(const size_t, const size_t)>("infile#outfile", "Initializes a SynapseDistributor", grp, "")
 				//.add_constructor<void (*)(const size_t, number, number, number, number, number, number, number)>("dom#outfile", "Initializes a SynapseDistributor", grp, "")
+				.add_method("set_mean_onset",&TSC::set_mean_onset)
+				.add_method("set_dev_onset",&TSC::set_dev_onset)
 				.add_method("set_mean_tau1",&TSC::set_mean_tau1)
 				.add_method("set_dev_tau1",&TSC::set_dev_tau1)
 				.add_method("set_mean_tau2",&TSC::set_mean_tau2)
@@ -707,11 +688,11 @@ struct Functionality
 		}
 
 		{
-			string name = "AlphaPostSynapses";
+			string name = "AlphaSynapses";
 
-			typedef AlphaPostSynapses TSC;
+			typedef AlphaSynapses TSC;
 			reg.add_class_<TSC>(name, grp)
-				.add_constructor<void (*)(const size_t)>("infile#outfile", "Initializes a SynapseDistributor", grp, "")
+				.add_constructor<void (*)(const size_t, const size_t)>("infile#outfile", "Initializes a SynapseDistributor", grp, "")
 				//.add_constructor<void (*)(const size_t, number, number, number, number, number, number, number)>("dom#outfile", "Initializes a SynapseDistributor", grp, "")
 				.add_method("set_mean_gMax",&TSC::set_mean_gMax)
 				.add_method("set_dev_gMax",&TSC::set_dev_gMax)

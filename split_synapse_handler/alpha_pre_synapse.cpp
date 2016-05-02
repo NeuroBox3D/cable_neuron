@@ -13,15 +13,16 @@ namespace synapse_handler {
 
 AlphaPreSynapse::AlphaPreSynapse()
 :IPreSynapse(0, 0, 0),
- m_onset(0)
+ m_onset(0),m_duration(0)
 {}
 
 AlphaPreSynapse::AlphaPreSynapse(
 		const number& location,
-		const number& onset)
+		const number& onset,
+		const number& duration)
 
 :IPreSynapse(0, 0, location),
- m_onset(onset)
+ m_onset(onset),m_duration(duration)
 {
 }
 
@@ -29,10 +30,11 @@ AlphaPreSynapse::AlphaPreSynapse(
 		const unsigned long long id,
 		const unsigned long long postsynapse_id,
 		const number& location,
-		const number& onset)
+		const number& onset,
+		const number& duration)
 
 :IPreSynapse(id, postsynapse_id, location),
- m_onset(onset)
+ m_onset(onset),m_duration(duration)
 {
 }
 
@@ -62,7 +64,8 @@ void AlphaPreSynapse::put_to(std::ostream& os) const
 	strs << id() << " ";
 	strs << postsynapse_id() << " ";
 	strs << location() << " ";
-	strs << m_onset;
+	strs << m_onset << " ";
+	strs << m_duration;
 	os << strs.str();
 }
 
@@ -73,6 +76,26 @@ void AlphaPreSynapse::get_from(std::istream& is)
 	unsigned long long postsyn_id; is >> postsyn_id; set_postsynapse_id(postsyn_id);
 	number loc; is >> loc; set_location(loc);
 	is >> m_onset;
+	is >> m_duration;
+}
+
+bool AlphaPreSynapse::fire(number time, unsigned long long& postsyn_id)
+{
+	if(time >= m_onset) {
+		postsyn_id = postsynapse_id();
+		return true;
+	}
+	return false;
+}
+
+bool AlphaPreSynapse::cooldown(number time, unsigned long long& postsyn_id)
+{
+	number dt = time - m_onset;
+	if( (time >= m_onset) && (dt >= m_duration)) {
+		postsyn_id = postsynapse_id();
+		return true;
+	}
+	return false;
 }
 
 } /* namespace synapse_handler */

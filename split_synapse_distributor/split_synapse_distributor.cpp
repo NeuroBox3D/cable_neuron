@@ -177,14 +177,18 @@ void SplitSynapseDistributor::CopySynapsesToAllLevels()
 ////////////////////////////////////////////////////////////////////////////////////////////
 //	SynapseDistributor::remove_synapse
 /**
- * Removes a Synapse from Edge e.
+ * Removes a Synapse(pre and post part) from Edge e.
  */
 void SplitSynapseDistributor::remove_synapse(Edge* e)
 {
 	if(m_aaSSyn[e].size() > 0)
 	{
-		IBaseSynapse* s = m_aaSSyn[e].back(); 	//last pointer
-		delete s;								//free memory before pop_back()
+		IBaseSynapse* s_pre = m_aaSSyn[e].back(); 	//last pointer
+		delete s_pre;								//free memory before pop_back()
+		m_aaSSyn[e].pop_back();
+
+		IBaseSynapse* s_post = m_aaSSyn[e].back();
+		delete s_post;
 		m_aaSSyn[e].pop_back();
 	}
 }
@@ -240,26 +244,17 @@ void SplitSynapseDistributor::clear(int subsetIndex)
 ////////////////////////////////////////////////////////////////////////////////////////////
 //	SynapseDistributor::place_synapse
 /**
- * Places a Synapse on Edge e.
+ * Places a Pre and postsynapse on Edge e.
  */
-void SplitSynapseDistributor::place_synapse(Edge* e, IBaseSynapse* s)
+void SplitSynapseDistributor::place_synapse(Edge* e, IBaseSynapse* s1, IBaseSynapse* s2)
 {
 	number localCoord = static_cast<number>(rand())  / RAND_MAX; //localCoord factor 0 means e[0], 1 means e[1]
-	s->set_location(localCoord);
-	m_aaSSyn[e].push_back(s);
+	s1->set_location(localCoord);
+	s2->set_location(localCoord);
+	m_aaSSyn[e].push_back(s1);
+	m_aaSSyn[e].push_back(s2);
 }
 
-
-
-void SplitSynapseDistributor::place_synapses_uniform(std::vector<number> s)
-{
-
-}
-
-void SplitSynapseDistributor::place_synapses_uniform(int si, std::vector<number> s)
-{
-
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //	SynapseDistributor::place_synapses(vector<Edge*> vEdges)
@@ -296,9 +291,9 @@ void SplitSynapseDistributor::place_synapses_uniform(std::vector<Edge*> vEdges, 
 
 //	Distribute specified number of synapses along the coarse grid edges randomly (uniformly s.t. individual edge lengths)
 	size_t i = 0;
-	while(i < s.size())
+	while(i < s.size()/2)
 	{
-		place_synapse(vEdges[randomIndex()], s[i]);
+		place_synapse(vEdges[randomIndex()], s[i],s[s.size()/2 + i]); //post and presynapse together
 		i++;
 	}
 

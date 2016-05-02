@@ -71,7 +71,7 @@ public:
 	void clear();
 	void clear(int subsetIndex);
 
-	void place_synapse(Edge* e, IBaseSynapse* s);
+	void place_synapse(Edge* e, IBaseSynapse* s1, IBaseSynapse* s2);
 	void place_synapses_uniform(std::vector<Edge*> vEdges, std::vector<IBaseSynapse*> s);
 
 	void place_synapses_uniform(std::vector<IBaseSynapse*> s);

@@ -16,12 +16,14 @@ Exp2PostSynapse::Exp2PostSynapse()
  m_tau1(0),
  m_tau2(0),
  m_e(0),
- m_w(0)
+ m_w(0),
 // m_vm(0)
+ m_onset(0)
 {}
 
 Exp2PostSynapse::Exp2PostSynapse(
 		const number& location,
+		const number& onset,
 		const number& tau1,
 		const number& tau2,
 		const number& e,
@@ -33,14 +35,16 @@ Exp2PostSynapse::Exp2PostSynapse(
  m_tau1(tau1),
  m_tau2(tau2),
  m_e(e),
- m_w(w)
+ m_w(w),
 // m_vm(vm)
+ m_onset(onset)
 {
 }
 
 Exp2PostSynapse::Exp2PostSynapse(
 		const unsigned long long id,
 		const unsigned long long presynapse_id,
+		const number& onset,
 		const number& location,
 		const number& tau1,
 		const number& tau2,
@@ -53,8 +57,9 @@ Exp2PostSynapse::Exp2PostSynapse(
  m_tau1(tau1),
  m_tau2(tau2),
  m_e(e),
- m_w(w)
+ m_w(w),
 // m_vm(vm)
+ m_onset(onset)
 {
 }
 
@@ -78,6 +83,7 @@ void Exp2PostSynapse::put_to(std::ostream& os) const
 	strs << id() << " ";
 	strs << presynapse_id() << " ";
 	strs << location() << " ";
+	strs << m_onset << " ";
 	strs << m_tau1 << " ";
 	strs << m_tau2 << " ";
 	strs <<  m_e << " ";
@@ -92,6 +98,7 @@ void Exp2PostSynapse::get_from(std::istream& is)
 	unsigned long long id; is >> id; set_id(id);
 	unsigned long long presyn_id; is >> presyn_id; set_presynapse_id(presyn_id);
 	number loc; is >> loc; set_location(loc);
+	is >> m_onset;
 	is >> m_tau1;
 	is >> m_tau2;
 	is >> m_e;
@@ -99,6 +106,10 @@ void Exp2PostSynapse::get_from(std::istream& is)
 //	is >> m_vm;
 }
 
+bool Exp2PostSynapse::is_active(number time)
+{
+	return m_onset == m_onset; //if false: m_onset is nan -> inactive
+}
 
 } /* namespace synapse_handler */
 } /* namespace cable_neuron */

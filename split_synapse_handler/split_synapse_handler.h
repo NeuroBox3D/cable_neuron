@@ -23,12 +23,13 @@
 #include "lib_grid/global_attachments.h"
 #include "lib_grid/tools/copy_attachment_handler.h"
 #include "synapse_dealer.h"
-
-
 #include "split_synapse_info_io_traits.h"
 #include "../cable_disc/cable_equation.h"
 #include "../split_synapse_distributor/split_synapse_distributor.h"
 #include "split_synapse_attachment_handler.h"
+#include "base_synapse.h"
+#include "pre_synapse.h"
+#include "post_synapse.h"
 
 namespace ug {
 namespace cable_neuron {
@@ -49,7 +50,12 @@ private:
 	SplitSynapseAttachmentHandler m_ssah;
 	SmartPtr<ApproximationSpace<TDomain> > m_spApprox;
 
-	std::vector<IBaseSynapse*> m_vSynapses;
+	std::vector<IBaseSynapse*> m_vAllSynapses;
+	std::vector<IPreSynapse*> m_vPreSynapses;
+	std::vector<IPostSynapse*> m_vPostSynapses;
+
+	std::map<unsigned long long,IPostSynapse*> m_mPostSynapses;
+	std::map<unsigned long long,IPreSynapse*> m_mActivePreSynapses;
 
 public:
 	SplitSynapseHandler();
@@ -59,41 +65,11 @@ public:
 
 	number current_on_edge(const Edge* e, size_t scv, number t);
 
-//	template <typename TSyn>
-//	std::vector<TSyn*>::iterator begin()
-//	{
-//		std::vector<IBaseSynapse*> vSyn = all_synapses();
-//		std::vector<TSyn*> vTSyn;
-//		TSyn* s = new TSyn;
-//
-//		for(size_t i = 0; i<vSyn.size(); ++i) {
-//			if(vSyn[i]->type() == s->type()) {
-//				vTSyn.push_back(vSyn[i]);
-//			}
-//		}
-//
-//		delete s;
-//		return vTSyn.begin();
-//	}
-//
-//	template <typename TSyn>
-//	std::vector<TSyn*>::iterator end()
-//	{
-//		std::vector<IBaseSynapse*> vSyn = all_synapses();
-//		std::vector<TSyn*> vTSyn;
-//		TSyn* s = new TSyn;
-//
-//		for(size_t i = 0; i<vSyn.size(); ++i) {
-//			if(vSyn[i]->type() == s->type()) {
-//				vTSyn.push_back(vSyn[i]);
-//			}
-//		}
-//
-//		delete s;
-//		return vTSyn.end();
-//	}
-
 	std::vector<IBaseSynapse*> all_synapses();
+	std::vector<IPreSynapse*> all_pre_synapses();
+	std::vector<IPostSynapse*> all_post_synapses();
+
+	void update_presyn(number time);
 
 	//interface for cable_equation
 	bool synapse_on_edge(const Edge* edge, size_t scv, number time, number& current);

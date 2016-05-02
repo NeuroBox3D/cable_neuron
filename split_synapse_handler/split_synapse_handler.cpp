@@ -18,7 +18,11 @@ SplitSynapseHandler<TDomain>::SplitSynapseHandler()
  m_spGrid(SPNULL),
  m_spCEDisc(SPNULL),
  m_spApprox(SPNULL),
- m_vSynapses(std::vector<IBaseSynapse*>())
+ m_vAllSynapses(std::vector<IBaseSynapse*>()),
+ m_vPreSynapses(std::vector<IPreSynapse*>()),
+ m_vPostSynapses(std::vector<IPostSynapse*>()),
+ m_mPostSynapses(std::map<unsigned long long,IPostSynapse*>()),
+ m_mActivePreSynapses(std::map<unsigned long long,IPreSynapse*>())
 {
 	m_ssah.set_attachment(m_aSSyn);
 }
@@ -32,7 +36,7 @@ number SplitSynapseHandler<TDomain>::current_on_edge(const Edge* e, size_t scv, 
 
 	for(int i=0; i<vSyns.size(); ++i) {
 		//postsynapses
-		if(!vSyns[i]->split_type() ) {
+		if(!vSyns[i]->is_presynapse()) {
 			curr += static_cast<IPostSynapse*>(vSyns[i])->current(t, vm_postsyn);
 		}
 	}
@@ -92,6 +96,15 @@ void SplitSynapseHandler<TDomain>::grid_first_available()
 	// set init'ed flag
 	m_bInited = true;
 
+	m_vAllSynapses = all_synapses();
+	m_vPreSynapses = all_pre_synapses();
+	m_vPostSynapses = all_post_synapses();
+
+	//map postsyn id to pointer
+	for(size_t i=0; i<m_vPostSynapses.size(); ++i) {
+		m_mPostSynapses[m_vPostSynapses[i]->id()] = m_vPostSynapses[i];
+	}
+
 }
 
 template <typename TDomain>
@@ -105,7 +118,38 @@ SplitSynapseHandler<TDomain>::all_synapses()
 			vSyn.push_back(m_aaSSyn[e][i]);
 		}
 	}
+	return vSyn;
+}
 
+template <typename TDomain>
+std::vector<IPreSynapse*>
+SplitSynapseHandler<TDomain>::all_pre_synapses()
+{
+	std::vector<IPreSynapse*> vSyn;
+
+	for(Edge* e=m_spGrid->begin<Edge>(0); e != m_spGrid->end<Edge>(0); ++e) {
+		for(size_t i = 0; i<m_aaSSyn[e].size(); ++i) {
+			if(m_aaSSyn[e][i]->is_presynapse()) {
+				vSyn.push_back( static_cast<IPreSynapse*>(m_aaSSyn[e][i]) );
+			}
+		}
+	}
+	return vSyn;
+}
+
+template <typename TDomain>
+std::vector<IPostSynapse*>
+SplitSynapseHandler<TDomain>::all_post_synapses()
+{
+	std::vector<IPostSynapse*> vSyn;
+
+	for(Edge* e=m_spGrid->begin<Edge>(0); e != m_spGrid->end<Edge>(0); ++e) {
+		for(size_t i = 0; i<m_aaSSyn[e].size(); ++i) {
+			if(!m_aaSSyn[e][i]->is_presynapse()) {
+				vSyn.push_back( static_cast<IPostSynapse*>(m_aaSSyn[e][i]) );
+			}
+		}
+	}
 	return vSyn;
 }
 
@@ -119,6 +163,28 @@ set_ce_object(SmartPtr<CableEquation<TDomain> > disc)
 
 	// set cable equation disc object
 	m_spCEDisc = disc;
+}
+
+template <typename TDomain>
+void SplitSynapseHandler<TDomain>::
+update_presyn(number time)
+{
+	for(size_t i=0; i<m_vPreSynapses.size(); ++i) {
+
+		//pre synapse becomes active
+		if(m_vPreSynapses[i]->is_active(time)) {
+			if(!m_mActivePreSynapses.find(m_vPreSynapses[i]->id())) {
+				m_mActivePreSynapses[m_vPreSynapses[i]->id()] = m_vPreSynapses[i];
+				m_mPostSynapses[m_vPreSynapses[i]->postsynapse_id()]->activate(time);
+			}
+		//pre synapse becomes inactive
+		} else {
+			if(m_mActivePreSynapses.find(m_vPreSynapses[i]->id())) {
+				m_mActivePreSynapses.erase(m_vPreSynapses[i]->id());
+				m_mPostSynapses[m_vPreSynapses[i]->postsynapse_id()]->deactivate(time);
+			}
+		}
+	}
 }
 
 } /* namespace synapse_handler */
