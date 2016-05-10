@@ -44,13 +44,17 @@ public:
 	unsigned long long id() const {return m_id;}
 
 	//post synapses are false
-	bool split_type() const {return false;}
+	bool is_presynapse() const {return false;}
 
 	virtual number current(const number& t, const number& vm) = 0;
 
 	//from serialization interface IBaseSynapse
 	virtual void put_to(std::ostream& os) const = 0;			//'put_to' == operator<<
 	virtual void get_from(std::istream& is) = 0;				//'get_from' == operator>>
+
+	virtual void activate(number time) = 0;
+	virtual void deactivate(number time) = 0;
+	virtual bool is_active(number time) = 0;
 };
 
 } /* namespace synapse_handler */

@@ -103,6 +103,10 @@ void AlphaPostSynapse::get_from(std::istream& is)
 	is >> m_e;
 }
 
+bool AlphaPostSynapse::is_active(number time)
+{
+	return m_onset == m_onset;
+}
 
 } /* namespace synapse_handler */
 } /* namespace cable_neuron */
