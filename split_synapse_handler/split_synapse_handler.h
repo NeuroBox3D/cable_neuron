@@ -52,10 +52,10 @@ private:
 
 	std::vector<IBaseSynapse*> m_vAllSynapses;
 	std::vector<IPreSynapse*> m_vPreSynapses;
-	std::vector<IPostSynapse*> m_vPostSynapses;
+	std::vector<IPostSynapse*> m_vPostSynapses;	// map with key ID instead of vector!
 
-	std::map<unsigned long long,IPostSynapse*> m_mPostSynapses;
-	std::map<unsigned long long,IPreSynapse*> m_mActivePreSynapses;
+	std::map<unsigned long,IPostSynapse*> m_mPostSynapses;
+	std::map<unsigned long,IPreSynapse*> m_mActivePreSynapses;
 
 public:
 	SplitSynapseHandler();

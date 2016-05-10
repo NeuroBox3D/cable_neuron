@@ -169,11 +169,75 @@ template <typename TDomain>
 void SplitSynapseHandler<TDomain>::
 update_presyn(number time)
 {
+#ifdef UG_PARALLEL
+	// collect activated post-synapse ids
+	std::vector<unsigned long> vPSID;
+	for (size_t i = 0; i < m_vPreSynapses.size(); ++i)
+	{
+		if (m_vPreSynapses[i]->is_active(time)
+			&& m_mActivePreSynapses.find(m_vPreSynapses[i]->id()) == m_mActivePresynapse.end())
+		{
+			vPSID.push_back(m_vPreSynapses[i]->postsynapse_id());
+		}
+		else
+		{
+			// TODO: fill deactivation list
+		}
+	}
+
+	// communicate
+
+	// TODO: More easily and efficiently using allgatherv?
+	//       Then probably without communication of local sizes beforehand.
+	unsigned long* locSizes, locSizesRcv;
+	size_t sz = pcl::NumProcs();
+	locSizes = new unsigned long[sz];
+	locSizesRcv = new unsigned long[sz];
+	locSizes[pcl::ProcRank()] = vPSID.size();
+	com.allreduce(locSizes, locSizesRcv, sz, PCL_DT_UNSIGNED_LONG, PCL_RO_SUM);
+
+	// sum up sizes up to ProcRank()-1
+	size_t start_index = 0;
+	for (size_t i = 0; i < pcl::ProcRank(); ++i)
+		start_index += locSizesRcv[i];
+
+	size_t nPS = start_index;
+	for (size_t i = pcl::ProcRank(); i < pcl::NumProcs(); ++i)
+		nPS += locSizesRcv[i];
+
+	delete[] locSizes;
+	delete[] locSizesRcv;
+
+	unsigned long* locPSID = new unsigned long[nPS];
+	unsigned long* globPSID = new unsigned long[nPS];
+	for (size_t i = 0; i < nPS; ++i) locPSID[i] = 0;
+	for (size_t i = 0; i < vPSID.size(); ++i)
+		locPSID[start_index+i] = vPSID[i];
+
+	com.allreduce(locPSID, globPSID, nPS, PCL_DT_UNSIGNED_LONG, PCL_RO_SUM);
+
+	delete[] locPSID;
+
+	for (size_t i = 0; i < nPS; ++i)
+	{
+		std::map<size_t, IPostSynapse*>::iterator it = m_mPostSynapses.find(globPSID[i]);
+		if (it != m_mPostSynapses.end())
+			it->second->activate(time);
+	}
+
+	delete[] globPSID;
+
+
+	// TODO: deactivation accordingly
+
+#else
 	for(size_t i=0; i<m_vPreSynapses.size(); ++i) {
 
 		//pre synapse becomes active
 		if(m_vPreSynapses[i]->is_active(time)) {
 			if(!m_mActivePreSynapses.find(m_vPreSynapses[i]->id())) {
+
+
 				m_mActivePreSynapses[m_vPreSynapses[i]->id()] = m_vPreSynapses[i];
 				m_mPostSynapses[m_vPreSynapses[i]->postsynapse_id()]->activate(time);
 			}
@@ -185,6 +249,7 @@ update_presyn(number time)
 			}
 		}
 	}
+#endif
 }
 
 } /* namespace synapse_handler */
