@@ -49,6 +49,7 @@ if (argn == 3)
 
 		std::cout << "Channel file written" << std::endl;
 
+		/* rather do this by hand -- too error-prone otherwise
 		std::vector<string> needed_files;
 		needed_files = test.WriteChannelFile(file, "channels.cpp");
 
@@ -57,8 +58,8 @@ if (argn == 3)
 		test.WriteInclude_List(needed_files, "includefile.h", "channel_sources");
 
 		std::cout << "Files wurden geschrieben" << std::endl;
-
 		test.WriteInPlugin("channel_sources", "../../CMakeLists.txt");
+		*/
 
 
 	} else
