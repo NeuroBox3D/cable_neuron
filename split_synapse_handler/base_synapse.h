@@ -13,6 +13,8 @@
 #include "common/types.h"
 #include <vector>
 
+typedef unsigned long long SYNAPSE_ID;
+
 namespace ug {
 namespace cable_neuron {
 namespace synapse_handler {
@@ -22,6 +24,7 @@ private:
 	number m_location;							//location on edge
 
 public:
+
 	IBaseSynapse()
 	:m_location(0)
 	{}

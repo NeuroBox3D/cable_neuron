@@ -248,6 +248,7 @@ void SplitSynapseDistributor::clear(int subsetIndex)
  */
 void SplitSynapseDistributor::place_synapse(Edge* e, IBaseSynapse* s1, IBaseSynapse* s2)
 {
+	//todo: location setting tbd
 	number localCoord = static_cast<number>(rand())  / RAND_MAX; //localCoord factor 0 means e[0], 1 means e[1]
 	s1->set_location(localCoord);
 	s2->set_location(localCoord);
@@ -291,10 +292,10 @@ void SplitSynapseDistributor::place_synapses_uniform(std::vector<Edge*> vEdges, 
 
 //	Distribute specified number of synapses along the coarse grid edges randomly (uniformly s.t. individual edge lengths)
 	size_t i = 0;
-	while(i < s.size()/2)
+	while(i < s.size())
 	{
-		place_synapse(vEdges[randomIndex()], s[i],s[s.size()/2 + i]); //post and presynapse together
-		i++;
+		place_synapse(vEdges[randomIndex()], s[i],s[i+1]); //post and presynapse together
+		i += 2;
 	}
 
 //	Handle multigrid transfer

@@ -40,8 +40,8 @@ AlphaPostSynapse::AlphaPostSynapse(
 }
 
 AlphaPostSynapse::AlphaPostSynapse(
-		const unsigned long long id,
-		const unsigned long long presynapse_id,
+		const SYNAPSE_ID id,
+		const SYNAPSE_ID presynapse_id,
 		const number& location,
 		const number& gMax,
 		const number& onset,
@@ -93,8 +93,8 @@ void AlphaPostSynapse::put_to(std::ostream& os) const
 void AlphaPostSynapse::get_from(std::istream& is)
 {
 	//std::string t; is >> t;
-	unsigned long long id; is >> id; set_id(id);
-	unsigned long long presyn_id; is >> presyn_id; set_presynapse_id(presyn_id);
+	SYNAPSE_ID id; is >> id; set_id(id);
+	SYNAPSE_ID presyn_id; is >> presyn_id; set_presynapse_id(presyn_id);
 	number loc; is >> loc; set_location(loc);
 	is >> m_gMax;
 	is >> m_onset;

@@ -31,8 +31,8 @@ Exp2PreSynapse::Exp2PreSynapse(
 }
 
 Exp2PreSynapse::Exp2PreSynapse(
-		const unsigned long long id,
-		const unsigned long long postsynapse_id,
+		const SYNAPSE_ID id,
+		const SYNAPSE_ID postsynapse_id,
 		const number& location,
 		const number& onset,
 		const number& duration)
@@ -76,14 +76,14 @@ void Exp2PreSynapse::put_to(std::ostream& os) const
 void Exp2PreSynapse::get_from(std::istream& is)
 {
 	//std::string t; is >> t;
-	unsigned long long id; is >> id; set_id(id);
-	unsigned long long postsyn_id; is >> postsyn_id; set_postsynapse_id(postsyn_id);
+	SYNAPSE_ID id; is >> id; set_id(id);
+	SYNAPSE_ID postsyn_id; is >> postsyn_id; set_postsynapse_id(postsyn_id);
 	number loc; is >> loc; set_location(loc);
 	is >> m_onset;
 	is >> m_duration;
 }
 
-bool Exp2PreSynapse::fire(number time, unsigned long long& postsyn_id)
+bool Exp2PreSynapse::fire(number time, SYNAPSE_ID& postsyn_id)
 {
 	if(time >= m_onset) {
 		postsyn_id = postsynapse_id();
@@ -92,7 +92,7 @@ bool Exp2PreSynapse::fire(number time, unsigned long long& postsyn_id)
 	return false;
 }
 
-bool Exp2PreSynapse::cooldown(number time, unsigned long long& postsyn_id)
+bool Exp2PreSynapse::cooldown(number time, SYNAPSE_ID& postsyn_id)
 {
 	number dt = time - m_onset;
 	if( (time >= m_onset) && (dt >= m_duration)) {

@@ -35,8 +35,8 @@ public:
 			const number& duration);
 
 	AlphaPreSynapse(
-			const unsigned long long id,
-			const unsigned long long postsynapse_id,
+			const SYNAPSE_ID id,
+			const SYNAPSE_ID postsynapse_id,
 			const number& location,
 			const number& onset,
 			const number& duration);
@@ -62,8 +62,8 @@ public:
 	void put_to(std::ostream& os) const;			//'put_to' == operator<<
 	void get_from(std::istream& is);				//'get_from' == operator>>
 
-	bool fire(number time, unsigned long long& post_syn_id);
-	bool cooldown(number time, unsigned long long& post_syn_id);
+	bool fire(number time, SYNAPSE_ID& post_syn_id);
+	bool cooldown(number time, SYNAPSE_ID& post_syn_id);
 };
 
 } /* namespace synapse_handler */

@@ -42,8 +42,8 @@ Exp2PostSynapse::Exp2PostSynapse(
 }
 
 Exp2PostSynapse::Exp2PostSynapse(
-		const unsigned long long id,
-		const unsigned long long presynapse_id,
+		const SYNAPSE_ID id,
+		const SYNAPSE_ID presynapse_id,
 		const number& onset,
 		const number& location,
 		const number& tau1,
@@ -95,8 +95,8 @@ void Exp2PostSynapse::put_to(std::ostream& os) const
 void Exp2PostSynapse::get_from(std::istream& is)
 {
 	//std::string t; is >> t;
-	unsigned long long id; is >> id; set_id(id);
-	unsigned long long presyn_id; is >> presyn_id; set_presynapse_id(presyn_id);
+	SYNAPSE_ID id; is >> id; set_id(id);
+	SYNAPSE_ID presyn_id; is >> presyn_id; set_presynapse_id(presyn_id);
 	number loc; is >> loc; set_location(loc);
 	is >> m_onset;
 	is >> m_tau1;

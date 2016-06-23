@@ -19,8 +19,8 @@ IPreSynapse::IPreSynapse()
 }
 
 IPreSynapse::IPreSynapse(
-		const unsigned long long id,
-		const unsigned long long postsynapse_id,
+		const SYNAPSE_ID id,
+		const SYNAPSE_ID postsynapse_id,
 		const number& location)
 
 :IBaseSynapse(location),

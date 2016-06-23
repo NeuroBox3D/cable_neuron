@@ -22,26 +22,26 @@ namespace synapse_handler {
 class IPostSynapse : public IBaseSynapse
 {
 private:
-	unsigned long long m_id;					//own postsynapse id / alternative: shared id if there is a 1:1 relation?
-	unsigned long long m_presynapse_id;			//presynapse id (if needed/existing)
+	SYNAPSE_ID m_id;					//own postsynapse id / alternative: shared id if there is a 1:1 relation?
+	SYNAPSE_ID m_presynapse_id;			//presynapse id (if needed/existing)
 
 public:
 	//ctor & dtor
 	IPostSynapse(); 							//needed for SynapseDealer
 	IPostSynapse(
-			const unsigned long long id,
-			const unsigned long long presynapseid,
+			const SYNAPSE_ID id,
+			const SYNAPSE_ID presynapseid,
 			const number& location);
 
 	virtual ~IPostSynapse();
 
 	//setter & getter
-	void set_presynapse_id(const unsigned long long id) {m_presynapse_id = id;}
-	void set_id(const unsigned long long id) {m_id = id;}
+	void set_presynapse_id(const SYNAPSE_ID id) {m_presynapse_id = id;}
+	void set_id(const SYNAPSE_ID id) {m_id = id;}
 
 
-	unsigned long long presynapse_id() const {return m_presynapse_id;}
-	unsigned long long id() const {return m_id;}
+	SYNAPSE_ID presynapse_id() const {return m_presynapse_id;}
+	SYNAPSE_ID id() const {return m_id;}
 
 	//post synapses are false
 	bool is_presynapse() const {return false;}

@@ -24,8 +24,8 @@ IPostSynapse::IPostSynapse()
 }
 
 IPostSynapse::IPostSynapse(
-		const unsigned long long id,
-		const unsigned long long presynapse_id,
+		const SYNAPSE_ID id,
+		const SYNAPSE_ID presynapse_id,
 		const number& location)
 
 :IBaseSynapse(location),
