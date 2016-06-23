@@ -21,8 +21,8 @@ SplitSynapseHandler<TDomain>::SplitSynapseHandler()
  m_vAllSynapses(std::vector<IBaseSynapse*>()),
  m_vPreSynapses(std::vector<IPreSynapse*>()),
  m_vPostSynapses(std::vector<IPostSynapse*>()),
- m_mPostSynapses(std::map<unsigned long long,IPostSynapse*>()),
- m_mActivePreSynapses(std::map<unsigned long long,IPreSynapse*>())
+ m_mPostSynapses(std::map<SYNAPSE_ID,IPostSynapse*>()),
+ m_mActivePreSynapses(std::map<SYNAPSE_ID,IPreSynapse*>())
 {
 	m_ssah.set_attachment(m_aSSyn);
 }
@@ -165,12 +165,77 @@ set_ce_object(SmartPtr<CableEquation<TDomain> > disc)
 	m_spCEDisc = disc;
 }
 
+
+
 template <typename TDomain>
 void SplitSynapseHandler<TDomain>::
 update_presyn(number time)
 {
+
+
+
 #ifdef UG_PARALLEL
-	// collect activated post-synapse ids
+
+	//collect postsynapse id's that became active/inactive
+	std::vector<SYNAPSE_ID> vActPSIDs_local; //active
+	std::vector<SYNAPSE_ID> vInactPSIDs_local; //inactive
+
+	std::vector<SYNAPSE_ID> vActPSIDs_global;
+	std::vector<SYNAPSE_ID> vInactPSIDs_global;
+
+	for(size_t i=0; i<m_vPreSynapses.size(); ++i) {
+		IPreSynapse* s = m_vPreSynapses[i];
+		//pre synapse becomes active if it is active and couldn't be found in the active presynapses map
+		if(s->is_active(time) &&
+		m_mActivePreSynapses.find(s->id()) == m_mActivePreSynapses.end() ) {
+
+			m_mActivePreSynapses[s->id()] = s;
+			vActPSIDs_local.push_back(s->id());
+
+		//pre synapse becomes inactive
+		} else if (!s->is_active(time) &&
+		m_mActivePreSynapses.find(s->id()) != m_mActivePreSynapses.end()) {
+
+			m_mActivePreSynapses.erase(s->id());
+			vInactPSIDs_local.push_back(s->id());
+		}
+	}
+
+	//propagate to all processes
+	pcl::ProcessCommunicator com;
+	com.allgatherv(vActPSIDs_global, vActPSIDs_local);
+	com.allgatherv(vInactPSIDs_global, vInactPSIDs_local);
+
+	//scan for synapse ids that are on the local process and activate
+	for(size_t i=0; i<vActPSIDs_global.size(); ++i) {
+		SYNAPSE_ID psid = vActPSIDs_global[i];
+
+		for(size_t j=0; j<m_vPreSynapses.size(); ++j) {
+			IPreSynapse* s = m_vPreSynapses[j];
+			if(psid == s->postsynapse_id()) {
+				m_mActivePreSynapses[s->id()] = s;
+				m_mPostSynapses[s->postsynapse_id()]->activate(time);
+			}
+		}
+	}
+
+	//scan for synapse ids that are on the local process and deactivate
+	for(size_t i=0; i<vInactPSIDs_global.size(); ++i) {
+		SYNAPSE_ID psid = vActPSIDs_global[i];
+
+		for(size_t j=0; j<m_vPreSynapses.size(); ++j) {
+			IPreSynapse* s = m_vPreSynapses[i];
+			if(psid == s->postsynapse_id()) {
+				m_mActivePreSynapses.erase(s->id());
+				m_mPostSynapses[s->postsynapse_id()]->deactivate(time);
+			}
+		}
+	}
+
+
+
+
+	/*// collect activated post-synapse ids
 	std::vector<unsigned long> vPSID;
 	for (size_t i = 0; i < m_vPreSynapses.size(); ++i)
 	{
@@ -228,27 +293,29 @@ update_presyn(number time)
 	delete[] globPSID;
 
 
-	// TODO: deactivation accordingly
+	// TODO: deactivation accordingly*/
+
 
 #else
+
 	for(size_t i=0; i<m_vPreSynapses.size(); ++i) {
+		IPreSynapse* s = m_vPreSynapses[i];
+		//pre synapse becomes active if it is active and couldn't be found in the active presynapses map
+		if(s->is_active(time) &&
+		m_mActivePreSynapses.find(s->id()) == m_mActivePreSynapses.end() ) {
 
-		//pre synapse becomes active
-		if(m_vPreSynapses[i]->is_active(time)) {
-			if(!m_mActivePreSynapses.find(m_vPreSynapses[i]->id())) {
+			m_mActivePreSynapses[s->id()] = s;
+			m_mPostSynapses[s->postsynapse_id()]->activate(time);
 
-
-				m_mActivePreSynapses[m_vPreSynapses[i]->id()] = m_vPreSynapses[i];
-				m_mPostSynapses[m_vPreSynapses[i]->postsynapse_id()]->activate(time);
-			}
 		//pre synapse becomes inactive
-		} else {
-			if(m_mActivePreSynapses.find(m_vPreSynapses[i]->id())) {
-				m_mActivePreSynapses.erase(m_vPreSynapses[i]->id());
-				m_mPostSynapses[m_vPreSynapses[i]->postsynapse_id()]->deactivate(time);
-			}
+		} else if (!s->is_active(time) &&
+		m_mActivePreSynapses.find(s->id()) != m_mActivePreSynapses.end()) {
+
+			m_mActivePreSynapses.erase(s->id());
+			m_mPostSynapses[s->postsynapse_id()]->deactivate(time);
 		}
 	}
+
 #endif
 }
 
