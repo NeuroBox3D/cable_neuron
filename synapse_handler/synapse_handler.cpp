@@ -128,9 +128,10 @@ set_activation_timing
 (
 	number start_time,
 	number duration,
+	number peak_cond,
 	number start_time_dev,
 	number duration_dev,
-	number peak_cond,
+	number peak_cond_dev,
 	bool constSeed
 )
 {
@@ -139,9 +140,10 @@ set_activation_timing
 
 	m_start_time = start_time;
 	m_duration = duration;
+	m_peak_cond = peak_cond;
 	m_start_time_dev = start_time_dev;
 	m_duration_dev = duration_dev;
-	m_peak_cond = peak_cond;
+	m_peak_cond_dev = peak_cond_dev;
 	m_constSeed = constSeed;
 }
 
@@ -153,10 +155,11 @@ set_activation_timing_biexp
 	number onset_mean,
 	number tau1_mean,
 	number tau2_mean,
+	number peak_cond_mean,
 	number onset_dev,
 	number tau1_dev,
 	number tau2_dev,
-	number peak_cond,
+	number peak_cond_dev,
 	bool constSeed
 )
 {
@@ -166,10 +169,11 @@ set_activation_timing_biexp
 	m_prim_biexp_onset_mean = onset_mean;
 	m_prim_biexp_tau1_mean = tau1_mean;
 	m_prim_biexp_tau2_mean = tau2_mean;
+	m_prim_biexp_peak_cond_mean = peak_cond_mean;
 	m_prim_biexp_onset_dev = onset_dev;
 	m_prim_biexp_tau1_dev = tau1_dev;
 	m_prim_biexp_tau2_dev = tau2_dev;
-	m_prim_biexp_peak_cond = peak_cond;
+	m_prim_biexp_peak_cond_dev = peak_cond_dev;
 	m_prim_biexp_constSeed = constSeed;
 }
 
@@ -514,6 +518,8 @@ set_activation_timing_with_grid()
 	boost::variate_generator<boost::mt19937, boost::normal_distribution<double> > var_start(rng_alpha, start_dist);
 	boost::normal_distribution<double> duration_dist(m_duration, m_duration_dev);
 	boost::variate_generator<boost::mt19937, boost::normal_distribution<double> > var_duration(rng_alpha, duration_dist);
+	boost::normal_distribution<double> cond_dist(m_peak_cond, m_peak_cond_dev);
+	boost::variate_generator<boost::mt19937, boost::normal_distribution<double> > var_cond(rng_alpha, cond_dist);
 
 	// biexp synapse distributions
 	boost::normal_distribution<double> onset_dist(m_prim_biexp_onset_mean, m_prim_biexp_onset_dev);
@@ -522,6 +528,8 @@ set_activation_timing_with_grid()
 	boost::variate_generator<boost::mt19937, boost::normal_distribution<double> > var_tau1(rng_biexp, tau1_dist);
 	boost::normal_distribution<double> tau2_dist(m_prim_biexp_tau2_mean, m_prim_biexp_tau2_dev);
 	boost::variate_generator<boost::mt19937, boost::normal_distribution<double> > var_tau2(rng_biexp, tau2_dist);
+	boost::normal_distribution<double> peakCond_dist(m_prim_biexp_peak_cond_mean, m_prim_biexp_peak_cond_dev);
+	boost::variate_generator<boost::mt19937, boost::normal_distribution<double> > var_peakCond(rng_biexp, peakCond_dist);
 
 	// check availability of all needed structures
 	UG_COND_THROW(!m_spGrid.valid(), "No valid grid. Make sure that the synapse handler has a grid to work on!");
@@ -549,12 +557,13 @@ set_activation_timing_with_grid()
 				case ALPHA_SYNAPSE:
 				{
 					number t_onset = var_start();
-
-					if (t_onset < 0)
-						t_onset = 0;
+					t_onset = t_onset < 0 ? 0 : t_onset;
 
 					number dur = var_duration();
 					dur = dur < 0 ? 0 : dur;
+
+					number cond = var_cond();
+					cond = cond < 0 ? 0 : cond;
 
 					// set start and duration time
 					STA::onset(info) = t_onset;
@@ -563,15 +572,14 @@ set_activation_timing_with_grid()
 					STA::tau(info) = dur / 6.0;
 					STA::nSpikes(info) = 1;
 					STA::freq(info) = 1;
-					STA::g_max(info) = m_peak_cond;
+					STA::g_max(info) = cond;
 
 					break;
 				}
 				case JANA_SYNAPSE_FROM_MARKUS_WITH_LOVE:
 				{
 					number t_onset = var_onset();
-
-					if (t_onset < 0) t_onset = 0;
+					t_onset = t_onset < 0 ? 0 : t_onset;
 
 					number tau1 = var_tau1();
 					tau1 = tau1 < 0 ? 0 : tau1;
@@ -579,11 +587,14 @@ set_activation_timing_with_grid()
 					number tau2 = var_tau2();
 					tau2 = tau2 < 0 ? 0 : tau2;
 
+					number peakCond = var_peakCond();
+					peakCond = peakCond < 0 ? 0 : peakCond;
+
 					// set onset, tau1 and tau2
 					STJ::onset(info) = t_onset;
 					STJ::tau1(info) = tau1;
 					STJ::tau2(info) = tau2;
-					STJ::g_max(info) = m_prim_biexp_peak_cond;
+					STJ::g_max(info) = peakCond;
 
 					break;
 				}

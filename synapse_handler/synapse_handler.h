@@ -184,15 +184,18 @@ class NETISynapseHandler : public ISynapseHandler<TDomain>
 		(
 			number start_time,
 			number duration,
+			number peak_cond,
 			number start_time_dev,
 			number duration_dev,
-			number peak_cond,
+			number peak_cond_dev,
 			bool constSeed
 		);
+		void set_activation_timing(number start_time, number duration, number start_time_dev, number duration_dev, number peak_cond, bool constSeed)
+			{set_activation_timing(start_time, duration, peak_cond, start_time_dev, duration_dev, 0.0, constSeed);}
 		void set_activation_timing(number start_time, number duration, number start_time_dev, number duration_dev, number peak_cond)
-			{set_activation_timing(start_time, duration, start_time_dev, duration_dev, peak_cond, true);}
+			{set_activation_timing(start_time, duration, peak_cond, start_time_dev, duration_dev, 0.0, true);}
 		void set_activation_timing(number start_time, number duration, number start_time_dev, number duration_dev)
-			{set_activation_timing(start_time, duration, start_time_dev, duration_dev, 6e-4, true);}
+			{set_activation_timing(start_time, duration, 6e-4, start_time_dev, duration_dev, 0.0, true);}
 
 		/**
 		 * @brief sets alpha synapses activity pattern (randomly)
@@ -204,9 +207,10 @@ class NETISynapseHandler : public ISynapseHandler<TDomain>
 		 * @param tau1_mean			average tau1 time constant
 		 * @param tau2_mean			average tau2 time constant
 		 * @param onset_dev			deviation of onset
-		 * @param onset_tau1		deviation of tau1
-		 * @param onset_tau2		deviation of tau2
-		 * @param peak_cond			maximal conductivity
+		 * @param tau1_dev			deviation of tau1
+		 * @param tau2_dev			deviation of tau2
+		 * @param peak_cond_mean	average of maximal conductivity
+		 * @param peak_cond_dev		deviation of maximal conductivity
 		 * @param constSeed			if true: take 0 as seed; if false: take time-dependent seed (default: true)
 		 */
 		void set_activation_timing_biexp
@@ -214,23 +218,31 @@ class NETISynapseHandler : public ISynapseHandler<TDomain>
 			number onset_mean,
 			number tau1_mean,
 			number tau2_mean,
+			number peak_cond_mean,
 			number onset_dev,
 			number tau1_dev,
 			number tau2_dev,
-			number peak_cond,
+			number peak_cond_dev,
 			bool constSeed
 		);
+
+		void set_activation_timing_biexp(number onset_mean, number tau1_mean, number tau2_mean,
+			number onset_dev, number tau1_dev, number tau2_dev, number peak_cond, bool constSeed)
+		{
+			set_activation_timing_biexp(onset_mean, tau1_mean, tau2_mean, peak_cond,
+										onset_dev, tau1_dev, tau2_dev, 0.0, constSeed);
+		}
 		void set_activation_timing_biexp(number onset_mean, number tau1_mean, number tau2_mean,
 			number onset_dev, number tau1_dev, number tau2_dev, number peak_cond)
 		{
-			set_activation_timing_biexp(onset_mean, tau1_mean, tau2_mean,
-										onset_dev, tau1_dev, tau2_dev, peak_cond, true);
+			set_activation_timing_biexp(onset_mean, tau1_mean, tau2_mean, peak_cond,
+										onset_dev, tau1_dev, tau2_dev, 0.0, true);
 		}
 		void set_activation_timing_biexp(number onset_mean, number tau1_mean, number tau2_mean,
 			number onset_dev, number tau1_dev, number tau2_dev)
 		{
-			set_activation_timing_biexp(onset_mean, tau1_mean, tau2_mean,
-										onset_dev, tau1_dev, tau2_dev, 6e-4, true);
+			set_activation_timing_biexp(onset_mean, tau1_mean, tau2_mean, 6e-4,
+										onset_dev, tau1_dev, tau2_dev, 0.0, true);
 		}
 
 
@@ -405,6 +417,7 @@ class NETISynapseHandler : public ISynapseHandler<TDomain>
 		number m_duration;
 		number m_duration_dev;
 		number m_peak_cond;
+		number m_peak_cond_dev;
 		bool m_constSeed;
 		/// @}
 
@@ -413,10 +426,11 @@ class NETISynapseHandler : public ISynapseHandler<TDomain>
 		number m_prim_biexp_onset_mean;
 		number m_prim_biexp_tau1_mean;
 		number m_prim_biexp_tau2_mean;
+		number m_prim_biexp_peak_cond_mean;
 		number m_prim_biexp_onset_dev;
 		number m_prim_biexp_tau1_dev;
 		number m_prim_biexp_tau2_dev;
-		number m_prim_biexp_peak_cond;
+		number m_prim_biexp_peak_cond_dev;
 		bool m_prim_biexp_constSeed;
 		/// @}
 

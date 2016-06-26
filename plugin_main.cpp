@@ -133,7 +133,10 @@ struct Functionality
 					"", "start_time#duration#start time deviation#duration deviation#peak conductivity", "")
 				.add_method("set_activation_timing",
 					static_cast<void (TNETISH::*)(number, number, number, number, number, bool)>(&TNETISH::set_activation_timing),
-					"", "start_time#duration#start time deviation#duration deviation#peak conductivity#seed", "")
+					"", "start_time#duration#start time deviation#duration deviation#peak conductivity#constant seed?", "")
+				.add_method("set_activation_timing",
+					static_cast<void (TNETISH::*)(number, number, number, number, number, number, bool)>(&TNETISH::set_activation_timing),
+					"", "start_time#duration#peak conductivity#start time deviation#duration deviation#peak conductivity deviation#constant seed?", "")
 				.add_method("set_activation_timing_biexp",
 					static_cast<void (TNETISH::*)(number, number, number, number, number, number)>(&TNETISH::set_activation_timing_biexp),
 					"", "mean onset#mean tau1#mean tau2#onset deviation#tau1 deviation#tau2 deviation", "")
@@ -142,7 +145,10 @@ struct Functionality
 					"", "mean onset#mean tau1#mean tau2#onset deviation#tau1 deviation#tau2 deviation#peak conductivity", "")
 				.add_method("set_activation_timing_biexp",
 					static_cast<void (TNETISH::*)(number, number, number, number, number, number, number, bool)>(&TNETISH::set_activation_timing_biexp),
-					"", "mean onset#mean tau1#mean tau2#onset deviation#tau1 deviation#tau2 deviation#peak conductivity#seed", "")
+					"", "mean onset#mean tau1#mean tau2#onset deviation#tau1 deviation#tau2 deviation#peak conductivity#constant seed?", "")
+				.add_method("set_activation_timing_biexp",
+					static_cast<void (TNETISH::*)(number, number, number, number, number, number, number, number, bool)>(&TNETISH::set_activation_timing_biexp),
+					"", "mean onset#mean tau1#mean tau2#mean peak conductivity#onset deviation#tau1 deviation#tau2 deviation#peak conductivity deviation#constant seed?", "")
 				//.add_method("update_presyn", &TNETISH::update_presyn)	// no, handled internally
 				.add_method("print_synapse_statistics", &TNETISH::print_synapse_statistics, "", "soma subset index", "")
 				.add_method("write_activity_to_file", &TNETISH::write_activity_to_file, "", "file base name#time", "")
