@@ -54,6 +54,9 @@ struct attachment_io_traits<Attachment<std::vector<IBaseSynapse*> > > {
 //			}
 
 			IBaseSynapse* s = SynapseDealer::instance()->deal(identifier); //todo
+
+			if (!s) UG_THROW("Dealt synapse is NULL.")
+
 			in >> s;
 			v[i] = s;
 
