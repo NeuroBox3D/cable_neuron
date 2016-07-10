@@ -274,7 +274,7 @@ class NETISynapseHandler : public ISynapseHandler<TDomain>
 		 * CableEquation<TDomain>::approximation_space_changed() is called.
 		 *
 		 */
-		void grid_first_available();
+		//void grid_first_available();
 
 
 		/**

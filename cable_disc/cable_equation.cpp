@@ -171,12 +171,19 @@ set_influx(number Flux, number x, number y, number z, number beg, number dur)
 	if (dim >= 3) m_vCurrentCoords[m_vCurrentCoords.size()-1][2] = z;
 }
 
-template <typename TDomain>
+/*template <typename TDomain>
 void CableEquation<TDomain>::
-set_synapse_handler(SmartPtr<synapse_handler::NETISynapseHandler<TDomain> > sh)
+set_synapse_handler
+(
+#ifdef SPLIT_SYNAPSES_ENABLED
+				SmartPtr<synapse_handler::SplitSynapseHandler<TDomain> > sh
+#else
+				SmartPtr<synapse_handler::NETISynapseHandler<TDomain> > sh
+#endif
+)
 {
 	m_spSH = sh;
-}
+}*/
 
 
 template<typename TDomain>
@@ -550,7 +557,7 @@ prep_timestep(number time, VectorProxyBase* upb)
 
 	// call update_presyn() method for synapse handler
 	if (m_spSH.valid())
-		m_spSH->update_presyn();
+		m_spSH->update_presyn(m_time);
 }
 
 

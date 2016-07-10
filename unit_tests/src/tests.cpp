@@ -36,14 +36,15 @@ using namespace std;
 BOOST_AUTO_TEST_SUITE(PRESYNAPSES);
 
 BOOST_AUTO_TEST_CASE(ALPHAPRESYNAPSE) {
-	number onset = 1e-6;
-	number location = 0.3;
+	number onset = 1;
+	number location = 0.2;
 	number t1 = 1e-7;
-	number t2 = 3e-6;
+	number t2 = 1.5;
+	number duration = 3;
 
-	IPreSynapse *s1 = new AlphaPreSynapse(0.0, 0.0);
-	IPreSynapse *s2 = new AlphaPreSynapse(1, 1, 0.0, 0.0);
-	IPreSynapse *s3 = new AlphaPreSynapse(3, 2, 0.0, 0.0);
+	IPreSynapse *s1 = new AlphaPreSynapse();
+	IPreSynapse *s2 = new AlphaPreSynapse(location, onset, duration);
+	IPreSynapse *s3 = new AlphaPreSynapse(3, 3, location, onset, duration);
 
 	BOOST_REQUIRE_MESSAGE(s1->type() == ALPHA_PRE_SYNAPSE,"s1's type is ALPHA_PRE_SYNAPSE");
 	BOOST_REQUIRE_MESSAGE(s1->name() == "ALPHA_PRE_SYNAPSE","s1 is a ALPHA_PRE_SYNAPSE");
@@ -51,9 +52,9 @@ BOOST_AUTO_TEST_CASE(ALPHAPRESYNAPSE) {
 	s1->set_id(0);
 	s1->set_postsynapse_id(3);
 	BOOST_REQUIRE_MESSAGE(s1->id() == 0,"id check");
-	BOOST_REQUIRE_MESSAGE(s2->id() == 1,"id check");
+	BOOST_REQUIRE_MESSAGE(s2->id() == 0,"id check");
 	BOOST_REQUIRE_MESSAGE(s3->id() == 3,"id check");
-	BOOST_REQUIRE_MESSAGE(s3->postsynapse_id() == 2,"postsynapse_id check");
+	BOOST_REQUIRE_MESSAGE(s1->postsynapse_id() == 3,"postsynapse_id check");
 
 	s1->set_location(location);
 	BOOST_REQUIRE_MESSAGE( fabs(s1->location() - location) < 1e-16,"location setter and getter test"); //"perils of floating point comparisons"
@@ -70,19 +71,21 @@ BOOST_AUTO_TEST_CASE(ALPHAPRESYNAPSE) {
 	//serialization
 	ostringstream oss1;
 	ostringstream oss2;
-	istringstream iss("ALPHA_PRE_SYNAPSE 111 10 1.4 3e-08");
-	oss1 << s1;
-	BOOST_REQUIRE_MESSAGE(oss1.str() == "ALPHA_PRE_SYNAPSE 0 3 0.3 1e-06", "serialization check");
+	istringstream iss("ALPHA_PRE_SYNAPSE 111 10 1.4 3e-08 4");
+	oss1 << s3;
+	BOOST_REQUIRE_MESSAGE(oss1.str() == "ALPHA_PRE_SYNAPSE 3 3 0.2 1 3", "serialization check");
 
 	std::string ident;
 	iss >> ident; //pop identifier away
 
 	iss >> s1;
 	oss2 << s1;
-	BOOST_REQUIRE_MESSAGE(oss2.str() == "ALPHA_PRE_SYNAPSE 111 10 1.4 3e-08", "deserialization check");
+	BOOST_REQUIRE_MESSAGE(oss2.str() == "ALPHA_PRE_SYNAPSE 111 10 1.4 3e-08 4", "deserialization check");
 
 	//synapse dealer
-
+	SynapseDealer::instance()->register_synapse_type<AlphaPreSynapse>("ALPHA_PRE_SYNAPSE");
+	IBaseSynapse* s4 = SynapseDealer::instance()->deal("ALPHA_PRE_SYNAPSE");
+	BOOST_REQUIRE_MESSAGE(s4->name() == "ALPHA_PRE_SYNAPSE", "SynapseDealer check");
 
 	delete s1;
 	delete s2;
@@ -93,22 +96,23 @@ BOOST_AUTO_TEST_CASE(ALPHAPRESYNAPSE) {
 }
 
 BOOST_AUTO_TEST_CASE(EXP2PRESYNAPSE) {
-	number location = 0.3;
-	number onset = 1e-6;
+	number location = 1;
+	number onset = 2;
+	number duration = 3;
 	number t1 = 1e-7;
 	number t2 = 3e-6;
 
-	IPreSynapse *s1 = new Exp2PreSynapse(0.0, 0.0);
-	IPreSynapse *s2 = new Exp2PreSynapse(0.0, 0.0);
-	IPreSynapse *s3 = new Exp2PreSynapse(3, 5, 0.0, 0.0);
+	IPreSynapse *s1 = new Exp2PreSynapse();
+	IPreSynapse *s2 = new Exp2PreSynapse(location, onset, duration);
+	IPreSynapse *s3 = new Exp2PreSynapse(1337, 1337, location, onset, duration);
 
 	s2->set_id(2);
 	s2->set_postsynapse_id(42);
 	BOOST_REQUIRE_MESSAGE(s1->id() == 0,"id check");
 	BOOST_REQUIRE_MESSAGE(s2->id() == 2,"id check");
 	BOOST_REQUIRE_MESSAGE(s2->postsynapse_id() == 42,"postsynapse_id check");
-	BOOST_REQUIRE_MESSAGE(s3->id() == 3,"id check");
-	BOOST_REQUIRE_MESSAGE(s3->postsynapse_id() == 5,"id check");
+	BOOST_REQUIRE_MESSAGE(s3->id() == 1337,"id check");
+
 
 	s1->set_location(location);
 	BOOST_REQUIRE_MESSAGE( fabs(s1->location() - location) < 1e-16,"location setter and getter test"); //"perils of floating point comparisons"
@@ -128,16 +132,16 @@ BOOST_AUTO_TEST_CASE(EXP2PRESYNAPSE) {
 	//serialization
 	ostringstream oss1;
 	ostringstream oss2;
-	istringstream iss("EXP2_PRE_SYNAPSE 111 10 1.4 3e-08");
-	oss1 << s1;
-	BOOST_REQUIRE_MESSAGE(oss1.str() == "EXP2_PRE_SYNAPSE 0 0 0.3 1e-06", "serialization check");
+	istringstream iss("EXP2_PRE_SYNAPSE 111 10 1.4 3e-08 3");
+	oss1 << s3;
+	BOOST_REQUIRE_MESSAGE(oss1.str() == "EXP2_PRE_SYNAPSE 1337 1337 1 2 3", "serialization check");
 
 	std::string ident;
 	iss >> ident; //pop identifier away
 
 	iss >> s1;
 	oss2 << s1;
-	BOOST_REQUIRE_MESSAGE(oss2.str() == "EXP2_PRE_SYNAPSE 111 10 1.4 3e-08", "deserialization check");
+	BOOST_REQUIRE_MESSAGE(oss2.str() == "EXP2_PRE_SYNAPSE 111 10 1.4 3e-08 3", "deserialization check");
 
 	//synapse dealer
 	SynapseDealer::instance()->register_synapse_type<Exp2PreSynapse>("EXP2_PRE_SYNAPSE");
@@ -155,7 +159,6 @@ BOOST_AUTO_TEST_CASE(EXP2PRESYNAPSE) {
 
 /// end of test suite presynapses
 BOOST_AUTO_TEST_SUITE_END();
-
 
 
 
@@ -206,8 +209,8 @@ BOOST_AUTO_TEST_CASE(ALPHAPOSTSYNAPSE) {
 	ostringstream oss1;
 	ostringstream oss2;
 	istringstream iss("ALPHA_POST_SYNAPSE 1 2 4 3 1 2 1");
-	oss1 << s1;
-	BOOST_REQUIRE_MESSAGE(oss1.str() == "ALPHA_POST_SYNAPSE 3 4 6 1 3 4 5", "serialization check");
+	oss1 << s3;
+	BOOST_REQUIRE_MESSAGE(oss1.str() == "ALPHA_POST_SYNAPSE 1 2 0 0 0 0 0", "serialization check");
 
 	std::string ident;
 	iss >> ident; //pop identifier away
@@ -236,10 +239,11 @@ BOOST_AUTO_TEST_CASE(EXP2POSTSYNAPSE) {
 //	number vm = 4;
 	number e = 5;
 	number location = 6;
+	number onset = 7;
 
-	IPostSynapse *s1 = new Exp2PostSynapse(0.0, 0.0, 0.0, 0.0, 0.0);
-	IPostSynapse *s2 = new Exp2PostSynapse(0.0, 0.0, 0.0, 0.0, 0.0);
-	IPostSynapse *s3 = new Exp2PostSynapse(5, 6, 0.0, 0.0, 0.0, 0.0, 0.0);
+	IPostSynapse *s1 = new Exp2PostSynapse();
+	IPostSynapse *s2 = new Exp2PostSynapse(location, onset, tau1, tau2, e, w);
+	IPostSynapse *s3 = new Exp2PostSynapse(42, 42, location, onset, tau1, tau2, e, w);
 
 	s1->set_id(32);
 	s1->set_presynapse_id(42);
@@ -294,22 +298,4 @@ BOOST_AUTO_TEST_CASE(EXP2POSTSYNAPSE) {
 }
 
 /// end of test suite postsynapses
-BOOST_AUTO_TEST_SUITE_END();
-
-BOOST_AUTO_TEST_SUITE(SPLITSYNAPSEDISTRIBUTOR);
-
-BOOST_AUTO_TEST_CASE(SSD) {
-	//SplitSynapseDistributor ssd("../apps/cable_neuron_app/grids/31o_pyramidal19aFI.CNG.ugx", "../apps/cable_neuron_app/grids/31o_pyramidal19aFI.CNG_out.ugx", false);
-}
-
-BOOST_AUTO_TEST_SUITE_END();
-
-
-BOOST_AUTO_TEST_SUITE(SPLITSYNAPSEHANDLER);
-
-BOOST_AUTO_TEST_CASE(SSH) {
-
-}
-
-
 BOOST_AUTO_TEST_SUITE_END();

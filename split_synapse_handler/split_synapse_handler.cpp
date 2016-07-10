@@ -25,6 +25,7 @@ SplitSynapseHandler<TDomain>::SplitSynapseHandler()
  m_mActivePreSynapses(std::map<SYNAPSE_ID,IPreSynapse*>())
 {
 	m_ssah.set_attachment(m_aSSyn);
+	std::cout << "\nSSH instantiated\n";
 }
 
 template <typename TDomain>
@@ -54,6 +55,7 @@ bool SplitSynapseHandler<TDomain>::synapse_on_edge(const Edge* edge, size_t scv,
 template <typename TDomain>
 void SplitSynapseHandler<TDomain>::grid_first_available()
 {
+	std::cout << "\nSSH grid_first_available\n";
 	// throw if this is called more than once
 	UG_COND_THROW(m_bInited, "Second initialization call is not allowed.");
 
@@ -113,9 +115,9 @@ SplitSynapseHandler<TDomain>::all_synapses()
 {
 	std::vector<IBaseSynapse*> vSyn;
 
-	for(Edge* e=m_spGrid->begin<Edge>(0); e != m_spGrid->end<Edge>(0); ++e) {
-		for(size_t i = 0; i<m_aaSSyn[e].size(); ++i) {
-			vSyn.push_back(m_aaSSyn[e][i]);
+	for(geometry_traits<Edge>::const_iterator e=m_spGrid->begin<Edge>(0); e != m_spGrid->end<Edge>(0); ++e) {
+		for(size_t i = 0; i<m_aaSSyn[*e].size(); ++i) {
+			vSyn.push_back(m_aaSSyn[*e][i]);
 		}
 	}
 	return vSyn;
@@ -127,10 +129,10 @@ SplitSynapseHandler<TDomain>::all_pre_synapses()
 {
 	std::vector<IPreSynapse*> vSyn;
 
-	for(Edge* e=m_spGrid->begin<Edge>(0); e != m_spGrid->end<Edge>(0); ++e) {
-		for(size_t i = 0; i<m_aaSSyn[e].size(); ++i) {
-			if(m_aaSSyn[e][i]->is_presynapse()) {
-				vSyn.push_back( static_cast<IPreSynapse*>(m_aaSSyn[e][i]) );
+	for(geometry_traits<Edge>::const_iterator e=m_spGrid->begin<Edge>(0); e != m_spGrid->end<Edge>(0); ++e) {
+		for(size_t i = 0; i<m_aaSSyn[*e].size(); ++i) {
+			if(m_aaSSyn[*e][i]->is_presynapse()) {
+				vSyn.push_back( static_cast<IPreSynapse*>(m_aaSSyn[*e][i]) );
 			}
 		}
 	}
@@ -143,17 +145,17 @@ SplitSynapseHandler<TDomain>::all_post_synapses()
 {
 	std::vector<IPostSynapse*> vSyn;
 
-	for(Edge* e=m_spGrid->begin<Edge>(0); e != m_spGrid->end<Edge>(0); ++e) {
-		for(size_t i = 0; i<m_aaSSyn[e].size(); ++i) {
-			if(!m_aaSSyn[e][i]->is_presynapse()) {
-				vSyn.push_back( static_cast<IPostSynapse*>(m_aaSSyn[e][i]) );
+	for(geometry_traits<Edge>::const_iterator e=m_spGrid->begin<Edge>(0); e != m_spGrid->end<Edge>(0); ++e) {
+		for(size_t i = 0; i<m_aaSSyn[*e].size(); ++i) {
+			if(!m_aaSSyn[*e][i]->is_presynapse()) {
+				vSyn.push_back( static_cast<IPostSynapse*>(m_aaSSyn[*e][i]) );
 			}
 		}
 	}
 	return vSyn;
 }
 
-template <typename TDomain>
+/*template <typename TDomain>
 void SplitSynapseHandler<TDomain>::
 set_ce_object(SmartPtr<CableEquation<TDomain> > disc)
 {
@@ -163,7 +165,7 @@ set_ce_object(SmartPtr<CableEquation<TDomain> > disc)
 
 	// set cable equation disc object
 	m_spCEDisc = disc;
-}
+}*/
 
 
 
@@ -206,6 +208,7 @@ update_presyn(number time)
 	com.allgatherv(vActPSIDs_global, vActPSIDs_local);
 	com.allgatherv(vInactPSIDs_global, vInactPSIDs_local);
 
+	//todo: maybe assume a structured distribution to increase performance of the scanning, tbd
 	//scan for synapse ids that are on the local process and activate
 	for(size_t i=0; i<vActPSIDs_global.size(); ++i) {
 		SYNAPSE_ID psid = vActPSIDs_global[i];
@@ -318,6 +321,23 @@ update_presyn(number time)
 
 #endif
 }
+
+
+// ////////////////////////////////////
+//	explicit template instantiations //
+// ////////////////////////////////////
+
+#ifdef UG_DIM_1
+	template class SplitSynapseHandler<Domain1d>;
+#endif
+
+#ifdef UG_DIM_2
+	template class SplitSynapseHandler<Domain2d>;
+#endif
+
+#ifdef UG_DIM_3
+	template class SplitSynapseHandler<Domain3d>;
+#endif
 
 } /* namespace synapse_handler */
 } /* namespace cable_neuron */

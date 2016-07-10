@@ -19,7 +19,8 @@
 #include "../membrane_transport/cable_membrane_transport_interface.h"
 #include "../util/diam_attachment_handler.h"	// attachment handling for diameter attachment
 #include "../util/cable_ass_tuner.h"
-#include "../synapse_handler/synapse_handler.h"
+#include "../split_synapse_handler/split_synapse_handler.h"
+//#include "../synapse_handler/synapse_handler.h"
 
 
 namespace ug {
@@ -27,9 +28,12 @@ namespace cable_neuron {
 
 namespace synapse_handler
 {
-	// forward declaration
 	template <typename TDomain>
-	class NETISynapseHandler;
+	class SplitSynapseHandler;
+
+	// forward declaration
+//	template <typename TDomain>
+//	class NETISynapseHandler;
 }
 
 
@@ -157,7 +161,15 @@ class CableEquation
 		/// set influx params (flux value, coordinates, beginning, duration)
 		void set_influx(number Flux, number x, number y, number z, number beg, number dur);
 
-		void set_synapse_handler(SmartPtr<synapse_handler::NETISynapseHandler<TDomain> > sh);
+
+//#ifdef SPLIT_SYNAPSES_ENABLED
+		void set_synapse_handler(SmartPtr<synapse_handler::SplitSynapseHandler<TDomain> > sh) {std::cout << "SSH set\n";m_spSH = sh;}
+//#else
+		//void set_synapse_handler(SmartPtr<synapse_handler::NETISynapseHandler<TDomain> > sh) {m_spSH = sh;}
+//#endif
+
+
+
 
 		/// adding a channel
 		void add(SmartPtr<ICableMembraneTransport<TDomain> > transportMechanism);
@@ -290,7 +302,13 @@ class CableEquation
 		std::vector<number> m_vCurrent, m_vCurrentStart, m_vCurrentDur;		///< values describing influxes
 		std::vector<MathVector<dim> > m_vCurrentCoords;					///< vector for influx coordinates x, y, z
 
-		SmartPtr<synapse_handler::NETISynapseHandler<TDomain> > m_spSH;	///< synapse handler
+
+		//synapse handler
+//#ifdef SPLIT_SYNAPSES_ENABLED
+				SmartPtr<synapse_handler::SplitSynapseHandler<TDomain> > m_spSH;
+//#else
+				//SmartPtr<synapse_handler::NETISynapseHandler<TDomain> > m_spSH;
+//#endif
 
 		std::vector<SmartPtr<TIChannel> > m_channel;					///< list of channels
 

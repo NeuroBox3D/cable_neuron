@@ -34,6 +34,12 @@
 
 namespace ug {
 namespace cable_neuron {
+
+template <typename TDomain>
+class CableEquation;
+template <typename TDomain>
+class ICableMembraneTransport;
+
 namespace synapse_handler {
 
 template <typename TDomain>
@@ -60,9 +66,17 @@ private:
 
 public:
 	SplitSynapseHandler();
+
 	virtual ~SplitSynapseHandler() {}
 
-	void set_ce_object(SmartPtr<CableEquation<TDomain> > disc);
+	void set_ce_object(SmartPtr<CableEquation<TDomain> > disc) {
+		UG_COND_THROW(m_bInited, "The CableEquation object associated to this synapse handler "
+					  "must not be changed\nafter addition of the original CableEquation object "
+					  "to the domain discretization.");
+
+		// set cable equation disc object
+		m_spCEDisc = disc;
+	}
 
 	number current_on_edge(const Edge* e, size_t scv, number t);
 

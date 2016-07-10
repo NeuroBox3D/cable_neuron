@@ -320,7 +320,7 @@ set_activation_timing_biexp
 
 
 
-template <typename TDomain>
+/*template <typename TDomain>
 void NETISynapseHandler<TDomain>::
 grid_first_available()
 {
@@ -406,7 +406,7 @@ grid_first_available()
 
 	// set init'ed flag
 	m_bInited = true;
-}
+}*/
 
 
 template <typename TDomain>
