@@ -64,8 +64,10 @@ AlphaPostSynapse::~AlphaPostSynapse()
 
 number AlphaPostSynapse::current(const number& t, const number& vm)
 {
-	if (t < m_onset) return 0.0;
-	return m_gMax * (t - m_onset)/m_tau * std::exp(-(t - m_onset - m_tau)/m_tau) * (vm - m_e);	// current (in units of A)
+	if (t >= m_onset)	// this excludes onset == NaN
+		return m_gMax * (t - m_onset)/m_tau * std::exp(-(t - m_onset - m_tau)/m_tau) * (vm - m_e);	// current (in units of A)
+
+	return 0.0;
 }
 
 /**
