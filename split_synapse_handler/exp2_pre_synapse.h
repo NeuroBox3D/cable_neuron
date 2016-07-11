@@ -14,6 +14,7 @@
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"	//VectorProxyBase
 #include "pre_synapse.h"											//IPreSynapse
 #include <boost/random.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/random/normal_distribution.hpp>
 
 namespace ug {

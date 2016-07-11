@@ -14,6 +14,7 @@
 
 #include "post_synapse.h" 	//IPostSynapse
 #include <boost/random.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/random/normal_distribution.hpp>
 
 namespace ug {

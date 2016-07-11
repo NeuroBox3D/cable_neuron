@@ -71,12 +71,29 @@ void AlphaPreSynapse::put_to(std::ostream& os) const
 
 void AlphaPreSynapse::get_from(std::istream& is)
 {
+	using boost::lexical_cast;
+	std::string tmp;
 	//std::string t; is >> t;
 	SYNAPSE_ID id; is >> id; set_id(id);
 	SYNAPSE_ID postsyn_id; is >> postsyn_id; set_postsynapse_id(postsyn_id);
-	number loc; is >> loc; set_location(loc);
-	is >> m_onset;
-	is >> m_duration;
+
+	number loc;
+	is >> tmp;
+	loc = lexical_cast<number>(tmp);
+	set_location(loc);
+	tmp.clear();
+
+	number onset;
+	is >> tmp;
+	onset = lexical_cast<number>(tmp);
+	set_onset(onset);
+	tmp.clear();
+
+	number duration;
+	is >> tmp;
+	duration = lexical_cast<number>(tmp);
+	set_duration(duration);
+	tmp.clear();
 }
 
 bool AlphaPreSynapse::fire(number time, SYNAPSE_ID& postsyn_id)

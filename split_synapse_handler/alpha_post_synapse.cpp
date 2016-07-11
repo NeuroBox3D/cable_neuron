@@ -92,15 +92,43 @@ void AlphaPostSynapse::put_to(std::ostream& os) const
  */
 void AlphaPostSynapse::get_from(std::istream& is)
 {
+	using boost::lexical_cast;
+	std::string tmp;
 	//std::string t; is >> t;
 	SYNAPSE_ID id; is >> id; set_id(id);
 	SYNAPSE_ID presyn_id; is >> presyn_id; set_presynapse_id(presyn_id);
-	number loc; is >> loc; set_location(loc);
-	is >> m_gMax;
-	is >> m_onset;
-	is >> m_tau;
+
+	number loc;
+	is >> tmp;
+	loc = lexical_cast<number>(tmp);
+	set_location(loc);
+	tmp.clear();
+
+	number gMax;
+	is >> tmp;
+	gMax = lexical_cast<number>(tmp);
+	set_gMax(gMax);
+	tmp.clear();
+
+	number onset;
+	is >> tmp;
+	onset = lexical_cast<number>(tmp);
+	set_onset(onset);
+	tmp.clear();
+
+	number tau;
+	is >> tmp;
+	tau = lexical_cast<number>(tmp);
+	set_tau(tau);
+	tmp.clear();
+
+	number e;
+	is >> tmp;
+	e = lexical_cast<number>(tmp);
+	set_e(e);
+	tmp.clear();
+
 //	is >> m_vm;
-	is >> m_e;
 }
 
 bool AlphaPostSynapse::is_active(number time)
