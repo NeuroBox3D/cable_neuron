@@ -668,6 +668,69 @@ struct Functionality
 			.add_method("get_subset_handler",&TSD::get_subset_handler,"","SubsetHandler*","Pointer to current subsethandler object",grp)
 
 			.set_construct_as_smart_pointer(true);
+
+	}
+#ifdef SPLIT_SYNAPSES_ENABLED
+
+		{
+			typedef IBaseSynapse TBS;
+			reg.add_class_<TBS>("IBaseSynapse", grp)
+					;
+		}
+
+		{
+			string name = "ISynapseContainer";
+
+			typedef ISynapseContainer TSC;
+			reg.add_class_<TSC>(name, grp)
+				//.add_constructor<void (*)(const size_t)>("infile#outfile", "Initializes a SynapseDistributor", grp, "")
+				//.add_constructor<void (*)(const size_t, number, number, number, number, number, number, number, number)>("dom#outfile", "Initializes a SynapseDistributor", grp, "")
+				//.add_method("set_mean_gMax",&TSC::set_mean_gMax)
+				;
+		}
+
+
+
+		{
+			string name = "Exp2Synapses";
+
+			typedef Exp2Synapses TSC;
+			reg.add_class_<TSC>(name, grp)
+				.add_constructor<void (*)(const size_t, const size_t)>("infile#outfile", "Initializes a SynapseDistributor", grp, "")
+				//.add_constructor<void (*)(const size_t, number, number, number, number, number, number, number)>("dom#outfile", "Initializes a SynapseDistributor", grp, "")
+				.add_method("set_mean_onset",&TSC::set_mean_onset)
+				.add_method("set_dev_onset",&TSC::set_dev_onset)
+				.add_method("set_mean_tau1",&TSC::set_mean_tau1)
+				.add_method("set_dev_tau1",&TSC::set_dev_tau1)
+				.add_method("set_mean_tau2",&TSC::set_mean_tau2)
+				.add_method("set_dev_tau2",&TSC::set_dev_tau2)
+				.add_method("set_mean_e",&TSC::set_mean_rev)
+				.add_method("set_dev_e",&TSC::set_dev_rev)
+				.add_method("set_mean_w",&TSC::set_mean_gMax)
+				.add_method("set_dev_w",&TSC::set_dev_gMax)
+				.add_method("size",&TSC::size)
+				.add_method("get_synapses",&TSC::get_synapses)
+				;
+		}
+
+		{
+			string name = "AlphaSynapses";
+
+			typedef AlphaSynapses TSC;
+			reg.add_class_<TSC>(name, grp)
+				.add_constructor<void (*)(const size_t, const size_t)>("infile#outfile", "Initializes a SynapseDistributor", grp, "")
+				//.add_constructor<void (*)(const size_t, number, number, number, number, number, number, number)>("dom#outfile", "Initializes a SynapseDistributor", grp, "")
+				.add_method("set_mean_gMax",&TSC::set_mean_gMax)
+				.add_method("set_dev_gMax",&TSC::set_dev_gMax)
+				.add_method("set_mean_onset",&TSC::set_mean_onset)
+				.add_method("set_dev_onset",&TSC::set_dev_onset)
+				.add_method("set_mean_tau",&TSC::set_mean_tau)
+				.add_method("set_dev_tau",&TSC::set_dev_tau)
+				.add_method("set_mean_e",&TSC::set_mean_rev)
+				.add_method("set_dev_e",&TSC::set_dev_rev)
+				.add_method("size",&TSC::size)
+				.add_method("get_synapses",&TSC::get_synapses)
+				;
 		}
 	{
 		// /////////////////////////////////////////////
