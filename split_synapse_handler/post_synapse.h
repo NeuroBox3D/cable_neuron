@@ -43,8 +43,8 @@ public:
 	SYNAPSE_ID presynapse_id() const {return m_presynapse_id;}
 	SYNAPSE_ID id() const {return m_id;}
 
-	//post synapses are false
-	bool is_presynapse() const {return false;}
+	virtual bool is_presynapse() const {return false;}
+	virtual bool is_postsynapse() const {return true;}
 
 	virtual number current(const number& t, const number& vm) = 0;
 

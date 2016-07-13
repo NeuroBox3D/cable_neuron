@@ -44,6 +44,7 @@ public:
 	virtual std::string name() const = 0;
 	virtual SynapseType type() const = 0;
 	virtual bool is_presynapse() const = 0;
+	virtual bool is_postsynapse() const = 0;
 
 	void set_location(const number& loc) {m_location = loc;}
 	number location() const {return m_location;}

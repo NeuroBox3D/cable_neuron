@@ -43,15 +43,15 @@ public:
 	virtual void update(const number& t, VectorProxyBase* up=NULL) = 0;
 	virtual bool is_active(const number& t, VectorProxyBase* up=NULL) = 0;
 
-	//pre synapses are true
-	bool is_presynapse() const {return true;}
+	virtual bool is_presynapse() const {return true;}
+	virtual bool is_postsynapse() const {return false;}
 
 	//from serialization interface IBaseSynapse
 	virtual void put_to(std::ostream& os) const = 0;			//'put_to' == operator<<
 	virtual void get_from(std::istream& is) = 0;
 
-	virtual bool fire(number time, SYNAPSE_ID& post_syn_id) = 0;
-	virtual bool cooldown(number time, SYNAPSE_ID& post_syn_id) = 0;
+//	virtual bool fire(number time, SYNAPSE_ID& post_syn_id) = 0;
+//	virtual bool cooldown(number time, SYNAPSE_ID& post_syn_id) = 0;
 };
 
 } /* namespace synapse_handler */
