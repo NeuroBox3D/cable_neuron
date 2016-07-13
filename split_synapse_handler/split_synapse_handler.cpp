@@ -98,6 +98,7 @@ void SplitSynapseHandler<TDomain>::grid_first_available()
 	// set init'ed flag
 	m_bInited = true;
 
+	//gather all synapses from grid
 	m_vAllSynapses = all_synapses();
 	m_vPreSynapses = all_pre_synapses();
 	m_vPostSynapses = all_post_synapses();
@@ -109,6 +110,9 @@ void SplitSynapseHandler<TDomain>::grid_first_available()
 
 }
 
+/**
+ * returns vector containing all synapses on the grid
+ */
 template <typename TDomain>
 std::vector<IBaseSynapse*>
 SplitSynapseHandler<TDomain>::all_synapses()
@@ -123,6 +127,9 @@ SplitSynapseHandler<TDomain>::all_synapses()
 	return vSyn;
 }
 
+/**
+ * returns vector containing all presynapses on the grid
+ */
 template <typename TDomain>
 std::vector<IPreSynapse*>
 SplitSynapseHandler<TDomain>::all_pre_synapses()
@@ -139,6 +146,9 @@ SplitSynapseHandler<TDomain>::all_pre_synapses()
 	return vSyn;
 }
 
+/**
+ * returns vector containing all postsynapses on the grid
+ */
 template <typename TDomain>
 std::vector<IPostSynapse*>
 SplitSynapseHandler<TDomain>::all_post_synapses()
@@ -209,7 +219,7 @@ update_presyn(number time)
 	com.allgatherv(vInactPSIDs_global, vInactPSIDs_local);
 
 	//todo: maybe assume a structured distribution to increase performance of the scanning, tbd
-	//scan for synapse ids that are on the local process and activate
+	//scan for synapse ids that are on the local process and have to be activated
 	for(size_t i=0; i<vActPSIDs_global.size(); ++i) {
 		SYNAPSE_ID psid = vActPSIDs_global[i];
 
@@ -222,7 +232,7 @@ update_presyn(number time)
 		}
 	}
 
-	//scan for synapse ids that are on the local process and deactivate
+	//scan for synapse ids that are on the local process and have to be deactivated
 	for(size_t i=0; i<vInactPSIDs_global.size(); ++i) {
 		SYNAPSE_ID psid = vActPSIDs_global[i];
 
