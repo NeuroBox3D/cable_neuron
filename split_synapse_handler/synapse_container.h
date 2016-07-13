@@ -41,62 +41,62 @@ class AlphaSynapses : ISynapseContainer
 {
 private:
 	size_t m_start_id;
-	number m_mean_gMax;
-	number m_dev_gMax;
 	number m_mean_onset;
 	number m_dev_onset;
+	number m_mean_gMax;
+	number m_dev_gMax;
 	number m_mean_tau;
 	number m_dev_tau;
-	number m_mean_e;
-	number m_dev_e;
+	number m_mean_rev;
+	number m_dev_rev;
 
 	std::vector<IBaseSynapse*> m_vSynapses;
 
 public:
 	AlphaSynapses(const size_t start_id, const size_t num_synapses)
 :m_start_id(start_id),
- m_mean_gMax(0),
- m_dev_gMax(0),
  m_mean_onset(0),
  m_dev_onset(0),
+ m_mean_gMax(0),
+ m_dev_gMax(0),
  m_mean_tau(0),
  m_dev_tau(0),
- m_mean_e(0),
- m_dev_e(0),
+ m_mean_rev(0),
+ m_dev_rev(0),
  m_vSynapses(std::vector<IBaseSynapse*>(2 * num_synapses))
 {}
 
 	AlphaSynapses(
 			const size_t start_id,
 			const size_t num_synapses,
-			number mean_gMax,
-			number dev_gMax,
 			number mean_onset,
 			number dev_onset,
+			number mean_gMax,
+			number dev_gMax,
 			number mean_tau,
 			number dev_tau,
-			number mean_e,
-			number dev_e)
+			number mean_rev,
+			number dev_rev)
 :m_start_id(start_id),
- m_mean_gMax(mean_gMax),
- m_dev_gMax(dev_gMax),
  m_mean_onset(mean_onset),
  m_dev_onset(dev_onset),
+ m_mean_gMax(mean_gMax),
+ m_dev_gMax(dev_gMax),
  m_mean_tau(mean_tau),
  m_dev_tau(dev_tau),
- m_mean_e(mean_e),
- m_dev_e(dev_e),
+ m_mean_rev(mean_rev),
+ m_dev_rev(dev_rev),
  m_vSynapses(std::vector<IBaseSynapse*>(2 * num_synapses))
 {}
 
-	void set_mean_gMax(const number val) {m_mean_gMax=val;}
-	void set_dev_gMax(const number val) {m_dev_gMax=val;}
 	void set_mean_onset(const number val) {m_mean_onset=val;}
 	void set_dev_onset(const number val) {m_dev_onset=val;}
+	void set_mean_gMax(const number val) {m_mean_gMax=val;}
+	void set_dev_gMax(const number val) {m_dev_gMax=val;}
 	void set_mean_tau(const number val) {m_mean_tau=val;}
 	void set_dev_tau(const number val) {m_dev_tau=val;}
-	void set_mean_e(const number val) {m_mean_e=val;}
-	void set_dev_e(const number val) {m_dev_e=val;}
+	void set_mean_rev(const number val) {m_mean_rev=val;}
+	void set_dev_rev(const number val) {m_dev_rev=val;}
 	size_t size() {return m_vSynapses.size();}
 	size_t start_id() {return m_start_id;}
 
@@ -109,21 +109,21 @@ public:
 
 		//return m_vSynapses;
 
-		boost::mt19937 gmax_rng;
-		boost::normal_distribution<number> gmax_dist(m_mean_gMax, m_dev_gMax);
-		boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > gmax_var(gmax_rng, gmax_dist);
-
 		boost::mt19937 onset_rng;
 		boost::normal_distribution<number> onset_dist(m_mean_onset, m_dev_onset);
 		boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > onset_var(onset_rng, onset_dist);
+
+		boost::mt19937 gmax_rng;
+		boost::normal_distribution<number> gmax_dist(m_mean_gMax, m_dev_gMax);
+		boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > gmax_var(gmax_rng, gmax_dist);
 
 		boost::mt19937 tau_rng;
 		boost::normal_distribution<number> tau_dist(m_mean_tau, m_dev_tau);
 		boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > tau_var(tau_rng, tau_dist);
 
-		boost::mt19937 e_rng;
-		boost::normal_distribution<number> e_dist(m_mean_e, m_dev_e);
-		boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > e_var(e_rng, e_dist);
+		boost::mt19937 rev_rng;
+		boost::normal_distribution<number> rev_dist(m_mean_rev, m_dev_rev);
+		boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > rev_var(rev_rng, rev_dist);
 
 
 		//create a couple of synapses, pre and post synapse together.
@@ -131,7 +131,7 @@ public:
 			number onset = onset_var();
 			number tau = tau_var();
 			size_t syn_id = m_start_id + i/2;
-			IBaseSynapse *s1 = new AlphaPostSynapse(syn_id, syn_id, 0.0, gmax_var(), nan(""), tau, e_var());
+			IBaseSynapse *s1 = new AlphaPostSynapse(syn_id, syn_id, 0.0, nan(""), gmax_var(), tau, rev_var());
 			IBaseSynapse *s2 = new AlphaPreSynapse(syn_id, syn_id, 0.0, onset, 6 * tau);
 			m_vSynapses[i] = s1;
 			m_vSynapses[i+1] = s2;
@@ -151,14 +151,14 @@ private:
 	size_t m_start_id;
 	number m_mean_onset;
 	number m_dev_onset;
+	number m_mean_gMax;
+	number m_dev_gMax;
 	number m_mean_tau1;
 	number m_dev_tau1;
 	number m_mean_tau2;
 	number m_dev_tau2;
-	number m_mean_e;
-	number m_dev_e;
-	number m_mean_w;
-	number m_dev_w;
+	number m_mean_rev;
+	number m_dev_rev;
 
 	std::vector<IBaseSynapse*> m_vSynapses;
 
@@ -167,14 +167,14 @@ public:
 :m_start_id(start_id),
  m_mean_onset(0),
  m_dev_onset(0),
+ m_mean_gMax(0),
+ m_dev_gMax(0),
  m_mean_tau1(0),
  m_dev_tau1(0),
  m_mean_tau2(0),
  m_dev_tau2(0),
- m_mean_e(0),
- m_dev_e(0),
- m_mean_w(0),
- m_dev_w(0),
+ m_mean_rev(0),
+ m_dev_rev(0),
  m_vSynapses(std::vector<IBaseSynapse*>(2 * num_synapses))
 {}
 
@@ -183,39 +183,40 @@ public:
 			const size_t num_synapses,
 			number mean_onset,
 			number dev_onset,
+			number mean_gMax,
+			number dev_gMax,
 			number mean_tau1,
 			number dev_tau1,
 			number mean_tau2,
 			number dev_tau2,
-			number mean_e,
-			number dev_e,
-			number mean_w,
-			number dev_w)
+			number mean_rev,
+			number dev_rev
+			)
 
 :m_start_id(start_id),
  m_mean_onset(mean_onset),
  m_dev_onset(dev_onset),
+ m_mean_gMax(mean_gMax),
+ m_dev_gMax(dev_gMax),
  m_mean_tau1(mean_tau1),
  m_dev_tau1(dev_tau1),
  m_mean_tau2(mean_tau2),
  m_dev_tau2(dev_tau2),
- m_mean_e(mean_e),
- m_dev_e(dev_e),
- m_mean_w(mean_w),
- m_dev_w(dev_w),
+ m_mean_rev(mean_rev),
+ m_dev_rev(dev_rev),
  m_vSynapses(std::vector<IBaseSynapse*>(2 * num_synapses))
 {}
 
 	void set_mean_onset(const number val) {m_mean_onset=val;}
 	void set_dev_onset(const number val) {m_dev_onset=val;}
+	void set_mean_gMax(const number val) {m_mean_gMax=val;}
+	void set_dev_gMax(const number val) {m_dev_gMax=val;}
 	void set_mean_tau1(const number val) {m_mean_tau1=val;}
 	void set_dev_tau1(const number val) {m_dev_tau1=val;}
 	void set_mean_tau2(const number val) {m_mean_tau2=val;}
 	void set_dev_tau2(const number val) {m_dev_tau2=val;}
-	void set_mean_e(const number val) {m_mean_e=val;}
-	void set_dev_e(const number val) {m_dev_e=val;}
-	void set_mean_w(const number val) {m_mean_w=val;}
-	void set_dev_w(const number val) {m_dev_w=val;}
+	void set_mean_rev(const number val) {m_mean_rev=val;}
+	void set_dev_rev(const number val) {m_dev_rev=val;}
 
 	size_t size() {return m_vSynapses.size();}
 	size_t start_id() {return m_start_id;}
@@ -231,6 +232,10 @@ public:
 		boost::normal_distribution<number> onset_dist(m_mean_onset, m_dev_onset);
 		boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > onset_var(onset_rng, onset_dist);
 
+		boost::mt19937 gMax_rng;
+		boost::normal_distribution<number> gMax_dist(m_mean_gMax, m_dev_gMax);
+		boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > gMax_var(gMax_rng, gMax_dist);
+
 		boost::mt19937 tau1_rng;
 		boost::normal_distribution<number> tau1_dist(m_mean_tau1, m_dev_tau1);
 		boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > tau1_var(tau1_rng, tau1_dist);
@@ -239,14 +244,9 @@ public:
 		boost::normal_distribution<number> tau2_dist(m_mean_tau2, m_dev_tau2);
 		boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > tau2_var(tau2_rng, tau2_dist);
 
-		boost::mt19937 w_rng;
-		boost::normal_distribution<number> w_dist(m_mean_w, m_dev_w);
-		boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > w_var(w_rng, w_dist);
-
-		boost::mt19937 e_rng;
-		boost::normal_distribution<number> e_dist(m_mean_e, m_dev_e);
-		boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > e_var(e_rng, e_dist);
-
+		boost::mt19937 rev_rng;
+		boost::normal_distribution<number> rev_dist(m_mean_rev, m_dev_rev);
+		boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > rev_var(rev_rng, rev_dist);
 
 		for(size_t i = 0; i < m_vSynapses.size(); i=i+2) {
 			number onset = onset_var();
@@ -256,7 +256,7 @@ public:
 			number tp = (tau1*tau2)/(tau2-tau1) * std::log(tau2/tau1);
 			tp = tp + 3 * tau2;
 			size_t syn_id = m_start_id + i/2;
-			IBaseSynapse *s1 = new Exp2PostSynapse(syn_id, syn_id, 0.0, nan(""), tau1, tau2, e_var(), w_var());
+			IBaseSynapse *s1 = new Exp2PostSynapse(syn_id, syn_id, 0.0, nan(""), gMax_var(), tau1, tau2, rev_var());
 			IBaseSynapse *s2 = new Exp2PreSynapse(syn_id, syn_id, 0.0, onset, tp);
 
 			m_vSynapses[i] = s1;
