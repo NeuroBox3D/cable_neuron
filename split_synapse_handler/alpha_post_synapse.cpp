@@ -15,27 +15,24 @@ namespace synapse_handler {
 
 AlphaPostSynapse::AlphaPostSynapse()
 :IPostSynapse(0, 0, 0),
- m_gMax(1.2e-3),
  m_onset(0),
+ m_gMax(0),
  m_tau(0),
-// m_vm(0),
- m_e(0)
+ m_rev(0)
 {}
 
 AlphaPostSynapse::AlphaPostSynapse(
 		const number& location,
-		const number& gMax,
 		const number& onset,
+		const number& gMax,
 		const number& tau,
-//		const number& vm,
-		const number& e)
+		const number& rev)
 
 :IPostSynapse(0, 0, location),
- m_gMax(gMax),
  m_onset(onset),
+ m_gMax(gMax),
  m_tau(tau),
-// m_vm(vm),
- m_e(e)
+ m_rev(rev)
 {
 }
 
@@ -43,18 +40,16 @@ AlphaPostSynapse::AlphaPostSynapse(
 		const SYNAPSE_ID id,
 		const SYNAPSE_ID presynapse_id,
 		const number& location,
-		const number& gMax,
 		const number& onset,
+		const number& gMax,
 		const number& tau,
-//		const number& vm,
-		const number& e)
+		const number& rev)
 
 :IPostSynapse(id, presynapse_id, location),
- m_gMax(gMax),
  m_onset(onset),
+ m_gMax(gMax),
  m_tau(tau),
-// m_vm(vm),
- m_e(e)
+ m_rev(rev)
 {
 }
 
@@ -65,7 +60,7 @@ AlphaPostSynapse::~AlphaPostSynapse()
 number AlphaPostSynapse::current(const number& t, const number& vm)
 {
 	if (t >= m_onset)	// this excludes onset == NaN
-		return m_gMax * (t - m_onset)/m_tau * std::exp(-(t - m_onset - m_tau)/m_tau) * (vm - m_e);	// current (in units of A)
+		return m_gMax * (t - m_onset)/m_tau * std::exp(-(t - m_onset - m_tau)/m_tau) * (vm - m_rev);	// current (in units of A)
 
 	return 0.0;
 }
@@ -81,11 +76,10 @@ void AlphaPostSynapse::put_to(std::ostream& os) const
 	strs << id() << " ";
 	strs << presynapse_id() << " ";
 	strs << location() << " ";
-	strs << m_gMax << " ";
 	strs << m_onset << " ";
-	strs <<  m_tau << " ";
-//	strs << m_vm << " ";
-	strs << m_e;
+	strs << m_gMax << " ";
+	strs << m_tau << " ";
+	strs << m_rev;
 	os << strs.str();
 }
 
@@ -106,16 +100,16 @@ void AlphaPostSynapse::get_from(std::istream& is)
 	set_location(loc);
 	tmp.clear();
 
-	number gMax;
-	is >> tmp;
-	gMax = lexical_cast<number>(tmp);
-	set_gMax(gMax);
-	tmp.clear();
-
 	number onset;
 	is >> tmp;
 	onset = lexical_cast<number>(tmp);
 	set_onset(onset);
+	tmp.clear();
+
+	number gMax;
+	is >> tmp;
+	gMax = lexical_cast<number>(tmp);
+	set_gMax(gMax);
 	tmp.clear();
 
 	number tau;
@@ -124,13 +118,12 @@ void AlphaPostSynapse::get_from(std::istream& is)
 	set_tau(tau);
 	tmp.clear();
 
-	number e;
+	number rev;
 	is >> tmp;
-	e = lexical_cast<number>(tmp);
-	set_e(e);
+	rev = lexical_cast<number>(tmp);
+	set_rev(rev);
 	tmp.clear();
 
-//	is >> m_vm;
 }
 
 bool AlphaPostSynapse::is_active(number time)

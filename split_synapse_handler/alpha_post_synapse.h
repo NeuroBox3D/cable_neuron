@@ -21,34 +21,32 @@ namespace ug {
 namespace cable_neuron {
 namespace synapse_handler {
 
-class AlphaPostSynapse : public IPostSynapse {
+class AlphaPostSynapse : public IPostSynapse
+{
 private:
-	number m_gMax;
 	number m_onset;
+	number m_gMax;
 	number m_tau;
-//	number m_vm;
-	number m_e;
+	number m_rev;
 
 public:
 	//ctor & dtor
 	AlphaPostSynapse();		//needed for template generator
 	AlphaPostSynapse(
 		const number& location,
-		const number& gMax,
 		const number& onset,
+		const number& gMax,
 		const number& tau,
-//		const number& vm,
-		const number& e);
+		const number& rev);
 
 	AlphaPostSynapse(
 		const SYNAPSE_ID id,
 		const SYNAPSE_ID presynapse_id,
 		const number& location,
-		const number& gMax,
 		const number& onset,
+		const number& gMax,
 		const number& tau,
-//		const number& vm,
-		const number& e);
+		const number& rev);
 
 	virtual ~AlphaPostSynapse();
 
@@ -56,20 +54,15 @@ public:
 	void set_gMax(const number& gMax) {m_gMax = gMax;}
 	void set_onset(const number& onset) {m_onset = onset;}
 	void set_tau(const number& tau) {m_tau = tau;}
-//	void set_vm(const number& vm) {m_vm = vm;}
-	void set_e(const number& e) {m_e = e;}
+	void set_rev(const number& rev) {m_rev = rev;}
 
 	number gMax() const {return m_gMax;}
 	number onset() const {return m_onset;}
 	number tau() const {return m_tau;}
-//	number vm() const {return m_vm;}
-	number e() const {return m_e;}
+	number rev() const {return m_rev;}
 
 	SynapseType type() const {return ALPHA_POST_SYNAPSE;}
 	std::string name() const {return "ALPHA_POST_SYNAPSE";}
-
-	//post synapses are false
-	bool split_type() const {return false;}
 
 	//functionality
 	number current(const number& t, const number& vm);

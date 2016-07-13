@@ -23,7 +23,8 @@ Exp2PreSynapse::Exp2PreSynapse()
 Exp2PreSynapse::Exp2PreSynapse(
 		const number& location,
 		const number& onset,
-		const number& duration)
+		const number& duration
+		)
 
 :IPreSynapse(0, 0, location),
  m_onset(onset), m_duration(duration)
@@ -35,7 +36,8 @@ Exp2PreSynapse::Exp2PreSynapse(
 		const SYNAPSE_ID postsynapse_id,
 		const number& location,
 		const number& onset,
-		const number& duration)
+		const number& duration
+		)
 
 :IPreSynapse(id, postsynapse_id, location),
  m_onset(onset), m_duration(duration)
@@ -54,11 +56,13 @@ void Exp2PreSynapse::update(const number& t, VectorProxyBase* up)
 
 bool Exp2PreSynapse::is_active(const number& t, VectorProxyBase* up)
 {
-	//todo:
-	//dummy
-	return (t >= m_onset);
+	//is t in [onset, onset+diration]
+	return (t >= m_onset) && (t <= (m_onset + m_duration));
 }
 
+/**
+ * serialisation
+ */
 void Exp2PreSynapse::put_to(std::ostream& os) const
 {
 	using std::ostringstream;
@@ -67,12 +71,14 @@ void Exp2PreSynapse::put_to(std::ostream& os) const
 	strs << id() << " ";
 	strs << postsynapse_id() << " ";
 	strs << location() << " ";
-	strs << m_onset << " ";
+	strs << m_onset;
 	strs << m_duration;
 	os << strs.str();
 }
 
-
+/**
+ * deserialisation
+ */
 void Exp2PreSynapse::get_from(std::istream& is)
 {
 	using boost::lexical_cast;
@@ -100,24 +106,24 @@ void Exp2PreSynapse::get_from(std::istream& is)
 	tmp.clear();
 }
 
-bool Exp2PreSynapse::fire(number time, SYNAPSE_ID& postsyn_id)
-{
-	if(time >= m_onset) {
-		postsyn_id = postsynapse_id();
-		return true;
-	}
-	return false;
-}
-
-bool Exp2PreSynapse::cooldown(number time, SYNAPSE_ID& postsyn_id)
-{
-	number dt = time - m_onset;
-	if( (time >= m_onset) && (dt >= m_duration)) {
-		postsyn_id = postsynapse_id();
-		return true;
-	}
-	return false;
-}
+//bool Exp2PreSynapse::fire(number time, SYNAPSE_ID& postsyn_id)
+//{
+//	if(time >= m_onset) {
+//		postsyn_id = postsynapse_id();
+//		return true;
+//	}
+//	return false;
+//}
+//
+//bool Exp2PreSynapse::cooldown(number time, SYNAPSE_ID& postsyn_id)
+//{
+//	number dt = time - m_onset;
+//	if( (time >= m_onset) && (dt >= m_duration)) {
+//		postsyn_id = postsynapse_id();
+//		return true;
+//	}
+//	return false;
+//}
 
 } /* namespace synapse_handler */
 } /* namespace cable_neuron */

@@ -48,9 +48,6 @@ public:
 	SynapseType type() const {return ALPHA_PRE_SYNAPSE;}
 	std::string name() const {return "ALPHA_PRE_SYNAPSE";}
 
-	//pre synapses are true
-	bool split_type() const {return true;}
-
 	void set_onset(const number& onset) {m_onset = onset;}
 	number onset() const {return m_onset;}
 
@@ -65,8 +62,8 @@ public:
 	void put_to(std::ostream& os) const;			//'put_to' == operator<<
 	void get_from(std::istream& is);				//'get_from' == operator>>
 
-	bool fire(number time, SYNAPSE_ID& post_syn_id);
-	bool cooldown(number time, SYNAPSE_ID& post_syn_id);
+//	bool fire(number time, SYNAPSE_ID& post_syn_id);
+//	bool cooldown(number time, SYNAPSE_ID& post_syn_id);
 };
 
 } /* namespace synapse_handler */

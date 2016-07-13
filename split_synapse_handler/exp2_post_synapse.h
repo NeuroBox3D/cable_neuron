@@ -25,12 +25,13 @@ namespace synapse_handler {
 class Exp2PostSynapse : public IPostSynapse
 {
 private:
+	number m_onset; ///onset (s)
+	number m_gMax;		///< conductance (S)
 	number m_tau1;	///< time constant (s)
 	number m_tau2;	///< time constant (s)
-	number m_e;		///< reversal potential (V)
-	number m_w;		///< conductance (S)
-//	number m_vm;	///< membrane potential (V)
-	number m_onset;
+	number m_rev;		///< reversal potential (V)
+
+
 
 public:
 	//ctor & dtor
@@ -38,11 +39,10 @@ public:
 	Exp2PostSynapse(
 			const number& location,
 			const number& onset,
+			const number& gMax,
 			const number& tau1,
 			const number& tau2,
-			const number& e,
-			const number& w
-//			const number& vm
+			const number& rev
 			);
 
 	Exp2PostSynapse(
@@ -50,35 +50,31 @@ public:
 			const SYNAPSE_ID presynapse_id,
 			const number& location,
 			const number& onset,
+			const number& gMax,
 			const number& tau1,
 			const number& tau2,
-			const number& e,
-			const number& w
-//			const number& vm
+			const number& rev
 			);
 
 	virtual ~Exp2PostSynapse();
 
 	//setter & getter
 	void set_onset(const number& onset) {m_onset=onset;}
+	void set_gMax(const number& gmax) {m_gMax=gmax;}
 	void set_tau1(const number& tau1) {m_tau1=tau1;}
 	void set_tau2(const number& tau2) {m_tau2=tau2;}
-	void set_e(const number& e) {m_e=e;}
-	void set_w(const number& w) {m_w=w;}
-//	void set_vm(const number& vm) {m_vm=vm;}
+	void set_rev(const number& rev) {m_rev=rev;}
+
 
 	number onset() const {return m_onset;}
+	number gMax() const {return m_gMax;}
 	number tau1() const {return m_tau1;}
 	number tau2() const {return m_tau2;}
-	number e() const {return m_e;}
-	number w() const {return m_w;}
-//	number vm() const {return m_vm;}
+	number rev() const {return m_rev;}
+
 
 	SynapseType type() const {return EXP2_POST_SYNAPSE;}
 	std::string name() const {return "EXP2_POST_SYNAPSE";}
-
-	//post synapses are false
-	bool split_type() const {return false;}
 
 	//functionality
 	number current(const number& t, const number& vm);

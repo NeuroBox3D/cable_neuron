@@ -13,31 +13,27 @@ namespace synapse_handler {
 
 Exp2PostSynapse::Exp2PostSynapse()
 :IPostSynapse(0, 0, 0),
+ m_onset(0),
+ m_gMax(0),
  m_tau1(0),
  m_tau2(0),
- m_e(0),
- m_w(0),
-// m_vm(0)
- m_onset(0)
-{}
+ m_rev(0)
+ {}
 
 Exp2PostSynapse::Exp2PostSynapse(
 		const number& location,
 		const number& onset,
+		const number& gMax,
 		const number& tau1,
 		const number& tau2,
-		const number& e,
-		const number& w
-//		const number& vm
+		const number& rev
 		)
-
 :IPostSynapse(0, 0, location),
+ m_onset(onset),
+ m_gMax(gMax),
  m_tau1(tau1),
  m_tau2(tau2),
- m_e(e),
- m_w(w),
-// m_vm(vm)
- m_onset(onset)
+ m_rev(rev)
 {
 }
 
@@ -45,21 +41,18 @@ Exp2PostSynapse::Exp2PostSynapse(
 		const SYNAPSE_ID id,
 		const SYNAPSE_ID presynapse_id,
 		const number& onset,
+		const number& gMax,
 		const number& location,
 		const number& tau1,
 		const number& tau2,
-		const number& e,
-		const number& w
-//		const number& vm
+		const number& rev
 		)
-
 :IPostSynapse(id, presynapse_id, location),
+ m_onset(onset),
+ m_gMax(gMax),
  m_tau1(tau1),
  m_tau2(tau2),
- m_e(e),
- m_w(w),
-// m_vm(vm)
- m_onset(onset)
+ m_rev(rev)
 {
 }
 
@@ -69,26 +62,12 @@ Exp2PostSynapse::~Exp2PostSynapse()
 
 number Exp2PostSynapse::current(const number& t, const number &vm)
 {
-	if (t >= m_onset)	// this excludes onset == NaN
-	{
+	if (t >= m_onset) {	// this excludes onset == NaN
 		number tp = (m_tau1*m_tau2)/(m_tau2 - m_tau1) * std::log(m_tau2/m_tau1);	// time of maximal current
 		number factor = 1.0 / (std::exp(-tp/m_tau2) - std::exp(-tp/m_tau1));		// normalization factor
-		number i = m_w * factor * (vm - m_e) * (std::exp(-(t-m_onset)/m_tau2) - std::exp(-(t-m_onset)/m_tau1));
-/*
-		std::cout << "Exp2PostSynapse" << id() << ":" << std::endl
-				  << "location: " << location() << std::endl
-				  << "onset: " << onset() << std::endl
-				  << "gMax: " << gMax() << std::endl
-				  << "tau1: " << tau1() << std::endl
-				  << "tau2: " << tau2() << std::endl
-				  << "rev:" << rev() << std::endl
-				  << "is_active(" << t << "): " << is_active(t) << std::endl
-				  << "current: " << i << std::endl << std::endl;
-*/
+		number i = m_gMax * factor * (vm - m_rev) * (std::exp(-t/m_tau2) - std::exp(-t/m_tau1));
 		return i; //!< i: current (in units of A)
-	}
-
-	return 0.0;
+	} return 0.0;
 }
 
 void Exp2PostSynapse::put_to(std::ostream& os) const
@@ -100,11 +79,10 @@ void Exp2PostSynapse::put_to(std::ostream& os) const
 	strs << presynapse_id() << " ";
 	strs << location() << " ";
 	strs << m_onset << " ";
+	strs << m_gMax << " ";
 	strs << m_tau1 << " ";
 	strs << m_tau2 << " ";
-	strs <<  m_e << " ";
-	strs << m_w << " ";
-//	strs << m_vm;
+	strs << m_rev;
 	os << strs.str();
 }
 
@@ -113,7 +91,6 @@ void Exp2PostSynapse::get_from(std::istream& is)
 	using boost::lexical_cast;
 	std::string tmp;
 
-	//std::string t; is >> t;
 	SYNAPSE_ID id; is >> id; set_id(id);
 	SYNAPSE_ID presyn_id; is >> presyn_id; set_presynapse_id(presyn_id);
 
@@ -129,6 +106,12 @@ void Exp2PostSynapse::get_from(std::istream& is)
 	set_onset(onset);
 	tmp.clear();
 
+	number gMax;
+	is >> tmp;
+	gMax = lexical_cast<number>(tmp);
+	set_gMax(gMax);
+	tmp.clear();
+
 	number tau1;
 	is >> tmp;
 	tau1 = lexical_cast<number>(tmp);
@@ -141,20 +124,12 @@ void Exp2PostSynapse::get_from(std::istream& is)
 	set_tau2(tau2);
 	tmp.clear();
 
-	number e;
+	number rev;
 	is >> tmp;
-	e = lexical_cast<number>(tmp);
-	set_e(e);
+	rev = lexical_cast<number>(tmp);
+	set_rev(rev);
 	tmp.clear();
 
-	number w;
-	is >> tmp;
-	w = lexical_cast<number>(tmp);
-	set_w(w);
-	tmp.clear();
-
-
-//	is >> m_vm;
 }
 
 bool Exp2PostSynapse::is_active(number time)

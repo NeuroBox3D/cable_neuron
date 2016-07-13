@@ -33,14 +33,16 @@ public:
 	Exp2PreSynapse(
 			const number& location,
 			const number& onset,
-			const number& duration);
+			const number& duration
+			);
 
 	Exp2PreSynapse(
 			const SYNAPSE_ID id,
 			const SYNAPSE_ID postsynapse_id,
 			const number& location,
 			const number& onset,
-			const number& duration);
+			const number& duration
+			);
 
 	virtual ~Exp2PreSynapse();
 
@@ -65,8 +67,8 @@ public:
 	void put_to(std::ostream& os) const;					//'put_to' == operator<<
 	void get_from(std::istream& is);				//'get_from' == operator>>
 
-	bool fire(number time, SYNAPSE_ID& post_syn_id);
-	bool cooldown(number time, SYNAPSE_ID& post_syn_id);
+//	bool fire(number time, SYNAPSE_ID& post_syn_id);
+//	bool cooldown(number time, SYNAPSE_ID& post_syn_id);
 };
 
 } /* namespace synapse_handler */
