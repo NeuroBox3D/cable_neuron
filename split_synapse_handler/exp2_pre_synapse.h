@@ -26,6 +26,7 @@ class Exp2PreSynapse : public IPreSynapse
 private:
 	number m_onset;
 	number m_duration;
+	number m_threshold;
 
 public:
 	//ctor & dtor
@@ -60,8 +61,8 @@ public:
 	bool split_type() const {return true;}
 
 	//interface methods
-	void update(const number& t, VectorProxyBase* up=NULL);
-	bool is_active(const number& t, VectorProxyBase* up=NULL);
+	void update(const number& t, const std::vector<number>& u);
+	bool is_active(const number& t);
 
 	//serialization interface methods
 	void put_to(std::ostream& os) const;					//'put_to' == operator<<

@@ -55,8 +55,8 @@ public:
 	number duration() const {return m_duration;}
 
 	//Interface dummy's
-	void update(const number& t, VectorProxyBase* up=NULL);
-	bool is_active(const number& t, VectorProxyBase* up=NULL);
+	void update(const number& t, const std::vector<number>& u);
+	bool is_active(const number& t);
 
 	//serialization from IBaseSynapse interface
 	void put_to(std::ostream& os) const;			//'put_to' == operator<<

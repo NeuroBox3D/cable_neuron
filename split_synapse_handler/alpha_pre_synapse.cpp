@@ -42,14 +42,14 @@ AlphaPreSynapse::~AlphaPreSynapse()
 {
 }
 
-void AlphaPreSynapse::update(const number& t, VectorProxyBase* up)
+void AlphaPreSynapse::update(const number& t, const std::vector<number>& u)
 {
 	//todo:
 	//dummy update atm
 }
 
 
-bool AlphaPreSynapse::is_active(const number& t, VectorProxyBase* up)
+bool AlphaPreSynapse::is_active(const number& t)
 {
 	//todo:
 	//t in [onset, onset+duration] ?

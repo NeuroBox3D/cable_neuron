@@ -48,16 +48,23 @@ Exp2PreSynapse::~Exp2PreSynapse()
 {
 }
 
-void Exp2PreSynapse::update(const number& t, VectorProxyBase* up)
+void Exp2PreSynapse::update(const number& t, const std::vector<number>& u)
 {
-	//todo:
-	//dummy update atm
+	// TODO: at the moment, u contains exactly one value, which is the potential at the synapse location
+	// this might be changed in the future!
+
+	// activate if potential above threshold
+	if (u[0] > m_threshold)
+		m_onset = t;
+
+	// deactivate if duration expired
+	if (m_onset + m_duration < t)
+		m_onset = nan(0);
 }
 
-bool Exp2PreSynapse::is_active(const number& t, VectorProxyBase* up)
+bool Exp2PreSynapse::is_active(const number& t)
 {
-	//is t in [onset, onset+diration]
-	return (t >= m_onset) && (t <= (m_onset + m_duration));
+	return (m_onset == m_onset);
 }
 
 /**

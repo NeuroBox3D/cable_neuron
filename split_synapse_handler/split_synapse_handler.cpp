@@ -35,7 +35,7 @@ number SplitSynapseHandler<TDomain>::current_on_edge(const Edge* e, size_t scv, 
 	number vm_postsyn = m_spCEDisc->vm(e->vertex(scv));
 	number curr = 0.0;
 
-	for(int i=0; i<vSyns.size(); ++i) {
+	for(size_t i=0; i<vSyns.size(); ++i) {
 		//postsynapses
 		if(!vSyns[i]->is_presynapse()) {
 			curr += static_cast<IPostSynapse*>(vSyns[i])->current(t, vm_postsyn);
@@ -183,9 +183,6 @@ template <typename TDomain>
 void SplitSynapseHandler<TDomain>::
 update_presyn(number time)
 {
-
-
-
 #ifdef UG_PARALLEL
 
 	//collect postsynapse id's that became active/inactive
@@ -197,6 +194,42 @@ update_presyn(number time)
 
 	for(size_t i=0; i<m_vPreSynapses.size(); ++i) {
 		IPreSynapse* s = m_vPreSynapses[i];
+
+
+		// update presynapse
+
+		// 1. "find" edge on which presynapse is located
+		Edge* e;
+// TODO: e = ...
+
+		// 2. get both vertices of that edge
+		Vertex* v1 = e->vertex(0);
+		Vertex* v2 = e->vertex(1);
+
+		// 3. get values of solution at vertices (and then at synapse location)
+		// TODO: get other values too (like in commented-out code snippet below)
+		std::vector<number> uAtSynapseLocation(1);
+		uAtSynapseLocation[0] = s->location() * m_spCEDisc->vm(v2)
+								+ (1.0 - s->location()) *  m_spCEDisc->vm(v1);
+		/*
+		for (size_t fct = 0; fct <= m_spCEDisc->m_numb_ion_funcs; ++fct)
+		{
+			std::vector<DoFIndex> dofIndex1;
+			std::vector<DoFIndex> dofIndex2;
+			dd->dof_indices(v1, fct, dofIndex1, false, false);
+			dd->dof_indices(v2, fct, dofIndex2, false, false);
+
+			UG_COND_THROW(dofIndex1.size() != 1, "Not exactly one dof index on vertex 0 for function " << fct << ".");
+			UG_COND_THROW(dofIndex2.size() != 1, "Not exactly one dof index on vertex 1 for function " << fct << ".");
+
+			uAtSynapseLocation[fct] = s->location() * DoFRef(u, dofIndex2[0])
+									  + (1.0 - s->location()) * DoFRef(u, dofIndex1[0]);
+		}
+		*/
+
+		// 4. update pre-synapse
+		s->update(time, uAtSynapseLocation);
+
 		//pre synapse becomes active if it is active and couldn't be found in the active presynapses map
 		if(s->is_active(time) &&
 		m_mActivePreSynapses.find(s->id()) == m_mActivePreSynapses.end() ) {
@@ -234,7 +267,7 @@ update_presyn(number time)
 
 	//scan for synapse ids that are on the local process and have to be deactivated
 	for(size_t i=0; i<vInactPSIDs_global.size(); ++i) {
-		SYNAPSE_ID psid = vActPSIDs_global[i];
+		SYNAPSE_ID psid = vInactPSIDs_global[i];
 
 		for(size_t j=0; j<m_vPreSynapses.size(); ++j) {
 			IPreSynapse* s = m_vPreSynapses[i];

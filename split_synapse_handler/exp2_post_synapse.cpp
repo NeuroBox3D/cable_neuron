@@ -62,12 +62,15 @@ Exp2PostSynapse::~Exp2PostSynapse()
 
 number Exp2PostSynapse::current(const number& t, const number &vm)
 {
-	if (t >= m_onset) {	// this excludes onset == NaN
+	if (t >= m_onset)	// this excludes onset == NaN
+	{
 		number tp = (m_tau1*m_tau2)/(m_tau2 - m_tau1) * std::log(m_tau2/m_tau1);	// time of maximal current
 		number factor = 1.0 / (std::exp(-tp/m_tau2) - std::exp(-tp/m_tau1));		// normalization factor
-		number i = m_gMax * factor * (vm - m_rev) * (std::exp(-t/m_tau2) - std::exp(-t/m_tau1));
+		number i = m_w * factor * (vm - m_e) * (std::exp(-(t-m_onset)/m_tau2) - std::exp(-(t-m_onset)/m_tau1));
 		return i; //!< i: current (in units of A)
-	} return 0.0;
+	}
+
+	return 0.0;
 }
 
 void Exp2PostSynapse::put_to(std::ostream& os) const

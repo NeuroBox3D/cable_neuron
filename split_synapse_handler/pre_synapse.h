@@ -40,8 +40,8 @@ public:
 	SYNAPSE_ID id() const {return m_id;}
 	SYNAPSE_ID postsynapse_id() const {return m_postsynapse_id;}
 
-	virtual void update(const number& t, VectorProxyBase* up=NULL) = 0;
-	virtual bool is_active(const number& t, VectorProxyBase* up=NULL) = 0;
+	virtual void update(const number& t, const std::vector<number>& u) = 0;
+	virtual bool is_active(const number& t) = 0;
 
 	virtual bool is_presynapse() const {return true;}
 	virtual bool is_postsynapse() const {return false;}
