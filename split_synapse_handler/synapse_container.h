@@ -159,6 +159,8 @@ private:
 	number m_dev_tau2;
 	number m_mean_rev;
 	number m_dev_rev;
+	number m_mean_threshold;
+	number m_dev_threshold;
 
 	std::vector<IBaseSynapse*> m_vSynapses;
 
@@ -175,6 +177,8 @@ public:
  m_dev_tau2(0),
  m_mean_rev(0),
  m_dev_rev(0),
+ m_mean_threshold(0),
+ m_dev_threshold(0),
  m_vSynapses(std::vector<IBaseSynapse*>(2 * num_synapses))
 {}
 
@@ -190,7 +194,9 @@ public:
 			number mean_tau2,
 			number dev_tau2,
 			number mean_rev,
-			number dev_rev
+			number dev_rev,
+			number mean_threshold,
+			number dev_threshold
 			)
 
 :m_start_id(start_id),
@@ -204,6 +210,8 @@ public:
  m_dev_tau2(dev_tau2),
  m_mean_rev(mean_rev),
  m_dev_rev(dev_rev),
+ m_mean_threshold(mean_threshold),
+ m_dev_threshold(dev_threshold),
  m_vSynapses(std::vector<IBaseSynapse*>(2 * num_synapses))
 {}
 
@@ -217,6 +225,8 @@ public:
 	void set_dev_tau2(const number val) {m_dev_tau2=val;}
 	void set_mean_rev(const number val) {m_mean_rev=val;}
 	void set_dev_rev(const number val) {m_dev_rev=val;}
+	void set_mean_threshold(const number val) {m_mean_threshold=val;}
+	void set_dev_threshold(const number val) {m_dev_threshold=val;}
 
 	size_t size() {return m_vSynapses.size();}
 	size_t start_id() {return m_start_id;}
@@ -248,16 +258,20 @@ public:
 		boost::normal_distribution<number> rev_dist(m_mean_rev, m_dev_rev);
 		boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > rev_var(rev_rng, rev_dist);
 
+		boost::mt19937 threshold_rng;
+		boost::normal_distribution<number> threshold_dist(m_mean_threshold, m_dev_threshold);
+		boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > threshold_var(threshold_rng, threshold_dist);
+
 		for(size_t i = 0; i < m_vSynapses.size(); i=i+2) {
-			number onset = onset_var();
+			number onset = nan("");
 			number tau1 = tau1_var();
 			number tau2 = tau2_var();
 
 			number tp = (tau1*tau2)/(tau2-tau1) * std::log(tau2/tau1);
 			tp = tp + 3 * tau2;
 			size_t syn_id = m_start_id + i/2;
-			IBaseSynapse *s1 = new Exp2PostSynapse(syn_id, syn_id, 0.0, nan(""), gMax_var(), tau1, tau2, rev_var());
-			IBaseSynapse *s2 = new Exp2PreSynapse(syn_id, syn_id, 0.0, onset, tp);
+			IBaseSynapse *s1 = new Exp2PostSynapse(syn_id, syn_id, 0.0, onset, gMax_var(), tau1, tau2, rev_var());
+			IBaseSynapse *s2 = new Exp2PreSynapse(syn_id, syn_id, 0.0, onset, tp, threshold_var());
 
 			m_vSynapses[i] = s1;
 			m_vSynapses[i+1] = s2;

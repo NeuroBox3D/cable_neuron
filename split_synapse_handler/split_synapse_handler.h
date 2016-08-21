@@ -48,7 +48,6 @@ class SplitSynapseHandler
 private:
 	typedef Attachment<std::vector<IBaseSynapse*> > AVSSynapse;
 
-
 	AVSSynapse m_aSSyn;
 	Grid::EdgeAttachmentAccessor<AVSSynapse> m_aaSSyn;
 	bool m_bInited;
@@ -57,12 +56,20 @@ private:
 	SplitSynapseAttachmentHandler m_ssah;
 	SmartPtr<ApproximationSpace<TDomain> > m_spApprox;
 
+
+	/*	//probably unused
 	std::vector<IBaseSynapse*> m_vAllSynapses;
 	std::vector<IPreSynapse*> m_vPreSynapses;
-	std::vector<IPostSynapse*> m_vPostSynapses;	// map with key ID instead of vector!
+	std::vector<IPostSynapse*> m_vPostSynapses;*/	// map with key ID instead of vector!
 
-	std::map<SYNAPSE_ID, IPostSynapse*> m_mPostSynapses;
-	std::map<SYNAPSE_ID, IPreSynapse*> m_mActivePreSynapses;
+	//use these maps
+	//std::map<SYNAPSE_ID, IBaseSynapse*> m_mAllSynapses; //contains all local synapses on grid by their respective id->IBaseSynapse pointer
+	std::map<SYNAPSE_ID, IPreSynapse*> m_mPreSynapses; // " ... "
+	std::map<SYNAPSE_ID, IPostSynapse*> m_mPostSynapses; // " ... "
+
+	std::map<SYNAPSE_ID, IPreSynapse*> m_mActivePreSynapses; //internal memory of currently active presynapses
+	std::map<SYNAPSE_ID, Edge*> m_mPreSynapseIdToEdge; //maps presynapses to their edge
+
 
 public:
 	SplitSynapseHandler();
@@ -80,9 +87,7 @@ public:
 
 	number current_on_edge(const Edge* e, size_t scv, number t);
 
-	std::vector<IBaseSynapse*> all_synapses();
-	std::vector<IPreSynapse*> all_pre_synapses();
-	std::vector<IPostSynapse*> all_post_synapses();
+	void all_synapses();
 
 	void update_presyn(number time);
 

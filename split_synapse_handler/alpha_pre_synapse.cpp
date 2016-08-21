@@ -44,8 +44,7 @@ AlphaPreSynapse::~AlphaPreSynapse()
 
 void AlphaPreSynapse::update(const number& t, const std::vector<number>& u)
 {
-	//todo:
-	//dummy update atm
+	//interface dummy
 }
 
 

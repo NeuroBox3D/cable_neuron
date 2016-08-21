@@ -34,7 +34,8 @@ public:
 	Exp2PreSynapse(
 			const number& location,
 			const number& onset,
-			const number& duration
+			const number& duration,
+			const number& threshold
 			);
 
 	Exp2PreSynapse(
@@ -42,7 +43,8 @@ public:
 			const SYNAPSE_ID postsynapse_id,
 			const number& location,
 			const number& onset,
-			const number& duration
+			const number& duration,
+			const number& threshold
 			);
 
 	virtual ~Exp2PreSynapse();
@@ -50,9 +52,11 @@ public:
 	//setter & getter
 	void set_onset(const number& onset) {m_onset = onset;}
 	void set_duration(const number& duration) {m_duration = duration;}
+	void set_threshold(const number& val) {m_threshold = val;}
 
 	number onset() const {return m_onset;}
 	number duration() const {return m_duration;}
+	number threshold() const {return m_threshold;}
 
 	SynapseType type() const {return EXP2_PRE_SYNAPSE;}
 	std::string name() const {return "EXP2_PRE_SYNAPSE";}

@@ -18,14 +18,13 @@ SplitSynapseHandler<TDomain>::SplitSynapseHandler()
  m_spGrid(SPNULL),
  m_spCEDisc(SPNULL),
  m_spApprox(SPNULL),
- m_vAllSynapses(std::vector<IBaseSynapse*>()),
- m_vPreSynapses(std::vector<IPreSynapse*>()),
- m_vPostSynapses(std::vector<IPostSynapse*>()),
+ m_mPreSynapses(std::map<SYNAPSE_ID,IPreSynapse*>()),
  m_mPostSynapses(std::map<SYNAPSE_ID,IPostSynapse*>()),
- m_mActivePreSynapses(std::map<SYNAPSE_ID,IPreSynapse*>())
+ m_mActivePreSynapses(std::map<SYNAPSE_ID, IPreSynapse*>()),
+ m_mPreSynapseIdToEdge(std::map<SYNAPSE_ID,Edge*>())
 {
 	m_ssah.set_attachment(m_aSSyn);
-	std::cout << "\nSSH instantiated\n";
+	//std::cout << "\nSSH instantiated\n";
 }
 
 template <typename TDomain>
@@ -55,7 +54,7 @@ bool SplitSynapseHandler<TDomain>::synapse_on_edge(const Edge* edge, size_t scv,
 template <typename TDomain>
 void SplitSynapseHandler<TDomain>::grid_first_available()
 {
-	std::cout << "\nSSH grid_first_available\n";
+	//std::cout << "\nSSH grid_first_available\n";
 	// throw if this is called more than once
 	UG_COND_THROW(m_bInited, "Second initialization call is not allowed.");
 
@@ -98,15 +97,8 @@ void SplitSynapseHandler<TDomain>::grid_first_available()
 	// set init'ed flag
 	m_bInited = true;
 
-	//gather all synapses from grid
-	m_vAllSynapses = all_synapses();
-	m_vPreSynapses = all_pre_synapses();
-	m_vPostSynapses = all_post_synapses();
-
-	//map postsyn id to pointer
-	for(size_t i=0; i<m_vPostSynapses.size(); ++i) {
-		m_mPostSynapses[m_vPostSynapses[i]->id()] = m_vPostSynapses[i];
-	}
+	//gather all synapses from grid and build all tables
+	all_synapses();
 
 }
 
@@ -114,56 +106,23 @@ void SplitSynapseHandler<TDomain>::grid_first_available()
  * returns vector containing all synapses on the grid
  */
 template <typename TDomain>
-std::vector<IBaseSynapse*>
+void
 SplitSynapseHandler<TDomain>::all_synapses()
 {
-	std::vector<IBaseSynapse*> vSyn;
-
 	for(geometry_traits<Edge>::const_iterator e=m_spGrid->begin<Edge>(0); e != m_spGrid->end<Edge>(0); ++e) {
 		for(size_t i = 0; i<m_aaSSyn[*e].size(); ++i) {
-			vSyn.push_back(m_aaSSyn[*e][i]);
-		}
-	}
-	return vSyn;
-}
-
-/**
- * returns vector containing all presynapses on the grid
- */
-template <typename TDomain>
-std::vector<IPreSynapse*>
-SplitSynapseHandler<TDomain>::all_pre_synapses()
-{
-	std::vector<IPreSynapse*> vSyn;
-
-	for(geometry_traits<Edge>::const_iterator e=m_spGrid->begin<Edge>(0); e != m_spGrid->end<Edge>(0); ++e) {
-		for(size_t i = 0; i<m_aaSSyn[*e].size(); ++i) {
-			if(m_aaSSyn[*e][i]->is_presynapse()) {
-				vSyn.push_back( static_cast<IPreSynapse*>(m_aaSSyn[*e][i]) );
+			if(m_aaSSyn[*e][i]->is_presynapse()) { //presynapse map and save edge
+				IPreSynapse* s = (IPreSynapse*)m_aaSSyn[*e][i];
+				m_mPreSynapses[s->id()] = s;
+				m_mPreSynapseIdToEdge[s->id()] = *e;
+			} else {  //postsynapse map
+				IPostSynapse* s = (IPostSynapse*)m_aaSSyn[*e][i];
+				m_mPostSynapses[s->id()] = s;
 			}
 		}
 	}
-	return vSyn;
 }
 
-/**
- * returns vector containing all postsynapses on the grid
- */
-template <typename TDomain>
-std::vector<IPostSynapse*>
-SplitSynapseHandler<TDomain>::all_post_synapses()
-{
-	std::vector<IPostSynapse*> vSyn;
-
-	for(geometry_traits<Edge>::const_iterator e=m_spGrid->begin<Edge>(0); e != m_spGrid->end<Edge>(0); ++e) {
-		for(size_t i = 0; i<m_aaSSyn[*e].size(); ++i) {
-			if(!m_aaSSyn[*e][i]->is_presynapse()) {
-				vSyn.push_back( static_cast<IPostSynapse*>(m_aaSSyn[*e][i]) );
-			}
-		}
-	}
-	return vSyn;
-}
 
 /*template <typename TDomain>
 void SplitSynapseHandler<TDomain>::
@@ -186,27 +145,19 @@ update_presyn(number time)
 #ifdef UG_PARALLEL
 
 	//collect postsynapse id's that became active/inactive
-	std::vector<SYNAPSE_ID> vActPSIDs_local; //active
-	std::vector<SYNAPSE_ID> vInactPSIDs_local; //inactive
+	std::vector<SYNAPSE_ID> vNewActivePostSynapseIds_local; //becoming active on local process
+	std::vector<SYNAPSE_ID> vNewInactivePostSynapseIds_local; //becomming inactive on local process
 
-	std::vector<SYNAPSE_ID> vActPSIDs_global;
-	std::vector<SYNAPSE_ID> vInactPSIDs_global;
+	std::vector<SYNAPSE_ID> vNewActivePostSynapseIds_global; //complete list of all newly active synapses
+	std::vector<SYNAPSE_ID> vNewInactivePostSynapseIds_global; //complete list of all newly inactive synapses
 
-	for(size_t i=0; i<m_vPreSynapses.size(); ++i) {
-		IPreSynapse* s = m_vPreSynapses[i];
+	for(std::map<SYNAPSE_ID, IPreSynapse*>::iterator it = m_mPreSynapses.begin(); it != m_mPreSynapses.end(); ++it) {
+		IPreSynapse* s = it->second;
+		Edge* e = m_mPreSynapseIdToEdge[it->first] ; //To s corresponding Edge e
 
-
-		// update presynapse
-
-		// 1. "find" edge on which presynapse is located
-		Edge* e;
-// TODO: e = ...
-
-		// 2. get both vertices of that edge
 		Vertex* v1 = e->vertex(0);
 		Vertex* v2 = e->vertex(1);
 
-		// 3. get values of solution at vertices (and then at synapse location)
 		// TODO: get other values too (like in commented-out code snippet below)
 		std::vector<number> uAtSynapseLocation(1);
 		uAtSynapseLocation[0] = s->location() * m_spCEDisc->vm(v2)
@@ -227,54 +178,42 @@ update_presyn(number time)
 		}
 		*/
 
-		// 4. update pre-synapse
 		s->update(time, uAtSynapseLocation);
 
-		//pre synapse becomes active if it is active and couldn't be found in the active presynapses map
-		if(s->is_active(time) &&
-		m_mActivePreSynapses.find(s->id()) == m_mActivePreSynapses.end() ) {
-
+		//pre synapse becomes just active if it is active and couldn't be found in the active presynapses map
+		if( (s->is_active(time)) && (m_mActivePreSynapses.find(s->id()) == m_mActivePreSynapses.end()) ) {
 			m_mActivePreSynapses[s->id()] = s;
-			vActPSIDs_local.push_back(s->id());
+			vNewActivePostSynapseIds_local.push_back(s->id());
 
 		//pre synapse becomes inactive
-		} else if (!s->is_active(time) &&
-		m_mActivePreSynapses.find(s->id()) != m_mActivePreSynapses.end()) {
+		} else if (!s->is_active(time) && m_mActivePreSynapses.find(s->id()) != m_mActivePreSynapses.end()) {
 
 			m_mActivePreSynapses.erase(s->id());
-			vInactPSIDs_local.push_back(s->id());
+			vNewInactivePostSynapseIds_local.push_back(s->id());
 		}
 	}
 
 	//propagate to all processes
 	pcl::ProcessCommunicator com;
-	com.allgatherv(vActPSIDs_global, vActPSIDs_local);
-	com.allgatherv(vInactPSIDs_global, vInactPSIDs_local);
+	com.allgatherv(vNewActivePostSynapseIds_global, vNewActivePostSynapseIds_local);
+	com.allgatherv(vNewInactivePostSynapseIds_global, vNewInactivePostSynapseIds_local);
 
 	//todo: maybe assume a structured distribution to increase performance of the scanning, tbd
 	//scan for synapse ids that are on the local process and have to be activated
-	for(size_t i=0; i<vActPSIDs_global.size(); ++i) {
-		SYNAPSE_ID psid = vActPSIDs_global[i];
+	for(size_t i=0; i<vNewActivePostSynapseIds_global.size(); ++i) {
+		SYNAPSE_ID psid = vNewActivePostSynapseIds_global[i];
 
-		for(size_t j=0; j<m_vPreSynapses.size(); ++j) {
-			IPreSynapse* s = m_vPreSynapses[j];
-			if(psid == s->postsynapse_id()) {
-				m_mActivePreSynapses[s->id()] = s;
-				m_mPostSynapses[s->postsynapse_id()]->activate(time);
-			}
+		if(m_mPostSynapses.find(psid) != m_mPostSynapses.end()) { //synapse id found on local process
+			m_mPostSynapses[psid]->activate(time);
 		}
 	}
 
 	//scan for synapse ids that are on the local process and have to be deactivated
-	for(size_t i=0; i<vInactPSIDs_global.size(); ++i) {
-		SYNAPSE_ID psid = vInactPSIDs_global[i];
+	for(size_t i=0; i<vNewInactivePostSynapseIds_global.size(); ++i) {
+		SYNAPSE_ID psid = vNewInactivePostSynapseIds_global[i];
 
-		for(size_t j=0; j<m_vPreSynapses.size(); ++j) {
-			IPreSynapse* s = m_vPreSynapses[i];
-			if(psid == s->postsynapse_id()) {
-				m_mActivePreSynapses.erase(s->id());
-				m_mPostSynapses[s->postsynapse_id()]->deactivate(time);
-			}
+		if(m_mPostSynapses.find(psid) != m_mPostSynapses.end()) {
+			m_mPostSynapses[psid]->deactivate(time);
 		}
 	}
 
@@ -344,21 +283,44 @@ update_presyn(number time)
 
 #else
 
-	for(size_t i=0; i<m_vPreSynapses.size(); ++i) {
-		IPreSynapse* s = m_vPreSynapses[i];
-		//pre synapse becomes active if it is active and couldn't be found in the active presynapses map
-		if(s->is_active(time) &&
-		m_mActivePreSynapses.find(s->id()) == m_mActivePreSynapses.end() ) {
+	for(std::map<SYNAPSE_ID, IPreSynapse*>::iterator it = m_mPreSynapses.begin(); it != m_mPreSynapses.end(); ++it) {
+		IPreSynapse* s = it->second;
+		Edge* e = m_mPreSynapseIdToEdge[it->first] ; //To s corresponding Edge e
 
+		Vertex* v1 = e->vertex(0);
+		Vertex* v2 = e->vertex(1);
+
+		// TODO: get other values too (like in commented-out code snippet below)
+		std::vector<number> uAtSynapseLocation(1);
+		uAtSynapseLocation[0] = s->location() * m_spCEDisc->vm(v2)
+								+ (1.0 - s->location()) *  m_spCEDisc->vm(v1);
+		/*
+		for (size_t fct = 0; fct <= m_spCEDisc->m_numb_ion_funcs; ++fct)
+		{
+			std::vector<DoFIndex> dofIndex1;
+			std::vector<DoFIndex> dofIndex2;
+			dd->dof_indices(v1, fct, dofIndex1, false, false);
+			dd->dof_indices(v2, fct, dofIndex2, false, false);
+
+			UG_COND_THROW(dofIndex1.size() != 1, "Not exactly one dof index on vertex 0 for function " << fct << ".");
+			UG_COND_THROW(dofIndex2.size() != 1, "Not exactly one dof index on vertex 1 for function " << fct << ".");
+
+			uAtSynapseLocation[fct] = s->location() * DoFRef(u, dofIndex2[0])
+									  + (1.0 - s->location()) * DoFRef(u, dofIndex1[0]);
+		}
+		*/
+
+		s->update(time, uAtSynapseLocation);
+
+		//pre synapse becomes just active if it is active and couldn't be found in the active presynapses map
+		if( (s->is_active(time)) && (m_mActivePreSynapses.find(s->id()) == m_mActivePreSynapses.end()) ) {
 			m_mActivePreSynapses[s->id()] = s;
-			m_mPostSynapses[s->postsynapse_id()]->activate(time);
+			m_mPostSynapses[s->id()]->activate(time);
 
 		//pre synapse becomes inactive
-		} else if (!s->is_active(time) &&
-		m_mActivePreSynapses.find(s->id()) != m_mActivePreSynapses.end()) {
-
+		} else if (!s->is_active(time) && m_mActivePreSynapses.find(s->id()) != m_mActivePreSynapses.end()) {
 			m_mActivePreSynapses.erase(s->id());
-			m_mPostSynapses[s->postsynapse_id()]->deactivate(time);
+			m_mPostSynapses[s->id()]->deactivate(time);
 		}
 	}
 
