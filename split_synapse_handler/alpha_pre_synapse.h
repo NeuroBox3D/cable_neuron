@@ -61,9 +61,6 @@ public:
 	//serialization from IBaseSynapse interface
 	void put_to(std::ostream& os) const;			//'put_to' == operator<<
 	void get_from(std::istream& is);				//'get_from' == operator>>
-
-//	bool fire(number time, SYNAPSE_ID& post_syn_id);
-//	bool cooldown(number time, SYNAPSE_ID& post_syn_id);
 };
 
 } /* namespace synapse_handler */

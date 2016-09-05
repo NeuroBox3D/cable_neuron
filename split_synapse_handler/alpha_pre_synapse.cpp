@@ -50,7 +50,6 @@ void AlphaPreSynapse::update(const number& t, const std::vector<number>& u)
 
 bool AlphaPreSynapse::is_active(const number& t)
 {
-	//todo:
 	//t in [onset, onset+duration] ?
 	return (t >= m_onset) && (t <= (m_onset + m_duration) ) ;
 }
@@ -95,24 +94,6 @@ void AlphaPreSynapse::get_from(std::istream& is)
 	tmp.clear();
 }
 
-//bool AlphaPreSynapse::fire(number time, SYNAPSE_ID& postsyn_id)
-//{
-//	if(time >= m_onset) {
-//		postsyn_id = postsynapse_id();
-//		return true;
-//	}
-//	return false;
-//}
-//
-//bool AlphaPreSynapse::cooldown(number time, SYNAPSE_ID& postsyn_id)
-//{
-//	number dt = time - m_onset;
-//	if( (time >= m_onset) && (dt >= m_duration)) {
-//		postsyn_id = postsynapse_id();
-//		return true;
-//	}
-//	return false;
-//}
 
 } /* namespace synapse_handler */
 } /* namespace cable_neuron */

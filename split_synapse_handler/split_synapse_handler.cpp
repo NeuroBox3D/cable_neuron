@@ -31,17 +31,25 @@ SplitSynapseHandler<TDomain>::SplitSynapseHandler()
 template <typename TDomain>
 number SplitSynapseHandler<TDomain>::current_on_edge(const Edge* e, size_t scv, number t)
 {
+	//TODO: update!! currents are nan if synapse inactive
 	std::vector<IBaseSynapse*> vSyns(m_aaSSyn[e]);
 	number vm_postsyn = m_spCEDisc->vm(e->vertex(scv));
 	number curr = 0.0;
 
 	for(size_t i=0; i<vSyns.size(); ++i) {
+		IBaseSynapse* s = vSyns[i];
 		//postsynapses
-		if(!vSyns[i]->is_presynapse()) {
-			curr += static_cast<IPostSynapse*>(vSyns[i])->current(t, vm_postsyn);
+		if(s->is_postsynapse()) {
+			IPostSynapse* ps = static_cast<IPostSynapse*>(s);
+
+			if(ps->is_active(t)) {
+				//std::cout << (ps->is_active(t)) << std::endl;
+				//std::cout << s->name() << std::endl;
+				curr += ps->current(t, vm_postsyn);
+			}
 		}
 	}
-	//std::cout << curr << std::endl;
+	//std::cout << curr << std::endl << std::endl;
 	return curr;
 }
 
