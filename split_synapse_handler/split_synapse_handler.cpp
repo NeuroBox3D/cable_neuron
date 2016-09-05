@@ -21,7 +21,8 @@ SplitSynapseHandler<TDomain>::SplitSynapseHandler()
  m_mPreSynapses(std::map<SYNAPSE_ID,IPreSynapse*>()),
  m_mPostSynapses(std::map<SYNAPSE_ID,IPostSynapse*>()),
  m_mActivePreSynapses(std::map<SYNAPSE_ID, IPreSynapse*>()),
- m_mPreSynapseIdToEdge(std::map<SYNAPSE_ID,Edge*>())
+ m_mPreSynapseIdToEdge(std::map<SYNAPSE_ID,Edge*>()),
+ m_iterator_type("")
 {
 	m_ssah.set_attachment(m_aSSyn);
 	//std::cout << "\nSSH instantiated\n";
@@ -40,6 +41,7 @@ number SplitSynapseHandler<TDomain>::current_on_edge(const Edge* e, size_t scv, 
 			curr += static_cast<IPostSynapse*>(vSyns[i])->current(t, vm_postsyn);
 		}
 	}
+	//std::cout << curr << std::endl;
 	return curr;
 }
 
@@ -111,6 +113,7 @@ SplitSynapseHandler<TDomain>::all_synapses()
 {
 	for(geometry_traits<Edge>::const_iterator e=m_spGrid->begin<Edge>(0); e != m_spGrid->end<Edge>(0); ++e) {
 		for(size_t i = 0; i<m_aaSSyn[*e].size(); ++i) {
+			m_vAllSynapses.push_back(m_aaSSyn[*e][i]);
 			if(m_aaSSyn[*e][i]->is_presynapse()) { //presynapse map and save edge
 				IPreSynapse* s = (IPreSynapse*)m_aaSSyn[*e][i];
 				m_mPreSynapses[s->id()] = s;
