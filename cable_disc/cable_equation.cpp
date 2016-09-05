@@ -346,6 +346,7 @@ estimate_cfl_cond(ConstSmartPtr<TVector> u)
 //					linDepCh += scvSurf * m_channel[ch]->lin_dep_on_pot(vrt, vrt_values);
 				}
 			}
+			//std::cout << linDep << std::endl;
 
 			// consider synapse currents too (important for large number of active synapses)
 			// TODO: This assumes any synaptic current is of the form: conductivity * (-V).
@@ -368,6 +369,7 @@ estimate_cfl_cond(ConstSmartPtr<TVector> u)
                                         // else: no way to determine linDep
 				}
 			}
+			//std::cout << linDep << std::endl << std::endl;
 		}
 
 		number cfl = 2.0 * m_spec_cap * massFac / linDep;
