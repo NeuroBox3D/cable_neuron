@@ -61,9 +61,6 @@ public:
 	SynapseType type() const {return EXP2_PRE_SYNAPSE;}
 	std::string name() const {return "EXP2_PRE_SYNAPSE";}
 
-	//pre synapses are true
-	bool split_type() const {return true;}
-
 	//interface methods
 	void update(const number& t, const std::vector<number>& u);
 	bool is_active(const number& t);

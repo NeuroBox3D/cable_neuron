@@ -13,7 +13,7 @@ namespace synapse_handler {
 
 Exp2PreSynapse::Exp2PreSynapse()
 :IPreSynapse(0,0,0),
- m_onset(0), m_duration(0), m_threshold(0)
+ m_onset(nan("")), m_duration(0), m_threshold(0)
 {
 }
 
@@ -28,7 +28,7 @@ Exp2PreSynapse::Exp2PreSynapse(
 		)
 
 :IPreSynapse(0, 0, location),
- m_onset(onset), m_duration(duration), m_threshold(threshold)
+ m_onset(nan("")), m_duration(duration), m_threshold(threshold)
 {
 }
 
@@ -42,7 +42,7 @@ Exp2PreSynapse::Exp2PreSynapse(
 		)
 
 :IPreSynapse(id, postsynapse_id, location),
- m_onset(onset), m_duration(duration), m_threshold(threshold)
+ m_onset(nan("")), m_duration(duration), m_threshold(threshold)
 {
 }
 
@@ -66,7 +66,7 @@ void Exp2PreSynapse::update(const number& t, const std::vector<number>& u)
 
 bool Exp2PreSynapse::is_active(const number& t)
 {
-	return (m_onset == m_onset);
+	return m_onset == m_onset;
 }
 
 /**
@@ -106,7 +106,7 @@ void Exp2PreSynapse::get_from(std::istream& is)
 	number onset;
 	is >> tmp;
 	onset = lexical_cast<number>(tmp);
-	set_onset(onset);
+	set_onset(nan(""));
 	tmp.clear();
 
 	number duration;
