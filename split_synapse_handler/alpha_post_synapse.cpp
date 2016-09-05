@@ -15,7 +15,7 @@ namespace synapse_handler {
 
 AlphaPostSynapse::AlphaPostSynapse()
 :IPostSynapse(0, 0, 0),
- m_onset(0),
+ m_onset(nan("")),
  m_gMax(0),
  m_tau(0),
  m_rev(0)
@@ -29,7 +29,7 @@ AlphaPostSynapse::AlphaPostSynapse(
 		const number& rev)
 
 :IPostSynapse(0, 0, location),
- m_onset(onset),
+ m_onset(nan("")),
  m_gMax(gMax),
  m_tau(tau),
  m_rev(rev)
@@ -46,7 +46,7 @@ AlphaPostSynapse::AlphaPostSynapse(
 		const number& rev)
 
 :IPostSynapse(id, presynapse_id, location),
- m_onset(onset),
+ m_onset(nan("")),
  m_gMax(gMax),
  m_tau(tau),
  m_rev(rev)
@@ -59,8 +59,19 @@ AlphaPostSynapse::~AlphaPostSynapse()
 
 number AlphaPostSynapse::current(const number& t, const number& vm)
 {
-	if (t >= m_onset)	// this excludes onset == NaN
-		return m_gMax * (t - m_onset)/m_tau * std::exp(-(t - m_onset - m_tau)/m_tau) * (vm - m_rev);	// current (in units of A)
+
+	if (t >= m_onset) {	// this excludes onset == NaN
+		double curr = m_gMax * (t - m_onset)/m_tau * std::exp(-(t - m_onset - m_tau)/m_tau) * (vm - m_rev);	// current (in units of A);
+//		std::cout << "AlphaPostSynapse" << id() << ":" << std::endl
+//				  << "location: " << location() << std::endl
+//				  << "onset: " << onset() << std::endl
+//				  << "gMax: " << gMax() << std::endl
+//				  << "tau: " << tau() << std::endl
+//				  << "rev:" << rev() << std::endl
+//				  << "is_active(" << t << "): " << is_active(t) << std::endl
+//				  << "current: " << curr << std::endl << std::endl;
+		return curr;
+	}
 
 	return 0.0;
 }
@@ -103,7 +114,7 @@ void AlphaPostSynapse::get_from(std::istream& is)
 	number onset;
 	is >> tmp;
 	onset = lexical_cast<number>(tmp);
-	set_onset(onset);
+	set_onset(nan(""));
 	tmp.clear();
 
 	number gMax;
