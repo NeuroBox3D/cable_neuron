@@ -805,6 +805,7 @@ void CableEquation<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, cons
 			number current = 0;
 			if (m_spSH->synapse_on_edge(pElem, co, m_time, current))
 			{
+				if(isnan(current))UG_THROW("current is nan.");
 				d(_v_, co) -= current;		// current is in A
 
 				// calcium current through synapse
