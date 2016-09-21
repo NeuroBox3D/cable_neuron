@@ -308,7 +308,6 @@ estimate_cfl_cond(ConstSmartPtr<TVector> u)
 	size_t sv_sz = m_vSurfVrt.size();
 
 	number linDepCh, linDepSyn;
-
 	for (size_t sv = 0; sv < sv_sz; ++sv)
 	{
 		Vertex* vrt = m_vSurfVrt[sv];
@@ -368,6 +367,7 @@ estimate_cfl_cond(ConstSmartPtr<TVector> u)
 
 		number cfl = 2.0 * m_spec_cap * massFac / linDep;
 		minCFL = std::min(minCFL, cfl);
+
 if (minCFL == cfl)
 {
 	UG_LOGN("linDep channels: " << linDepCh);

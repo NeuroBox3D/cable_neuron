@@ -531,8 +531,6 @@ struct Functionality
 		{
 			typedef SplitSynapseHandler<TDomain> TSSH;
 			string name = string("SplitSynapseHandler").append(suffix);;
-			cout << "\n####SplitSynapseHandler: Lua registered Name: '" << name << "' ####\n";
-			//exit(0);
 			reg.add_class_<TSSH>(name, grp)
 				.template add_constructor<void (*)()>()
 				.add_method("set_ce_object", &TSSH::set_ce_object)
