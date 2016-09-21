@@ -300,7 +300,7 @@ estimate_cfl_cond(ConstSmartPtr<TVector> u)
 	double minCFL = std::numeric_limits<double>::max();
 	size_t sv_sz = m_vSurfVrt.size();
 
-	number linDepCh, linDepSyn;
+//	number linDepCh, linDepSyn;
 
 	for (size_t sv = 0; sv < sv_sz; ++sv)
 	{
@@ -315,7 +315,7 @@ estimate_cfl_cond(ConstSmartPtr<TVector> u)
 		}
 
 		number linDep = 0.0;
-		linDepCh = linDepSyn = 0.0;
+//		linDepCh = linDepSyn = 0.0;
 		number massFac = 0.0;
 		typedef typename MultiGrid::traits<Edge>::secure_container edge_list;
 		edge_list el;
@@ -334,8 +334,10 @@ estimate_cfl_cond(ConstSmartPtr<TVector> u)
 			for (size_t ch = 0; ch < ch_sz; ++ch)
 			{
 				if (m_channel[ch]->is_def_on_subset(m_si))
+				{
 					linDep += scvSurf * m_channel[ch]->lin_dep_on_pot(vrt, vrt_values);
-					linDepCh += scvSurf * m_channel[ch]->lin_dep_on_pot(vrt, vrt_values);
+//					linDepCh += scvSurf * m_channel[ch]->lin_dep_on_pot(vrt, vrt_values);
+				}
 			}
 
 			// consider synapse currents too (important for large number of active synapses)
@@ -350,18 +352,20 @@ estimate_cfl_cond(ConstSmartPtr<TVector> u)
 				if (edge->vertex(1) == vrt) co = 1;
 
 				if (m_spSH->synapse_on_edge(edge, co, m_time, current))
+				{
 					linDep += current / vrt_values[_v_];
-					linDepSyn += current / vrt_values[_v_];
+//					linDepSyn += current / vrt_values[_v_];
+				}
 			}
 		}
 
 		number cfl = 2.0 * m_spec_cap * massFac / linDep;
 		minCFL = std::min(minCFL, cfl);
-if (minCFL == cfl)
-{
-	UG_LOGN("linDep channels: " << linDepCh);
-	UG_LOGN("linDep synapses: " << linDepSyn << " --> minCFL: " << minCFL);
-}
+//if (minCFL == cfl)
+//{
+//	UG_LOGN("linDep channels: " << linDepCh);
+//	UG_LOGN("linDep synapses: " << linDepSyn << " --> minCFL: " << minCFL);
+//}
 	}
 
 		// communicate
