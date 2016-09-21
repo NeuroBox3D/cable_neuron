@@ -300,6 +300,8 @@ estimate_cfl_cond(ConstSmartPtr<TVector> u)
 	double minCFL = std::numeric_limits<double>::max();
 	size_t sv_sz = m_vSurfVrt.size();
 
+	number linDepCh, linDepSyn;
+
 	for (size_t sv = 0; sv < sv_sz; ++sv)
 	{
 		Vertex* vrt = m_vSurfVrt[sv];
@@ -313,6 +315,7 @@ estimate_cfl_cond(ConstSmartPtr<TVector> u)
 		}
 
 		number linDep = 0.0;
+		linDepCh = linDepSyn = 0.0;
 		number massFac = 0.0;
 		typedef typename MultiGrid::traits<Edge>::secure_container edge_list;
 		edge_list el;
@@ -332,6 +335,7 @@ estimate_cfl_cond(ConstSmartPtr<TVector> u)
 			{
 				if (m_channel[ch]->is_def_on_subset(m_si))
 					linDep += scvSurf * m_channel[ch]->lin_dep_on_pot(vrt, vrt_values);
+					linDepCh += scvSurf * m_channel[ch]->lin_dep_on_pot(vrt, vrt_values);
 			}
 
 			// consider synapse currents too (important for large number of active synapses)
@@ -347,11 +351,17 @@ estimate_cfl_cond(ConstSmartPtr<TVector> u)
 
 				if (m_spSH->synapse_on_edge(edge, co, m_time, current))
 					linDep += current / vrt_values[_v_];
+					linDepSyn += current / vrt_values[_v_];
 			}
 		}
 
 		number cfl = 2.0 * m_spec_cap * massFac / linDep;
 		minCFL = std::min(minCFL, cfl);
+if (minCFL == cfl)
+{
+	UG_LOGN("linDep channels: " << linDepCh);
+	UG_LOGN("linDep synapses: " << linDepSyn << " --> minCFL: " << minCFL);
+}
 	}
 
 		// communicate
@@ -596,6 +606,7 @@ template<typename TDomain>
 template<typename TElem, typename TFVGeom>
 void CableEquation<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
+	PROFILE_BEGIN_GROUP(add_def_A_elem, "CableEquation");
 	// get finite volume geometry
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
@@ -674,6 +685,7 @@ template<typename TDomain>
 template<typename TElem, typename TFVGeom>
 void CableEquation<TDomain>::add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
+	PROFILE_BEGIN_GROUP(add_def_M_elem, "CableEquation");
 	// get finite volume geometry
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
@@ -706,6 +718,7 @@ template<typename TDomain>
 template <typename TElem, typename TFVGeom>
 void CableEquation<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
+	PROFILE_BEGIN_GROUP(add_def_rhs_elem, "CableEquationRHS");
 	// get finite volume geometry
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
@@ -727,6 +740,7 @@ void CableEquation<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, cons
 		// get diam from attachment
 		number diam = m_aaDiameter[pElem->vertex(co)];
 
+		PROFILE_BEGIN_GROUP(rhs_pointInflux, "CableEquationRHS");
 		// influx handling coordinates
 		number time = this->time();
 		for (size_t i = 0; i < m_vCurrent.size(); i++)
@@ -750,6 +764,8 @@ void CableEquation<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, cons
 			}
 		}
 
+		PROFILE_END()
+		PROFILE_BEGIN_GROUP(rhs_subsetInflux, "CableEquationRHS");
 		// TODO: It would be preferable to have vertices (not edges) as influx source.
 		for (size_t i=0; i<m_influx_subset.size(); i++)
 		{
@@ -764,6 +780,8 @@ void CableEquation<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, cons
 			}
 		}
 
+		PROFILE_END()
+		PROFILE_BEGIN_GROUP(rhs_synapses, "CableEquationRHS");
 		// synapses (handled by synapse_handler)
 		if	(m_spSH.valid())
 		{
@@ -781,6 +799,8 @@ void CableEquation<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, cons
 			}
 		}
 
+		PROFILE_END()
+		PROFILE_BEGIN_GROUP(rhs_memTransport, "CableEquationRHS");
 		// membrane transport mechanisms (IChannels)
 		std::vector<number> allOutCurrentDensityValues(m_numb_ion_funcs+1, 0.0);
 
@@ -810,6 +830,7 @@ void CableEquation<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, cons
 		// adding summed up ionic channel currents
 		for (size_t k = 1; k < m_numb_ion_funcs+1; ++k)
 			d(k, co) -= scv.volume()*PI*diam * allOutCurrentDensityValues[k];
+		PROFILE_END()
 	}
 }
 
@@ -819,6 +840,7 @@ template<typename TElem, typename TFVGeom>
 void CableEquation<TDomain>::
 add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
+	PROFILE_BEGIN_GROUP(add_jac_A_elem, "CableEquation");
 	// get finite volume geometry
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
@@ -891,6 +913,7 @@ template<typename TElem, typename TFVGeom>
 void CableEquation<TDomain>::
 add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
+	PROFILE_BEGIN_GROUP(add_jac_M_elem, "CableEquation");
 	//std::cout << "jac m elem starts" << std::endl;
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 

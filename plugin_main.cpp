@@ -522,6 +522,23 @@ struct Functionality
 			reg.add_function("check_domain", static_cast<int (*) (SmartPtr<TDomain>, int)>(&check_domain<TDomain>), grp.c_str(),
 							 "", "domain, verbosity", "Checks whether given domain is sound.");
 		}
+#ifdef SPLIT_SYNAPSES_ENABLED
+		//SplitSynapseHandler
+		{
+			typedef SplitSynapseHandler<TDomain> TSSH;
+			string name = string("SplitSynapseHandler").append(suffix);;
+			reg.add_class_<TSSH>(name, grp)
+				.template add_constructor<void (*)()>()
+				.add_method("set_ce_object", &TSSH::set_ce_object)
+				.add_method("reset_iterator", &TSSH::reset_iterator)
+				.add_method("next", &TSSH::next)
+				.add_method("set_onset", &TSSH::set_onset)
+				.set_construct_as_smart_pointer(true)
+				;
+			reg.add_class_to_group(name, "SplitSynapseHandler", tag);
+		}
+
+#endif
 	}
 
 	/**
