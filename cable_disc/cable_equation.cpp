@@ -307,7 +307,7 @@ estimate_cfl_cond(ConstSmartPtr<TVector> u)
 	double minCFL = std::numeric_limits<double>::max();
 	size_t sv_sz = m_vSurfVrt.size();
 
-//	number linDepCh, linDepSyn;
+	number linDepCh, linDepSyn;
 
 	for (size_t sv = 0; sv < sv_sz; ++sv)
 	{
@@ -322,7 +322,7 @@ estimate_cfl_cond(ConstSmartPtr<TVector> u)
 		}
 
 		number linDep = 0.0;
-//		linDepCh = linDepSyn = 0.0;
+		linDepCh = linDepSyn = 0.0;
 		number massFac = 0.0;
 		typedef typename MultiGrid::traits<Edge>::secure_container edge_list;
 		edge_list el;
@@ -343,10 +343,9 @@ estimate_cfl_cond(ConstSmartPtr<TVector> u)
 				if (m_channel[ch]->is_def_on_subset(m_si))
 				{
 					linDep += scvSurf * m_channel[ch]->lin_dep_on_pot(vrt, vrt_values);
-//					linDepCh += scvSurf * m_channel[ch]->lin_dep_on_pot(vrt, vrt_values);
+					linDepCh += scvSurf * m_channel[ch]->lin_dep_on_pot(vrt, vrt_values);
 				}
 			}
-			//std::cout << linDep << std::endl;
 
 			// consider synapse currents too (important for large number of active synapses)
 			// TODO: This assumes any synaptic current is of the form: conductivity * (-V).
@@ -361,24 +360,19 @@ estimate_cfl_cond(ConstSmartPtr<TVector> u)
 
 				if (m_spSH->synapse_on_edge(edge, co, m_time, current))
 				{
-					if (vrt_values[_v_] > 1e-8)
-					{
-						linDep += current / vrt_values[_v_];
-//		                                linDepSyn += current / vrt_values[_v_];
-					}
-                                        // else: no way to determine linDep
+					linDep += current / vrt_values[_v_];
+					linDepSyn += current / vrt_values[_v_];
 				}
 			}
-			//std::cout << linDep << std::endl << std::endl;
 		}
 
 		number cfl = 2.0 * m_spec_cap * massFac / linDep;
 		minCFL = std::min(minCFL, cfl);
-//if (minCFL == cfl)
-//{
-//	UG_LOGN("linDep channels: " << linDepCh);
-//	UG_LOGN("linDep synapses: " << linDepSyn << " --> minCFL: " << minCFL);
-//}
+if (minCFL == cfl)
+{
+	UG_LOGN("linDep channels: " << linDepCh);
+	UG_LOGN("linDep synapses: " << linDepSyn << " --> minCFL: " << minCFL);
+}
 	}
 
 		// communicate
@@ -392,14 +386,6 @@ estimate_cfl_cond(ConstSmartPtr<TVector> u)
 #endif
 
 	return (number) minCFL;
-}
-
-
-template<typename TDomain>
-const std::vector<Vertex*>& CableEquation<TDomain>::
-surface_vertices() const
-{
-	return m_vSurfVrt;
 }
 
 
