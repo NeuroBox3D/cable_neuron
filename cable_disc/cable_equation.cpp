@@ -389,6 +389,13 @@ if (minCFL == cfl)
 }
 
 
+template<typename TDomain>
+const std::vector<Vertex*>& CableEquation<TDomain>::
+surface_vertices() const
+{
+       return m_vSurfVrt;
+}
+
 // ///////////////////////////
 // inherited from IElemDisc //
 // ///////////////////////////
