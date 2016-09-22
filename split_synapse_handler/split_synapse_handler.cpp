@@ -21,8 +21,7 @@ SplitSynapseHandler<TDomain>::SplitSynapseHandler()
  m_mPreSynapses(std::map<SYNAPSE_ID,IPreSynapse*>()),
  m_mPostSynapses(std::map<SYNAPSE_ID,IPostSynapse*>()),
  m_mActivePreSynapses(std::map<SYNAPSE_ID, IPreSynapse*>()),
- m_mPreSynapseIdToEdge(std::map<SYNAPSE_ID,Edge*>()),
- m_iterator_type("")
+ m_mPreSynapseIdToEdge(std::map<SYNAPSE_ID,Edge*>())
 {
 	m_ssah.set_attachment(m_aSSyn);
 	//std::cout << "\nSSH instantiated\n";

@@ -73,9 +73,6 @@ private:
 	std::map<SYNAPSE_ID, IPreSynapse*> m_mActivePreSynapses; //internal memory of currently active presynapses
 	std::map<SYNAPSE_ID, Edge*> m_mPreSynapseIdToEdge; //maps presynapses to their edge
 
-	std::string m_iterator_type;
-	std::vector<IBaseSynapse*>::iterator m_split_synapse_it;
-
 	//TODO: don't use copy ctor at the moment
 	SplitSynapseHandler(const SplitSynapseHandler& sh);
 
@@ -129,61 +126,6 @@ public:
 	 * Also gathers every synapse in m_vAllSynapses for quick access/iterators
 	 */
 	void grid_first_available();
-
-
-
-
-
-
-	/**
-	 * Iterator related methods
-	 */
-
-
-	/**
-	 * Resets the iterator and sets the type of to be selected synapses to tsyn
-	 */
-	void reset_iterator(std::string tsyn) {
-		m_split_synapse_it = m_vAllSynapses.begin();
-		m_iterator_type = tsyn;
-	}
-
-	/**
-	 * Points to the next synapse until processed (with set_onset etc...) of the specified type.
-	 * Returns true in case of a valid next synapse.
-	 * Returns false if the iterator reaches the end
-	 */
-	bool next() {
-		while(m_split_synapse_it != m_vAllSynapses.end()) {
-			IBaseSynapse* s = *m_split_synapse_it;
-			if( s->name() == m_iterator_type)
-				return true;
-			++m_split_synapse_it;
-		}
-		return false;
-	}
-
-	/**
-	 * Set onset of the following synapse types:
-	 *
-	 * -ALPHA_PRE_SYNAPSE
-	 * -EXP2_PRE_SYNAPSE
-	 *
-	 * Advances the iterator by one BaseSynapse obejct.
-	 */
-	void set_onset(const number& t) {
-		IBaseSynapse* s = *m_split_synapse_it;
-		if(m_iterator_type == "ALPHA_PRE_SYNAPSE") {
-			( (AlphaPreSynapse*) s)->set_onset(t);
-		} else if(m_iterator_type == "EXP2_PRE_SYNAPSE") {
-			( (Exp2PreSynapse*) s)->set_onset(t);
-		}
-		++m_split_synapse_it;
-	}
-
-
-
-
 };
 
 } /* namespace synapse_handler */
