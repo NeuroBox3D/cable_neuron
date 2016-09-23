@@ -78,6 +78,7 @@ private:
 
 
 public:
+
 	/**
 	 * Declares global attachment AVSSynapse and attaches to split synapse attachment handler.
 	 */
@@ -107,7 +108,10 @@ public:
 	 * Fills the member m_vAllSynapses with every synapse currently on the grid.
 	 * Called by grid_first_available.
 	 */
+	//std::vector<IBaseSynapse*>
 	void all_synapses();
+
+	std::vector<IBaseSynapse*>& get_synapses() {return m_vAllSynapses;}
 
 
 	/**

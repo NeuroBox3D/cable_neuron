@@ -116,6 +116,7 @@ void SplitSynapseHandler<TDomain>::grid_first_available()
  */
 template <typename TDomain>
 void
+//std::vector<IBaseSynapse*>
 SplitSynapseHandler<TDomain>::all_synapses()
 {
 	for(geometry_traits<Edge>::const_iterator e=m_spGrid->begin<Edge>(0); e != m_spGrid->end<Edge>(0); ++e) {
