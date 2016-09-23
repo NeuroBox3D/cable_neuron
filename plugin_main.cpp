@@ -57,6 +57,7 @@
 #include "split_synapse_distributor/split_synapse_distributor.h"
 #include "split_synapse_handler/synapse_container.h"
 #include "split_synapse_handler/split_synapse_handler.h"
+#include "split_synapse_handler/synapse_iterator.h"
 #endif
 
 //synapse distributor
@@ -527,16 +528,33 @@ struct Functionality
 							 "", "domain, verbosity", "Checks whether given domain is sound.");
 		}
 #ifdef SPLIT_SYNAPSES_ENABLED
-		//SplitSynapseHandler
+
 		{
 			typedef SplitSynapseHandler<TDomain> TSSH;
-			string name = string("SplitSynapseHandler").append(suffix);;
+			string name = string("SplitSynapseHandler").append(suffix);
 			reg.add_class_<TSSH>(name, grp)
 				.template add_constructor<void (*)()>()
 				.add_method("set_ce_object", &TSSH::set_ce_object)
+				//.add_method("get_synapses", &TSSH::get_synapses)
 				.set_construct_as_smart_pointer(true)
 				;
 			reg.add_class_to_group(name, "SplitSynapseHandler", tag);
+		}
+
+		{
+			typedef SynapseIterator<AlphaPreSynapse, TDomain> T;
+			string name = string("AlphaPreSynapse_Iterator").append(suffix);
+			reg.add_class_<T>(name, grp)
+					.template add_constructor<void (*)()>()
+					.add_method("get", &T::operator*)
+					.add_method("next", &T::operator++)
+					.add_method("equal", &T::operator==)
+					.add_method("inequal", &T::operator!=)
+					.add_method("is_referenceable", &T::is_referenceable)
+					.add_method("set_synapse_handler", &T::set_synapse_handler)
+					.set_construct_as_smart_pointer(true)
+					;
+			reg.add_class_to_group(name, "AlphaPreSynapse_Iterator", tag);
 		}
 
 #endif
@@ -670,6 +688,27 @@ struct Functionality
 	}
 #ifdef SPLIT_SYNAPSES_ENABLED
 
+
+		{
+			typedef synapse_handler::AlphaPreSynapse T;
+			reg.add_class_<T>("AlphaPreSynapse", grp);
+		}
+
+		{
+			typedef AlphaPostSynapse T;
+			reg.add_class_<T>("AlphaPostSynapse", grp);
+		}
+
+		{
+			typedef Exp2PreSynapse T;
+			reg.add_class_<T>("Exp2PreSynapse", grp);
+		}
+
+		{
+			typedef Exp2PostSynapse T;
+			reg.add_class_<T>("Exp2PostSynapse", grp);
+		}
+
 		{
 			typedef IBaseSynapse TBS;
 			reg.add_class_<TBS>("IBaseSynapse", grp)
@@ -730,6 +769,8 @@ struct Functionality
 				.add_method("get_synapses",&TSC::get_synapses)
 				;
 		}
+
+
 	{
 		// /////////////////////////////////////////////
 		// //////// split synapse distributor ////////////////
