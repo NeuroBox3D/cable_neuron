@@ -14,5 +14,4 @@ set (SOURCES ${SOURCES}
 		split_synapse_handler/split_synapse_attachment_handler.cpp
 		
 		split_synapse_handler/synapse_container.cpp
-		split_synapse_handler/synapse_iterator.cpp
 	)

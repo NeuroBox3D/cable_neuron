@@ -32,27 +32,26 @@ public:
 	//ctor & dtor
 	Exp2PreSynapse();					//needed for template generator
 	Exp2PreSynapse(
-			const number& location,
-			const number& onset,
-			const number& duration,
-			const number& threshold
+			const number location,
+			const number onset,
+			const number duration,
+			const number threshold
 			);
 
 	Exp2PreSynapse(
 			const SYNAPSE_ID id,
-			const SYNAPSE_ID postsynapse_id,
-			const number& location,
-			const number& onset,
-			const number& duration,
-			const number& threshold
+			const number location,
+			const number onset,
+			const number duration,
+			const number threshold
 			);
 
 	virtual ~Exp2PreSynapse();
 
 	//setter & getter
-	void set_onset(const number& onset) {m_onset = onset;}
-	void set_duration(const number& duration) {m_duration = duration;}
-	void set_threshold(const number& val) {m_threshold = val;}
+	void set_onset(number onset) {m_onset = onset;}
+	void set_duration(number duration) {m_duration = duration;}
+	void set_threshold(number val) {m_threshold = val;}
 
 	number onset() const {return m_onset;}
 	number duration() const {return m_duration;}
@@ -68,9 +67,6 @@ public:
 	//serialization interface methods
 	void put_to(std::ostream& os) const;					//'put_to' == operator<<
 	void get_from(std::istream& is);				//'get_from' == operator>>
-
-//	bool fire(number time, SYNAPSE_ID& post_syn_id);
-//	bool cooldown(number time, SYNAPSE_ID& post_syn_id);
 };
 
 } /* namespace synapse_handler */

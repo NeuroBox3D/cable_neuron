@@ -17,20 +17,15 @@ namespace cable_neuron {
 namespace synapse_handler {
 
 IPostSynapse::IPostSynapse()
-:IBaseSynapse(0),
- m_id(0),
- m_presynapse_id(0)
+:IBaseSynapse(0, 0)
 {
 }
 
 IPostSynapse::IPostSynapse(
 		const SYNAPSE_ID id,
-		const SYNAPSE_ID presynapse_id,
-		const number& location)
-
-:IBaseSynapse(location),
- m_id(id),
- m_presynapse_id(presynapse_id)
+		const number location
+)
+:IBaseSynapse(id, location)
 {
 }
 

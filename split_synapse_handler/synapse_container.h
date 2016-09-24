@@ -131,8 +131,8 @@ public:
 			number onset = onset_var();
 			number tau = tau_var();
 			size_t syn_id = m_start_id + i/2;
-			IBaseSynapse *s1 = new AlphaPostSynapse(syn_id, syn_id, 0.0, nan(""), gmax_var(), tau, rev_var());
-			IBaseSynapse *s2 = new AlphaPreSynapse(syn_id, syn_id, 0.0, onset, 6 * tau);
+			IBaseSynapse *s1 = new AlphaPostSynapse(syn_id, 0.0, nan(""), gmax_var(), tau, rev_var());
+			IBaseSynapse *s2 = new AlphaPreSynapse(syn_id, 0.0, onset, 6 * tau);
 			m_vSynapses[i] = s1;
 			m_vSynapses[i+1] = s2;
 		}
@@ -270,8 +270,8 @@ public:
 			number tp = (tau1*tau2)/(tau2-tau1) * std::log(tau2/tau1);
 			tp = tp + 3 * tau2;
 			size_t syn_id = m_start_id + i/2;
-			IBaseSynapse *s1 = new Exp2PostSynapse(syn_id, syn_id, 0.0, onset, gMax_var(), tau1, tau2, rev_var());
-			IBaseSynapse *s2 = new Exp2PreSynapse(syn_id, syn_id, 0.0, onset, tp, threshold_var());
+			IBaseSynapse *s1 = new Exp2PostSynapse(syn_id, 0.0, onset, gMax_var(), tau1, tau2, rev_var());
+			IBaseSynapse *s2 = new Exp2PreSynapse(syn_id, 0.0, onset, tp, threshold_var());
 
 			m_vSynapses[i] = s1;
 			m_vSynapses[i+1] = s2;

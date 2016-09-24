@@ -12,7 +12,7 @@ namespace cable_neuron {
 namespace synapse_handler {
 
 Exp2PostSynapse::Exp2PostSynapse()
-:IPostSynapse(0, 0, 0),
+:IPostSynapse(0, 0),
  m_onset(nan("")),
  m_gMax(0),
  m_tau1(0),
@@ -21,14 +21,14 @@ Exp2PostSynapse::Exp2PostSynapse()
  {}
 
 Exp2PostSynapse::Exp2PostSynapse(
-		const number& location,
-		const number& onset,
-		const number& gMax,
-		const number& tau1,
-		const number& tau2,
-		const number& rev
+		const number location,
+		const number onset,
+		const number gMax,
+		const number tau1,
+		const number tau2,
+		const number rev
 		)
-:IPostSynapse(0, 0, location),
+:IPostSynapse(0, location),
  m_onset(nan("")),
  m_gMax(gMax),
  m_tau1(tau1),
@@ -39,15 +39,14 @@ Exp2PostSynapse::Exp2PostSynapse(
 
 Exp2PostSynapse::Exp2PostSynapse(
 		const SYNAPSE_ID id,
-		const SYNAPSE_ID presynapse_id,
-		const number& location,
-		const number& onset,
-		const number& gMax,
-		const number& tau1,
-		const number& tau2,
-		const number& rev
+		const number location,
+		const number onset,
+		const number gMax,
+		const number tau1,
+		const number tau2,
+		const number rev
 		)
-:IPostSynapse(id, presynapse_id, location),
+:IPostSynapse(id, location),
  m_onset(nan("")),
  m_gMax(gMax),
  m_tau1(tau1),
@@ -90,7 +89,6 @@ void Exp2PostSynapse::put_to(std::ostream& os) const
 	ostringstream strs;
 	strs << name() << " ";					//identifier for reconstruction
 	strs << id() << " ";
-	strs << presynapse_id() << " ";
 	strs << location() << " ";
 	strs << m_onset << " ";
 	strs << m_gMax << " ";
@@ -106,7 +104,6 @@ void Exp2PostSynapse::get_from(std::istream& is)
 	std::string tmp;
 
 	SYNAPSE_ID id; is >> id; set_id(id);
-	SYNAPSE_ID presyn_id; is >> presyn_id; set_presynapse_id(presyn_id);
 
 	number loc;
 	is >> tmp;

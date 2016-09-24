@@ -33,28 +33,27 @@ public:
 	//ctor & dtor
 	AlphaPostSynapse();		//needed for template generator
 	AlphaPostSynapse(
-		const number& location,
-		const number& onset,
-		const number& gMax,
-		const number& tau,
-		const number& rev);
+		const number location,
+		const number onset,
+		const number gMax,
+		const number tau,
+		const number rev);
 
 	AlphaPostSynapse(
 		const SYNAPSE_ID id,
-		const SYNAPSE_ID presynapse_id,
-		const number& location,
-		const number& onset,
-		const number& gMax,
-		const number& tau,
-		const number& rev);
+		const number location,
+		const number onset,
+		const number gMax,
+		const number tau,
+		const number rev);
 
 	virtual ~AlphaPostSynapse();
 
 	//setter & getter
-	void set_gMax(const number& gMax) {m_gMax = gMax;}
-	void set_onset(const number& onset) {m_onset = onset;}
-	void set_tau(const number& tau) {m_tau = tau;}
-	void set_rev(const number& rev) {m_rev = rev;}
+	void set_gMax(number gMax) {m_gMax = gMax;}
+	void set_onset(number onset) {m_onset = onset;}
+	void set_tau(number tau) {m_tau = tau;}
+	void set_rev(number rev) {m_rev = rev;}
 
 	number gMax() const {return m_gMax;}
 	number onset() const {return m_onset;}

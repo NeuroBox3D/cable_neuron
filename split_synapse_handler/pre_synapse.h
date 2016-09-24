@@ -20,26 +20,18 @@ namespace synapse_handler {
 
 class IPreSynapse : public IBaseSynapse
 {
-	SYNAPSE_ID m_id;					//own presynapse id / alternative: shared id if there is a 1:1 relation?
-	SYNAPSE_ID m_postsynapse_id;		//postsynapse id
+
 
 public:
 	//ctor & dtor
 	IPreSynapse();						//needed for SynapseDealer
 	IPreSynapse(
 			const SYNAPSE_ID id,
-			const SYNAPSE_ID postsynapse_id,
-			const number& location);
+			const number location);
 
 	virtual ~IPreSynapse();
 
 	//setter & getter
-	void set_id(const SYNAPSE_ID id) {m_id = id;}
-	void set_postsynapse_id(const SYNAPSE_ID id) {m_postsynapse_id = id;}
-
-	SYNAPSE_ID id() const {return m_id;}
-	SYNAPSE_ID postsynapse_id() const {return m_postsynapse_id;}
-
 	virtual void update(const number& t, const std::vector<number>& u) = 0;
 	virtual bool is_active(const number& t) = 0;
 

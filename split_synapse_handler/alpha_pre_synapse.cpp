@@ -12,28 +12,27 @@ namespace cable_neuron {
 namespace synapse_handler {
 
 AlphaPreSynapse::AlphaPreSynapse()
-:IPreSynapse(0, 0, 0),
+:IPreSynapse(0, 0),
  m_onset(0),m_duration(0)
 {}
 
 AlphaPreSynapse::AlphaPreSynapse(
-		const number& location,
-		const number& onset,
-		const number& duration)
+		const number location,
+		const number onset,
+		const number duration)
 
-:IPreSynapse(0, 0, location),
+:IPreSynapse(0, location),
  m_onset(onset),m_duration(duration)
 {
 }
 
 AlphaPreSynapse::AlphaPreSynapse(
 		const SYNAPSE_ID id,
-		const SYNAPSE_ID postsynapse_id,
-		const number& location,
-		const number& onset,
-		const number& duration)
+		const number location,
+		const number onset,
+		const number duration)
 
-:IPreSynapse(id, postsynapse_id, location),
+:IPreSynapse(id, location),
  m_onset(onset),m_duration(duration)
 {
 }
@@ -60,7 +59,6 @@ void AlphaPreSynapse::put_to(std::ostream& os) const
 	ostringstream strs;
 	strs << name() << " ";
 	strs << id() << " ";
-	strs << postsynapse_id() << " ";
 	strs << location() << " ";
 	strs << m_onset << " ";
 	strs << m_duration;
@@ -73,7 +71,6 @@ void AlphaPreSynapse::get_from(std::istream& is)
 	std::string tmp;
 	//std::string t; is >> t;
 	SYNAPSE_ID id; is >> id; set_id(id);
-	SYNAPSE_ID postsyn_id; is >> postsyn_id; set_postsynapse_id(postsyn_id);
 
 	number loc;
 	is >> tmp;

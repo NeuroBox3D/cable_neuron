@@ -12,7 +12,7 @@ namespace cable_neuron {
 namespace synapse_handler {
 
 Exp2PreSynapse::Exp2PreSynapse()
-:IPreSynapse(0,0,0),
+:IPreSynapse(0, 0),
  m_onset(nan("")), m_duration(0), m_threshold(0)
 {
 }
@@ -21,27 +21,25 @@ Exp2PreSynapse::Exp2PreSynapse()
  * Synapse with id=0
  */
 Exp2PreSynapse::Exp2PreSynapse(
-		const number& location,
-		const number& onset,
-		const number& duration,
-		const number& threshold
+		const number location,
+		const number onset,
+		const number duration,
+		const number threshold
 		)
 
-:IPreSynapse(0, 0, location),
+:IPreSynapse(0, location),
  m_onset(nan("")), m_duration(duration), m_threshold(threshold)
 {
 }
 
 Exp2PreSynapse::Exp2PreSynapse(
 		const SYNAPSE_ID id,
-		const SYNAPSE_ID postsynapse_id,
-		const number& location,
-		const number& onset,
-		const number& duration,
-		const number& threshold
+		const number location,
+		const number onset,
+		const number duration,
+		const number threshold
 		)
-
-:IPreSynapse(id, postsynapse_id, location),
+:IPreSynapse(id, location),
  m_onset(nan("")), m_duration(duration), m_threshold(threshold)
 {
 }
@@ -78,7 +76,6 @@ void Exp2PreSynapse::put_to(std::ostream& os) const
 	ostringstream strs;
 	strs << name() << " ";
 	strs << id() << " ";
-	strs << postsynapse_id() << " ";
 	strs << location() << " ";
 	strs << m_onset << " ";
 	strs << m_duration << " ";
@@ -96,7 +93,6 @@ void Exp2PreSynapse::get_from(std::istream& is)
 
 	//std::string t; is >> t;
 	SYNAPSE_ID id; is >> id; set_id(id);
-	SYNAPSE_ID postsyn_id; is >> postsyn_id; set_postsynapse_id(postsyn_id);
 	number loc;
 	is >> tmp;
 	loc = lexical_cast<number>(tmp);

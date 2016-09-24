@@ -31,16 +31,15 @@ public:
 	//ctor & dtor
 	AlphaPreSynapse();					//needed for template generator
 	AlphaPreSynapse(
-			const number& location,
-			const number& onset,
-			const number& duration);
+			const number location,
+			const number onset,
+			const number duration);
 
 	AlphaPreSynapse(
 			const SYNAPSE_ID id,
-			const SYNAPSE_ID postsynapse_id,
-			const number& location,
-			const number& onset,
-			const number& duration);
+			const number location,
+			const number onset,
+			const number duration);
 
 	virtual ~AlphaPreSynapse();
 
@@ -48,10 +47,10 @@ public:
 	SynapseType type() const {return ALPHA_PRE_SYNAPSE;}
 	std::string name() const {return "ALPHA_PRE_SYNAPSE";}
 
-	void set_onset(const number& onset) {m_onset = onset;}
-	number onset() const {return m_onset;}
+	void set_onset(number onset) {m_onset = onset;}
+	void set_duration(number dur) {m_duration = dur;}
 
-	void set_duration(const number& dur) {m_duration = dur;}
+	number onset() const {return m_onset;}
 	number duration() const {return m_duration;}
 
 	//Interface dummy's

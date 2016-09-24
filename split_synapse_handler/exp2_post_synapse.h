@@ -37,33 +37,32 @@ public:
 	//ctor & dtor
 	Exp2PostSynapse();					//needed for template generator
 	Exp2PostSynapse(
-			const number& location,
-			const number& onset,
-			const number& gMax,
-			const number& tau1,
-			const number& tau2,
-			const number& rev
+			const number location,
+			const number onset,
+			const number gMax,
+			const number tau1,
+			const number tau2,
+			const number rev
 			);
 
 	Exp2PostSynapse(
 			const SYNAPSE_ID id,
-			const SYNAPSE_ID presynapse_id,
-			const number& location,
-			const number& onset,
-			const number& gMax,
-			const number& tau1,
-			const number& tau2,
-			const number& rev
+			const number location,
+			const number onset,
+			const number gMax,
+			const number tau1,
+			const number tau2,
+			const number rev
 			);
 
 	virtual ~Exp2PostSynapse();
 
 	//setter & getter
-	void set_onset(const number& onset) {m_onset=onset;}
-	void set_gMax(const number& gmax) {m_gMax=gmax;}
-	void set_tau1(const number& tau1) {m_tau1=tau1;}
-	void set_tau2(const number& tau2) {m_tau2=tau2;}
-	void set_rev(const number& rev) {m_rev=rev;}
+	void set_onset(number onset) {m_onset=onset;}
+	void set_gMax(number gmax) {m_gMax=gmax;}
+	void set_tau1(number tau1) {m_tau1=tau1;}
+	void set_tau2(number tau2) {m_tau2=tau2;}
+	void set_rev(number rev) {m_rev=rev;}
 
 
 	number onset() const {return m_onset;}

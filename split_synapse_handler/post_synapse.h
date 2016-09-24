@@ -21,27 +21,17 @@ namespace synapse_handler {
 
 class IPostSynapse : public IBaseSynapse
 {
-private:
-	SYNAPSE_ID m_id;					//own postsynapse id / alternative: shared id if there is a 1:1 relation?
-	SYNAPSE_ID m_presynapse_id;			//presynapse id (if needed/existing)
-
 public:
 	//ctor & dtor
 	IPostSynapse(); 							//needed for SynapseDealer
 	IPostSynapse(
 			const SYNAPSE_ID id,
-			const SYNAPSE_ID presynapseid,
-			const number& location);
+			const number location
+	);
 
 	virtual ~IPostSynapse();
 
 	//setter & getter
-	void set_presynapse_id(const SYNAPSE_ID id) {m_presynapse_id = id;}
-	void set_id(const SYNAPSE_ID id) {m_id = id;}
-
-
-	SYNAPSE_ID presynapse_id() const {return m_presynapse_id;}
-	SYNAPSE_ID id() const {return m_id;}
 
 	virtual bool is_presynapse() const {return false;}
 	virtual bool is_postsynapse() const {return true;}
