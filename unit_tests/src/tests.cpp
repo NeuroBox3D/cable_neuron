@@ -61,9 +61,9 @@ BOOST_AUTO_TEST_CASE(ALPHAPRESYNAPSE) {
 	AlphaPreSynapse* s = new AlphaPreSynapse();
 	AlphaPreSynapse* u = new AlphaPreSynapse(location1, onset1, duration1);
 
-	AlphaPreSynapse* s0 = new AlphaPreSynapse(id0, id0, location0, onset0, duration0);
-	AlphaPreSynapse* s1 = new AlphaPreSynapse(id1, id1, location1, onset1, duration1);
-	AlphaPreSynapse* s2 = new AlphaPreSynapse(id2, id2, location2, onset2, duration2);
+	AlphaPreSynapse* s0 = new AlphaPreSynapse(id0, location0, onset0, duration0);
+	AlphaPreSynapse* s1 = new AlphaPreSynapse(id1, location1, onset1, duration1);
+	AlphaPreSynapse* s2 = new AlphaPreSynapse(id2, location2, onset2, duration2);
 	AlphaPreSynapse* s3 = new AlphaPreSynapse();
 
 	/**
@@ -110,11 +110,10 @@ BOOST_AUTO_TEST_CASE(ALPHAPRESYNAPSE) {
 	//serialization
 	ostringstream oss1;
 	ostringstream oss2;
-	istringstream iss("ALPHA_PRE_SYNAPSE 111 10 1.4 3e-08 4");
+	istringstream iss("ALPHA_PRE_SYNAPSE 111 1.4 3e-08 4");
 	oss1 << s1;
 
 	oss2 << "ALPHA_PRE_SYNAPSE" << " ";
-	oss2 << id1 << " ";
 	oss2 << id1 << " ";
 	oss2 << location1 << " ";
 	oss2 << onset1 << " ";
@@ -128,7 +127,6 @@ BOOST_AUTO_TEST_CASE(ALPHAPRESYNAPSE) {
 	BOOST_REQUIRE_MESSAGE(s3->type() == ALPHA_PRE_SYNAPSE, "deserialization check");
 	BOOST_REQUIRE_MESSAGE(s3->name() == "ALPHA_PRE_SYNAPSE", "deserialization check");
 	BOOST_REQUIRE_MESSAGE(s3->id() == 111, "deserialization check");
-	BOOST_REQUIRE_MESSAGE(s3->postsynapse_id() == 10, "deserialization check");
 	BOOST_REQUIRE_MESSAGE(s3->location() == 1.4, "deserialization check");
 	BOOST_REQUIRE_MESSAGE(s3->onset() == 3e-08, "deserialization check");
 	BOOST_REQUIRE_MESSAGE(s3->duration() == 4, "deserialization check");
@@ -190,9 +188,9 @@ BOOST_AUTO_TEST_CASE(EXP2PRESYNAPSE) {
 	/**
 	 * Test current/activation/deactivation functionality with these
 	 */
-	Exp2PreSynapse* s0 = new Exp2PreSynapse(id0, id0, location0, onset0, duration0, threshold0);
-	Exp2PreSynapse* s1 = new Exp2PreSynapse(id1, id1, location1, onset1, duration1, threshold1);
-	Exp2PreSynapse* s2 = new Exp2PreSynapse(id2, id2, location2, onset2, duration2, threshold2);
+	Exp2PreSynapse* s0 = new Exp2PreSynapse(id0, location0, onset0, duration0, threshold0);
+	Exp2PreSynapse* s1 = new Exp2PreSynapse(id1, location1, onset1, duration1, threshold1);
+	Exp2PreSynapse* s2 = new Exp2PreSynapse(id2, location2, onset2, duration2, threshold2);
 	Exp2PreSynapse* s3 = new Exp2PreSynapse();
 
 
@@ -263,11 +261,10 @@ BOOST_AUTO_TEST_CASE(EXP2PRESYNAPSE) {
 	//serialization
 	ostringstream oss1;
 	ostringstream oss2;
-	istringstream iss("EXP2_PRE_SYNAPSE 111 10 1.4 3e-08 3 -0.010");
+	istringstream iss("EXP2_PRE_SYNAPSE 111 1.4 3e-08 3 -0.010");
 	oss1 << s2;
 
 	oss2 << "EXP2_PRE_SYNAPSE" << " ";
-	oss2 << id2 << " ";
 	oss2 << id2 << " ";
 	oss2 << location2 << " ";
 	oss2 << nan("") << " ";
@@ -281,7 +278,6 @@ BOOST_AUTO_TEST_CASE(EXP2PRESYNAPSE) {
 	BOOST_REQUIRE_MESSAGE(s3->type() == EXP2_PRE_SYNAPSE, "deserialization check");
 	BOOST_REQUIRE_MESSAGE(s3->name() == "EXP2_PRE_SYNAPSE", "deserialization check");
 	BOOST_REQUIRE_MESSAGE(s3->id() == 111, "deserialization check");
-	BOOST_REQUIRE_MESSAGE(s3->postsynapse_id() == 10, "deserialization check");
 	BOOST_REQUIRE_MESSAGE(s3->location() == 1.4, "deserialization check");
 	BOOST_REQUIRE_MESSAGE(s3->onset() != s3->onset(), "deserialization check");
 	BOOST_REQUIRE_MESSAGE(s3->duration() == 3, "deserialization check");
@@ -360,9 +356,9 @@ BOOST_AUTO_TEST_CASE(ALPHAPOSTSYNAPSE) {
 	BOOST_REQUIRE_MESSAGE(s->rev() == rev2,"getter and setter check0");
 	BOOST_REQUIRE_MESSAGE(s->type() == ALPHA_POST_SYNAPSE,"type check");
 
-	AlphaPostSynapse* s1 = new AlphaPostSynapse(id0, id0, location0, onset0, gmax0, tau0, rev0);
-	AlphaPostSynapse* s2 = new AlphaPostSynapse(id1, id1, location1, onset1, gmax1, tau1, rev1);
-	AlphaPostSynapse* s3 = new AlphaPostSynapse(id2, id2, location2, onset2, gmax2, tau2, rev2);
+	AlphaPostSynapse* s1 = new AlphaPostSynapse(id0, location0, onset0, gmax0, tau0, rev0);
+	AlphaPostSynapse* s2 = new AlphaPostSynapse(id1, location1, onset1, gmax1, tau1, rev1);
+	AlphaPostSynapse* s3 = new AlphaPostSynapse(id2, location2, onset2, gmax2, tau2, rev2);
 	AlphaPostSynapse* s4 = new AlphaPostSynapse();
 
 	BOOST_REQUIRE_MESSAGE(s1->is_active(t0) == false,"is_active check");
@@ -381,10 +377,9 @@ BOOST_AUTO_TEST_CASE(ALPHAPOSTSYNAPSE) {
 	//serialization
 	ostringstream oss1;
 	ostringstream oss2;
-	istringstream iss("ALPHA_POST_SYNAPSE 1 2 4 3 1 2 1");
+	istringstream iss("ALPHA_POST_SYNAPSE 1 4 3 1 2 1");
 	oss1 << s3;
 	oss2 << "ALPHA_POST_SYNAPSE" << " ";
-	oss2 << id2 << " ";
 	oss2 << id2 << " ";
 	oss2 << location2 << " ";
 	oss2 << nan("") << " ";
@@ -398,7 +393,6 @@ BOOST_AUTO_TEST_CASE(ALPHAPOSTSYNAPSE) {
 
 	iss >> s4;
 	BOOST_REQUIRE_MESSAGE(s4->id()== 1, "deserialization check");
-	BOOST_REQUIRE_MESSAGE(s4->presynapse_id() == 2, "deserialization check");
 	BOOST_REQUIRE_MESSAGE(s4->location() == 4, "deserialization check");
 	BOOST_REQUIRE_MESSAGE(s4->onset() != s4->onset(), "deserialization check");
 	BOOST_REQUIRE_MESSAGE(s4->gMax() == 1, "deserialization check");
@@ -474,9 +468,9 @@ BOOST_AUTO_TEST_CASE(EXP2POSTSYNAPSE) {
 	BOOST_REQUIRE_MESSAGE(s->tau2() == tau22, "getter and setter test");
 	BOOST_REQUIRE_MESSAGE(s->rev() == rev2, "getter and setter test");
 
-	Exp2PostSynapse* s0 = new Exp2PostSynapse(id0, id0, location0, onset0, gmax0, tau10, tau20, rev0);
-	Exp2PostSynapse* s1 = new Exp2PostSynapse(id1, id1, location1, onset1, gmax1, tau11, tau21, rev1);
-	Exp2PostSynapse* s2 = new Exp2PostSynapse(id2, id2, location2, onset2, gmax2, tau12, tau22, rev2);
+	Exp2PostSynapse* s0 = new Exp2PostSynapse(id0, location0, onset0, gmax0, tau10, tau20, rev0);
+	Exp2PostSynapse* s1 = new Exp2PostSynapse(id1, location1, onset1, gmax1, tau11, tau21, rev1);
+	Exp2PostSynapse* s2 = new Exp2PostSynapse(id2, location2, onset2, gmax2, tau12, tau22, rev2);
 	Exp2PostSynapse* s3 = new Exp2PostSynapse();
 
 
@@ -492,10 +486,9 @@ BOOST_AUTO_TEST_CASE(EXP2POSTSYNAPSE) {
 	//serialization
 	ostringstream oss1;
 	ostringstream oss2;
-	istringstream iss("EXP2_POST_SYNAPSE 1 22 3 1 1 2 4 1");
+	istringstream iss("EXP2_POST_SYNAPSE 1 3 1 1 2 4 1");
 	oss1 << s1;
 	oss2 << "EXP2_POST_SYNAPSE" << " ";
-	oss2 << id1 << " ";
 	oss2 << id1 << " ";
 	oss2 << location1 << " ";
 	oss2 << nan("") << " ";
@@ -509,7 +502,6 @@ BOOST_AUTO_TEST_CASE(EXP2POSTSYNAPSE) {
 	iss >> ident; //pop identifier away
 	iss >> s3;
 	BOOST_REQUIRE_MESSAGE(s3->id() == 1, "deserialization check");
-	BOOST_REQUIRE_MESSAGE(s3->presynapse_id() == 22, "deserialization check");
 	BOOST_REQUIRE_MESSAGE(s3->location() == 3, "deserialization check");
 	BOOST_REQUIRE_MESSAGE(s3->onset() != s3->onset(), "deserialization check");
 	BOOST_REQUIRE_MESSAGE(s3->gMax() == 1, "deserialization check");

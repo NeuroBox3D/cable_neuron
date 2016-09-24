@@ -46,6 +46,35 @@ class ICableMembraneTransport;
 
 namespace synapse_handler {
 
+/**
+ * Provides iterator-like access to synapses of type TSyn.
+ * Use SplitSynapseHandler::begin<TSyn> and SplitSynapseHandler::end<TSyn>
+ * to get iterators
+ */
+template <typename TSyn>
+class SynapseIter
+{
+	std::vector<IBaseSynapse*>::iterator m_it;
+public:
+	SynapseIter(std::vector<IBaseSynapse*>::iterator it) :m_it(it) {}
+
+	TSyn* operator*() {
+		return dynamic_cast<TSyn*>(*m_it);
+	}
+
+	TSyn* operator++() {
+		return dynamic_cast<TSyn*>(*(++m_it) );
+	}
+
+	bool operator!=(SynapseIter* rhs) {
+		return m_it != rhs->m_it;
+	}
+};
+
+/**
+ * SplitSynapseHandler is the central managemnet class for everything related to SplitSynapses.
+ * Provides iterators for each registered synapse type.
+ */
 template <typename TDomain>
 class SplitSynapseHandler
 {
@@ -59,6 +88,7 @@ private:
 	SmartPtr<CableEquation<TDomain> > m_spCEDisc;
 	SplitSynapseAttachmentHandler m_ssah;
 	SmartPtr<ApproximationSpace<TDomain> > m_spApprox;
+
 	std::vector<IBaseSynapse*> m_vAllSynapses;
 
 	/*	//probably unused
@@ -76,8 +106,24 @@ private:
 	//TODO: don't use copy ctor at the moment
 	SplitSynapseHandler(const SplitSynapseHandler& sh);
 
+	/**
+	 * Fills the member m_vAllSynapses with every synapse currently on the grid.
+	 * Called by grid_first_available.
+	 */
+	void all_synapses();
+	/**
+	 * used for sorting
+	 */
+	struct __comp{
+		bool operator() (IBaseSynapse* a, IBaseSynapse* b) {return a->type() < b->type();}
+	};
 
 public:
+	/**
+	 * Retrieves approximation space and grid when available.
+	 * Also gathers every synapse in m_vAllSynapses for quick access/iterators
+	 */
+	void grid_first_available();
 
 	/**
 	 * Declares global attachment AVSSynapse and attaches to split synapse attachment handler.
@@ -104,13 +150,10 @@ public:
 	 */
 	number current_on_edge(const Edge* e, size_t scv, number t);
 
-	/**
-	 * Fills the member m_vAllSynapses with every synapse currently on the grid.
-	 * Called by grid_first_available.
-	 */
-	//std::vector<IBaseSynapse*>
-	void all_synapses();
 
+	/**
+	 * todo: don't use
+	 */
 	std::vector<IBaseSynapse*>& get_synapses() {return m_vAllSynapses;}
 
 
@@ -126,10 +169,54 @@ public:
 	bool synapse_on_edge(const Edge* edge, size_t scv, number time, number& current);
 
 	/**
-	 * Retrieves approximation space and grid when available.
-	 * Also gathers every synapse in m_vAllSynapses for quick access/iterators
+	 * Returns iterator to the desired synapse type.
+	 * Templates have to be instantiated for use in LUA.
 	 */
-	void grid_first_available();
+	template <typename TSyn>
+	SmartPtr<SynapseIter<TSyn> > begin() {
+		std::vector<IBaseSynapse*>::iterator it = m_vAllSynapses.begin();
+		for(; it != m_vAllSynapses.end(); ++it ) {
+			if(dynamic_cast<TSyn*>(*it) ) {//found the first TSyn*
+				 break;
+			}
+		}
+		return SmartPtr<SynapseIter<TSyn> >(new SynapseIter<TSyn>(it));
+	}
+
+	/**
+	 * Returns an end iterator to the desired synapse type.
+	 * Templates have to be instantiated for use in LUA.
+	 */
+	template <typename TSyn>
+	SmartPtr<SynapseIter<TSyn> > end() {
+		std::vector<IBaseSynapse*>::iterator it = m_vAllSynapses.begin();
+		for(; it != m_vAllSynapses.end(); ++it ) {
+			if(dynamic_cast<TSyn*>(*it) ) {//found the first TSyn*
+				//std::cout << *it << std::endl;
+				break;
+			}
+		}
+
+		while(it++ != m_vAllSynapses.end()) {
+			if(!dynamic_cast<TSyn*>(*it) ) {//found last TSyn*
+				break;
+			}
+		}
+		return SmartPtr<SynapseIter<TSyn> >(new SynapseIter<TSyn>(it));
+	}
+
+	/**
+	 * Prints list with all synapses and their parameters/id's etc.
+	 */
+	void show_status() {
+		for(size_t i=0; i<m_vAllSynapses.size(); ++i) {
+			std::cout << i << ": " << " " << m_vAllSynapses[i] << std::endl;
+		}
+		std::cout << std::endl;
+		//std::cout << "Synapse iterator begin(): " << &*(m_vAllSynapses.begin()) << std::endl;
+		//std::cout << "Synapse iterator end(): " << &*(m_vAllSynapses.end()) << std::endl;
+		//std::cout << "AlphaPreSynapse iterator end(): " << &*end<AlphaPreSynapse>() << std::endl;
+	}
 };
 
 } /* namespace synapse_handler */

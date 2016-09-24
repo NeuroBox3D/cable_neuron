@@ -108,6 +108,7 @@ void SplitSynapseHandler<TDomain>::grid_first_available()
 
 	//gather all synapses from grid and build all tables
 	all_synapses();
+	//test();
 
 }
 
@@ -132,6 +133,8 @@ SplitSynapseHandler<TDomain>::all_synapses()
 			}
 		}
 	}
+
+	std::sort(m_vAllSynapses.begin(), m_vAllSynapses.end(), __comp());
 }
 
 
@@ -343,16 +346,57 @@ update_presyn(number time)
 //	explicit template instantiations //
 // ////////////////////////////////////
 
+template class SynapseIter<AlphaPreSynapse>;
+template class SynapseIter<AlphaPostSynapse>;
+template class SynapseIter<Exp2PreSynapse>;
+template class SynapseIter<Exp2PostSynapse>;
+
 #ifdef UG_DIM_1
 	template class SplitSynapseHandler<Domain1d>;
+
+	template SmartPtr<SynapseIter<AlphaPreSynapse> > SplitSynapseHandler<Domain1d>::begin<AlphaPreSynapse>();
+	template SmartPtr<SynapseIter<AlphaPreSynapse> > SplitSynapseHandler<Domain1d>::end<AlphaPreSynapse>();
+
+	template SmartPtr<SynapseIter<AlphaPostSynapse> > SplitSynapseHandler<Domain1d>::begin<AlphaPostSynapse>();
+	template SmartPtr<SynapseIter<AlphaPostSynapse> > SplitSynapseHandler<Domain1d>::end<AlphaPostSynapse>();
+
+	template SmartPtr<SynapseIter<Exp2PreSynapse> > SplitSynapseHandler<Domain1d>::begin<Exp2PreSynapse>();
+	template SmartPtr<SynapseIter<Exp2PreSynapse> > SplitSynapseHandler<Domain1d>::end<Exp2PreSynapse>();
+
+	template SmartPtr<SynapseIter<Exp2PostSynapse> > SplitSynapseHandler<Domain1d>::begin<Exp2PostSynapse>();
+	template SmartPtr<SynapseIter<Exp2PostSynapse> > SplitSynapseHandler<Domain1d>::end<Exp2PostSynapse>();
 #endif
 
 #ifdef UG_DIM_2
 	template class SplitSynapseHandler<Domain2d>;
+
+	template SmartPtr<SynapseIter<AlphaPreSynapse> > SplitSynapseHandler<Domain2d>::begin<AlphaPreSynapse>();
+	template SmartPtr<SynapseIter<AlphaPreSynapse> > SplitSynapseHandler<Domain2d>::end<AlphaPreSynapse>();
+
+	template SmartPtr<SynapseIter<AlphaPostSynapse> > SplitSynapseHandler<Domain2d>::begin<AlphaPostSynapse>();
+	template SmartPtr<SynapseIter<AlphaPostSynapse> > SplitSynapseHandler<Domain2d>::end<AlphaPostSynapse>();
+
+	template SmartPtr<SynapseIter<Exp2PreSynapse> > SplitSynapseHandler<Domain2d>::begin<Exp2PreSynapse>();
+	template SmartPtr<SynapseIter<Exp2PreSynapse> > SplitSynapseHandler<Domain2d>::end<Exp2PreSynapse>();
+
+	template SmartPtr<SynapseIter<Exp2PostSynapse> > SplitSynapseHandler<Domain2d>::begin<Exp2PostSynapse>();
+	template SmartPtr<SynapseIter<Exp2PostSynapse> > SplitSynapseHandler<Domain2d>::end<Exp2PostSynapse>();
 #endif
 
 #ifdef UG_DIM_3
 	template class SplitSynapseHandler<Domain3d>;
+
+	template SmartPtr<SynapseIter<AlphaPreSynapse> > SplitSynapseHandler<Domain3d>::begin<AlphaPreSynapse>();
+	template SmartPtr<SynapseIter<AlphaPreSynapse> > SplitSynapseHandler<Domain3d>::end<AlphaPreSynapse>();
+
+	template SmartPtr<SynapseIter<AlphaPostSynapse> > SplitSynapseHandler<Domain3d>::begin<AlphaPostSynapse>();
+	template SmartPtr<SynapseIter<AlphaPostSynapse> > SplitSynapseHandler<Domain3d>::end<AlphaPostSynapse>();
+
+	template SmartPtr<SynapseIter<Exp2PreSynapse> > SplitSynapseHandler<Domain3d>::begin<Exp2PreSynapse>();
+	template SmartPtr<SynapseIter<Exp2PreSynapse> > SplitSynapseHandler<Domain3d>::end<Exp2PreSynapse>();
+
+	template SmartPtr<SynapseIter<Exp2PostSynapse> > SplitSynapseHandler<Domain3d>::begin<Exp2PostSynapse>();
+	template SmartPtr<SynapseIter<Exp2PostSynapse> > SplitSynapseHandler<Domain3d>::end<Exp2PostSynapse>();
 #endif
 
 } /* namespace synapse_handler */

@@ -57,7 +57,7 @@
 #include "split_synapse_distributor/split_synapse_distributor.h"
 #include "split_synapse_handler/synapse_container.h"
 #include "split_synapse_handler/split_synapse_handler.h"
-#include "split_synapse_handler/synapse_iterator.h"
+//#include "split_synapse_handler/synapse_iterator.h"
 #endif
 
 //synapse distributor
@@ -535,27 +535,38 @@ struct Functionality
 			reg.add_class_<TSSH>(name, grp)
 				.template add_constructor<void (*)()>()
 				.add_method("set_ce_object", &TSSH::set_ce_object)
-				//.add_method("get_synapses", &TSSH::get_synapses)
+
+				.add_method("begin_AlphaPreSynapse", &TSSH::template begin<AlphaPreSynapse>)
+				.add_method("begin_AlphaPostSynapse", &TSSH::template begin<AlphaPostSynapse>)
+				.add_method("begin_Exp2PreSynapse", &TSSH::template begin<Exp2PreSynapse>)
+				.add_method("begin_Exp2PostSynapse", &TSSH::template begin<Exp2PostSynapse>)
+
+				.add_method("end_AlphaPreSynapse", &TSSH::template end<AlphaPreSynapse>)
+				.add_method("end_AlphaPostSynapse", &TSSH::template end<AlphaPostSynapse>)
+				.add_method("end_Exp2PreSynapse", &TSSH::template end<Exp2PreSynapse>)
+				.add_method("end_Exp2PostSynapse", &TSSH::template end<Exp2PostSynapse>)
+
+				.add_method("show_status", &TSSH::show_status)
 				.set_construct_as_smart_pointer(true)
 				;
 			reg.add_class_to_group(name, "SplitSynapseHandler", tag);
 		}
 
-		{
-			typedef SynapseIterator<AlphaPreSynapse, TDomain> T;
-			string name = string("AlphaPreSynapse_Iterator").append(suffix);
-			reg.add_class_<T>(name, grp)
-					.template add_constructor<void (*)()>()
-					.add_method("get", &T::operator*)
-					.add_method("next", &T::operator++)
-					.add_method("equal", &T::operator==)
-					.add_method("inequal", &T::operator!=)
-					.add_method("is_referenceable", &T::is_referenceable)
-					.add_method("set_synapse_handler", &T::set_synapse_handler)
-					.set_construct_as_smart_pointer(true)
-					;
-			reg.add_class_to_group(name, "AlphaPreSynapse_Iterator", tag);
-		}
+//		{
+//			typedef SynapseIterator<AlphaPreSynapse, TDomain> T;
+//			string name = string("AlphaPreSynapse_Iterator").append(suffix);
+//			reg.add_class_<T>(name, grp)
+//					.template add_constructor<void (*)()>()
+//					.add_method("get", &T::operator*)
+//					.add_method("next", &T::operator++)
+//					.add_method("equal", &T::operator==)
+//					.add_method("inequal", &T::operator!=)
+//					.add_method("is_referenceable", &T::is_referenceable)
+//					.add_method("set_synapse_handler", &T::set_synapse_handler)
+//					.set_construct_as_smart_pointer(true)
+//					;
+//			reg.add_class_to_group(name, "AlphaPreSynapse_Iterator", tag);
+//		}
 
 #endif
 	}
@@ -690,23 +701,94 @@ struct Functionality
 
 
 		{
+			typedef synapse_handler::SynapseIter<AlphaPreSynapse> T;
+			reg.add_class_<T>("AlphaPreSynapse_It", grp)
+					.add_method("get", &T::operator*)
+					.add_method("next", &T::operator++)
+					.add_method("inequal", &T::operator!=)
+					;
+		}
+		{
+			typedef synapse_handler::SynapseIter<AlphaPostSynapse> T;
+			reg.add_class_<T>("AlphaPostSynapse_It", grp)
+					.add_method("get", &T::operator*)
+					.add_method("next", &T::operator++)
+					.add_method("inequal", &T::operator!=)
+					;
+		}
+		{
+			typedef synapse_handler::SynapseIter<Exp2PreSynapse> T;
+			reg.add_class_<T>("Exp2PreSynapse_It", grp)
+					.add_method("get", &T::operator*)
+					.add_method("next", &T::operator++)
+					.add_method("inequal", &T::operator!=)
+					;
+		}
+		{
+			typedef synapse_handler::SynapseIter<Exp2PostSynapse> T;
+			reg.add_class_<T>("Exp2PostSynapse_It", grp)
+					.add_method("get", &T::operator*)
+					.add_method("next", &T::operator++)
+					.add_method("inequal", &T::operator!=)
+					;
+		}
+
+		{
 			typedef synapse_handler::AlphaPreSynapse T;
-			reg.add_class_<T>("AlphaPreSynapse", grp);
+			reg.add_class_<T>("AlphaPreSynapse", grp)
+					.add_method("onset", &T::onset)
+					.add_method("duration", &T::duration)
+
+					.add_method("set_onset", &T::set_onset)
+					.add_method("set_duration", &T::set_duration)
+					.add_method("name", &T::name)
+							;
 		}
 
 		{
-			typedef AlphaPostSynapse T;
-			reg.add_class_<T>("AlphaPostSynapse", grp);
+			typedef synapse_handler::AlphaPostSynapse T;
+			reg.add_class_<T>("AlphaPostSynapse", grp)
+					.add_method("tau", &T::tau)
+					.add_method("gMax", &T::gMax)
+					.add_method("rev", &T::rev)
+
+					.add_method("set_tau", &T::set_tau)
+					.add_method("set_gMax", &T::set_gMax)
+					.add_method("set_rev", &T::set_rev)
+
+					.add_method("name", &T::name)
+							;
 		}
 
 		{
-			typedef Exp2PreSynapse T;
-			reg.add_class_<T>("Exp2PreSynapse", grp);
+			typedef synapse_handler::Exp2PreSynapse T;
+			reg.add_class_<T>("Exp2PreSynapse", grp)
+
+					.add_method("set_onset", &T::set_onset)
+					.add_method("set_duration", &T::set_duration)
+					.add_method("set_threshold", &T::set_threshold)
+
+					.add_method("name", &T::name)
+							;
 		}
 
 		{
-			typedef Exp2PostSynapse T;
-			reg.add_class_<T>("Exp2PostSynapse", grp);
+			typedef synapse_handler::Exp2PostSynapse T;
+			reg.add_class_<T>("Exp2PostSynapse", grp)
+					//.add_method("onset", &T::onset)
+					.add_method("rev", &T::rev)
+					.add_method("gMax", &T::gMax)
+					.add_method("tau1", &T::tau1)
+					.add_method("tau2", &T::tau2)
+
+					//.add_method("set_onset", &T::set_onset)
+					.add_method("set_rev", &T::set_rev)
+					.add_method("set_gMax", &T::set_gMax)
+					.add_method("set_tau1", &T::set_tau1)
+					.add_method("set_tau2", &T::set_tau2)
+
+					.add_method("name", &T::name)
+							;
 		}
 
 		{
