@@ -353,8 +353,12 @@ estimate_cfl_cond(ConstSmartPtr<TVector> u)
 
 				if (m_spSH->synapse_on_edge(edge, co, m_time, current))
 				{
-					linDep += current / vrt_values[_v_];
-//					linDepSyn += current / vrt_values[_v_];
+					if (vrt_values[_v_] > 1e-8)
+					{
+						linDep += current / vrt_values[_v_];
+//		                                linDepSyn += current / vrt_values[_v_];
+					}
+                                        // else: no way to determine linDep
 				}
 			}
 		}
