@@ -38,14 +38,15 @@
 	#include "membrane_transport/nmodl_converter/converted/includefile.h"
 #endif
 
+/*
 // synapse handler
 #include "synapse_handler/synapse_handler.h"
 #include "synapse_handler/util/utility.h"
 #include "synapse_handler/function/types.h"
 #include "synapse_handler/grid/synapse_info_io_traits.h"
 #include "synapse_handler/grid/synapse_info.h"
+*/
 
-#ifdef SPLIT_SYNAPSES_ENABLED
 //split_synapse handler
 #include "split_synapse_handler/base_synapse.h"
 #include "split_synapse_handler/split_synapse_info_io_traits.h"
@@ -57,11 +58,9 @@
 #include "split_synapse_distributor/split_synapse_distributor.h"
 #include "split_synapse_handler/synapse_container.h"
 #include "split_synapse_handler/split_synapse_handler.h"
-//#include "split_synapse_handler/synapse_iterator.h"
-#endif
 
 //synapse distributor
-#include "synapse_distributor/synapse_distributor.h"
+//#include "synapse_distributor/synapse_distributor.h"
 
 // utility
 #include "util/functions.h"
@@ -109,7 +108,7 @@ struct Functionality
 		// /////////////////////////////////////////
 		// //////// synapse handler ////////////////
 		// /////////////////////////////////////////
-
+/*
 		{
 			using namespace synapse_handler;
 
@@ -176,7 +175,7 @@ struct Functionality
 				static_cast<void (*)(TDomain&, const ug::MultiGrid* const grid, const ug::MGSubsetHandler* const sh)>
 					(&LoadDomainFromGridInMemory<TDomain>));
 		}
-
+*/
 
 
 		// ////////////////////////////////////
@@ -477,7 +476,7 @@ struct Functionality
 				.add_method("set_temperature", static_cast<void (T::*)(number)>(&T::set_temperature),
 						"", "temperature (K) | default | value=310", "sets new temperature")
 				.add_method("set_temperature_celsius", static_cast<void (T::*)(number)>(&T::set_temperature_celsius),
-						"", "temperature (������C) | default | value=37", "sets new temperature")
+						"", "temperature (degrees C) | default | value=37", "sets new temperature")
 
 				.add_method("set_diff_coeffs", static_cast<void (T::*)(const std::vector<number>&)> (&T::set_diff_coeffs), "",
 						"diffusion coefficients of K, Na and Ca (m^2/s)", "sets diffusion coefficients")
@@ -527,7 +526,6 @@ struct Functionality
 			reg.add_function("check_domain", static_cast<int (*) (SmartPtr<TDomain>, int)>(&check_domain<TDomain>), grp.c_str(),
 							 "", "domain, verbosity", "Checks whether given domain is sound.");
 		}
-#ifdef SPLIT_SYNAPSES_ENABLED
 
 		{
 			typedef SplitSynapseHandler<TDomain> TSSH;
@@ -568,7 +566,6 @@ struct Functionality
 //			reg.add_class_to_group(name, "AlphaPreSynapse_Iterator", tag);
 //		}
 
-#endif
 	}
 
 	/**
@@ -641,6 +638,7 @@ struct Functionality
 	 */
 	static void Common(Registry& reg, string grp)
 	{
+/*
 		{
 		// /////////////////////////////////////////////
 		// //////// synapse distributor ////////////////
@@ -648,10 +646,7 @@ struct Functionality
 
 		// TODO: might better be registered (and implemented) in a domain-dependent manner
 		string name = "SynapseDistributor";
-
 		string constr_params("infile#outfile");
-
-
 		typedef SynapseDistributor TSD;
 
 		reg.add_class_<TSD>(name, grp)
@@ -695,10 +690,8 @@ struct Functionality
 			.add_method("get_subset_handler",&TSD::get_subset_handler,"","SubsetHandler*","Pointer to current subsethandler object",grp)
 
 			.set_construct_as_smart_pointer(true);
-
-	}
-#ifdef SPLIT_SYNAPSES_ENABLED
-
+		}
+*/
 
 		{
 			typedef synapse_handler::SynapseIter<AlphaPreSynapse> T;
@@ -853,57 +846,51 @@ struct Functionality
 		}
 
 
-	{
-		// /////////////////////////////////////////////
-		// //////// split synapse distributor ////////////////
-		// /////////////////////////////////////////////
+		{
+			// /////////////////////////////////////////////
+			// //////// split synapse distributor ////////////////
+			// /////////////////////////////////////////////
 
-		// TODO: might better be registered (and implemented) in a domain-dependent manner
-		string name = "SplitSynapseDistributor";
-		string constr_params("infile#outfile");
+			// TODO: might better be registered (and implemented) in a domain-dependent manner
+			string name = "SplitSynapseDistributor";
+			string constr_params("infile#outfile");
 
-		typedef SplitSynapseDistributor TSD;
+			typedef SplitSynapseDistributor TSD;
 
-		reg.add_class_<TSD>(name, grp)
-			.add_constructor<void (*)(string, string, bool)>("infile#outfile", "Initializes a SynapseDistributor", grp, "")
-			.add_constructor<void (*)(SmartPtr<ug::Domain3d>, string, bool)>("dom#outfile", "Initializes a SynapseDistributor", grp, "")
+			reg.add_class_<TSD>(name, grp)
+				.add_constructor<void (*)(string, string, bool)>("infile#outfile", "Initializes a SynapseDistributor", grp, "")
+				.add_constructor<void (*)(SmartPtr<ug::Domain3d>, string, bool)>("dom#outfile", "Initializes a SynapseDistributor", grp, "")
 
-			.add_method("remove_synapse", &TSD::remove_synapse, "e","","Removes synapse from edge",grp)
-			.add_method("remove_all_synapses", &TSD::remove_all_synapses, "e","","Removes all synapses from edge",grp)
-			.add_method("clear", static_cast<void (TSD::*)()>(&TSD::clear),"","","Removes all Synapses from grid",grp)
-			.add_method("clear", static_cast<void (TSD::*)(int)>(&TSD::clear),"subsetIndex","","Removes all Synapses from subset",grp)
-			.add_method("place_synapses_uniform", static_cast<void (TSD::*)(std::vector<IBaseSynapse*>)>(&TSD::place_synapses_uniform), "", "", "Distributes synapses uniformly on grid.", grp)
-			.add_method("place_synapses_uniform", static_cast<void (TSD::*)(int, std::vector<IBaseSynapse*>)>(&TSD::place_synapses_uniform), "", "", "Distributes synapses uniformly on subset.", grp)
-			.add_method("degenerate_uniform",static_cast<void (TSD::*)(number)>(&TSD::degenerate_uniform),"","","Degenerates a certain percentage of synapses in the whole grid.",grp)
-			.add_method("degenerate_uniform",static_cast<void (TSD::*)(number, int)>(&TSD::degenerate_uniform),"","","Degenerates a certain percentage of synapses in the given subset.",grp)
-			.add_method("degenerate_uniform",static_cast<void (TSD::*)(number, const char*)>(&TSD::degenerate_uniform),"","","Degenerates a certain percentage of synapses in the given subset.",grp)
+				.add_method("remove_synapse", &TSD::remove_synapse, "e","","Removes synapse from edge",grp)
+				.add_method("remove_all_synapses", &TSD::remove_all_synapses, "e","","Removes all synapses from edge",grp)
+				.add_method("clear", static_cast<void (TSD::*)()>(&TSD::clear),"","","Removes all Synapses from grid",grp)
+				.add_method("clear", static_cast<void (TSD::*)(int)>(&TSD::clear),"subsetIndex","","Removes all Synapses from subset",grp)
+				.add_method("place_synapses_uniform", static_cast<void (TSD::*)(std::vector<IBaseSynapse*>)>(&TSD::place_synapses_uniform), "", "", "Distributes synapses uniformly on grid.", grp)
+				.add_method("place_synapses_uniform", static_cast<void (TSD::*)(int, std::vector<IBaseSynapse*>)>(&TSD::place_synapses_uniform), "", "", "Distributes synapses uniformly on subset.", grp)
+				.add_method("degenerate_uniform",static_cast<void (TSD::*)(number)>(&TSD::degenerate_uniform),"","","Degenerates a certain percentage of synapses in the whole grid.",grp)
+				.add_method("degenerate_uniform",static_cast<void (TSD::*)(number, int)>(&TSD::degenerate_uniform),"","","Degenerates a certain percentage of synapses in the given subset.",grp)
+				.add_method("degenerate_uniform",static_cast<void (TSD::*)(number, const char*)>(&TSD::degenerate_uniform),"","","Degenerates a certain percentage of synapses in the given subset.",grp)
 
-			.add_method("get_subset_length",static_cast<number (TSD::*)(int)>(&TSD::get_subset_length),"","number","Calculate and return length of specified subset in micrometer",grp)
-			.add_method("get_subset_length",static_cast<number (TSD::*)(const char*)>(&TSD::get_subset_length),"","number","Calculate and return length of specified subset in micrometer",grp)
-			.add_method("num_synapses", static_cast<size_t (TSD::*)()>(&TSD::num_synapses), "", "", "Returns global number of synapses", grp)
-			.add_method("num_synapses", static_cast<size_t (TSD::*)(int)>(&TSD::num_synapses), "", "", "Returns number of synapses in specified subset", grp)
-			.add_method("num_synapses", static_cast<size_t (TSD::*)(const char*)>(&TSD::num_synapses), "", "", "Returns number of synapses in specified subset", grp)
-			.add_method("num_active_synapses", static_cast<size_t (TSD::*)(number)>(&TSD::num_active_synapses), "", "", "Returns global number of synapses at the specific time", grp)
-			.add_method("num_active_synapses", static_cast<size_t (TSD::*)(number, int)>(&TSD::num_active_synapses), "", "", "Returns number of synapses at the specific in specified subset", grp)
+				.add_method("get_subset_length",static_cast<number (TSD::*)(int)>(&TSD::get_subset_length),"","number","Calculate and return length of specified subset in micrometer",grp)
+				.add_method("get_subset_length",static_cast<number (TSD::*)(const char*)>(&TSD::get_subset_length),"","number","Calculate and return length of specified subset in micrometer",grp)
+				.add_method("num_synapses", static_cast<size_t (TSD::*)()>(&TSD::num_synapses), "", "", "Returns global number of synapses", grp)
+				.add_method("num_synapses", static_cast<size_t (TSD::*)(int)>(&TSD::num_synapses), "", "", "Returns number of synapses in specified subset", grp)
+				.add_method("num_synapses", static_cast<size_t (TSD::*)(const char*)>(&TSD::num_synapses), "", "", "Returns number of synapses in specified subset", grp)
+				.add_method("num_active_synapses", static_cast<size_t (TSD::*)(number)>(&TSD::num_active_synapses), "", "", "Returns global number of synapses at the specific time", grp)
+				.add_method("num_active_synapses", static_cast<size_t (TSD::*)(number, int)>(&TSD::num_active_synapses), "", "", "Returns number of synapses at the specific in specified subset", grp)
 
-//			.add_method("activity_info",&TSD::activity_info, "", "","Prints start and end time for each synapse", grp)
+	//			.add_method("activity_info",&TSD::activity_info, "", "","Prints start and end time for each synapse", grp)
 
-			.add_method("print_status",&TSD::print_status, "t", "","prints synapse status of grid", grp)
-			.add_method("get_last_message",&TSD::get_last_message,"","string","Returns last Message",grp)
-			.add_method("set_outfile",&TSD::set_outfile,"","void","Sets output filename",grp)
-			.add_method("export_grid",static_cast<bool (TSD::*)()>(&TSD::export_grid),"","bool","Saves changes to disk",grp)
-			.add_method("export_grid",static_cast<bool (TSD::*)(string)>(&TSD::export_grid),"","bool","Saves changes to disk",grp)
-			.add_method("get_grid",&TSD::get_grid,"","Grid*","Pointer to current grid object",grp)
-			.add_method("get_subset_handler",&TSD::get_subset_handler,"","SubsetHandler*","Pointer to current subsethandler object",grp)
+				.add_method("print_status",&TSD::print_status, "t", "","prints synapse status of grid", grp)
+				.add_method("get_last_message",&TSD::get_last_message,"","string","Returns last Message",grp)
+				.add_method("set_outfile",&TSD::set_outfile,"","void","Sets output filename",grp)
+				.add_method("export_grid",static_cast<bool (TSD::*)()>(&TSD::export_grid),"","bool","Saves changes to disk",grp)
+				.add_method("export_grid",static_cast<bool (TSD::*)(string)>(&TSD::export_grid),"","bool","Saves changes to disk",grp)
+				.add_method("get_grid",&TSD::get_grid,"","Grid*","Pointer to current grid object",grp)
+				.add_method("get_subset_handler",&TSD::get_subset_handler,"","SubsetHandler*","Pointer to current subsethandler object",grp)
 
-			.set_construct_as_smart_pointer(true);
-
-
-	}
-
-
-
-#endif
+				.set_construct_as_smart_pointer(true);
+		}
 	}
 
 }; // end Functionality
@@ -924,12 +911,21 @@ InitUGPlugin_cable_neuron(Registry* reg, string grp)
 
 	// declare global grid attachments for diameter, synapses and presynaptic indices
 	typedef ANumber ADiameter;
-	typedef Attachment<uint> APresynInd;
-	typedef Attachment<std::vector<SynapseInfo> >AVSynapse;
+	//typedef Attachment<uint> APresynInd; // old!
+	//typedef Attachment<std::vector<SynapseInfo> >AVSynapse;	// old!
+	typedef Attachment<std::vector<IBaseSynapse*> >AVSplitSynapse;
 
 	GlobalAttachments::declare_attachment<ADiameter>("diameter", true);
-	GlobalAttachments::declare_attachment<APresynInd>("presyn_index", true);
-	GlobalAttachments::declare_attachment<AVSynapse>("Synapses", false);
+	//GlobalAttachments::declare_attachment<APresynInd>("presyn_index", true);
+	//GlobalAttachments::declare_attachment<AVSynapse>("Synapses", false); // old!
+	GlobalAttachments::declare_attachment<AVSplitSynapse>("SplitSynapses", false);
+
+	// register synapse types
+	SynapseDealer::instance()->register_synapse_type<AlphaPreSynapse>("ALPHA_PRE_SYNAPSE");
+	SynapseDealer::instance()->register_synapse_type<AlphaPostSynapse>("ALPHA_POST_SYNAPSE");
+	SynapseDealer::instance()->register_synapse_type<Exp2PostSynapse>("EXP2_POST_SYNAPSE");
+	SynapseDealer::instance()->register_synapse_type<Exp2PreSynapse>("EXP2_PRE_SYNAPSE");
+	// ... add other synapse types here!
 
 	typedef cable_neuron::Functionality Functionality;
 

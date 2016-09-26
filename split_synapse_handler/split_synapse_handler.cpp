@@ -31,7 +31,7 @@ template <typename TDomain>
 number SplitSynapseHandler<TDomain>::current_on_edge(const Edge* e, size_t scv, number t)
 {
 	//TODO: update!! currents are nan if synapse inactive
-	std::vector<IBaseSynapse*> vSyns(m_aaSSyn[e]);
+	const std::vector<IBaseSynapse*>& vSyns = m_aaSSyn[e];
 	number vm_postsyn = m_spCEDisc->vm(e->vertex(scv));
 	number curr = 0.0;
 
@@ -85,7 +85,7 @@ void SplitSynapseHandler<TDomain>::grid_first_available()
 
 	// Check existence
 	if (!GlobalAttachments::is_declared("SplitSynapses")) {
-		UG_THROW("GlobalAttachment 'Synapses' not available.");
+		UG_THROW("GlobalAttachment 'SplitSynapses' not available.");
 	}
 
 
@@ -106,10 +106,9 @@ void SplitSynapseHandler<TDomain>::grid_first_available()
 	// set init'ed flag
 	m_bInited = true;
 
-	//gather all synapses from grid and build all tables
+	// gather all synapses from grid and build all tables
 	all_synapses();
 	//test();
-
 }
 
 /**

@@ -171,19 +171,12 @@ set_influx(number Flux, number x, number y, number z, number beg, number dur)
 	if (dim >= 3) m_vCurrentCoords[m_vCurrentCoords.size()-1][2] = z;
 }
 
-/*template <typename TDomain>
+template <typename TDomain>
 void CableEquation<TDomain>::
-set_synapse_handler
-(
-#ifdef SPLIT_SYNAPSES_ENABLED
-				SmartPtr<synapse_handler::SplitSynapseHandler<TDomain> > sh
-#else
-				SmartPtr<synapse_handler::NETISynapseHandler<TDomain> > sh
-#endif
-)
+set_synapse_handler(SmartPtr<synapse_handler::SplitSynapseHandler<TDomain> > sh)
 {
 	m_spSH = sh;
-}*/
+}
 
 
 template<typename TDomain>
@@ -307,7 +300,7 @@ estimate_cfl_cond(ConstSmartPtr<TVector> u)
 	double minCFL = std::numeric_limits<double>::max();
 	size_t sv_sz = m_vSurfVrt.size();
 
-	number linDepCh, linDepSyn;
+//	number linDepCh, linDepSyn;
 	for (size_t sv = 0; sv < sv_sz; ++sv)
 	{
 		Vertex* vrt = m_vSurfVrt[sv];
@@ -321,7 +314,7 @@ estimate_cfl_cond(ConstSmartPtr<TVector> u)
 		}
 
 		number linDep = 0.0;
-		linDepCh = linDepSyn = 0.0;
+//		linDepCh = linDepSyn = 0.0;
 		number massFac = 0.0;
 		typedef typename MultiGrid::traits<Edge>::secure_container edge_list;
 		edge_list el;
@@ -342,7 +335,7 @@ estimate_cfl_cond(ConstSmartPtr<TVector> u)
 				if (m_channel[ch]->is_def_on_subset(m_si))
 				{
 					linDep += scvSurf * m_channel[ch]->lin_dep_on_pot(vrt, vrt_values);
-					linDepCh += scvSurf * m_channel[ch]->lin_dep_on_pot(vrt, vrt_values);
+//					linDepCh += scvSurf * m_channel[ch]->lin_dep_on_pot(vrt, vrt_values);
 				}
 			}
 
@@ -359,8 +352,12 @@ estimate_cfl_cond(ConstSmartPtr<TVector> u)
 
 				if (m_spSH->synapse_on_edge(edge, co, m_time, current))
 				{
-					linDep += current / vrt_values[_v_];
-					linDepSyn += current / vrt_values[_v_];
+					if (vrt_values[_v_] > 1e-8)
+					{
+						linDep += current / vrt_values[_v_];
+//		                linDepSyn += current / vrt_values[_v_];
+					}
+                    // else: no way to determine linDep
 				}
 			}
 		}
@@ -368,11 +365,11 @@ estimate_cfl_cond(ConstSmartPtr<TVector> u)
 		number cfl = 2.0 * m_spec_cap * massFac / linDep;
 		minCFL = std::min(minCFL, cfl);
 
-if (minCFL == cfl)
-{
-	UG_LOGN("linDep channels: " << linDepCh);
-	UG_LOGN("linDep synapses: " << linDepSyn << " --> minCFL: " << minCFL);
-}
+//if (minCFL == cfl)
+//{
+//	UG_LOGN("linDep channels: " << linDepCh);
+//	UG_LOGN("linDep synapses: " << linDepSyn << " --> minCFL: " << minCFL);
+//}
 	}
 
 		// communicate

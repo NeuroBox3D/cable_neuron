@@ -161,15 +161,8 @@ class CableEquation
 		/// set influx params (flux value, coordinates, beginning, duration)
 		void set_influx(number Flux, number x, number y, number z, number beg, number dur);
 
-
-//#ifdef SPLIT_SYNAPSES_ENABLED
-		void set_synapse_handler(SmartPtr<synapse_handler::SplitSynapseHandler<TDomain> > sh) {std::cout << "SSH set\n";m_spSH = sh;}
-//#else
-		//void set_synapse_handler(SmartPtr<synapse_handler::NETISynapseHandler<TDomain> > sh) {m_spSH = sh;}
-//#endif
-
-
-
+		/// set synapse handler
+		void set_synapse_handler(SmartPtr<synapse_handler::SplitSynapseHandler<TDomain> > sh);
 
 		/// adding a channel
 		void add(SmartPtr<ICableMembraneTransport<TDomain> > transportMechanism);
@@ -302,13 +295,8 @@ class CableEquation
 		std::vector<number> m_vCurrent, m_vCurrentStart, m_vCurrentDur;		///< values describing influxes
 		std::vector<MathVector<dim> > m_vCurrentCoords;					///< vector for influx coordinates x, y, z
 
-
 		//synapse handler
-//#ifdef SPLIT_SYNAPSES_ENABLED
-				SmartPtr<synapse_handler::SplitSynapseHandler<TDomain> > m_spSH;
-//#else
-				//SmartPtr<synapse_handler::NETISynapseHandler<TDomain> > m_spSH;
-//#endif
+		SmartPtr<synapse_handler::SplitSynapseHandler<TDomain> > m_spSH;
 
 		std::vector<SmartPtr<TIChannel> > m_channel;					///< list of channels
 

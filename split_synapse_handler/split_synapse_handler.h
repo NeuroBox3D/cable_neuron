@@ -197,10 +197,11 @@ public:
 			}
 		}
 
-		while(it++ != m_vAllSynapses.end()) {
+		while(it != m_vAllSynapses.end()) {
 			if(!dynamic_cast<TSyn*>(*it) ) {//found last TSyn*
 				break;
 			}
+			++it;
 		}
 		return SmartPtr<SynapseIter<TSyn> >(new SynapseIter<TSyn>(it));
 	}

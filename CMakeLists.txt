@@ -56,15 +56,17 @@ if (CNConvertedTransport)
 endif (CNConvertedTransport)
 
 # synapse_handler sources
-set(SOURCES ${SOURCES}
-    synapse_handler/util/utility.cpp
-    synapse_handler/grid/synapse_info.cpp
-    synapse_handler/grid/synapse_info_attachment_handler.cpp
-    synapse_handler/synapse_handler.cpp
-)
+#set(SOURCES ${SOURCES}
+    #synapse_handler/util/utility.cpp
+    #synapse_handler/grid/synapse_info.cpp
+    #synapse_handler/grid/synapse_info_attachment_handler.cpp
+    #synapse_handler/synapse_handler.cpp
+#)
+include(split_synapse_handler/sources.cmake)
+include(split_synapse_distributor/sources.cmake)
 
 # synapse distributor sources
-set(SOURCES	${SOURCES} synapse_distributor/synapse_distributor.cpp)
+#set(SOURCES	${SOURCES} synapse_distributor/synapse_distributor.cpp)
 
 # plugin source
 set(SOURCES	${SOURCES} plugin_main.cpp)
@@ -101,7 +103,7 @@ if(buildEmbeddedPlugins)
 		# add definition to plugin_main.cpp to include all converted transport mechanisms
 		ExportSingleFileDefinitions(${CMAKE_CURRENT_SOURCE_DIR}/plugin_main.cpp CONVERTED_TRANSPORT_ENABLED)
 	endif (CNConvertedTransport)
-
+	
 	if (CNTestsuite)
 		target_link_libraries (CNTestsuite ug4)
 	endif (CNTestsuite)
