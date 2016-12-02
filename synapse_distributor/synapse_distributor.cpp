@@ -284,7 +284,7 @@ void SynapseDistributor::place_synapse(Edge* e, int t)
 
 	synapse_handler::SynapseInfo syn;
 	syn.m_locCoords = localCoord;
-	syn.m_type = (unsigned char)t;			//ALPHA_SYNAPSE | JANA_SYNAPSE_FROM_MARKUS_WITH_LOVE
+	syn.m_type = (unsigned char)t;			// ALPHA_SYNAPSE | JANA_SYNAPSE_FROM_MARKUS_WITH_LOVE
 	syn.m_onset = 0.0;						// to be set by set_activation_timing method
 	syn.m_tau 	= 0.0;//biexp: tau1			// to be set by set_activation_timing method
 	syn.m_gMax 	= 1.2e-3;					// in [uS]

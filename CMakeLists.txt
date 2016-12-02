@@ -25,10 +25,6 @@ message(STATUS "      ConvertedTransport: " ${CNConvertedTransport} " (options a
 option(CNBuildConverter "BuildConverter" OFF)
 message(STATUS "      BuildConverter:     " ${CNBuildConverter} " (options are: ON, OFF)")
 
-# compile SplitSynapses only if # SplitSynapses is set
-option(CNSplitSynapses "CNSplitSynapses")
-message(STATUS "      SplitSynapses:      " ${CNSplitSynapses} " (options are: ON, OFF)")
-
 # whether to build the test suite
 option(CNTestsuite "Build Testsuite" OFF)
 message(STATUS "      Testsuite:          " ${CNTestsuite} " (options are: ON, OFF)")
@@ -58,12 +54,6 @@ set (SOURCES
 if (CNConvertedTransport)
     include(membrane_transport/nmodl_converter/converted/sources.cmake)
 endif (CNConvertedTransport)
-
-if (CNSplitSynapses)
-    include(split_synapse_handler/sources.cmake)
-    include(split_synapse_distributor/sources.cmake)
-endif (CNSplitSynapses)
-
 
 # synapse_handler sources
 set(SOURCES ${SOURCES}
@@ -111,12 +101,7 @@ if(buildEmbeddedPlugins)
 		# add definition to plugin_main.cpp to include all converted transport mechanisms
 		ExportSingleFileDefinitions(${CMAKE_CURRENT_SOURCE_DIR}/plugin_main.cpp CONVERTED_TRANSPORT_ENABLED)
 	endif (CNConvertedTransport)
-	
-	if (CNSplitSynapses)
-		# add definition to plugin_main.cpp to include all converted transport mechanisms
-		ExportSingleFileDefinitions(${CMAKE_CURRENT_SOURCE_DIR}/plugin_main.cpp SPLIT_SYNAPSES_ENABLED)
-	endif (CNSplitSynapses)
-	
+
 	if (CNTestsuite)
 		target_link_libraries (CNTestsuite ug4)
 	endif (CNTestsuite)
@@ -128,11 +113,6 @@ else(buildEmbeddedPlugins)
 		# add definition to plugin_main.cpp to include all converted transport mechanisms
 		set_source_files_properties(plugin_main.cpp PROPERTIES COMPILE_DEFINITIONS CONVERTED_TRANSPORT_ENABLED)
 	endif (CNConvertedTransport)
-	
-	if (CNSplitSynapses)
-		# add definition to plugin_main.cpp to include all converted transport mechanisms
-		set_source_files_properties(plugin_main.cpp PROPERTIES COMPILE_DEFINITIONS SPLIT_SYNAPSES_ENABLED)
-	endif (CNSplitSynapses)
 	
 	target_link_libraries(${pluginName} ug4)
 	

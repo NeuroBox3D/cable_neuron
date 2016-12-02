@@ -73,7 +73,7 @@ number Exp2PostSynapse::current(const number& t, const number &vm)
 	{
 		number tp = (m_tau1*m_tau2)/(m_tau2 - m_tau1) * std::log(m_tau2/m_tau1);	// time of maximal current
 		number factor = 1.0 / (std::exp(-tp/m_tau2) - std::exp(-tp/m_tau1));		// normalization factor
-		number i = m_gMax * factor * (vm - m_rev) * (std::exp(-(t-m_onset)/m_tau2) - std::exp(-(t-m_onset)/m_tau1));
+		number i = m_w * factor * (vm - m_e) * (std::exp(-(t-m_onset)/m_tau2) - std::exp(-(t-m_onset)/m_tau1));
 /*
 		std::cout << "Exp2PostSynapse" << id() << ":" << std::endl
 				  << "location: " << location() << std::endl
