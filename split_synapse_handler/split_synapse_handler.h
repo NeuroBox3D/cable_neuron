@@ -26,6 +26,7 @@
 #include "split_synapse_info_io_traits.h"
 #include "../cable_disc/cable_equation.h"
 #include "../split_synapse_distributor/split_synapse_distributor.h"
+#include "synapse_attachment_serializer.h"
 #include "split_synapse_attachment_handler.h"
 #include "base_synapse.h"
 #include "pre_synapse.h"
@@ -102,6 +103,9 @@ private:
 
 	std::map<SYNAPSE_ID, IPreSynapse*> m_mActivePreSynapses; //internal memory of currently active presynapses
 	std::map<SYNAPSE_ID, Edge*> m_mPreSynapseIdToEdge; //maps presynapses to their edge
+
+	SmartPtr<GeomObjDataSerializer<Edge> > m_spSAS;
+	MessageHub::SPCallbackId m_spGridDistributionCallbackID;
 
 	//TODO: don't use copy ctor at the moment
 	SplitSynapseHandler(const SplitSynapseHandler& sh);
@@ -218,6 +222,10 @@ public:
 		//std::cout << "Synapse iterator end(): " << &*(m_vAllSynapses.end()) << std::endl;
 		//std::cout << "AlphaPreSynapse iterator end(): " << &*end<AlphaPreSynapse>() << std::endl;
 	}
+
+
+protected:
+	void grid_distribution_callback(const GridMessage_Distribution& gmd);
 };
 
 } /* namespace synapse_handler */

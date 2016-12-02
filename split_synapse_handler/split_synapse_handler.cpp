@@ -21,7 +21,8 @@ SplitSynapseHandler<TDomain>::SplitSynapseHandler()
  m_mPreSynapses(std::map<SYNAPSE_ID,IPreSynapse*>()),
  m_mPostSynapses(std::map<SYNAPSE_ID,IPostSynapse*>()),
  m_mActivePreSynapses(std::map<SYNAPSE_ID, IPreSynapse*>()),
- m_mPreSynapseIdToEdge(std::map<SYNAPSE_ID,Edge*>())
+ m_mPreSynapseIdToEdge(std::map<SYNAPSE_ID,Edge*>()),
+ m_spSAS(SPNULL)
 {
 	m_ssah.set_attachment(m_aSSyn);
 	//std::cout << "\nSSH instantiated\n";
@@ -102,6 +103,13 @@ void SplitSynapseHandler<TDomain>::grid_first_available()
 
 	// propagate attachments through levels
 	m_ssah.set_grid(m_spGrid);
+
+	// create a serialization object for distribution purposes
+	m_spSAS = make_sp(new SynapseAttachmentSerializer(*m_spGrid, m_aSSyn));
+
+	// set this class as event listener for distribution
+	m_spGridDistributionCallbackID = m_spGrid->message_hub()->register_class_callback(this,
+		&SplitSynapseHandler<TDomain>::grid_distribution_callback);
 
 	// set init'ed flag
 	m_bInited = true;
@@ -338,6 +346,18 @@ update_presyn(number time)
 	}
 
 #endif
+}
+
+
+
+template <typename TDomain>
+void SplitSynapseHandler<TDomain>::grid_distribution_callback(const GridMessage_Distribution& gmd)
+{
+	if (gmd.msg() == GMDT_DISTRIBUTION_STARTS)
+	{
+		GridDataSerializationHandler& gdsh = gmd.serialization_handler();
+		gdsh.add(m_spSAS);
+	}
 }
 
 
