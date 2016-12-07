@@ -53,9 +53,9 @@ struct attachment_io_traits<Attachment<std::vector<IBaseSynapse*> > > {
 //				in.unget();										//reset input stream
 //			}
 
-			IBaseSynapse* s = SynapseDealer::instance()->deal(identifier);
-
-			if (!s) UG_THROW("Dealt synapse is NULL.")
+			IBaseSynapse* s;
+			try {s = SynapseDealer::instance()->deal(identifier);}
+			UG_CATCH_THROW("Synapse of type '" << identifier << "' could not be created.")
 
 			in >> s;
 			v[i] = s;

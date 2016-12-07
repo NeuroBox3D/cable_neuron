@@ -6,6 +6,7 @@
  */
 
 #include "base_synapse.h"
+#include "common/error.h"
 
 namespace ug {
 namespace cable_neuron {
@@ -13,13 +14,16 @@ namespace synapse_handler {
 
 std::ostream& operator<<(std::ostream& os, const IBaseSynapse* s)
 {
-	s->put_to(os);
+	try	{s->put_to(os);}
+	UG_CATCH_THROW("Could not write synapse to stream.");
+
 	return os;
 }
 
 std::istream& operator>>(std::istream& is, IBaseSynapse* s)
 {
-	s->get_from(is);
+	try {s->get_from(is);}
+	UG_CATCH_THROW("Could not read synapse from stream.");
 	return is;
 }
 

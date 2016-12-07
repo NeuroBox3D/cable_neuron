@@ -22,19 +22,29 @@ SynapseAttachmentSerializer::~SynapseAttachmentSerializer()
 
 void SynapseAttachmentSerializer::write_data(BinaryBuffer& out, Edge* o) const
 {
-	size_t sz = m_aa[o].size();
-	Serialize(out, sz);
-	for (size_t i = 0; i < sz; ++i)
+	try
 	{
-		// save synapse type to buffer
-		Serialize(out, m_aa[o][i]->name());
+		size_t sz = m_aa[o].size();
+		Serialize(out, sz);
+		for (size_t i = 0; i < sz; ++i)
+		{
+			// get unique ID for synapse type
+			std::string name = m_aa[o][i]->name();
+			SynapseDealer* synReg = SynapseDealer::instance();
+			size_t uid = synReg->unique_id(name);
 
-		// save synapse to buffer
-		Serialize(out, *m_aa[o][i]);
+			// save synapse type to buffer
+			Serialize(out, uid);
 
-		// delete object
-		delete m_aa[o][i];
+			// save synapse to buffer
+			size_t sz = synReg->size_of(uid);
+			out.write(reinterpret_cast<char*>(m_aa[o][i]), sz);
+
+			// delete object
+			delete m_aa[o][i];
+		}
 	}
+	UG_CATCH_THROW("Something went wrong during serialization of synapse attachment.");
 }
 
 
@@ -50,14 +60,17 @@ void SynapseAttachmentSerializer::read_data(BinaryBuffer& in, Edge* o)
 		for (size_t i = 0; i < sz; ++i)
 		{
 			// read synapse type
-			std::string name = Deserialize<std::string>(in);
+			size_t uid = Deserialize<size_t>(in);
+
+			// get synapse registry/dealer
+			SynapseDealer* synReg = SynapseDealer::instance();
 
 			// create new synapse
-			IBaseSynapse* s = SynapseDealer::instance()->deal(name);
-			UG_LOGN("  synapse type: " << name);
+			IBaseSynapse* s = synReg->deal(uid);
+			UG_LOGN("  synapse type: " << uid);
 
 			// read values from buffer
-			Deserialize(in, s);
+			in.read(reinterpret_cast<char*>(s), synReg->size_of(uid));
 
 			// save pointer in attachment
 			m_aa[o][i] = s;
