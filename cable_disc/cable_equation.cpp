@@ -11,6 +11,7 @@
 #include "../cable_disc/cable_equation.h"
 
 #include "lib_grid/global_attachments.h"
+#include "../util/functions.h"
 //#include "../../NeuronalTopologyImporter/neuronal_topology_importer.h"
 
 
@@ -415,7 +416,6 @@ void CableEquation<TDomain>::approximation_space_changed()
 			UG_LOG("HINT: Even though you have explicitly set a constant diameter to the domain\n"
 				   "      this discretization will use the diameter information attached to the grid\n"
 				   "      you specified.\n");
-
 		}
 	}
 
@@ -431,12 +431,12 @@ void CableEquation<TDomain>::approximation_space_changed()
 		m_channel[i]->approx_space_available();
 
 	// create a list of surface vertices as this takes forever later otherwise
-	ConstSmartPtr<DoFDistribution> dd = this->approx_space()->dof_distribution(GridLevel(), false);
-	typedef DoFDistribution::traits<Vertex>::const_iterator it_type;
-	it_type it = dd->begin<Vertex>(SurfaceView::MG_ALL);
-	it_type it_end = dd->end<Vertex>(SurfaceView::MG_ALL);
-	for (; it != it_end; ++it)
-		m_vSurfVrt.push_back(*it);
+	update_surface_verts();
+
+	// set this class as listener for distribution events
+	m_spGridDistributionCallbackID = grid->message_hub()->register_class_callback(this,
+		&CableEquation<TDomain>::grid_distribution_callback);
+
 
 	// call init method for synapse handler
 	if (m_spSH.valid())
@@ -1001,6 +1001,27 @@ register_func()
 	this->set_fsh_elem_loop_fct(id, &T::template fsh_elem_loop<TElem, TFVGeom>);
 }
 
+
+template<typename TDomain>
+void CableEquation<TDomain>::
+grid_distribution_callback(const GridMessage_Distribution& gmd)
+{
+	if (gmd.msg() == GMDT_DISTRIBUTION_STOPS)
+		update_surface_verts();
+}
+
+
+template<typename TDomain>
+void CableEquation<TDomain>::update_surface_verts()
+{
+	m_vSurfVrt.clear();
+	ConstSmartPtr<DoFDistribution> dd = this->approx_space()->dof_distribution(GridLevel(), false);
+	typedef DoFDistribution::traits<Vertex>::const_iterator it_type;
+	it_type it = dd->begin<Vertex>(SurfaceView::MG_ALL);
+	it_type it_end = dd->end<Vertex>(SurfaceView::MG_ALL);
+	for (; it != it_end; ++it)
+		m_vSurfVrt.push_back(*it);
+}
 
 
 // ////////////////////////////////////

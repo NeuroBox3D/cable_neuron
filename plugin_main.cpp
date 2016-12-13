@@ -525,6 +525,8 @@ struct Functionality
 							 "", "domain", "Checks whether given domain is sound.");
 			reg.add_function("check_domain", static_cast<int (*) (SmartPtr<TDomain>, int)>(&check_domain<TDomain>), grp.c_str(),
 							 "", "domain, verbosity", "Checks whether given domain is sound.");
+			//reg.add_function("test_vertices", &test_vertices<TDomain>, grp.c_str(),
+			//				 "", "domain", "Tests the distributed vertices for correctness of the virtual table pointer.");
 		}
 
 		{

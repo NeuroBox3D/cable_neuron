@@ -75,6 +75,11 @@ template <typename TDomain>
 int check_domain(SmartPtr<TDomain> dom) {return check_domain(dom, 1);}
 
 
+
+template <typename TDomain>
+void test_vertices(SmartPtr<TDomain> dom);
+
+
 } // namespace cable_neruon
 } // namespace ug
 

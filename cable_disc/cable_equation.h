@@ -256,6 +256,12 @@ class CableEquation
 		/// \}
 
 	protected:
+		MessageHub::SPCallbackId m_spGridDistributionCallbackID;
+		void grid_distribution_callback(const GridMessage_Distribution& gmd);
+
+		void update_surface_verts();
+
+	protected:
 		ANumber m_aDiameter;										///< dendritic diameter attachment
 		Grid::AttachmentAccessor<Vertex, ANumber> m_aaDiameter;		///< dendritic diameter attachment accessor
 		DiamAttachmentHandler m_dah;								///< handler for multigrid usage of diameter attachment

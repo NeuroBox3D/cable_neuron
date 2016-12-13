@@ -263,21 +263,57 @@ int check_domain(SmartPtr<TDomain> dom, int verbosity)
 
 
 
+template <typename TDomain>
+void test_vertices(SmartPtr<TDomain> dom)
+{
+	UG_COND_THROW(!dom.valid(), "Domain invalid.\n");
+	SmartPtr<MultiGrid> grid = dom->grid();
+	UG_COND_THROW(!grid.valid(), "There is no grid associated to the domain.");
+
+	typename TDomain::position_accessor_type& aaPos = dom->position_accessor();
+
+	VertexIterator it = grid->template begin<Vertex>(0);
+	size_t vptr_val = *reinterpret_cast<size_t*>(*it);
+
+	VertexIterator it_end = grid->template end<Vertex>(0);
+	size_t cnt = 1;
+	for (++it; it != it_end; ++it)
+	{
+		if (*reinterpret_cast<size_t*>(*it) != vptr_val)
+		{
+			UG_THROW("Vertex with deviating virtual table pointer:\n"
+					"Vertex " << cnt << "/" << grid->num_vertices()
+					<< " at " << aaPos[*it] << ".\n"
+					"Correct vPtr is " << std::hex << std::setfill('0') << std::setw(16)
+					<< vptr_val << ", deviating vPtr is " << std::setfill('0') << std::setw(16) << ".");
+		}
+		++cnt;
+	}
+
+	UG_LOGN("Correct vPtr is " << std::hex << std::setfill('0')
+			<< std::setw(16) << vptr_val << std::dec);
+}
+
+
+
 
 #ifdef UG_DIM_1
 	template bool is_acyclic<Domain1d>(SmartPtr<Domain1d>, int);
 	template int check_presyn_indices<Domain1d>(SmartPtr<Domain1d>, int);
 	template int check_domain<Domain1d>(SmartPtr<Domain1d>, int);
+	template void test_vertices<Domain1d>(SmartPtr<Domain1d>);
 #endif
 #ifdef UG_DIM_2
 	template bool is_acyclic<Domain2d>(SmartPtr<Domain2d>, int);
 	template int check_presyn_indices<Domain2d>(SmartPtr<Domain2d>, int);
 	template int check_domain<Domain2d>(SmartPtr<Domain2d>, int);
+	template void test_vertices<Domain2d>(SmartPtr<Domain2d>);
 #endif
 #ifdef UG_DIM_3
 	template bool is_acyclic<Domain3d>(SmartPtr<Domain3d>, int);
 	template int check_presyn_indices<Domain3d>(SmartPtr<Domain3d>, int);
 	template int check_domain<Domain3d>(SmartPtr<Domain3d>, int);
+	template void test_vertices<Domain3d>(SmartPtr<Domain3d>);
 #endif
 
 
