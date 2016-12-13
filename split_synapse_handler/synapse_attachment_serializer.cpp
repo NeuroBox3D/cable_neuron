@@ -36,7 +36,7 @@ void SynapseAttachmentSerializer::write_data(BinaryBuffer& out, Edge* e) const
 
 			// save synapse type to buffer
 			Serialize(out, uid);
-/*
+
 			// save synapse to buffer
 			size_t sz = synReg->size_of(uid);
 			size_t nonDataPosPos = 0;
@@ -45,11 +45,11 @@ void SynapseAttachmentSerializer::write_data(BinaryBuffer& out, Edge* e) const
 			for (size_t j = 0; j < sz; ++j)
 			{
 				if (j != nonDataPos)
-					;//out.write(reinterpret_cast<char*>(m_aa[o][i])+j, 1);
+					out.write(reinterpret_cast<char*>(m_aa[e][i])+j, 1);
 				else
 					nonDataPos = nonDataBytes.size() > ++nonDataPosPos ? nonDataBytes[nonDataPosPos] : sz;
 			}
-*/
+
 			// delete object
 			delete m_aa[e][i];
 		}
@@ -87,7 +87,7 @@ void SynapseAttachmentSerializer::read_data(BinaryBuffer& in, Edge* e)
 			}
 			UG_LOGN("");
 			*/
-/*
+
 			// read values from buffer
 			size_t sz = synReg->size_of(uid);
 			size_t nonDataPosPos = 0;
@@ -96,11 +96,11 @@ void SynapseAttachmentSerializer::read_data(BinaryBuffer& in, Edge* e)
 			for (size_t j = 0; j < sz; ++j)
 			{
 				if (j != nonDataPos)
-					;//in.read(reinterpret_cast<char*>(s)+j, 1);
+					in.read(reinterpret_cast<char*>(s)+j, 1);
 				else
 					nonDataPos = nonDataBytes.size() > ++nonDataPosPos ? nonDataBytes[nonDataPosPos] : sz;
 			}
-*/
+
 			/*
 			UG_LOGN("synapse after reading from buffer:  ")
 			for (size_t j = 0; j < synReg->size_of(uid); ++j)

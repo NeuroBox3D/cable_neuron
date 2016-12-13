@@ -67,8 +67,7 @@ class SynapseDealer {
 		void find_no_overwrite_bytes
 		(
 			const char* s,
-			size_t uid,
-			std::vector<size_t>& vNOBout
+			size_t uid
 		);
 };
 

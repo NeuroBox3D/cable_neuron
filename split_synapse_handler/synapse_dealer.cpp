@@ -45,7 +45,7 @@ IBaseSynapse* SynapseDealer::deal(const std::string& name)
 	UG_CATCH_THROW("Requested synapse type '" << name << "' which is not registered.");
 
 	// get generator using index and generate synapse
-	return m_vSynGen[uid]->generate();
+	return deal(uid);
 }
 
 IBaseSynapse* SynapseDealer::deal(size_t unique_id)
@@ -62,7 +62,7 @@ size_t SynapseDealer::size_of(const std::string& name)
 	try {uid = unique_id(name);}
 	UG_CATCH_THROW("Requested synapse type '" << name << "' which is not registered.");
 
-	return m_vSize[uid];
+	return size_of(uid);
 }
 
 size_t SynapseDealer::size_of(size_t unique_id)
@@ -75,7 +75,7 @@ size_t SynapseDealer::size_of(size_t unique_id)
 
 const std::vector<size_t>& SynapseDealer::non_data_bytes(size_t uid) const
 {
-	UG_ASSERT(m_vSynGen.size() > uid,
+	UG_ASSERT(m_vNoOverwriteBytes.size() > uid,
 				  "Requested non-data bytes for synapse of unknown ID " << uid << ".");
 	return m_vNoOverwriteBytes[uid];
 }
@@ -92,8 +92,7 @@ size_t SynapseDealer::get_unique_id()
 void SynapseDealer::find_no_overwrite_bytes
 (
 	const char* buf,
-	size_t uid,
-	std::vector<size_t>& vNOBout
+	size_t uid
 )
 {
 #ifdef UG_PARALLEL
@@ -114,26 +113,31 @@ void SynapseDealer::find_no_overwrite_bytes
 	com.reduce(buf, recBufAnd, sz, PCL_DT_CHAR, PCL_RO_BAND, 0);
 	com.reduce(buf, recBufOr, sz, PCL_DT_CHAR, PCL_RO_BOR, 0);
 
-	std::vector<size_t>& noOverwritePos = m_vNoOverwriteBytes[uid];
+	std::vector<size_t>& vNOB = m_vNoOverwriteBytes[uid];
+
 	if (pcl::ProcRank() == 0)
 	{
 		for (size_t b = 0; b < sz; ++b)
 		{
 			// if not all bits are equal on all procs, this is a no-overwrite byte
 			if (~(recBufAnd[b] | ~recBufOr[b]))
-				noOverwritePos.push_back(b);
+				vNOB.push_back(b);
 		}
+		delete[] recBufAnd;
+		delete[] recBufOr;
 	}
 
-	size_t nobSz = noOverwritePos.size();
+	size_t nobSz = vNOB.size();
 
 	com.broadcast(nobSz, 0);
-	noOverwritePos.resize(nobSz);
-	com.broadcast(&noOverwritePos[0], nobSz, 0);
+	vNOB.resize(nobSz);
+	if (nobSz)
+		com.broadcast(&vNOB[0], nobSz, 0);
+
 
 	UG_LOG(uid << ":  ");
 	for (size_t i = 0; i < nobSz; ++i)
-		UG_LOG(noOverwritePos[i] << " ")
+		UG_LOG(vNOB[i] << " ")
 	UG_LOGN("");
 
 #endif

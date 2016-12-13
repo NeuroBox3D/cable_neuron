@@ -81,16 +81,15 @@ void SplitSynapseHandler<TDomain>::grid_first_available()
 	UG_COND_THROW(!m_spGrid.valid(), "There is no grid associated to the CableEquation object passed.\n"
 				  "Make sure you load the domain before setting the CableEquation.");
 
-	// Global Attachment setup
 
+	// global attachment setup
 
-	// Check existence
+	// check existence
 	if (!GlobalAttachments::is_declared("SplitSynapses")) {
 		UG_THROW("GlobalAttachment 'SplitSynapses' not available.");
 	}
 
-
-	// Attach to grid, if not already present
+	// attach to grid, if not already present
 	if (!m_spGrid->has_edge_attachment(m_aSSyn)) {
 		m_spGrid->attach_to_edges(m_aSSyn);
 	}
@@ -130,7 +129,7 @@ SplitSynapseHandler<TDomain>::collect_synapses_from_grid()
 	m_mPostSynapses.clear();
 	m_mPreSynapseIdToEdge.clear();
 
-	// (re) populate synapse lists
+	// (re)populate synapse lists
 	geometry_traits<Edge>::const_iterator e = m_spGrid->begin<Edge>(0);
 	geometry_traits<Edge>::const_iterator end = m_spGrid->end<Edge>(0);
 	for (; e != end; ++e)

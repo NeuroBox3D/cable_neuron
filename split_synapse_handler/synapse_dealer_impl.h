@@ -39,7 +39,7 @@ void SynapseDealer::register_synapse_type(const std::string& t)
 	char* buf = new char[sizeof(TSyn)];
 	memset(buf, 0, sizeof(TSyn));
 	new (buf) TSyn();
-	find_no_overwrite_bytes(buf, uid, m_vNoOverwriteBytes[uid]);
+	find_no_overwrite_bytes(buf, uid);
 	delete[] buf;
 #endif
 
