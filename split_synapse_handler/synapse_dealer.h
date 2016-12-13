@@ -36,20 +36,23 @@ class SynapseDealer {
 		std::map<std::string, size_t> m_register;
 		std::vector<ISynapseGenerator*> m_vSynGen;
 		std::vector<size_t> m_vSize;
+		std::vector<std::vector<size_t> > m_vNoOverwriteBytes;
 		static SynapseDealer *m_instance;
 		~SynapseDealer();
 		SynapseDealer();
 
 	public:
-		template <typename TSyn> void register_synapse_type(std::string name);
+		template <typename TSyn> void register_synapse_type(const std::string& name);
 
-		size_t unique_id(std::string name);
+		size_t unique_id(const std::string& name);
 
-		IBaseSynapse* deal(std::string t);
+		IBaseSynapse* deal(const std::string& t);
 		IBaseSynapse* deal(size_t unique_id);
 
-		size_t size_of(std::string name);
+		size_t size_of(const std::string& name);
 		size_t size_of(size_t unique_id);
+
+		const std::vector<size_t>& non_data_bytes(size_t uid) const;
 
 		static SynapseDealer* instance() {
 			if(m_instance == 0) {
@@ -60,6 +63,13 @@ class SynapseDealer {
 
 	protected:
 		size_t get_unique_id();
+
+		void find_no_overwrite_bytes
+		(
+			const char* s,
+			size_t uid,
+			std::vector<size_t>& vNOBout
+		);
 };
 
 

@@ -14,7 +14,7 @@ namespace synapse_handler {
 
 
 template <typename TSyn>
-void SynapseDealer::register_synapse_type(std::string t)
+void SynapseDealer::register_synapse_type(const std::string& t)
 {
 	// check if name already exists and throw if that is the case
 	std::map<std::string, size_t>::const_iterator it = m_register.find(t);
@@ -30,6 +30,18 @@ void SynapseDealer::register_synapse_type(std::string t)
 	m_vSynGen[uid] = sg;
 	m_vSize.resize(uid+1);
 	m_vSize[uid] = sizeof(TSyn);
+
+	// compute and save byte positions not to be overwritten
+	// when communicating this object type from one proc to another
+	m_vNoOverwriteBytes.resize(uid+1);
+
+#ifdef UG_PARALLEL
+	char* buf = new char[sizeof(TSyn)];
+	memset(buf, 0, sizeof(TSyn));
+	new (buf) TSyn();
+	find_no_overwrite_bytes(buf, uid, m_vNoOverwriteBytes[uid]);
+	delete[] buf;
+#endif
 
 	/* DEBUGGING
 	UG_LOGN("Current synapse registry");

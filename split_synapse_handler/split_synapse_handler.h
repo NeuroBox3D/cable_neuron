@@ -114,7 +114,7 @@ private:
 	 * Fills the member m_vAllSynapses with every synapse currently on the grid.
 	 * Called by grid_first_available.
 	 */
-	void all_synapses();
+	void collect_synapses_from_grid();
 	/**
 	 * used for sorting
 	 */

@@ -115,27 +115,43 @@ void SplitSynapseHandler<TDomain>::grid_first_available()
 	m_bInited = true;
 
 	// gather all synapses from grid and build all tables
-	all_synapses();
+	collect_synapses_from_grid();
 	//test();
 }
 
-/**
- * returns vector containing all synapses on the grid
- */
+
 template <typename TDomain>
 void
-//std::vector<IBaseSynapse*>
-SplitSynapseHandler<TDomain>::all_synapses()
+SplitSynapseHandler<TDomain>::collect_synapses_from_grid()
 {
-	for(geometry_traits<Edge>::const_iterator e=m_spGrid->begin<Edge>(0); e != m_spGrid->end<Edge>(0); ++e) {
-		for(size_t i = 0; i<m_aaSSyn[*e].size(); ++i) {
-			m_vAllSynapses.push_back(m_aaSSyn[*e][i]);
-			if(m_aaSSyn[*e][i]->is_presynapse()) { //presynapse map and save edge
-				IPreSynapse* s = (IPreSynapse*)m_aaSSyn[*e][i];
+	// clear synapse lists
+	m_vAllSynapses.clear();
+	m_mPreSynapses.clear();
+	m_mPostSynapses.clear();
+	m_mPreSynapseIdToEdge.clear();
+
+	// (re) populate synapse lists
+	geometry_traits<Edge>::const_iterator e = m_spGrid->begin<Edge>(0);
+	geometry_traits<Edge>::const_iterator end = m_spGrid->end<Edge>(0);
+	for (; e != end; ++e)
+	{
+		const std::vector<IBaseSynapse*>& syns = m_aaSSyn[*e];
+		size_t sz = syns.size();
+		for (size_t i = 0; i < sz; ++i)
+		{
+			IBaseSynapse* syn = syns[i];
+			m_vAllSynapses.push_back(syn);
+			if (syn->is_presynapse())
+			{
+				// presynapse map and save edge
+				IPreSynapse* s = (IPreSynapse*) syn;
 				m_mPreSynapses[s->id()] = s;
 				m_mPreSynapseIdToEdge[s->id()] = *e;
-			} else {  //postsynapse map
-				IPostSynapse* s = (IPostSynapse*)m_aaSSyn[*e][i];
+			}
+			else
+			{
+				// postsynapse map
+				IPostSynapse* s = (IPostSynapse*) syn;
 				m_mPostSynapses[s->id()] = s;
 			}
 		}
@@ -357,6 +373,11 @@ void SplitSynapseHandler<TDomain>::grid_distribution_callback(const GridMessage_
 	{
 		GridDataSerializationHandler& gdsh = gmd.serialization_handler();
 		gdsh.add(m_spSAS);
+	}
+	else if (gmd.msg() == GMDT_DISTRIBUTION_STOPS)
+	{
+		// gather all synapses from grid on the proc and build all tables
+		collect_synapses_from_grid();
 	}
 }
 

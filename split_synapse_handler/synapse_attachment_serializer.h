@@ -50,6 +50,8 @@ class SynapseAttachmentSerializer
 
 	protected:
 		Grid::AttachmentAccessor<Edge, SynAttach> m_aa;
+
+		bool m_blubb;
 };
 
 
