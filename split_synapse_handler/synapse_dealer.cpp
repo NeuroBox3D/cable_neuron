@@ -134,12 +134,12 @@ void SynapseDealer::find_no_overwrite_bytes
 	if (nobSz)
 		com.broadcast(&vNOB[0], nobSz, 0);
 
-
+	/* DEBUG
 	UG_LOG(uid << ":  ");
 	for (size_t i = 0; i < nobSz; ++i)
 		UG_LOG(vNOB[i] << " ")
 	UG_LOGN("");
-
+	*/
 #endif
 }
 
