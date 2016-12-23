@@ -893,6 +893,12 @@ struct Functionality
 
 				.set_construct_as_smart_pointer(true);
 		}
+
+		// ugx -> swc conversion
+		reg.add_function("save_neuron_to_swc", &save_neuron_to_swc, grp.c_str(),
+		                 "", "ugx file name # neuron index # swc file name # scale",
+		                 "Save a single neuron from a ugx neuronal network to swc.");
+
 	}
 
 }; // end Functionality

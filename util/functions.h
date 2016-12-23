@@ -10,6 +10,7 @@
 
 
 #include "common/util/smart_pointer.h"
+#include "lib_grid/grid/grid.h"
 
 
 namespace ug {
@@ -78,6 +79,19 @@ int check_domain(SmartPtr<TDomain> dom) {return check_domain(dom, 1);}
 
 template <typename TDomain>
 void test_vertices(SmartPtr<TDomain> dom);
+
+
+void neuron_identification(Grid& g);
+void deep_first_search(Grid& g, Grid::VertexAttachmentAccessor<Attachment<int> >& aaNID, Vertex* v, int id);
+
+
+void save_neuron_to_swc
+(
+    std::string ugxFileName,
+    size_t neuronIndex,
+    std::string swcFileName,
+    number scale = 1.0
+);
 
 
 } // namespace cable_neruon

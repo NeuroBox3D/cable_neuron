@@ -8,8 +8,11 @@
 
 #include "functions.h"
 
+#include <string>
+#include <algorithm>    // std::transform
 #include <stack>
 #include <utility>
+#include <fstream>
 
 #include "lib_disc/domain.h"
 #include "lib_grid/grid/grid.h"
@@ -17,6 +20,8 @@
 #include "lib_grid/grid/grid_base_object_traits.h"
 #include "lib_grid/global_attachments.h" // global attachments
 #include "lib_grid/tools/surface_view.h"
+#include "lib_grid/algorithms/element_side_util.h" // GetOpposingSide
+#include "lib_disc/domain_util.h" // LoadDomain
 #include "pcl/pcl_base.h"
 
 
@@ -294,6 +299,263 @@ void test_vertices(SmartPtr<TDomain> dom)
 			<< std::setw(16) << vptr_val << std::dec);
 }
 
+
+
+void neuron_identification(Grid& g)
+{
+    // synapse index attachment available?
+    typedef Attachment<int> ANeuronID;
+
+    if (!GlobalAttachments::is_declared("NeuronID"))
+        UG_THROW("GlobalAttachment 'NeuronID' not declared.");
+
+    ANeuronID aNID(GlobalAttachments::attachment<ANeuronID>("NeuronID"));
+
+    if (!g.has_vertex_attachment(aNID))
+        g.attach_to_vertices(aNID);
+
+    Grid::VertexAttachmentAccessor<ANeuronID> aaNID = Grid::VertexAttachmentAccessor<ANeuronID>(g, aNID);
+
+
+    // initialize with -1
+    VertexIterator it = g.begin<Vertex>();
+    VertexIterator it_end = g.end<Vertex>();
+    for (; it != it_end; ++it )
+        aaNID[*it] = -1;
+
+    int nid = -1;
+    for (it = g.begin<Vertex>(); it != it_end; ++it)
+        if (aaNID[*it] == -1)
+            deep_first_search(g, aaNID, *it, ++nid);
+}
+
+
+void deep_first_search(Grid& g, Grid::VertexAttachmentAccessor<Attachment<int> >& aaNID, Vertex* v, int id)
+{
+    if (aaNID[v] >= 0) return;
+    else aaNID[v] = id;
+
+    Grid::traits<Edge>::secure_container edges;
+    g.associated_elements(edges, v);
+
+    size_t sz = edges.size();
+    for (size_t i = 0; i < sz; ++i)
+    {
+        Vertex* otherEnd = GetOpposingSide(g, edges[i], v);
+        deep_first_search(g, aaNID, otherEnd, id);
+    }
+}
+
+
+
+
+void save_neuron_to_swc
+(
+    std::string ugxFileName,
+    size_t neuronIndex,
+    std::string swcFileName,
+    number scale
+)
+{
+    Domain3d dom;
+    try {LoadDomain(dom, ugxFileName.c_str());}
+    UG_CATCH_THROW("Domain could not be loaded from file " << ugxFileName << ".");
+
+    SmartPtr<MultiGrid> mg = dom.grid();
+    Domain3d::position_accessor_type& aaPos = dom.position_accessor();
+    Domain3d::subset_handler_type& sh = *dom.subset_handler();
+
+
+    // get access to diameter attachment (or throw if not available)
+    if (!GlobalAttachments::is_declared("diameter"))
+        UG_THROW("GlobalAttachment 'diameter' not declared.");
+
+    ANumber aDiam(GlobalAttachments::attachment<ANumber>("diameter"));
+    //UG_COND_THROW(mg->has_vertex_attachment(aDiam), "Diameter attachment not available.");
+    if (!mg->has_vertex_attachment(aDiam))
+        mg->attach_to_vertices(aDiam);
+    Grid::VertexAttachmentAccessor<ANumber> aaDiam(*mg, aDiam);
+
+
+    // find a vertex of the neuron with required index
+    typedef Attachment<int> ANeuronID;
+
+    if (!GlobalAttachments::is_declared("NeuronID"))
+        UG_THROW("GlobalAttachment 'NeuronID' not declared.");
+
+    ANeuronID aNID(GlobalAttachments::attachment<ANeuronID>("NeuronID"));
+    Grid::VertexAttachmentAccessor<ANeuronID> m_aaNID;
+
+    bool nidAvail = mg->has_vertex_attachment(aNID);
+
+    Vertex* start = NULL;
+
+    // if neuron indices are already available in the grid, use them
+    if (nidAvail)
+    {
+        m_aaNID = Grid::VertexAttachmentAccessor<ANeuronID>(*mg, aNID);
+
+        // iterate vertices until correct nid is encountered
+        VertexIterator it = mg->begin<Vertex>();
+        VertexIterator it_end = mg->end<Vertex>();
+        while (it != it_end && m_aaNID[*it] != (int) neuronIndex)
+            ++it;
+
+        UG_COND_THROW(it == it_end, "A neuron with the required index " << neuronIndex
+            << " is not contained in the grid " << ugxFileName << ".")
+
+        start = *it;
+    }
+
+    // if neuron indices are not available, iterate through neurons until the required one is reached
+    else
+    {
+        // iterate neurons
+        mg->attach_to_vertices(aNID);
+
+        Grid::VertexAttachmentAccessor<ANeuronID> aaNID(*mg, aNID);
+
+        // initialize with -1
+        VertexIterator it = mg->begin<Vertex>();
+        VertexIterator it_end = mg->end<Vertex>();
+        for (; it != it_end; ++it )
+            aaNID[*it] = -1;
+
+        int nid = -1;
+        for (it = mg->begin<Vertex>(); it != it_end; ++it)
+        {
+            if (aaNID[*it] == -1)
+            {
+                if (++nid == (int) neuronIndex) break;
+                deep_first_search(*mg, aaNID, *it, nid);
+            }
+        }
+
+        UG_COND_THROW(nid < (int) neuronIndex, "Neuron with index " << neuronIndex << " cannot be saved.\n"
+            "Only " << nid+1 << " neurons contained in grid.");
+
+        start = *it;
+    }
+
+
+    // analyze subset names to find out corresponding swc-types
+    size_t nss = sh.num_subsets();
+    std::vector<size_t> vType(nss);
+    bool soma_subset_present = false;
+    for (size_t i = 0; i < nss; ++i)
+    {
+        std::string name(sh.get_subset_name(i));
+        std::transform(name.begin(), name.end(), name.begin(), ::toupper);
+        if (name.find("SOMA") != std::string::npos)
+        {
+            soma_subset_present = true;
+            vType[i] = 1;
+        }
+        else if (name.find("AXON") != std::string::npos)
+            vType[i] = 2;
+        else if (name.find("APIC") != std::string::npos)
+            vType[i] = 4;
+        else if (name.find("DEND") != std::string::npos)
+            vType[i] = 3;
+        else vType[i] = 0;
+    }
+
+    if (!soma_subset_present)
+        UG_LOGN("Warning: No somatic subset could be identified.")
+
+    // advance current vertex to soma (if identifiable)
+    if (soma_subset_present)
+    {
+        mg->begin_marking();
+        std::queue<Vertex*> q; // corresponds to breadth-first
+        q.push(start);
+        while (!q.empty())
+        {
+            Vertex* v = q.front();
+            if (vType[sh.get_subset_index(v)] == 1) break;
+            mg->mark(v);
+            q.pop();
+
+            // push neighboring elems to queue
+            Grid::traits<Edge>::secure_container edges;
+            mg->associated_elements(edges, v);
+
+            size_t sz = edges.size();
+            for (size_t e = 0; e < sz; ++e)
+            {
+                Vertex* otherEnd = GetOpposingSide(*mg, edges[e], v);
+                if (!mg->is_marked(otherEnd))
+                    q.push(otherEnd);
+            }
+        }
+        mg->end_marking();
+
+        if (q.empty())
+            UG_LOGN("Warning: No soma vertex could be found in the requested neuron.")
+        else
+            start = q.front();
+    }
+
+    // write the neuron to file
+    std::ofstream outFile(swcFileName.c_str(), std::ios::out);
+    UG_COND_THROW(!outFile.is_open(), "Could not open output file '" << swcFileName << "'.");
+
+    outFile << "# This file has been generated by UG4 from the original file "
+            << ugxFileName << "." << std::endl;
+    outFile << "# It contains neuron " << neuronIndex << " from that geometry." << std::endl;
+
+    std::stack<std::pair<Vertex*, int> > stack; // corresponds to depth-first
+    stack.push(std::make_pair(start, -1));
+
+    mg->begin_marking();
+    int ind = 0;   // by convention, swc starts with index 1
+    bool all_types_identified = true;
+    while (!stack.empty())
+    {
+        // get all infos regarding vertex
+        std::pair<Vertex*, int>& info = stack.top();
+        Vertex* v = info.first;
+        int conn = info.second;
+        stack.pop();
+
+        // mark curr vrt
+        mg->mark(v);
+
+        size_t type = vType[sh.get_subset_index(v)];
+        if (!type) all_types_identified = false;
+
+        const Domain3d::position_type& coord = aaPos[v];
+
+        number diam = scale*aaDiam[v];
+
+        // write line to file
+        outFile << ++ind << " " << type << " "
+            << coord[0]*scale << " " << coord[1]*scale << " " << coord[2]*scale << " "
+            << diam << " " << conn << std::endl;
+
+        // push neighboring elems to queue
+        Grid::traits<Edge>::secure_container edges;
+        mg->associated_elements(edges, v);
+
+        size_t sz = edges.size();
+        for (size_t e = 0; e < sz; ++e)
+        {
+            Vertex* otherEnd = GetOpposingSide(*mg, edges[e], v);
+            if (!mg->is_marked(otherEnd))
+                stack.push(std::make_pair(otherEnd, ind));
+        }
+    }
+    mg->end_marking();
+
+    if (!all_types_identified)
+        UG_LOGN("WARNING: Some vertex type(s) - soma, dendrite, axon, etc. -\n"
+            "could not be identified using the subset names.\n"
+            << "To ensure correct types in the resulting swc file, the ugx subset names\n"
+            "need to contain one of the strings \"SOMA\", \"AXON\", \"DEND\", \"APIC\",\n"
+            "upper/lower case can be ignored.");
+
+    outFile.close();
+}
 
 
 
