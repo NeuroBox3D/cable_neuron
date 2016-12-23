@@ -916,11 +916,13 @@ InitUGPlugin_cable_neuron(Registry* reg, string grp)
 	//typedef Attachment<uint> APresynInd; // old!
 	//typedef Attachment<std::vector<SynapseInfo> >AVSynapse;	// old!
 	typedef Attachment<std::vector<IBaseSynapse*> >AVSplitSynapse;
+	typedef Attachment<int> ANeuronID;
 
 	GlobalAttachments::declare_attachment<ADiameter>("diameter", true);
 	//GlobalAttachments::declare_attachment<APresynInd>("presyn_index", true);
 	//GlobalAttachments::declare_attachment<AVSynapse>("Synapses", false); // old!
 	GlobalAttachments::declare_attachment<AVSplitSynapse>("SplitSynapses", false);
+	GlobalAttachments::declare_attachment<ANeuronID>("NeuronID", false);
 
 	// register synapse types
 	SynapseDealer::instance()->register_synapse_type<AlphaPreSynapse>("ALPHA_PRE_SYNAPSE");
