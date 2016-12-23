@@ -73,7 +73,7 @@ public:
 };
 
 /**
- * SplitSynapseHandler is the central managemnet class for everything related to SplitSynapses.
+ * SplitSynapseHandler is the central management class for everything related to SplitSynapses.
  * Provides iterators for each registered synapse type.
  */
 template <typename TDomain>
@@ -81,9 +81,14 @@ class SplitSynapseHandler
 {
 private:
 	typedef Attachment<std::vector<IBaseSynapse*> > AVSSynapse;
+	typedef Attachment<int> ANeuronID;
 
+	ANeuronID m_aNID;
 	AVSSynapse m_aSSyn;
+
+	Grid::VertexAttachmentAccessor<ANeuronID> m_aaNID;
 	Grid::EdgeAttachmentAccessor<AVSSynapse> m_aaSSyn;
+
 	bool m_bInited;
 	SmartPtr<MultiGrid> m_spGrid;
 	SmartPtr<CableEquation<TDomain> > m_spCEDisc;
@@ -92,12 +97,6 @@ private:
 
 	std::vector<IBaseSynapse*> m_vAllSynapses;
 
-	/*	//probably unused
-	std::vector<IPreSynapse*> m_vPreSynapses;
-	std::vector<IPostSynapse*> m_vPostSynapses;*/	// map with key ID instead of vector!
-
-	//use these maps
-	//std::map<SYNAPSE_ID, IBaseSynapse*> m_mAllSynapses; //contains all local synapses on grid by their respective id->IBaseSynapse pointer
 	std::map<SYNAPSE_ID, IPreSynapse*> m_mPreSynapses; // " ... "
 	std::map<SYNAPSE_ID, IPostSynapse*> m_mPostSynapses; // " ... "
 
@@ -226,6 +225,8 @@ public:
 
 protected:
 	void grid_distribution_callback(const GridMessage_Distribution& gmd);
+	void neuron_identification();
+	int deep_first_search(Vertex* v, int id);
 };
 
 } /* namespace synapse_handler */

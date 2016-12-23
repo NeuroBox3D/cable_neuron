@@ -13,7 +13,8 @@ namespace synapse_handler {
 
 template <typename TDomain>
 SplitSynapseHandler<TDomain>::SplitSynapseHandler()
-:m_aSSyn(GlobalAttachments::attachment<AVSSynapse>("SplitSynapses")),
+:m_aNID(GlobalAttachments::attachment<ANeuronID>("NeuronID")),
+ m_aSSyn(GlobalAttachments::attachment<AVSSynapse>("SplitSynapses")),
  m_bInited(false),
  m_spGrid(SPNULL),
  m_spCEDisc(SPNULL),
@@ -94,11 +95,20 @@ void SplitSynapseHandler<TDomain>::grid_first_available()
 		m_spGrid->attach_to_edges(m_aSSyn);
 	}
 
+	if (!GlobalAttachments::is_declared("NeuronID")) {
+		UG_THROW("GlobalAttachment 'NeuronID' not available.");
+	}
+
+	if (!m_spGrid->has_vertex_attachment(m_aNID)) {
+		m_spGrid->attach_to_vertices(m_aNID);
+	}
+
 	// check that essential attachments exist in grid, create accessors
-	UG_COND_THROW(!m_spGrid->has_attachment<Edge>(m_aSSyn), "No synapse info attached to grid!");
+	UG_COND_THROW(!m_spGrid->has_attachment<Edge>(m_aSSyn), "No SplitSynapse attached to grid!");
+	UG_COND_THROW(!m_spGrid->has_attachment<Vertex>(m_aNID), "No NeuronID attached to grid!");
 
+	m_aaNID = Grid::VertexAttachmentAccessor<ANeuronID>(*m_spGrid, m_aNID);
 	m_aaSSyn = Grid::EdgeAttachmentAccessor<AVSSynapse>(*m_spGrid, m_aSSyn);
-
 
 	// propagate attachments through levels
 	m_ssah.set_grid(m_spGrid);
@@ -113,8 +123,9 @@ void SplitSynapseHandler<TDomain>::grid_first_available()
 	// set init'ed flag
 	m_bInited = true;
 
-	// gather all synapses from grid and build all tables
+	// gather all synapses from grid and build all maps
 	collect_synapses_from_grid();
+	neuron_identification();
 	//test();
 }
 
@@ -378,6 +389,45 @@ void SplitSynapseHandler<TDomain>::grid_distribution_callback(const GridMessage_
 		// gather all synapses from grid on the proc and build all tables
 		collect_synapses_from_grid();
 	}
+}
+
+template <typename TDomain>
+void SplitSynapseHandler<TDomain>::neuron_identification()
+{
+	int nid = 0;
+	//initialize with -1
+	for(VertexIterator vIter = m_spGrid->begin<Vertex>(); vIter != m_spGrid->end<Vertex>(); ++vIter ) {
+		Vertex* v = *vIter;
+		m_aaNID[v] = -1;
+	}
+
+	for(VertexIterator vIter = m_spGrid->begin<Vertex>(); vIter != m_spGrid->end<Vertex>(); ++vIter ) {
+		UG_COND_THROW(nid < 0, "Too many neurons");
+		Vertex* v = *vIter;
+		if(deep_first_search(v, nid)) {
+			nid++;
+		}
+	}
+	std::cout << "\nNIDs: " << nid + 1 << std::endl << std::endl; //dbg: prints out number of neurons (+1 because of 0 being first index)
+}
+
+template <typename TDomain>
+int SplitSynapseHandler<TDomain>::deep_first_search(Vertex* v, int id)
+{
+	if(m_aaNID[v] >= 0) {
+		return 0; //vertex v is already identified
+	} else {
+		m_aaNID[v] = id; //v gets id
+	}
+
+	Grid::traits<Edge>::secure_container edges; //get all edges incident to v
+	m_spGrid->associated_elements(edges, v);
+
+	for(size_t i=0; i<edges.size(); ++i) {
+		deep_first_search( (*edges[i])[0], id ); //dfs for every connected vertex
+		deep_first_search( (*edges[i])[1], id );
+	}
+	return 1;
 }
 
 
