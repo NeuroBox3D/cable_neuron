@@ -7,6 +7,7 @@
 
 #include "common/error.h"
 #include "common/log.h"
+#include <cstring>
 
 namespace ug {
 namespace cable_neuron {
