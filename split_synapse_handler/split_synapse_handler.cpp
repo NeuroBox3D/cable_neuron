@@ -23,8 +23,7 @@ SplitSynapseHandler<TDomain>::SplitSynapseHandler()
  m_mPostSynapses(std::map<SYNAPSE_ID,IPostSynapse*>()),
  m_mActivePreSynapses(std::map<SYNAPSE_ID, IPreSynapse*>()),
  m_mPreSynapseIdToEdge(std::map<SYNAPSE_ID,Edge*>()),
- m_spSAS(SPNULL),
- m_aaPosition(NULL)
+ m_spSAS(SPNULL)
 {
 	m_ssah.set_attachment(m_aSSyn);
 	//std::cout << "\nSSH instantiated\n";
@@ -455,7 +454,7 @@ int SplitSynapseHandler<TDomain>::Mapping3d(int neuron_id, const std::vector<std
 	std::vector<SYNAPSE_ID> syn_ids_local;
 	std::vector<std::vector<number> > vSynMap;
 	//gather local synapse ids, that are interesting
-	for(size_t i = 0; i < m_vAllSynapses; ++i) {
+	for(size_t i = 0; i < m_vAllSynapses.size(); ++i) {
 		if( get_neuron_id(m_vAllSynapses[i]->id()) == neuron_id) {
 			syn_ids_local.push_back(m_vAllSynapses[i]->id());
 		}
@@ -504,6 +503,7 @@ int SplitSynapseHandler<TDomain>::nearest_neighbor(	const std::vector<SYNAPSE_ID
 			}
 		}
 	}
+	return 1;
 }
 
 template <typename TDomain>
