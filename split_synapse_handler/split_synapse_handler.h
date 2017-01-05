@@ -82,6 +82,8 @@ class SplitSynapseHandler
 private:
 	typedef Attachment<std::vector<IBaseSynapse*> > AVSSynapse;
 	typedef Attachment<int> ANeuronID;
+	Grid::VertexAttachmentAccessor<APosition> m_aaPosition;
+
 
 	ANeuronID m_aNID;
 	AVSSynapse m_aSSyn;
@@ -222,11 +224,27 @@ public:
 		//std::cout << "AlphaPreSynapse iterator end(): " << &*end<AlphaPreSynapse>() << std::endl;
 	}
 
+	/**
+	 * Calculates real coordinates of given Synapse (by ID) and returns in vCoords
+	 * If SynapseId not found vCoords is empty.
+	 */
+	void get_coordinates(SYNAPSE_ID id, std::vector<number>& vCoords);
+	int get_neuron_id(SYNAPSE_ID id);
+
 
 protected:
 	void grid_distribution_callback(const GridMessage_Distribution& gmd);
 	void neuron_identification();
 	int deep_first_search(Vertex* v, int id);
+	int Mapping3d(int neuron_id, const std::vector<std::vector<number> >& surface_pts);
+
+	/**
+	 * Takes a std::vector of Synapses by Id and a std::vector of Vertexcoordinates and writes the nearest neighbor of each
+	 * synapse out in vMap, so that the order of v1dSynapses euqals the order of vMap
+	 */
+	int nearest_neighbor(	const std::vector<SYNAPSE_ID>& v1dSynapses,
+							const std::vector<std::vector<number> >& v3dVertices,
+							std::vector<std::vector<number> >& vMap);
 };
 
 } /* namespace synapse_handler */

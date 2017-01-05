@@ -23,7 +23,8 @@ SplitSynapseHandler<TDomain>::SplitSynapseHandler()
  m_mPostSynapses(std::map<SYNAPSE_ID,IPostSynapse*>()),
  m_mActivePreSynapses(std::map<SYNAPSE_ID, IPreSynapse*>()),
  m_mPreSynapseIdToEdge(std::map<SYNAPSE_ID,Edge*>()),
- m_spSAS(SPNULL)
+ m_spSAS(SPNULL),
+ m_aaPosition(NULL)
 {
 	m_ssah.set_attachment(m_aSSyn);
 	//std::cout << "\nSSH instantiated\n";
@@ -126,6 +127,8 @@ void SplitSynapseHandler<TDomain>::grid_first_available()
 	// gather all synapses from grid and build all maps
 	collect_synapses_from_grid();
 	neuron_identification();
+
+	m_aaPosition = Grid::VertexAttachmentAccessor<APosition>(*m_spGrid, aPosition);
 	//test();
 }
 
@@ -428,6 +431,118 @@ int SplitSynapseHandler<TDomain>::deep_first_search(Vertex* v, int id)
 		deep_first_search( (*edges[i])[1], id );
 	}
 	return 1;
+}
+
+template <typename TDomain>
+int SplitSynapseHandler<TDomain>::get_neuron_id(SYNAPSE_ID id)
+{
+	for(EdgeIterator eIter = m_spGrid->begin<Edge>(); eIter != m_spGrid->end<Edge>(); ++eIter) {
+		Edge* e = *eIter;
+		std::vector<IBaseSynapse*> v = m_aaSSyn[e];
+		for(size_t j=0; j<v.size(); ++j) {
+			if(v[j]->id() == id) {
+				return m_aaNID[(*e)[0]];
+			}
+		}
+	}
+
+	return -1;
+}
+
+template <typename TDomain>
+int SplitSynapseHandler<TDomain>::Mapping3d(int neuron_id, const std::vector<std::vector<number> >& surface_pts)
+{
+	std::vector<SYNAPSE_ID> syn_ids_local;
+	std::vector<std::vector<number> > vSynMap;
+	//gather local synapse ids, that are interesting
+	for(size_t i = 0; i < m_vAllSynapses; ++i) {
+		if( get_neuron_id(m_vAllSynapses[i]->id()) == neuron_id) {
+			syn_ids_local.push_back(m_vAllSynapses[i]->id());
+		}
+	}
+
+#ifdef UG_PARALLEL
+
+	pcl::ProcessCommunicator com;
+	std::vector<SYNAPSE_ID> syn_ids_global; //synapses of neuron with given id
+
+	//communicate
+	com.allgatherv(syn_ids_global, syn_ids_local); //syn_ids_global contains all synapses, which are interesting for a 3d mapping
+	nearest_neighbor(syn_ids_global, surface_pts, vSynMap);
+
+#else
+	nearest_neighbor(syn_ids_local, surface_pts, vSynMap)
+#endif
+	return 1;
+}
+
+template <typename TDomain>
+int SplitSynapseHandler<TDomain>::nearest_neighbor(	const std::vector<SYNAPSE_ID>& v1dSynapses,
+													const std::vector<std::vector<number> >& v3dVertices,
+													std::vector<std::vector<number> >& vMap)
+{
+	for(size_t i=0; i<v1dSynapses.size(); i++) {
+		std::vector<number> vDist(3);
+		std::vector<number> vSynapseCoords; get_coordinates(v1dSynapses[i], vSynapseCoords);
+		vDist[0] = (v3dVertices[0][0]-vSynapseCoords[0])*(v3dVertices[0][0]-vSynapseCoords[0]);
+		vDist[1] = (v3dVertices[0][1]-vSynapseCoords[0])*(v3dVertices[0][1]-vSynapseCoords[0]);
+		vDist[2] = (v3dVertices[0][2]-vSynapseCoords[0])*(v3dVertices[0][2]-vSynapseCoords[0]);
+
+		number min_distance = sqrt(vDist[0] + vDist[1] + vDist[2]);
+		vMap[i] = v3dVertices[0];
+
+		for(size_t j=1; j<v3dVertices.size(); ++j) {
+			get_coordinates(v1dSynapses[i], vSynapseCoords);
+			vDist[0] = (v3dVertices[j][0]-vSynapseCoords[0])*(v3dVertices[j][0]-vSynapseCoords[0]);
+			vDist[1] = (v3dVertices[j][1]-vSynapseCoords[0])*(v3dVertices[j][1]-vSynapseCoords[0]);
+			vDist[2] = (v3dVertices[j][2]-vSynapseCoords[0])*(v3dVertices[j][2]-vSynapseCoords[0]);
+
+			number distance = sqrt(vDist[0] + vDist[1] + vDist[2]);
+			if(distance < min_distance) {
+				min_distance = distance;
+				vMap[i] = v3dVertices[j];
+			}
+		}
+	}
+}
+
+template <typename TDomain>
+void SplitSynapseHandler<TDomain>::get_coordinates(SYNAPSE_ID id, std::vector<number>& vCoords)
+{
+	number v0_x, v0_y, v0_z;
+	number v1_x, v1_y, v1_z;
+	number s_x, s_y, s_z;
+	vCoords.clear();
+
+	//Search for Edge
+	for(EdgeIterator eIter = m_spGrid->begin<Edge>(); eIter != m_spGrid->end<Edge>(); ++eIter) {
+		Edge* e = *eIter;
+		std::vector<IBaseSynapse*> v = m_aaSSyn[e];
+		for(size_t j=0; j<v.size(); ++j) {
+			if(v[j]->id() == id) {
+				Vertex* v0 = (*e)[0];
+				Vertex* v1 = (*e)[1];
+
+				number localcoord = v[j]->location();
+
+				v0_x = m_aaPosition[v0].x();
+				v0_y = m_aaPosition[v0].y();
+				v0_z = m_aaPosition[v0].z();
+
+				v1_x = m_aaPosition[v1].x();
+				v1_y = m_aaPosition[v1].y();
+				v1_z = m_aaPosition[v1].z();
+
+				s_x = localcoord*(v0_x + v1_x); //vectors real coords is: localcoord*(v0 + v1)
+				s_y = localcoord*(v0_y + v1_y);
+				s_z = localcoord*(v0_z + v1_z);
+
+				vCoords.push_back(s_x);
+				vCoords.push_back(s_y);
+				vCoords.push_back(s_z);
+			}
+		}
+	}
 }
 
 
