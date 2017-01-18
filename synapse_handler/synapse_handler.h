@@ -198,6 +198,26 @@ class NETISynapseHandler : public ISynapseHandler<TDomain>
 			{set_activation_timing(start_time, duration, 6e-4, start_time_dev, duration_dev, 0.0, true);}
 
 		/**
+		 * @brief sets timign for all ball regions if grid is available
+		 */
+		void set_activation_timing_ball_alpha_syn_with_grid();
+
+		/**
+		 * @brief adds an activation timing for a ball region
+		 * Specify alpha synapses timing by providing a vector with start time,
+		 * duration, start time deviation, duration deviation & peak conductivity
+		 *
+		 * @param alpha_timings
+		 * @param ball
+		 */
+		void add_activation_timing_ball
+		(
+			const std::vector<number>& alpha_timings,
+			const std::vector<number>& ball
+		);
+
+
+		/**
 		 * @brief sets alpha synapses activity pattern (randomly)
 		 *
 		 * The settings are only written to the base level. A call to propagate_synapses_to_levels()
@@ -333,7 +353,7 @@ class NETISynapseHandler : public ISynapseHandler<TDomain>
 			const SynapseInfo& info = vSI[locInfo.ind];
 
 			typedef synapse_traits<AlphaSynapse> STA;
-			typedef synapse_traits<Exp2Syn> STB;
+			/// typedef synapse_traits<Exp2Syn> STB;
 			typedef synapse_traits<void> STV;
 
 			UG_COND_THROW(STV::type(info) != ALPHA_SYNAPSE, "Wrong synapse type! Expected ALPHA_SYNAPSE.")
@@ -345,7 +365,7 @@ class NETISynapseHandler : public ISynapseHandler<TDomain>
 			std::vector<SynapseInfo>& vSI = m_aaSynapseInfo[locInfo.edge];
 			const SynapseInfo& info = vSI[locInfo.ind];
 
-			typedef synapse_traits<AlphaSynapse> STA;
+			/// typedef synapse_traits<AlphaSynapse> STA;
 			typedef synapse_traits<Exp2Syn> STB;
 			typedef synapse_traits<void> STV;
 
@@ -409,7 +429,9 @@ class NETISynapseHandler : public ISynapseHandler<TDomain>
 
 		/// handling of presynaptic vm values (in units of V)
 		std::vector<number> m_vPresynVmValues;
-
+		/////////////////////////////////
+		/// global timing parameters
+		/////////////////////////////////
 		/// alpha synapse timing params
 		///	@{
 		number m_start_time;
@@ -433,6 +455,11 @@ class NETISynapseHandler : public ISynapseHandler<TDomain>
 		number m_prim_biexp_peak_cond_dev;
 		bool m_prim_biexp_constSeed;
 		/// @}
+
+		/////////////////////////////////
+		/// local timing parameters
+		/////////////////////////////////
+		std::vector<std::pair<std::vector<number>, std::vector<number> > > m_vTimingBalls;
 
 		/// attachment handler for presynapse index attachment
 		CopyAttachmentHandler<Vertex, AUInt> m_cah;

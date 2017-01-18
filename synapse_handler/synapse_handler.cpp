@@ -147,6 +147,147 @@ set_activation_timing
 	m_constSeed = constSeed;
 }
 
+/////////////////////////////////////////////////////////
+/// set_activation_timing_ball
+/////////////////////////////////////////////////////////
+template <typename TDomain>
+void NETISynapseHandler<TDomain>::
+add_activation_timing_ball(
+	const std::vector<number>& alpha_timings,
+	const std::vector<number>& ball
+) {
+	/// consistency checks
+	UG_COND_THROW(m_bInited, "The activation timing cannot be changed after addition of the\n"
+				  "original CableEquation object to the domain discretization.");
+
+	UG_COND_THROW(alpha_timings.size() != 6, "Expected 6 timing values for alpha synapses.");
+	UG_COND_THROW(ball.size() != 4, "Expected 4 parameters (x, y, z, d) to describe the ball in 3d.");
+
+	/// add activation timing for a ball
+	m_vTimingBalls.push_back(std::pair<std::vector<number>, std::vector<number> >(alpha_timings, ball));
+}
+
+/////////////////////////////////////////////////////////
+/// set_activation_timing_ball_alpha_syn_with_grid
+/////////////////////////////////////////////////////////
+template <typename TDomain>
+void NETISynapseHandler<TDomain>::
+set_activation_timing_ball_alpha_syn_with_grid()
+{
+	typedef std::vector<std::pair<std::vector<number>, std::vector<number> > >::const_iterator IT;
+	for (IT it = m_vTimingBalls.begin(); it != m_vTimingBalls.end(); ++it) {
+		std::vector<number> alpha_timings = it->first;
+		std::vector<number> ball = it->second;
+		/// alpha synapses random distribution
+		boost::mt19937 rng_alpha;
+
+		#ifdef UG_PARALLEL
+			if (m_constSeed)
+				rng_alpha.seed(0); // pcl::ProcRank());
+			else
+				rng_alpha.seed(pcl::ProcRank()*time(NULL));
+		#else
+			if (m_constSeed)
+				rng_alpha.seed(0);
+			else
+				rng_alpha.seed(time(NULL));
+		#endif
+
+		/// timings
+		number start_time = alpha_timings[0];
+		number start_time_dev = alpha_timings[1];
+		number duration = alpha_timings[2];
+		number duration_dev = alpha_timings[3];
+		number peak_cond = alpha_timings[4];
+		number peak_cond_dev = alpha_timings[5];
+
+		/// ball region
+		number x = ball[0];
+		number y = ball[1];
+		number z = ball[2];
+		number d = ball[3];
+
+		/// sample from distribution for this ball
+		boost::normal_distribution<double> start_dist(start_time, start_time_dev);
+		boost::variate_generator<boost::mt19937, boost::normal_distribution<double> > var_start(rng_alpha, start_dist);
+		boost::normal_distribution<double> duration_dist(duration, duration_dev);
+		boost::variate_generator<boost::mt19937, boost::normal_distribution<double> > var_duration(rng_alpha, duration_dist);
+		boost::normal_distribution<double> cond_dist(peak_cond, peak_cond_dev);
+		boost::variate_generator<boost::mt19937, boost::normal_distribution<double> > var_cond(rng_alpha, cond_dist);
+
+		// check availability of all needed structures
+		UG_COND_THROW(!m_spGrid.valid(), "No valid grid. Make sure that the synapse handler has a grid to work on!");
+
+		// throw if this is called more than once
+		UG_COND_THROW(m_bInited, "Second initialization call is not allowed.");
+
+		// check availability of approxSpace and grid; set members
+		UG_COND_THROW(!m_spCEDisc.valid(), "Given CableEquation SmartPtr is not valid.");
+
+		m_spApprox = m_spCEDisc->approx_space();
+		UG_COND_THROW(!m_spApprox.valid(), "No valid approximation space available in synapse handler.\n"
+				  "Did you forget to set a CableEquation via set_ce_object()?");
+
+		UG_COND_THROW(!m_spApprox->domain().valid(), "The approximation space of the given CableEquation object"
+				  " does not contain a valid domain.\n");
+		m_spGrid = m_spApprox->domain()->grid();
+		UG_COND_THROW(!m_spGrid.valid(), "There is no grid associated to the CableEquation object passed.\n"
+				  "Make sure you load the domain before setting the CableEquation.");
+
+		Grid::VertexAttachmentAccessor<APosition> aaPosition;
+		aaPosition = Grid::VertexAttachmentAccessor<APosition>(*m_spApprox->domain()->grid(), aPosition);
+
+		// Check existence
+		if (!GlobalAttachments::is_declared("Synapses")) {
+			UG_THROW("GlobalAttachment 'Synapses' not available.");
+		}
+
+		typedef geometry_traits<Edge>::const_iterator iter_type;
+		iter_type eIter = m_spGrid->begin<Edge>(0);
+		iter_type eEnd = m_spGrid->end<Edge>(0);
+
+		typedef synapse_traits<AlphaSynapse> STA;
+		typedef synapse_traits<void> STV;
+
+		// loop edges and change alpha synapses
+		for (; eIter != eEnd ; ++eIter) {
+			Edge* e = *eIter;
+			std::vector<SynapseInfo>& vSI = m_aaSynapseInfo[e];
+			for (size_t i = 0; i < vSI.size(); ++i) {
+				SynapseInfo& info = vSI[i];
+				switch (STV::type(info)) {
+					case ALPHA_SYNAPSE: {
+						vector3 a = aaPosition[e->vertex(0)];
+						vector3 b = aaPosition[e->vertex(1)];
+						if ( (std::pow(a.x() - x, 2) + std::pow(a.y() - y, 2) + std::pow(a.z() - z, 2)) < std::pow(d, 2) &&
+							(std::pow(b.x() - x, 2) + std::pow(b.y() - y, 2) + std::pow(b.z() - z, 2)) < std::pow(d, 2) ) {
+							number t_onset = var_start();
+							t_onset = t_onset < 0 ? 0 : t_onset;
+
+							number dur = var_duration();
+							dur = dur < 0 ? 0 : dur;
+
+							number cond = var_cond();
+							cond = cond < 0 ? 0 : cond;
+
+							// set start and duration time
+							STA::onset(info) = t_onset;
+							// This will parameterize the alpha_synapse in such a way that
+							// at time = 6*tau, the current will be < 0.05 times its maximal strength.
+							STA::tau(info) = dur / 6.0;
+							STA::nSpikes(info) = 1;
+							STA::freq(info) = 1;
+							STA::g_max(info) = cond;
+						}
+						break;
+					}
+					default:
+						break;
+				}
+			}
+		}
+	}
+}
 
 template <typename TDomain>
 void NETISynapseHandler<TDomain>::
@@ -199,6 +340,7 @@ grid_first_available()
 	UG_COND_THROW(!m_spGrid.valid(), "There is no grid associated to the CableEquation object passed.\n"
 				  "Make sure you load the domain before setting the CableEquation.");
 
+
 	// Global Attachment setup
 
 	// Check existence
@@ -226,8 +368,10 @@ grid_first_available()
 	m_aaSynapseInfo = Grid::EdgeAttachmentAccessor<AVSynapse>(*m_spGrid, m_aSynInfo);
 	m_aaPSI = Grid::VertexAttachmentAccessor<AUInt>(*m_spGrid, m_aPSI);
 
-	// set activation timing for AlphaSynapses
+	/// set activation timing for AlphaSynapses globally
 	set_activation_timing_with_grid();
+	/// set activation timing for AlphaSynapses in ball regions
+	set_activation_timing_ball_alpha_syn_with_grid();
 
 	// set all Exp2Syn synapses to deactivated status (currently not guaranteed by grid)
 	deactivate_all_biexp();
@@ -661,7 +805,7 @@ print_synapse_statistics(size_t soma_si)
 	const size_t NT_L5A = 2;
 	const size_t NT_L5B = 3;
 
-	typedef synapse_traits<AlphaSynapse> STA;
+	/// typedef synapse_traits<AlphaSynapse> STA;
 	typedef synapse_traits<Exp2Syn> STB;
 	typedef synapse_traits<void> STV;
 

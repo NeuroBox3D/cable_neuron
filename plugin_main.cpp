@@ -139,6 +139,9 @@ struct Functionality
 				//.add_method("update_presyn", &TNETISH::update_presyn)	// no, handled internally
 				.add_method("print_synapse_statistics", &TNETISH::print_synapse_statistics, "", "soma subset index", "")
 				.add_method("write_activity_to_file", &TNETISH::write_activity_to_file, "", "file base name#time", "")
+				.add_method("add_activation_timing_ball",
+						static_cast<void (TNETISH::*)(const std::vector<number>&, const std::vector<number>&)>(&TNETISH::add_activation_timing_ball),
+						"timing values#ball region")
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "NETISynapseHandler", tag);
 
@@ -459,7 +462,7 @@ struct Functionality
 				.add_method("set_temperature", static_cast<void (T::*)(number)>(&T::set_temperature),
 						"", "temperature (K) | default | value=310", "sets new temperature")
 				.add_method("set_temperature_celsius", static_cast<void (T::*)(number)>(&T::set_temperature_celsius),
-						"", "temperature (��C) | default | value=37", "sets new temperature")
+						"", "temperature (������C) | default | value=37", "sets new temperature")
 
 				.add_method("set_diff_coeffs", static_cast<void (T::*)(const std::vector<number>&)> (&T::set_diff_coeffs), "",
 						"diffusion coefficients of K, Na and Ca (m^2/s)", "sets diffusion coefficients")
