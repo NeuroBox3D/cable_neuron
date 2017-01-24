@@ -449,59 +449,140 @@ int SplitSynapseHandler<TDomain>::get_neuron_id(SYNAPSE_ID id)
 }
 
 template <typename TDomain>
-int SplitSynapseHandler<TDomain>::Mapping3d(int neuron_id, const std::vector<std::vector<number> >& surface_pts)
+int SplitSynapseHandler<TDomain>::Mapping3d(int neuron_id, std::vector<Vertex*>& vMinimizing3dVertices, std::vector<std::vector<number> >& vMinimizingSynapseCoords)
 {
-	std::vector<SYNAPSE_ID> syn_ids_local;
-	std::vector<std::vector<number> > vSynMap;
-	//gather local synapse ids, that are interesting
+	std::vector<std::vector<number> > syn_coords_local;
+	std::vector<Vertex*> v3dVertices; //todo: where to get local 3d vertices from?
+	std::vector<Vertex*> vMap;
+	std::vector<number> vDistances;
+
+
+	//gather local synapse coords, that are interesting
 	for(size_t i = 0; i < m_vAllSynapses.size(); ++i) {
 		if( get_neuron_id(m_vAllSynapses[i]->id()) == neuron_id) {
-			syn_ids_local.push_back(m_vAllSynapses[i]->id());
+			std::vector<number> coords;
+			get_coordinates(m_vAllSynapses[i]->id(), coords);
+			syn_coords_local.push_back(coords);
 		}
 	}
 
 #ifdef UG_PARALLEL
 
 	pcl::ProcessCommunicator com;
-	std::vector<SYNAPSE_ID> syn_ids_global; //synapses of neuron with given id
+	std::vector<std::vector<number> > syn_coords_global; //synapses coords of neuron with given id
+	std::vector<int> syn_sizes;
+	std::vector<int> syn_offsets;
 
-	//communicate
-	com.allgatherv(syn_ids_global, syn_ids_local); //syn_ids_global contains all synapses, which are interesting for a 3d mapping
-	nearest_neighbor(syn_ids_global, surface_pts, vSynMap);
+	//communicate all interesting synapse coords to all procs
+	com.allgatherv(syn_coords_global, syn_coords_local, &syn_sizes, &syn_offsets); //syn_coords_global contains all synapses, which are interesting for a 3d mapping
+
+	//compute local min distances
+	nearest_neighbor(syn_coords_global, v3dVertices, vMap, vDistances);
+
+	//communicate all distances to all processes
+	std::vector<number> vGloblDistances;
+	std::vector<std::vector<number> > mGloblDistances;
+
+	com.allgatherv(vGloblDistances, vDistances);
+	for(size_t i=0; i<com.size(); ++i) { //assemble global distances matrix
+		std::vector<number> tmp;
+		for(size_t j=0; j<vDistances.size(); ++j) {
+			tmp.push_back(vGloblDistances[i]);
+		}
+		mGloblDistances.push_back(tmp);
+	}
+
+	//compute minimizing proc for each 1d synapse
+	std::vector<int> vMinimizingProc;
+	for(size_t j=0; j<vDistances.size(); ++j) {//iterate over columns, ie synapses
+		number min = mGloblDistances[j][0]; //init global min with proc0's min
+		int min_proc = 0;					//minimizing proc
+		for(size_t i=0; i<com.size(); ++i) {//iterate over rows, ie local min distances
+			if(mGloblDistances[j][i] < min) {
+				min = mGloblDistances[j][i];
+				min_proc = i;
+			}
+		}
+		vMinimizingProc.push_back(min_proc);
+	}
+
+	//construct index array sorted by proc (ascending order)
+	std::vector<size_t> synapse_index;
+	std::vector<size_t> sizes_synapse_index;
+	std::vector<size_t> offsets_synapse_index;
+
+	size_t offset=0;
+	for(size_t i=0; i<vMinimizingProc.size(); ++i) {
+		size_t size=0;										//number of elements for proc i
+		offsets_synapse_index.push_back(offset);
+		for(size_t j=0; j<vMinimizingProc.size(); ++j) {
+			if( static_cast<size_t>(vMinimizingProc[j]) == i) {
+				synapse_index.push_back(j);
+				size++;
+			}
+		}
+		sizes_synapse_index.push_back(size);
+		offset += size;
+	}
+
+
+	//every proc constructs its minimizing vector of vertices
+	//with offsets and sizes for the range of proc_i then follows:
+	//range_i = [offsets_synapse_index, offsets_synapse_index + sizes_synapse_index)
+	vMinimizing3dVertices.clear();
+	vMinimizingSynapseCoords.clear();
+
+	size_t loc_start = offsets_synapse_index[pcl::ProcRank()];
+	size_t loc_end = offsets_synapse_index[pcl::ProcRank()] + sizes_synapse_index[pcl::ProcRank()];
+	for(size_t i=loc_start; i<loc_end; ++i) {
+		vMinimizing3dVertices.push_back(vMap[ synapse_index[i] ]);
+		vMinimizingSynapseCoords.push_back( syn_coords_global[synapse_index[i]] );
+	}
+
+	//vMinimizing3dVertices should finally contain the nearest 3d Vertex to the corresponding 1d synapse at the same position in vMinimizingSynapseCoords
+
+
+
+
 
 #else
-	nearest_neighbor(syn_ids_local, surface_pts, vSynMap)
+	nearest_neighbor(syn_coords_local, v3dVertices, vMap, vDistances)
 #endif
 	return 1;
 }
 
 template <typename TDomain>
-int SplitSynapseHandler<TDomain>::nearest_neighbor(	const std::vector<SYNAPSE_ID>& v1dSynapses,
-													const std::vector<std::vector<number> >& v3dVertices,
-													std::vector<std::vector<number> >& vMap)
+int SplitSynapseHandler<TDomain>::nearest_neighbor(	const std::vector<std::vector<number> >& v1dCoords,
+													const std::vector<Vertex*>& v3dVertices,
+													std::vector<Vertex*>& vMap,
+													std::vector<number>& vDistances)
 {
-	for(size_t i=0; i<v1dSynapses.size(); i++) {
-		std::vector<number> vDist(3);
-		std::vector<number> vSynapseCoords; get_coordinates(v1dSynapses[i], vSynapseCoords);
-		vDist[0] = (v3dVertices[0][0]-vSynapseCoords[0])*(v3dVertices[0][0]-vSynapseCoords[0]);
-		vDist[1] = (v3dVertices[0][1]-vSynapseCoords[0])*(v3dVertices[0][1]-vSynapseCoords[0]);
-		vDist[2] = (v3dVertices[0][2]-vSynapseCoords[0])*(v3dVertices[0][2]-vSynapseCoords[0]);
+	vMap.clear();
+	vDistances.clear();
 
-		number min_distance = sqrt(vDist[0] + vDist[1] + vDist[2]);
-		vMap[i] = v3dVertices[0];
+	//iterate over 1dSynapses
+	for(size_t i=0; i<v1dCoords.size(); i++) {
+		std::vector<number> vSqDist(3);
+		vSqDist[0] = (m_aaPosition[v3dVertices[0]].x() - v1dCoords[i][0])*(m_aaPosition[v3dVertices[0]].x() - v1dCoords[i][0]);
+		vSqDist[1] = (m_aaPosition[v3dVertices[0]].y() - v1dCoords[i][1])*(m_aaPosition[v3dVertices[0]].y() - v1dCoords[i][1]);
+		vSqDist[2] = (m_aaPosition[v3dVertices[0]].z() - v1dCoords[i][2])*(m_aaPosition[v3dVertices[0]].z() - v1dCoords[i][2]);
 
+		number min_distance = sqrt(vSqDist[0] + vSqDist[1] + vSqDist[2]); //init min_distance with dist. of ith Synapse to first 3dVertex
+		vMap.push_back(v3dVertices[0]);
+
+		//iterate over 3dVertices
 		for(size_t j=1; j<v3dVertices.size(); ++j) {
-			get_coordinates(v1dSynapses[i], vSynapseCoords);
-			vDist[0] = (v3dVertices[j][0]-vSynapseCoords[0])*(v3dVertices[j][0]-vSynapseCoords[0]);
-			vDist[1] = (v3dVertices[j][1]-vSynapseCoords[0])*(v3dVertices[j][1]-vSynapseCoords[0]);
-			vDist[2] = (v3dVertices[j][2]-vSynapseCoords[0])*(v3dVertices[j][2]-vSynapseCoords[0]);
+			vSqDist[0] = (m_aaPosition[v3dVertices[j]].x() - v1dCoords[i][0])*(m_aaPosition[v3dVertices[j]].x() - v1dCoords[i][0]);
+			vSqDist[1] = (m_aaPosition[v3dVertices[j]].y() - v1dCoords[i][1])*(m_aaPosition[v3dVertices[j]].y() - v1dCoords[i][1]);
+			vSqDist[2] = (m_aaPosition[v3dVertices[j]].z() - v1dCoords[i][2])*(m_aaPosition[v3dVertices[j]].z() - v1dCoords[i][2]);
 
-			number distance = sqrt(vDist[0] + vDist[1] + vDist[2]);
+			number distance = sqrt(vSqDist[0] + vSqDist[1] + vSqDist[2]);
 			if(distance < min_distance) {
 				min_distance = distance;
 				vMap[i] = v3dVertices[j];
 			}
 		}
+		vDistances.push_back(min_distance); //after comparisons with all 3dVertices add min_distance to the output vector
 	}
 	return 1;
 }
