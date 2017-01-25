@@ -164,6 +164,9 @@ class CableEquation
 		/// set synapse handler
 		void set_synapse_handler(SmartPtr<synapse_handler::SplitSynapseHandler<TDomain> > sh);
 
+		/// get synapse handler
+		SmartPtr<synapse_handler::SplitSynapseHandler<TDomain> > synapse_handler() const;
+
 		/// adding a channel
 		void add(SmartPtr<ICableMembraneTransport<TDomain> > transportMechanism);
 

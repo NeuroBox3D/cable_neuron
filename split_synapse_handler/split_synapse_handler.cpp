@@ -6,6 +6,7 @@
  */
 
 #include "split_synapse_handler.h"
+#include "../util/functions.h"
 
 namespace ug {
 namespace cable_neuron {
@@ -13,8 +14,7 @@ namespace synapse_handler {
 
 template <typename TDomain>
 SplitSynapseHandler<TDomain>::SplitSynapseHandler()
-:m_aNID(GlobalAttachments::attachment<ANeuronID>("NeuronID")),
- m_aSSyn(GlobalAttachments::attachment<AVSSynapse>("SplitSynapses")),
+: m_aSSyn(GlobalAttachments::attachment<AVSSynapse>("SplitSynapses")),
  m_bInited(false),
  m_spGrid(SPNULL),
  m_spCEDisc(SPNULL),
@@ -99,15 +99,8 @@ void SplitSynapseHandler<TDomain>::grid_first_available()
 		UG_THROW("GlobalAttachment 'NeuronID' not available.");
 	}
 
-	if (!m_spGrid->has_vertex_attachment(m_aNID)) {
-		m_spGrid->attach_to_vertices(m_aNID);
-	}
-
 	// check that essential attachments exist in grid, create accessors
 	UG_COND_THROW(!m_spGrid->has_attachment<Edge>(m_aSSyn), "No SplitSynapse attached to grid!");
-	UG_COND_THROW(!m_spGrid->has_attachment<Vertex>(m_aNID), "No NeuronID attached to grid!");
-
-	m_aaNID = Grid::VertexAttachmentAccessor<ANeuronID>(*m_spGrid, m_aNID);
 	m_aaSSyn = Grid::EdgeAttachmentAccessor<AVSSynapse>(*m_spGrid, m_aSSyn);
 
 	// propagate attachments through levels
@@ -125,7 +118,7 @@ void SplitSynapseHandler<TDomain>::grid_first_available()
 
 	// gather all synapses from grid and build all maps
 	collect_synapses_from_grid();
-	neuron_identification();
+	neuron_identification(*m_spGrid);
 
 	m_aaPosition = Grid::VertexAttachmentAccessor<APosition>(*m_spGrid, aPosition);
 	//test();
@@ -392,240 +385,6 @@ void SplitSynapseHandler<TDomain>::grid_distribution_callback(const GridMessage_
 		collect_synapses_from_grid();
 	}
 }
-
-template <typename TDomain>
-void SplitSynapseHandler<TDomain>::neuron_identification()
-{
-	int nid = 0;
-	//initialize with -1
-	for(VertexIterator vIter = m_spGrid->begin<Vertex>(); vIter != m_spGrid->end<Vertex>(); ++vIter ) {
-		Vertex* v = *vIter;
-		m_aaNID[v] = -1;
-	}
-
-	for(VertexIterator vIter = m_spGrid->begin<Vertex>(); vIter != m_spGrid->end<Vertex>(); ++vIter ) {
-		UG_COND_THROW(nid < 0, "Too many neurons");
-		Vertex* v = *vIter;
-		if(deep_first_search(v, nid)) {
-			nid++;
-		}
-	}
-	std::cout << "\nNIDs: " << nid + 1 << std::endl << std::endl; //dbg: prints out number of neurons (+1 because of 0 being first index)
-}
-
-template <typename TDomain>
-int SplitSynapseHandler<TDomain>::deep_first_search(Vertex* v, int id)
-{
-	if(m_aaNID[v] >= 0) {
-		return 0; //vertex v is already identified
-	} else {
-		m_aaNID[v] = id; //v gets id
-	}
-
-	Grid::traits<Edge>::secure_container edges; //get all edges incident to v
-	m_spGrid->associated_elements(edges, v);
-
-	for(size_t i=0; i<edges.size(); ++i) {
-		deep_first_search( (*edges[i])[0], id ); //dfs for every connected vertex
-		deep_first_search( (*edges[i])[1], id );
-	}
-	return 1;
-}
-
-template <typename TDomain>
-int SplitSynapseHandler<TDomain>::get_neuron_id(SYNAPSE_ID id)
-{
-	for(EdgeIterator eIter = m_spGrid->begin<Edge>(); eIter != m_spGrid->end<Edge>(); ++eIter) {
-		Edge* e = *eIter;
-		std::vector<IBaseSynapse*> v = m_aaSSyn[e];
-		for(size_t j=0; j<v.size(); ++j) {
-			if(v[j]->id() == id) {
-				return m_aaNID[(*e)[0]];
-			}
-		}
-	}
-
-	return -1;
-}
-
-template <typename TDomain>
-int SplitSynapseHandler<TDomain>::Mapping3d(int neuron_id, std::vector<Vertex*>& vMinimizing3dVertices, std::vector<std::vector<number> >& vMinimizingSynapseCoords)
-{
-	std::vector<std::vector<number> > syn_coords_local;
-	std::vector<Vertex*> v3dVertices; //todo: where to get local 3d vertices from?
-	std::vector<Vertex*> vMap;
-	std::vector<number> vDistances;
-
-
-	//gather local synapse coords, that are interesting
-	for(size_t i = 0; i < m_vAllSynapses.size(); ++i) {
-		if( get_neuron_id(m_vAllSynapses[i]->id()) == neuron_id) {
-			std::vector<number> coords;
-			get_coordinates(m_vAllSynapses[i]->id(), coords);
-			syn_coords_local.push_back(coords);
-		}
-	}
-
-#ifdef UG_PARALLEL
-
-	pcl::ProcessCommunicator com;
-	std::vector<std::vector<number> > syn_coords_global; //synapses coords of neuron with given id
-	std::vector<int> syn_sizes;
-	std::vector<int> syn_offsets;
-
-	//communicate all interesting synapse coords to all procs
-	com.allgatherv(syn_coords_global, syn_coords_local, &syn_sizes, &syn_offsets); //syn_coords_global contains all synapses, which are interesting for a 3d mapping
-
-	//compute local min distances
-	nearest_neighbor(syn_coords_global, v3dVertices, vMap, vDistances);
-
-	//communicate all distances to all processes
-	std::vector<number> vGloblDistances;
-	std::vector<std::vector<number> > mGloblDistances;
-
-	com.allgatherv(vGloblDistances, vDistances);
-	for(size_t i=0; i<com.size(); ++i) { //assemble global distances matrix
-		std::vector<number> tmp;
-		for(size_t j=0; j<vDistances.size(); ++j) {
-			tmp.push_back(vGloblDistances[i]);
-		}
-		mGloblDistances.push_back(tmp);
-	}
-
-	//compute minimizing proc for each 1d synapse
-	std::vector<int> vMinimizingProc;
-	for(size_t j=0; j<vDistances.size(); ++j) {//iterate over columns, ie synapses
-		number min = mGloblDistances[j][0]; //init global min with proc0's min
-		int min_proc = 0;					//minimizing proc
-		for(size_t i=0; i<com.size(); ++i) {//iterate over rows, ie local min distances
-			if(mGloblDistances[j][i] < min) {
-				min = mGloblDistances[j][i];
-				min_proc = i;
-			}
-		}
-		vMinimizingProc.push_back(min_proc);
-	}
-
-	//construct index array sorted by proc (ascending order)
-	std::vector<size_t> synapse_index;
-	std::vector<size_t> sizes_synapse_index;
-	std::vector<size_t> offsets_synapse_index;
-
-	size_t offset=0;
-	for(size_t i=0; i<vMinimizingProc.size(); ++i) {
-		size_t size=0;										//number of elements for proc i
-		offsets_synapse_index.push_back(offset);
-		for(size_t j=0; j<vMinimizingProc.size(); ++j) {
-			if( static_cast<size_t>(vMinimizingProc[j]) == i) {
-				synapse_index.push_back(j);
-				size++;
-			}
-		}
-		sizes_synapse_index.push_back(size);
-		offset += size;
-	}
-
-
-	//every proc constructs its minimizing vector of vertices
-	//with offsets and sizes for the range of proc_i then follows:
-	//range_i = [offsets_synapse_index, offsets_synapse_index + sizes_synapse_index)
-	vMinimizing3dVertices.clear();
-	vMinimizingSynapseCoords.clear();
-
-	size_t loc_start = offsets_synapse_index[pcl::ProcRank()];
-	size_t loc_end = offsets_synapse_index[pcl::ProcRank()] + sizes_synapse_index[pcl::ProcRank()];
-	for(size_t i=loc_start; i<loc_end; ++i) {
-		vMinimizing3dVertices.push_back(vMap[ synapse_index[i] ]);
-		vMinimizingSynapseCoords.push_back( syn_coords_global[synapse_index[i]] );
-	}
-
-	//vMinimizing3dVertices should finally contain the nearest 3d Vertex to the corresponding 1d synapse at the same position in vMinimizingSynapseCoords
-
-
-
-
-
-#else
-	nearest_neighbor(syn_coords_local, v3dVertices, vMap, vDistances)
-#endif
-	return 1;
-}
-
-template <typename TDomain>
-int SplitSynapseHandler<TDomain>::nearest_neighbor(	const std::vector<std::vector<number> >& v1dCoords,
-													const std::vector<Vertex*>& v3dVertices,
-													std::vector<Vertex*>& vMap,
-													std::vector<number>& vDistances)
-{
-	vMap.clear();
-	vDistances.clear();
-
-	//iterate over 1dSynapses
-	for(size_t i=0; i<v1dCoords.size(); i++) {
-		std::vector<number> vSqDist(3);
-		vSqDist[0] = (m_aaPosition[v3dVertices[0]].x() - v1dCoords[i][0])*(m_aaPosition[v3dVertices[0]].x() - v1dCoords[i][0]);
-		vSqDist[1] = (m_aaPosition[v3dVertices[0]].y() - v1dCoords[i][1])*(m_aaPosition[v3dVertices[0]].y() - v1dCoords[i][1]);
-		vSqDist[2] = (m_aaPosition[v3dVertices[0]].z() - v1dCoords[i][2])*(m_aaPosition[v3dVertices[0]].z() - v1dCoords[i][2]);
-
-		number min_distance = sqrt(vSqDist[0] + vSqDist[1] + vSqDist[2]); //init min_distance with dist. of ith Synapse to first 3dVertex
-		vMap.push_back(v3dVertices[0]);
-
-		//iterate over 3dVertices
-		for(size_t j=1; j<v3dVertices.size(); ++j) {
-			vSqDist[0] = (m_aaPosition[v3dVertices[j]].x() - v1dCoords[i][0])*(m_aaPosition[v3dVertices[j]].x() - v1dCoords[i][0]);
-			vSqDist[1] = (m_aaPosition[v3dVertices[j]].y() - v1dCoords[i][1])*(m_aaPosition[v3dVertices[j]].y() - v1dCoords[i][1]);
-			vSqDist[2] = (m_aaPosition[v3dVertices[j]].z() - v1dCoords[i][2])*(m_aaPosition[v3dVertices[j]].z() - v1dCoords[i][2]);
-
-			number distance = sqrt(vSqDist[0] + vSqDist[1] + vSqDist[2]);
-			if(distance < min_distance) {
-				min_distance = distance;
-				vMap[i] = v3dVertices[j];
-			}
-		}
-		vDistances.push_back(min_distance); //after comparisons with all 3dVertices add min_distance to the output vector
-	}
-	return 1;
-}
-
-template <typename TDomain>
-void SplitSynapseHandler<TDomain>::get_coordinates(SYNAPSE_ID id, std::vector<number>& vCoords)
-{
-	number v0_x, v0_y, v0_z;
-	number v1_x, v1_y, v1_z;
-	number s_x, s_y, s_z;
-	vCoords.clear();
-
-	//Search for Edge
-	for(EdgeIterator eIter = m_spGrid->begin<Edge>(); eIter != m_spGrid->end<Edge>(); ++eIter) {
-		Edge* e = *eIter;
-		std::vector<IBaseSynapse*> v = m_aaSSyn[e];
-		for(size_t j=0; j<v.size(); ++j) {
-			if(v[j]->id() == id) {
-				Vertex* v0 = (*e)[0];
-				Vertex* v1 = (*e)[1];
-
-				number localcoord = v[j]->location();
-
-				v0_x = m_aaPosition[v0].x();
-				v0_y = m_aaPosition[v0].y();
-				v0_z = m_aaPosition[v0].z();
-
-				v1_x = m_aaPosition[v1].x();
-				v1_y = m_aaPosition[v1].y();
-				v1_z = m_aaPosition[v1].z();
-
-				s_x = localcoord*(v0_x + v1_x); //vectors real coords is: localcoord*(v0 + v1)
-				s_y = localcoord*(v0_y + v1_y);
-				s_z = localcoord*(v0_z + v1_z);
-
-				vCoords.push_back(s_x);
-				vCoords.push_back(s_y);
-				vCoords.push_back(s_z);
-			}
-		}
-	}
-}
-
 
 // ////////////////////////////////////
 //	explicit template instantiations //

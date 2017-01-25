@@ -180,6 +180,14 @@ set_synapse_handler(SmartPtr<synapse_handler::SplitSynapseHandler<TDomain> > sh)
 }
 
 
+template <typename TDomain>
+SmartPtr<synapse_handler::SplitSynapseHandler<TDomain> > CableEquation<TDomain>::
+synapse_handler() const
+{
+	return m_spSH;
+}
+
+
 template<typename TDomain>
 void CableEquation<TDomain>::
 add(SmartPtr<ICableMembraneTransport<TDomain> > transportMechanism)
