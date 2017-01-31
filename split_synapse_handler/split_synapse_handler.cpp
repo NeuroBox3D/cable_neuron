@@ -273,13 +273,11 @@ update_presyn(number time)
 		}
 		else
 		{
-			// TODO: fill deactivation list
 		}
 	}
 
 	// communicate
 
-	// TODO: More easily and efficiently using allgatherv?
 	//       Then probably without communication of local sizes beforehand.
 	unsigned long* locSizes, locSizesRcv;
 	size_t sz = pcl::NumProcs();
@@ -320,7 +318,7 @@ update_presyn(number time)
 	delete[] globPSID;
 
 
-	// TODO: deactivation accordingly*/
+	*/
 
 
 #else
