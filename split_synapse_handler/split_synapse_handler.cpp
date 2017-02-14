@@ -124,6 +124,32 @@ void SplitSynapseHandler<TDomain>::grid_first_available()
 	//test();
 }
 
+template <typename TDomain>
+void
+SplitSynapseHandler<TDomain>::get_currents(const number& t, const number& vm, int nid, std::vector<number>& vCurrs, std::vector<SYNAPSE_ID> vSids)
+{
+	vCurrs.clear();
+	vSids.clear();
+	//gather local synapse ids and their current currents
+	std::vector<number> vlocalcurr;
+	std::vector<SYNAPSE_ID> vlocalsid;
+
+	for(size_t i=0; i<m_vAllSynapses.size(); ++i) {
+		if(m_vAllSynapses[i]->is_postsynapse() /*&& m_aaNID[m_vAllSynapses[i]] == nid*/) {
+			IPostSynapse* s = (IPostSynapse*)m_vAllSynapses[i];
+			vlocalcurr.push_back(s->current(t, vm));
+			vlocalsid.push_back(s->id());
+		}
+	}
+#ifdef UG_PARALLEL
+	pcl::ProcessCommunicator com;
+	com.allgatherv(vCurrs, vlocalcurr);
+	com.allgatherv(vSids, vlocalsid);
+#else
+	vCurrs = vlocalcurr;
+	vSids = vlocalsid;
+#endif
+}
 
 template <typename TDomain>
 void

@@ -151,6 +151,12 @@ public:
 	 */
 	number current_on_edge(const Edge* e, size_t scv, number t);
 
+	/**
+	 * Returns vector of currents, and a vector of their corresponding synapse id's
+	 * at time t on neuron nid
+	 */
+	void get_currents(const number& t, const number& vm, int nid, std::vector<number>& vCurrs, std::vector<SYNAPSE_ID> vsids);
+
 
 	/**
 	 * todo: don't use
