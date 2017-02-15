@@ -240,6 +240,89 @@ void SplitSynapseDistributor::clear(int subsetIndex)
 	}
 }
 
+// /////////////////////////////////////////////////////////////////////////////////////////
+// place_synapses_at_coords
+void SplitSynapseDistributor::place_synapse_at_coords
+(
+    const std::vector<number>& coords,
+    IBaseSynapse* pre,
+    IBaseSynapse* post
+)
+{
+    // check that grid is set
+    UG_COND_THROW(!pm_Grid, "Grid is not set.");
+
+    // convert coords to vec3
+    vector3 c(0);
+    for (size_t i = 0; i < coords.size() && i < 3; ++i)
+        c[i] = coords[i];
+
+    // find edge with minimal distance to coords
+    number minDistSq = std::numeric_limits<number>::infinity();
+    Edge* minEdge = NULL;
+    number minLocCoord;
+
+    EdgeIterator it = pm_Grid->begin<Edge>(0);
+    EdgeIterator it_end = pm_Grid->end<Edge>(0);
+    for (; it != it_end; ++it)
+    {
+        Edge* e = *it;
+
+        // get vertex coords
+        vector3 v0 = m_aaPosition[e->vertex(0)];
+        vector3 v1 = m_aaPosition[e->vertex(1)];
+
+        number distSq;
+
+        // check whether there is a true distance minimum along the edge
+        vector3 edgeVec, c2v0;
+        VecSubtract(edgeVec, v1, v0);
+        VecSubtract(c2v0, v0, c);
+        number lambda = - VecProd(c2v0, edgeVec) / VecNormSquared(edgeVec);
+        if (lambda >= 0 && lambda <= 1)
+        {
+            // determine dist
+            VecScaleAdd(c2v0, 1.0, c2v0, lambda, edgeVec); // recycle c2v0
+            distSq = VecNormSquared(c2v0);
+        }
+        // otherwise we have to check both vertices
+        else
+        {
+            VecSubtract(edgeVec, v1, c); // recycle edgeVec
+            number dist0Sq = VecNormSquared(c2v0);
+            number dist1Sq = VecNormSquared(edgeVec);
+
+            if (dist0Sq < dist1Sq)
+            {
+                distSq = dist0Sq;
+                lambda = 0.0;
+            }
+            else
+            {
+                distSq = dist1Sq;
+                lambda = 1.0;
+            }
+        }
+
+        // check if distance is less than current minimum
+        if (distSq < minDistSq)
+        {
+            minDistSq = distSq;
+            minEdge = e;
+            minLocCoord = lambda;
+        }
+    }
+
+    UG_COND_THROW(!minEdge, "No location found near given coordinates " << c << " to put synapse to.");
+
+    pre->set_location(minLocCoord);
+    post->set_location(minLocCoord);
+    m_aaSSyn[minEdge].push_back(pre);
+    m_aaSSyn[minEdge].push_back(post);
+}
+
+
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //	SynapseDistributor::place_synapse

@@ -159,7 +159,7 @@ class CableEquation
 		void set_influx_ac(number influx_ac);
 
 		/// set influx params (flux value, coordinates, beginning, duration)
-		void set_influx(number Flux, number x, number y, number z, number beg, number dur);
+		void set_influx(number current, number x, number y, number z, number beg, number dur);
 
 		/// set synapse handler
 		void set_synapse_handler(SmartPtr<synapse_handler::SplitSynapseHandler<TDomain> > sh);

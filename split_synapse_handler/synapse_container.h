@@ -32,6 +32,7 @@ public:
 };
 
 
+
 /**
  * class for parametrization of a set of AlphaSynapses, for usage in lua-scripts.
  * creates <num_synapses> pairs of a post- and presynapse, in that order. Therefore the first ID will be <start_id>
@@ -100,6 +101,7 @@ public:
 	size_t size() {return m_vSynapses.size();}
 	size_t start_id() {return m_start_id;}
 
+	// fixme: delete synapses in m_vSynapses!
 	virtual ~AlphaSynapses() {}
 
 	/**
@@ -232,6 +234,7 @@ public:
 	size_t start_id() {return m_start_id;}
 
 
+    // fixme: delete synapses in m_vSynapses!
 	virtual ~Exp2Synapses() {}
 	/**
 	 * Assembles container
@@ -280,6 +283,48 @@ public:
 		return m_vSynapses;
 	}
 };
+
+
+
+class AlphaSynapsePair
+{
+    public:
+        /// constructor
+        AlphaSynapsePair()
+        : m_pre(new AlphaPreSynapse(0, 0.0, 0.0, 2.4e-3)),
+          m_post(new AlphaPostSynapse(0, 0.0, 0.0, 1.2e-9, 4e-4, 0.0)) {};
+
+        /// destructor
+        ~AlphaSynapsePair() {delete m_pre; delete m_post;};
+
+
+        /// set id
+        void set_id(size_t id) {m_pre->set_id(id); m_post->set_id(id);}
+
+        /// set onset
+        void set_onset(number onset) {m_pre->set_onset(onset);}
+
+        /// set tau (and duration, which is 6*tau)
+        void set_tau(number tau) {m_post->set_tau(tau); m_pre->set_duration(6*tau);}
+
+        /// set maximal conductance
+        void set_gMax(number gMax) {m_post->set_gMax(gMax);}
+
+        /// set reversal potential
+        void set_reversal_potential(number ve) {m_post->set_rev(ve);}
+
+        /// get pre-synapse
+        AlphaPreSynapse* pre_synapse() {return m_pre;}
+
+        /// get post-synapse
+        AlphaPostSynapse* post_synapse() {return m_post;}
+
+    private:
+        AlphaPreSynapse* m_pre;
+        AlphaPostSynapse* m_post;
+};
+
+
 
 } /* namespace synapse_handler */
 } /* namespace cable_neuron */

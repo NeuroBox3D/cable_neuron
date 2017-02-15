@@ -71,6 +71,20 @@ public:
 	void clear();
 	void clear(int subsetIndex);
 
+	/**
+	 * @brief Add a pair of pre- and post-synapse at a given location.
+	 * The synapse pair is put to the (base-level) edge nearest to the given location.
+	 * Local coordinates are calculated accordingly.
+	 *
+	 * @note As this method loops the complete set of base level edges,
+	 * it should only be used for the addition of very few synapses.
+	 *
+	 * @param vCoords location of synapse pair
+	 * @param pre     pre-synapse
+	 * @param post    post-synapse
+	**/
+	void place_synapse_at_coords(const std::vector<number>& vCoords, IBaseSynapse* pre, IBaseSynapse* post);
+
 	void place_synapse(Edge* e, IBaseSynapse* s1, IBaseSynapse* s2);
 	void place_synapses_uniform(std::vector<Edge*> vEdges, std::vector<IBaseSynapse*> s);
 

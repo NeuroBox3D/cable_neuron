@@ -44,7 +44,7 @@ CableEquation<TDomain>::CableEquation(const char* subsets, bool withConcs, numbe
 	m_ek(-0.09), m_ena(0.06), m_eca(0.14),
 	m_eqConc_ca(5e-5), m_reactionRate_ca(11.0),
 	m_temperature(310.0),
-	m_influx_ac(1e-9),
+	m_influx_ac(1e-7),
 	m_bOutput(false),
 	m_output_x(0), m_output_y(0), m_output_z(0),
 	m_outputPath(""),
@@ -158,9 +158,9 @@ template<typename TDomain> void CableEquation<TDomain>::set_influx_ac(number inf
 
 template<typename TDomain>
 void CableEquation<TDomain>::
-set_influx(number Flux, number x, number y, number z, number beg, number dur)
+set_influx(number current, number x, number y, number z, number beg, number dur)
 {
-	m_vCurrent.push_back(Flux);
+	m_vCurrent.push_back(current);
 
 	m_vCurrentStart.push_back(beg);
 	m_vCurrentDur.push_back(dur);
@@ -760,23 +760,22 @@ void CableEquation<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, cons
 		number time = this->time();
 		for (size_t i = 0; i < m_vCurrent.size(); i++)
 		{
-			// TODO: Decide for one of the cases!
-			// influx to edge center
-			if (m_vCurrentStart[i] <= time && m_vCurrentDur[i] + m_vCurrentStart[i] >= time
-				&& fabs(0.5*(vCornerCoords[co][0]+vCornerCoords[(co+1)%2][0]) - m_vCurrentCoords[i][0]) < m_influx_ac
-				&& fabs(0.5*(vCornerCoords[co][1]+vCornerCoords[(co+1)%2][1]) - m_vCurrentCoords[i][1]) < m_influx_ac
-				&& fabs(0.5*(vCornerCoords[co][2]+vCornerCoords[(co+1)%2][2]) - m_vCurrentCoords[i][2]) < m_influx_ac
-			   )
-//			//	influx to vertex x (if used, the specified influx has to be scaled by 1/valence of vertex x)
-//			if (m_beg_flux[i] <= time && m_dur_flux[i] + m_beg_flux[i] >= time
-//				&& fabs(vCornerCoords[co][0] - m_coords[i][0]) < m_influx_ac
-//				&& fabs(vCornerCoords[co][1] - m_coords[i][1]) < m_influx_ac
-//				&& fabs(vCornerCoords[co][2] - m_coords[i][2]) < m_influx_ac
-//			   )
+			// inward current to edge center
+			if (m_vCurrentStart[i] <= time && m_vCurrentDur[i] + m_vCurrentStart[i] >= time)
 			{
-				// use real current here, thus the influx is independent from the geometry
-				d(_v_, co) += m_vCurrent[i];
+			    MathVector<dim> diff;
+			    VecScaleAdd(diff, 0.5, vCornerCoords[0], 0.5, vCornerCoords[1], -1.0, m_vCurrentCoords[i]);
+			    if (VecNormSquared(diff) < m_influx_ac*m_influx_ac)
+			    {
+			        // use real current here, thus the influx is independent from the geometry
+			        d(_v_, co) += 0.5*m_vCurrent[i]; // equally distributed to both vertices
+			    }
 			}
+			// inward flux to vertex x (if used, the specified influx has to be scaled by 1/valence of vertex x)
+			//if (m_beg_flux[i] <= time && m_dur_flux[i] + m_beg_flux[i] >= time
+			//    && fabs(vCornerCoords[co][0] - m_coords[i][0]) < m_influx_ac
+			//    && fabs(vCornerCoords[co][1] - m_coords[i][1]) < m_influx_ac
+			//    && fabs(vCornerCoords[co][2] - m_coords[i][2]) < m_influx_ac)
 		}
 
 		PROFILE_END()
@@ -803,9 +802,10 @@ void CableEquation<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, cons
 			number current = 0;
 			if (m_spSH->synapse_on_edge(pElem, co, m_time, current))
 			{
-				if(isnan(current))UG_THROW("current is nan.");
+				if (isnan(current)) UG_THROW("Synapse current is nan.");
 				d(_v_, co) -= current;		// current is in A
 
+				// FIXME: This is an ugly hack!
 				// calcium current through synapse
 				if (m_numb_ion_funcs >= 3)
 				{

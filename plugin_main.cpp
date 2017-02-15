@@ -694,43 +694,26 @@ struct Functionality
 			.set_construct_as_smart_pointer(true);
 		}
 */
-
-		{
-			typedef synapse_handler::SynapseIter<AlphaPreSynapse> T;
-			reg.add_class_<T>("AlphaPreSynapse_It", grp)
-					.add_method("get", &T::operator*)
-					.add_method("next", &T::operator++)
-					.add_method("inequal", &T::operator!=)
-					;
-		}
-		{
-			typedef synapse_handler::SynapseIter<AlphaPostSynapse> T;
-			reg.add_class_<T>("AlphaPostSynapse_It", grp)
-					.add_method("get", &T::operator*)
-					.add_method("next", &T::operator++)
-					.add_method("inequal", &T::operator!=)
-					;
-		}
-		{
-			typedef synapse_handler::SynapseIter<Exp2PreSynapse> T;
-			reg.add_class_<T>("Exp2PreSynapse_It", grp)
-					.add_method("get", &T::operator*)
-					.add_method("next", &T::operator++)
-					.add_method("inequal", &T::operator!=)
-					;
-		}
-		{
-			typedef synapse_handler::SynapseIter<Exp2PostSynapse> T;
-			reg.add_class_<T>("Exp2PostSynapse_It", grp)
-					.add_method("get", &T::operator*)
-					.add_method("next", &T::operator++)
-					.add_method("inequal", &T::operator!=)
-					;
-		}
+        {
+            typedef synapse_handler::IBaseSynapse TBS;
+            reg.add_class_<TBS>("IBaseSynapse", grp)
+                    ;
+        }
+        {
+            typedef synapse_handler::IPreSynapse T;
+            typedef synapse_handler::IBaseSynapse TBase;
+            reg.add_class_<T, TBase>("IPreSynapse", grp);
+        }
+        {
+            typedef synapse_handler::IPostSynapse T;
+            typedef synapse_handler::IBaseSynapse TBase;
+            reg.add_class_<T, TBase>("IPostSynapse", grp);
+        }
 
 		{
 			typedef synapse_handler::AlphaPreSynapse T;
-			reg.add_class_<T>("AlphaPreSynapse", grp)
+            typedef synapse_handler::IPreSynapse TBase;
+			reg.add_class_<T, TBase>("AlphaPreSynapse", grp)
 					.add_method("onset", &T::onset)
 					.add_method("duration", &T::duration)
 
@@ -742,7 +725,8 @@ struct Functionality
 
 		{
 			typedef synapse_handler::AlphaPostSynapse T;
-			reg.add_class_<T>("AlphaPostSynapse", grp)
+            typedef synapse_handler::IPostSynapse TBase;
+			reg.add_class_<T, TBase>("AlphaPostSynapse", grp)
 					.add_method("tau", &T::tau)
 					.add_method("gMax", &T::gMax)
 					.add_method("rev", &T::rev)
@@ -757,7 +741,8 @@ struct Functionality
 
 		{
 			typedef synapse_handler::Exp2PreSynapse T;
-			reg.add_class_<T>("Exp2PreSynapse", grp)
+            typedef synapse_handler::IPreSynapse TBase;
+			reg.add_class_<T, TBase>("Exp2PreSynapse", grp)
 
 					.add_method("set_onset", &T::set_onset)
 					.add_method("set_duration", &T::set_duration)
@@ -769,7 +754,8 @@ struct Functionality
 
 		{
 			typedef synapse_handler::Exp2PostSynapse T;
-			reg.add_class_<T>("Exp2PostSynapse", grp)
+            typedef synapse_handler::IPostSynapse TBase;
+			reg.add_class_<T, TBase>("Exp2PostSynapse", grp)
 					//.add_method("onset", &T::onset)
 					.add_method("rev", &T::rev)
 					.add_method("gMax", &T::gMax)
@@ -786,11 +772,38 @@ struct Functionality
 							;
 		}
 
-		{
-			typedef IBaseSynapse TBS;
-			reg.add_class_<TBS>("IBaseSynapse", grp)
-					;
-		}
+        {
+            typedef synapse_handler::SynapseIter<AlphaPreSynapse> T;
+            reg.add_class_<T>("AlphaPreSynapse_It", grp)
+                    .add_method("get", &T::operator*)
+                    .add_method("next", &T::operator++)
+                    .add_method("inequal", &T::operator!=)
+                    ;
+        }
+        {
+            typedef synapse_handler::SynapseIter<AlphaPostSynapse> T;
+            reg.add_class_<T>("AlphaPostSynapse_It", grp)
+                    .add_method("get", &T::operator*)
+                    .add_method("next", &T::operator++)
+                    .add_method("inequal", &T::operator!=)
+                    ;
+        }
+        {
+            typedef synapse_handler::SynapseIter<Exp2PreSynapse> T;
+            reg.add_class_<T>("Exp2PreSynapse_It", grp)
+                    .add_method("get", &T::operator*)
+                    .add_method("next", &T::operator++)
+                    .add_method("inequal", &T::operator!=)
+                    ;
+        }
+        {
+            typedef synapse_handler::SynapseIter<Exp2PostSynapse> T;
+            reg.add_class_<T>("Exp2PostSynapse_It", grp)
+                    .add_method("get", &T::operator*)
+                    .add_method("next", &T::operator++)
+                    .add_method("inequal", &T::operator!=)
+                    ;
+        }
 
 		{
 			string name = "ISynapseContainer";
@@ -827,25 +840,41 @@ struct Functionality
 				;
 		}
 
-		{
-			string name = "AlphaSynapses";
+        {
+            string name = "AlphaSynapses";
 
-			typedef AlphaSynapses TSC;
-			reg.add_class_<TSC>(name, grp)
-				.add_constructor<void (*)(const size_t, const size_t)>("infile#outfile", "Initializes a SynapseDistributor", grp, "")
-				//.add_constructor<void (*)(const size_t, number, number, number, number, number, number, number)>("dom#outfile", "Initializes a SynapseDistributor", grp, "")
-				.add_method("set_mean_gMax",&TSC::set_mean_gMax)
-				.add_method("set_dev_gMax",&TSC::set_dev_gMax)
-				.add_method("set_mean_onset",&TSC::set_mean_onset)
-				.add_method("set_dev_onset",&TSC::set_dev_onset)
-				.add_method("set_mean_tau",&TSC::set_mean_tau)
-				.add_method("set_dev_tau",&TSC::set_dev_tau)
-				.add_method("set_mean_e",&TSC::set_mean_rev)
-				.add_method("set_dev_e",&TSC::set_dev_rev)
-				.add_method("size",&TSC::size)
-				.add_method("get_synapses",&TSC::get_synapses)
-				;
-		}
+            typedef AlphaSynapses TSC;
+            reg.add_class_<TSC>(name, grp)
+                .add_constructor<void (*)(const size_t, const size_t)>("infile#outfile", "Initializes a SynapseDistributor", grp, "")
+                //.add_constructor<void (*)(const size_t, number, number, number, number, number, number, number)>("dom#outfile", "Initializes a SynapseDistributor", grp, "")
+                .add_method("set_mean_gMax",&TSC::set_mean_gMax)
+                .add_method("set_dev_gMax",&TSC::set_dev_gMax)
+                .add_method("set_mean_onset",&TSC::set_mean_onset)
+                .add_method("set_dev_onset",&TSC::set_dev_onset)
+                .add_method("set_mean_tau",&TSC::set_mean_tau)
+                .add_method("set_dev_tau",&TSC::set_dev_tau)
+                .add_method("set_mean_e",&TSC::set_mean_rev)
+                .add_method("set_dev_e",&TSC::set_dev_rev)
+                .add_method("size",&TSC::size)
+                .add_method("get_synapses",&TSC::get_synapses)
+                ;
+        }
+
+        {
+            string name = "AlphaSynapsePair";
+
+            typedef AlphaSynapsePair T;
+            reg.add_class_<T>(name, grp)
+                .add_constructor()
+                .add_method("set_id",&T::set_id)
+                .add_method("set_onset",&T::set_onset)
+                .add_method("set_tau",&T::set_tau)
+                .add_method("set_gMax",&T::set_gMax)
+                .add_method("set_reversal_potential",&T::set_reversal_potential)
+                .add_method("pre_synapse",&T::pre_synapse)
+                .add_method("post_synapse",&T::post_synapse)
+                .set_construct_as_smart_pointer(true);
+        }
 
 
 		{
@@ -867,6 +896,8 @@ struct Functionality
 				.add_method("remove_all_synapses", &TSD::remove_all_synapses, "e","","Removes all synapses from edge",grp)
 				.add_method("clear", static_cast<void (TSD::*)()>(&TSD::clear),"","","Removes all Synapses from grid",grp)
 				.add_method("clear", static_cast<void (TSD::*)(int)>(&TSD::clear),"subsetIndex","","Removes all Synapses from subset",grp)
+				.add_method("place_synapse_at_coords", &TSD::place_synapse_at_coords, "", "coordinates (as three-component vector)#pre-synapse#post-synapse",
+				            "Places one pair of pre- and post-synapse on the edge nearest to the given coordinates.")
 				.add_method("place_synapses_uniform", static_cast<void (TSD::*)(std::vector<IBaseSynapse*>)>(&TSD::place_synapses_uniform), "", "", "Distributes synapses uniformly on grid.", grp)
 				.add_method("place_synapses_uniform", static_cast<void (TSD::*)(int, std::vector<IBaseSynapse*>)>(&TSD::place_synapses_uniform), "", "", "Distributes synapses uniformly on subset.", grp)
 				.add_method("degenerate_uniform",static_cast<void (TSD::*)(number)>(&TSD::degenerate_uniform),"","","Degenerates a certain percentage of synapses in the whole grid.",grp)
