@@ -76,6 +76,29 @@ number SynapseHandler<TDomain>::current_on_edge(const Edge* e, size_t scv, numbe
 }
 
 template <typename TDomain>
+number SynapseHandler<TDomain>::current(synapse_id id)
+{
+	//find edge
+	EdgeIterator eIter = m_spGrid->begin<Edge>();
+	EdgeIterator eIterEnd = m_spGrid->end<Edge>();
+	while(eIter != eIterEnd) {
+		Edge* e = *eIter;
+		std::vector<IBaseSynapse*> v = m_aaSyn[e];
+		for(size_t i=0; i<v.size(); ++i) { //find synapse
+			if( (v[i]->id()==id) &&  (v[i]->is_postsynapse())) {
+				number rel_loc=v[i]->location();
+				number t = m_spCEDisc->time();
+				number vm = m_spCEDisc->vm( (*e)[0])*rel_loc + m_spCEDisc->vm( (*e)[1])*(1-rel_loc) ;
+				return ((IPostSynapse*)v[i])->current(t, vm);
+			}
+		}
+		eIter++;
+	}
+	return 0;
+}
+
+
+template <typename TDomain>
 bool SynapseHandler<TDomain>::synapse_on_edge(const Edge* edge, size_t scv, number time, number& current)
 {
 	current = current_on_edge(edge, scv,time);
@@ -673,6 +696,21 @@ void SynapseHandler<TDomain>::show_status()
     //std::cout << "AlphaPreSynapse iterator end(): " << &*end<AlphaPreSynapse>() << std::endl;
 }
 
+template <typename TDomain>
+const std::vector<synapse_id> SynapseHandler<TDomain>::active_presynapses()
+{
+	std::map<synapse_id, IPreSynapse*>::iterator it = m_mActivePreSynapses.begin();
+	std::map<synapse_id, IPreSynapse*>::iterator itEnd = m_mActivePreSynapses.end();
+
+	std::vector<synapse_id> syn_id_ret;
+
+	while(it != itEnd) {
+		syn_id_ret.push_back(it->first);
+		++it;
+	}
+
+	return syn_id_ret;
+}
 
 template <typename TDomain>
 void SynapseHandler<TDomain>::grid_distribution_callback(const GridMessage_Distribution& gmd)

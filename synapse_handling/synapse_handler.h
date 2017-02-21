@@ -260,6 +260,9 @@ public:
     /// total synaptic current for sub-control volume scv on edge e at time t
     number current_on_edge(const Edge* e, size_t scv, number t);
 
+    //
+    number current(synapse_id);
+
     /**
      * Returns vector of currents, and a vector of their corresponding synapse id's
      * at time t on neuron nid.
@@ -287,6 +290,7 @@ public:
      */
     void update_presyn(number time);
 
+    const std::vector<synapse_id> active_presynapses();
 
     /**
 	 * Returns a begin iterator to the desired synapse type.
