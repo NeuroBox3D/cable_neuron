@@ -306,10 +306,10 @@ void neuron_identification(Grid& g)
     // synapse index attachment available?
     typedef Attachment<int> ANeuronID;
 
-    if (!GlobalAttachments::is_declared("NeuronID"))
+    if (!GlobalAttachments::is_declared("neuronID"))
         UG_THROW("GlobalAttachment 'NeuronID' not declared.");
 
-    ANeuronID aNID(GlobalAttachments::attachment<ANeuronID>("NeuronID"));
+    ANeuronID aNID(GlobalAttachments::attachment<ANeuronID>("neuronID"));
 
     if (!g.has_vertex_attachment(aNID))
         g.attach_to_vertices(aNID);
@@ -380,10 +380,10 @@ void save_neuron_to_swc
     // find a vertex of the neuron with required index
     typedef Attachment<int> ANeuronID;
 
-    if (!GlobalAttachments::is_declared("NeuronID"))
+    if (!GlobalAttachments::is_declared("neuronID"))
         UG_THROW("GlobalAttachment 'NeuronID' not declared.");
 
-    ANeuronID aNID(GlobalAttachments::attachment<ANeuronID>("NeuronID"));
+    ANeuronID aNID(GlobalAttachments::attachment<ANeuronID>("neuronID"));
     Grid::VertexAttachmentAccessor<ANeuronID> m_aaNID;
 
     bool nidAvail = mg->has_vertex_attachment(aNID);
@@ -555,6 +555,40 @@ void save_neuron_to_swc
             "upper/lower case can be ignored.");
 
     outFile.close();
+}
+
+
+
+
+number subset_length(int si, ConstSmartPtr<MGSubsetHandler> sh)
+{
+    // check domain, subset handler
+    UG_COND_THROW(!sh.valid(), "Invalid subset handler.");
+
+    const Domain3d::position_accessor_type& aaPos
+        = Grid::VertexAttachmentAccessor<APosition>(*sh->grid(), aPosition);
+
+    number totLength = 0.0;
+
+    geometry_traits<Edge>::const_iterator it = sh->begin<Edge>(si, 0);
+    geometry_traits<Edge>::const_iterator it_end = sh->end<Edge>(si, 0);
+    for (; it != it_end; ++it)
+        totLength += EdgeLength(*it, aaPos);
+
+    return totLength;
+}
+
+
+number subset_length(const char* subset, ConstSmartPtr<MGSubsetHandler> sh)
+{
+    // check domain, subset handler
+    UG_COND_THROW(!sh.valid(), "Invalid subset handler.");
+
+    // get subset index from subset name
+    int si = sh->get_subset_index(subset);
+
+    // forward
+    return subset_length(si, sh);
 }
 
 

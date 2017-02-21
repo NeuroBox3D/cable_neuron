@@ -11,6 +11,7 @@
 
 #include "common/util/smart_pointer.h"
 #include "lib_grid/grid/grid.h"
+#include "lib_grid/tools/subset_handler_multi_grid.h"
 
 
 namespace ug {
@@ -92,6 +93,14 @@ void save_neuron_to_swc
     std::string swcFileName,
     number scale = 1.0
 );
+
+
+
+/// length of neurite subset
+number subset_length(int si, ConstSmartPtr<MGSubsetHandler> sh);
+
+/// length of neurite subset
+number subset_length(const char* subset, ConstSmartPtr<MGSubsetHandler> sh);
 
 
 } // namespace cable_neruon

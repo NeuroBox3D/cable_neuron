@@ -17,9 +17,9 @@
 
 // library intern headers
 #include "../membrane_transport/cable_membrane_transport_interface.h"
+#include "../synapse_handling/synapse_handler.h"
 #include "../util/diam_attachment_handler.h"	// attachment handling for diameter attachment
 #include "../util/cable_ass_tuner.h"
-#include "../split_synapse_handler/split_synapse_handler.h"
 //#include "../synapse_handler/synapse_handler.h"
 
 
@@ -29,7 +29,7 @@ namespace cable_neuron {
 namespace synapse_handler
 {
 	template <typename TDomain>
-	class SplitSynapseHandler;
+	class SynapseHandler;
 
 	// forward declaration
 //	template <typename TDomain>
@@ -162,10 +162,10 @@ class CableEquation
 		void set_influx(number current, number x, number y, number z, number beg, number dur);
 
 		/// set synapse handler
-		void set_synapse_handler(SmartPtr<synapse_handler::SplitSynapseHandler<TDomain> > sh);
+		void set_synapse_handler(SmartPtr<synapse_handler::SynapseHandler<TDomain> > sh);
 
 		/// get synapse handler
-		SmartPtr<synapse_handler::SplitSynapseHandler<TDomain> > synapse_handler() const;
+		SmartPtr<synapse_handler::SynapseHandler<TDomain> > synapse_handler() const;
 
 		/// adding a channel
 		void add(SmartPtr<ICableMembraneTransport<TDomain> > transportMechanism);
@@ -305,7 +305,7 @@ class CableEquation
 		std::vector<MathVector<dim> > m_vCurrentCoords;					///< vector for influx coordinates x, y, z
 
 		//synapse handler
-		SmartPtr<synapse_handler::SplitSynapseHandler<TDomain> > m_spSH;
+		SmartPtr<synapse_handler::SynapseHandler<TDomain> > m_spSH;
 
 		std::vector<SmartPtr<TIChannel> > m_channel;					///< list of channels
 

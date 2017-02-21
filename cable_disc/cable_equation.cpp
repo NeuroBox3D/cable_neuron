@@ -174,14 +174,14 @@ set_influx(number current, number x, number y, number z, number beg, number dur)
 
 template <typename TDomain>
 void CableEquation<TDomain>::
-set_synapse_handler(SmartPtr<synapse_handler::SplitSynapseHandler<TDomain> > sh)
+set_synapse_handler(SmartPtr<synapse_handler::SynapseHandler<TDomain> > sh)
 {
 	m_spSH = sh;
 }
 
 
 template <typename TDomain>
-SmartPtr<synapse_handler::SplitSynapseHandler<TDomain> > CableEquation<TDomain>::
+SmartPtr<synapse_handler::SynapseHandler<TDomain> > CableEquation<TDomain>::
 synapse_handler() const
 {
 	return m_spSH;
@@ -802,7 +802,7 @@ void CableEquation<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, cons
 			number current = 0;
 			if (m_spSH->synapse_on_edge(pElem, co, m_time, current))
 			{
-				if (isnan(current)) UG_THROW("Synapse current is nan.");
+				//UG_COND_THROW(isnan(current), "Synapse current is nan.");
 				d(_v_, co) -= current;		// current is in A
 
 				// FIXME: This is an ugly hack!

@@ -5,7 +5,7 @@
  * \author Stephan Grein
  */
 
-#define BOOST_TEST_MODULE __CPP__UNIT_TESTS__UG__SYNAPSE_HANDLER__
+#define BOOST_TEST_MODULE __CPP__UNIT_TESTS__UG__SYNAPSE_HANDLING__
 
 //#include <sstream>
 
@@ -14,15 +14,15 @@
 #include <boost/test/parameterized_test.hpp>
 
 // ug includes
-#include "../../split_synapse_handler/pre_synapse.h"
-#include "../../split_synapse_handler/alpha_pre_synapse.h"
-#include "../../split_synapse_handler/exp2_pre_synapse.h"
-#include "../../split_synapse_handler/post_synapse.h"
-#include "../../split_synapse_handler/alpha_post_synapse.h"
-#include "../../split_synapse_handler/exp2_post_synapse.h"
-#include "../../synapse_handler/function/types.h"
-#include "../../split_synapse_handler/synapse_dealer.h"
-#include "../../split_synapse_distributor/split_synapse_distributor.h"
+#include "../../synapse_handling/synapses/pre_synapse.h"
+#include "../../synapse_handling/synapses/onset_pre_synapse.h"
+#include "../../synapse_handling/synapses/threshold_pre_synapse.h"
+#include "../../synapse_handling/synapses/post_synapse.h"
+#include "../../synapse_handling/synapses/alpha_post_synapse.h"
+#include "../../synapse_handling/synapses/exp2_post_synapse.h"
+#include "../../synapse_handling/types.h"
+#include "../../synapse_handling/synapse_dealer.h"
+#include "../../synapse_handling/synapse_distributor.h"
 
 
 
@@ -36,9 +36,9 @@ using namespace std;
 BOOST_AUTO_TEST_SUITE(PRESYNAPSES);
 
 BOOST_AUTO_TEST_CASE(ALPHAPRESYNAPSE) {
-	SYNAPSE_ID id0 = 1;
-	SYNAPSE_ID id1 = 10;
-	SYNAPSE_ID id2 = 23;
+	synapse_id id0 = 1;
+	synapse_id id1 = 10;
+	synapse_id id2 = 23;
 
 	number location0 = 0;
 	number location1 = 1;
@@ -58,13 +58,13 @@ BOOST_AUTO_TEST_CASE(ALPHAPRESYNAPSE) {
 	number t3 = 8e-5;
 	number t4 = 12e-5;
 
-	AlphaPreSynapse* s = new AlphaPreSynapse();
-	AlphaPreSynapse* u = new AlphaPreSynapse(location1, onset1, duration1);
+	OnsetPreSynapse* s = new OnsetPreSynapse();
+	OnsetPreSynapse* u = new OnsetPreSynapse(location1, onset1, duration1);
 
-	AlphaPreSynapse* s0 = new AlphaPreSynapse(id0, location0, onset0, duration0);
-	AlphaPreSynapse* s1 = new AlphaPreSynapse(id1, location1, onset1, duration1);
-	AlphaPreSynapse* s2 = new AlphaPreSynapse(id2, location2, onset2, duration2);
-	AlphaPreSynapse* s3 = new AlphaPreSynapse();
+	OnsetPreSynapse* s0 = new OnsetPreSynapse(id0, location0, onset0, duration0);
+	OnsetPreSynapse* s1 = new OnsetPreSynapse(id1, location1, onset1, duration1);
+	OnsetPreSynapse* s2 = new OnsetPreSynapse(id2, location2, onset2, duration2);
+	OnsetPreSynapse* s3 = new OnsetPreSynapse();
 
 	/**
 	 * Getter and setter tests
@@ -77,11 +77,11 @@ BOOST_AUTO_TEST_CASE(ALPHAPRESYNAPSE) {
 	BOOST_REQUIRE_MESSAGE(s->location() == location2,"location check0");
 	BOOST_REQUIRE_MESSAGE(s->onset() == onset1,"onset check0");
 	BOOST_REQUIRE_MESSAGE(s->duration() == duration0,"duration check0");
-	BOOST_REQUIRE_MESSAGE(s->type() == ALPHA_PRE_SYNAPSE,"type check");
+	BOOST_REQUIRE_MESSAGE(s->type() == ONSET_PRE_SYNAPSE,"type check");
 
 	u->set_id(id2);
 	BOOST_REQUIRE_MESSAGE(u->id() == id2,"id check1");
-	BOOST_REQUIRE_MESSAGE(u->name() == "ALPHA_PRE_SYNAPSE", "name check");
+	BOOST_REQUIRE_MESSAGE(u->name() == "ONSET_PRE_SYNAPSE", "name check");
 
 
 	/**
@@ -110,10 +110,10 @@ BOOST_AUTO_TEST_CASE(ALPHAPRESYNAPSE) {
 	//serialization
 	ostringstream oss1;
 	ostringstream oss2;
-	istringstream iss("ALPHA_PRE_SYNAPSE 111 1.4 3e-08 4");
+	istringstream iss("ONSET_PRE_SYNAPSE 111 1.4 3e-08 4");
 	oss1 << s1;
 
-	oss2 << "ALPHA_PRE_SYNAPSE" << " ";
+	oss2 << "ONSET_PRE_SYNAPSE" << " ";
 	oss2 << id1 << " ";
 	oss2 << location1 << " ";
 	oss2 << onset1 << " ";
@@ -124,17 +124,17 @@ BOOST_AUTO_TEST_CASE(ALPHAPRESYNAPSE) {
 	std::string ident;
 	iss >> ident; //pop identifier away
 	iss >> s3;
-	BOOST_REQUIRE_MESSAGE(s3->type() == ALPHA_PRE_SYNAPSE, "deserialization check");
-	BOOST_REQUIRE_MESSAGE(s3->name() == "ALPHA_PRE_SYNAPSE", "deserialization check");
+	BOOST_REQUIRE_MESSAGE(s3->type() == ONSET_PRE_SYNAPSE, "deserialization check");
+	BOOST_REQUIRE_MESSAGE(s3->name() == "ONSET_PRE_SYNAPSE", "deserialization check");
 	BOOST_REQUIRE_MESSAGE(s3->id() == 111, "deserialization check");
 	BOOST_REQUIRE_MESSAGE(s3->location() == 1.4, "deserialization check");
 	BOOST_REQUIRE_MESSAGE(s3->onset() == 3e-08, "deserialization check");
 	BOOST_REQUIRE_MESSAGE(s3->duration() == 4, "deserialization check");
 
 //	synapse dealer
-	SynapseDealer::instance()->register_synapse_type<AlphaPreSynapse>("ALPHA_PRE_SYNAPSE");
-	IBaseSynapse* s4 = SynapseDealer::instance()->deal("ALPHA_PRE_SYNAPSE");
-	BOOST_REQUIRE_MESSAGE(s4->name() == "ALPHA_PRE_SYNAPSE", "SynapseDealer check");
+	SynapseDealer::instance()->register_synapse_type<OnsetPreSynapse>("ONSET_PRE_SYNAPSE");
+	IBaseSynapse* s4 = SynapseDealer::instance()->deal("ONSET_PRE_SYNAPSE");
+	BOOST_REQUIRE_MESSAGE(s4->name() == "ONSET_PRE_SYNAPSE", "SynapseDealer check");
 
 	delete s;
 	delete u;
@@ -147,9 +147,9 @@ BOOST_AUTO_TEST_CASE(ALPHAPRESYNAPSE) {
 
 BOOST_AUTO_TEST_CASE(EXP2PRESYNAPSE) {
 
-	SYNAPSE_ID id0 = 0;
-	SYNAPSE_ID id1 = 1;
-	SYNAPSE_ID id2 = 4;
+	synapse_id id0 = 0;
+	synapse_id id1 = 1;
+	synapse_id id2 = 4;
 
 	number location0 = 0;
 	number location1 = 1;
@@ -181,17 +181,17 @@ BOOST_AUTO_TEST_CASE(EXP2PRESYNAPSE) {
 	/**
 	 * Test getter and setter with these
 	 */
-	Exp2PreSynapse* s = new Exp2PreSynapse();
-	Exp2PreSynapse* u = new Exp2PreSynapse(location2, onset2, duration2, threshold2);
+	ThresholdPreSynapse* s = new ThresholdPreSynapse();
+	ThresholdPreSynapse* u = new ThresholdPreSynapse(location2, onset2, duration2, threshold2);
 
 
 	/**
 	 * Test current/activation/deactivation functionality with these
 	 */
-	Exp2PreSynapse* s0 = new Exp2PreSynapse(id0, location0, onset0, duration0, threshold0);
-	Exp2PreSynapse* s1 = new Exp2PreSynapse(id1, location1, onset1, duration1, threshold1);
-	Exp2PreSynapse* s2 = new Exp2PreSynapse(id2, location2, onset2, duration2, threshold2);
-	Exp2PreSynapse* s3 = new Exp2PreSynapse();
+	ThresholdPreSynapse* s0 = new ThresholdPreSynapse(id0, location0, duration0, threshold0);
+	ThresholdPreSynapse* s1 = new ThresholdPreSynapse(id1, location1, duration1, threshold1);
+	ThresholdPreSynapse* s2 = new ThresholdPreSynapse(id2, location2, duration2, threshold2);
+	ThresholdPreSynapse* s3 = new ThresholdPreSynapse();
 
 
 	/**
@@ -210,10 +210,10 @@ BOOST_AUTO_TEST_CASE(EXP2PRESYNAPSE) {
 	BOOST_REQUIRE_MESSAGE(s->onset() == onset1,"onset getter and setter check1");
 	BOOST_REQUIRE_MESSAGE(s->duration() == duration1,"duration getter and setter check1");
 	BOOST_REQUIRE_MESSAGE(s->threshold() == threshold1,"threshold getter and setter check1");
-	BOOST_REQUIRE_MESSAGE(s->type() == EXP2_PRE_SYNAPSE,"type check");
+	BOOST_REQUIRE_MESSAGE(s->type() == THRESHOLD_PRE_SYNAPSE,"type check");
 
 	BOOST_REQUIRE_MESSAGE(u->id() == id2,"id getter and setter check2");
-	BOOST_REQUIRE_MESSAGE(u->name() == "EXP2_PRE_SYNAPSE","name check");
+	BOOST_REQUIRE_MESSAGE(u->name() == "THRESHOLD_PRE_SYNAPSE","name check");
 
 	/**
 	 * Functionality tests
@@ -261,10 +261,10 @@ BOOST_AUTO_TEST_CASE(EXP2PRESYNAPSE) {
 	//serialization
 	ostringstream oss1;
 	ostringstream oss2;
-	istringstream iss("EXP2_PRE_SYNAPSE 111 1.4 3e-08 3 -0.010");
+	istringstream iss("THRESHOLD_PRE_SYNAPSE 111 1.4 3e-08 3 -0.010");
 	oss1 << s2;
 
-	oss2 << "EXP2_PRE_SYNAPSE" << " ";
+	oss2 << "THRESHOLD_PRE_SYNAPSE" << " ";
 	oss2 << id2 << " ";
 	oss2 << location2 << " ";
 	oss2 << nan("") << " ";
@@ -275,8 +275,8 @@ BOOST_AUTO_TEST_CASE(EXP2PRESYNAPSE) {
 	std::string ident;
 	iss >> ident; //pop identifier away
 	iss >> s3;
-	BOOST_REQUIRE_MESSAGE(s3->type() == EXP2_PRE_SYNAPSE, "deserialization check");
-	BOOST_REQUIRE_MESSAGE(s3->name() == "EXP2_PRE_SYNAPSE", "deserialization check");
+	BOOST_REQUIRE_MESSAGE(s3->type() == THRESHOLD_PRE_SYNAPSE, "deserialization check");
+	BOOST_REQUIRE_MESSAGE(s3->name() == "THRESHOLD_PRE_SYNAPSE", "deserialization check");
 	BOOST_REQUIRE_MESSAGE(s3->id() == 111, "deserialization check");
 	BOOST_REQUIRE_MESSAGE(s3->location() == 1.4, "deserialization check");
 	BOOST_REQUIRE_MESSAGE(s3->onset() != s3->onset(), "deserialization check");
@@ -284,9 +284,9 @@ BOOST_AUTO_TEST_CASE(EXP2PRESYNAPSE) {
 	BOOST_REQUIRE_MESSAGE(s3->threshold() == -0.010, "deserialization check");
 
 //	synapse dealer
-	SynapseDealer::instance()->register_synapse_type<Exp2PreSynapse>("EXP2_PRE_SYNAPSE");
-	IBaseSynapse* s4 = SynapseDealer::instance()->deal("EXP2_PRE_SYNAPSE");
-	BOOST_REQUIRE_MESSAGE(s4->name() == "EXP2_PRE_SYNAPSE", "SynapseDealer check");
+	SynapseDealer::instance()->register_synapse_type<ThresholdPreSynapse>("THRESHOLD_PRE_SYNAPSE");
+	IBaseSynapse* s4 = SynapseDealer::instance()->deal("THRESHOLD_PRE_SYNAPSE");
+	BOOST_REQUIRE_MESSAGE(s4->name() == "THRESHOLD_PRE_SYNAPSE", "SynapseDealer check");
 
 	delete s;
 	delete u;
@@ -306,9 +306,9 @@ BOOST_AUTO_TEST_SUITE_END();
 BOOST_AUTO_TEST_SUITE(POSTSYNAPSES);
 
 BOOST_AUTO_TEST_CASE(ALPHAPOSTSYNAPSE) {
-	SYNAPSE_ID id0 = 1;
-	SYNAPSE_ID id1 = 3;
-	SYNAPSE_ID id2 = 195;
+	synapse_id id0 = 1;
+	synapse_id id1 = 3;
+	synapse_id id2 = 195;
 
 	number location0 = 0;
 	number location1 = 1;
@@ -413,9 +413,9 @@ BOOST_AUTO_TEST_CASE(ALPHAPOSTSYNAPSE) {
 }
 
 BOOST_AUTO_TEST_CASE(EXP2POSTSYNAPSE) {
-	SYNAPSE_ID id0 = 1;
-	SYNAPSE_ID id1 = 3;
-	SYNAPSE_ID id2 = 195;
+	synapse_id id0 = 1;
+	synapse_id id1 = 3;
+	synapse_id id2 = 195;
 
 	number location0 = 0;
 	number location1 = 1;
@@ -468,9 +468,9 @@ BOOST_AUTO_TEST_CASE(EXP2POSTSYNAPSE) {
 	BOOST_REQUIRE_MESSAGE(s->tau2() == tau22, "getter and setter test");
 	BOOST_REQUIRE_MESSAGE(s->rev() == rev2, "getter and setter test");
 
-	Exp2PostSynapse* s0 = new Exp2PostSynapse(id0, location0, onset0, gmax0, tau10, tau20, rev0);
-	Exp2PostSynapse* s1 = new Exp2PostSynapse(id1, location1, onset1, gmax1, tau11, tau21, rev1);
-	Exp2PostSynapse* s2 = new Exp2PostSynapse(id2, location2, onset2, gmax2, tau12, tau22, rev2);
+	Exp2PostSynapse* s0 = new Exp2PostSynapse(id0, location0, gmax0, tau10, tau20, rev0);
+	Exp2PostSynapse* s1 = new Exp2PostSynapse(id1, location1, gmax1, tau11, tau21, rev1);
+	Exp2PostSynapse* s2 = new Exp2PostSynapse(id2, location2, gmax2, tau12, tau22, rev2);
 	Exp2PostSynapse* s3 = new Exp2PostSynapse();
 
 

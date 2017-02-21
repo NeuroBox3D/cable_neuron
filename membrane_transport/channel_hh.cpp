@@ -115,13 +115,9 @@ void ChannelHH<TDomain>::ce_obj_available()
 	// parameterization is given, take default params
 	size_t sz = this->m_vSI.size();
 	for (size_t i = 0; i < sz; ++i)
-	{
-		// set default params
-		m_mSubsetParams[this->m_vSI[i]];
-	}
+	    m_mSubsetParams[this->m_vSI[i]];
 
 	m_mSubsetParams2Save.clear();
-
 
 	// init gating attachments
 	init_attachments();

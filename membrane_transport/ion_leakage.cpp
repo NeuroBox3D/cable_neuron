@@ -14,8 +14,17 @@ namespace cable_neuron {
 template<typename TDomain>
 IonLeakage<TDomain>::IonLeakage(const char* functions, const char* subsets)
 try : ICableMembraneTransport<TDomain>(functions, subsets),
-m_perm(1.0), m_leaking_fct(std::string("ca")), m_lfInd(0),
-m_flux_at_rest(0.0), m_conc_in_rest(5e-5), m_conc_out_rest(1.5), m_vm_rest(-0.065), m_valency(2) {}
+m_perm(1.0), m_leaking_fct(std::string("")), m_lfInd(0),
+m_flux_at_rest(0.0), m_conc_in_rest(5e-5), m_conc_out_rest(1.5), m_vm_rest(-0.065), m_valency(2)
+{
+    // check that there is one given function at most
+    std::vector<std::string> function_tokens = TokenizeString(functions, ',');
+    UG_COND_THROW(function_tokens.size() > 1, "Only one function argument is supported for ion leakage.");
+
+    // set function as leaking function
+    if (function_tokens.size())
+        m_leaking_fct = function_tokens[0];
+}
 UG_CATCH_THROW("Error in ChannelHH initializer list.");
 
 template<typename TDomain>
@@ -25,8 +34,16 @@ IonLeakage<TDomain>::IonLeakage
 	const std::vector<std::string>& subsets
 )
 try : ICableMembraneTransport<TDomain>(functions, subsets),
-m_perm(1.0), m_leaking_fct(std::string("ca")), m_lfInd(0),
-m_flux_at_rest(0.0), m_conc_in_rest(5e-5), m_conc_out_rest(1.5), m_vm_rest(-0.065), m_valency(2) {}
+m_perm(1.0), m_leaking_fct(std::string("")), m_lfInd(0),
+m_flux_at_rest(0.0), m_conc_in_rest(5e-5), m_conc_out_rest(1.5), m_vm_rest(-0.065), m_valency(2)
+{
+    // check that there is one given function at most
+    UG_COND_THROW(functions.size() > 1, "Only one function argument is supported for ion leakage.");
+
+    // set function as leaking function
+    if (functions.size())
+        m_leaking_fct = functions[0];
+}
 UG_CATCH_THROW("Error in ChannelHH initializer list.");
 
 

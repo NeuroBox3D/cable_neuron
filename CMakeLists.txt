@@ -55,18 +55,11 @@ if (CNConvertedTransport)
     include(membrane_transport/nmodl_converter/converted/sources.cmake)
 endif (CNConvertedTransport)
 
-# synapse_handler sources
-#set(SOURCES ${SOURCES}
-    #synapse_handler/util/utility.cpp
-    #synapse_handler/grid/synapse_info.cpp
-    #synapse_handler/grid/synapse_info_attachment_handler.cpp
-    #synapse_handler/synapse_handler.cpp
-#)
-include(split_synapse_handler/sources.cmake)
-include(split_synapse_distributor/sources.cmake)
+# synapse_handling sources
+include(synapse_handling/sources.cmake)
 
 # synapse distributor sources
-#set(SOURCES	${SOURCES} synapse_distributor/synapse_distributor.cpp)
+#set(SOURCES ${SOURCES} synapse_distributor/synapse_distributor.cpp)
 
 # plugin source
 set(SOURCES	${SOURCES} plugin_main.cpp)
