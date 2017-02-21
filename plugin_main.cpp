@@ -145,8 +145,8 @@ struct Functionality
 				.add_method("print_synapse_statistics", &TNETISH::print_synapse_statistics, "", "soma subset index", "")
 				.add_method("write_activity_to_file", &TNETISH::write_activity_to_file, "", "file base name#time", "")
 				.add_method("add_activation_timing_ball",
-						static_cast<void (TNETISH::*)(const std::vector<number>&, const std::vector<number>&)>(&TNETISH::add_activation_timing_ball),
-						"timing values#ball region")
+                    static_cast<void (TNETISH::*)(const std::vector<number>&, const std::vector<number>&)>(&TNETISH::add_activation_timing_ball),
+                    "timing values#ball region")
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "NETISynapseHandler", tag);
 
@@ -521,39 +521,44 @@ struct Functionality
 		}
 
 		{
-			typedef SynapseHandler<TDomain> TSSH;
+			typedef SynapseHandler<TDomain> TSH;
 			string name = string("SynapseHandler").append(suffix);
-			reg.add_class_<TSSH>(name, grp)
+			reg.add_class_<TSH>(name, grp)
 				.template add_constructor<void (*)()>()
-                .add_method("set_ce_object", &TSSH::set_ce_object)
+                .add_method("set_ce_object", &TSH::set_ce_object)
 
                 .add_method("set_activation_timing_alpha",
-                    static_cast<void (TSSH::*)(number, number, number, number)>(&TSSH::set_activation_timing_alpha),
+                    static_cast<void (TSH::*)(number, number, number, number)>(&TSH::set_activation_timing_alpha),
                     "", "mean onset#mean tau#onset deviation#tau deviation", "")
                 .add_method("set_activation_timing_alpha",
-                    static_cast<void (TSSH::*)(number, number, number, number, number)>(&TSSH::set_activation_timing_alpha),
+                    static_cast<void (TSH::*)(number, number, number, number, number)>(&TSH::set_activation_timing_alpha),
                     "", "mean onset#mean tau#onset deviation#tau deviation#peak conductance", "")
                 .add_method("set_activation_timing_alpha",
-                    static_cast<void (TSSH::*)(number, number, number, number, number, bool)>(&TSSH::set_activation_timing_alpha),
+                    static_cast<void (TSH::*)(number, number, number, number, number, bool)>(&TSH::set_activation_timing_alpha),
                     "", "mean onset#mean tau#onset deviation#tau deviation#peak conductance#constant seed?", "")
                 .add_method("set_activation_timing_alpha",
-                    static_cast<void (TSSH::*)(number, number, number, number, number, number, bool)>(&TSSH::set_activation_timing_alpha),
+                    static_cast<void (TSH::*)(number, number, number, number, number, number, bool)>(&TSH::set_activation_timing_alpha),
                     "", "mean onset#mean tau#mean peak conductance#onset deviation#tau deviation#peak conductance deviation#constant seed?", "")
 
                 .add_method("set_activation_timing_biexp",
-                    static_cast<void (TSSH::*)(number, number, number, number, number, number)>(&TSSH::set_activation_timing_biexp),
+                    static_cast<void (TSH::*)(number, number, number, number, number, number)>(&TSH::set_activation_timing_biexp),
                     "", "mean onset#mean tau1#mean tau2#onset deviation#tau1 deviation#tau2 deviation", "")
                 .add_method("set_activation_timing_biexp",
-                    static_cast<void (TSSH::*)(number, number, number, number, number, number, number)>(&TSSH::set_activation_timing_biexp),
+                    static_cast<void (TSH::*)(number, number, number, number, number, number, number)>(&TSH::set_activation_timing_biexp),
                     "", "mean onset#mean tau1#mean tau2#onset deviation#tau1 deviation#tau2 deviation#peak conductance", "")
                 .add_method("set_activation_timing_biexp",
-                    static_cast<void (TSSH::*)(number, number, number, number, number, number, number, bool)>(&TSSH::set_activation_timing_biexp),
+                    static_cast<void (TSH::*)(number, number, number, number, number, number, number, bool)>(&TSH::set_activation_timing_biexp),
                     "", "mean onset#mean tau1#mean tau2#onset deviation#tau1 deviation#tau2 deviation#peak conductance#constant seed?", "")
                 .add_method("set_activation_timing_biexp",
-                    static_cast<void (TSSH::*)(number, number, number, number, number, number, number, number, bool)>(&TSSH::set_activation_timing_biexp),
+                    static_cast<void (TSH::*)(number, number, number, number, number, number, number, number, bool)>(&TSH::set_activation_timing_biexp),
                     "", "mean onset#mean tau1#mean tau2#mean peak conductance#onset deviation#tau1 deviation#tau2 deviation#peak conductance deviation#constant seed?", "")
 
-				.add_method("show_status", &TSSH::show_status)
+                .add_method("add_activation_timing_alpha_ball", &TSH::add_activation_timing_alpha_ball,
+                    "", "timing values as six-component vector (mean onset, dev onset, mean tau, dev tau, mean peak conductance, dev peak conductance)"
+                        "#ball region as four component vector (center coordinates, radius)",
+                    "Add a ball-shaped region with specific activation pattern for alpha post-synapses.")
+
+				.add_method("show_status", &TSH::show_status)
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "SynapseHandler", tag);
 		}

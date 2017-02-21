@@ -119,6 +119,8 @@ private:
     bool m_prim_biexp_constSeed;
     /// @}
 
+    /// alpha synapse ball timings
+    std::vector<std::pair<std::vector<number>, std::vector<number> > > m_vTimingBalls;
 
 private:
 	// do not use copy ctor
@@ -230,6 +232,21 @@ public:
         set_activation_timing_biexp(onset_mean, tau1_mean, tau2_mean, 6e-4,
                                     onset_dev, tau1_dev, tau2_dev, 0.0, true);
     }
+
+
+    /**
+     * @brief Adds an activation timing for a ball region.
+     * Specify alpha synapses timings by providing a vector with start time,
+     * duration, start time deviation, duration deviation & peak conductance
+     *
+     * @param alpha_timings
+     * @param ball
+     */
+    void add_activation_timing_alpha_ball
+    (
+        const std::vector<number>& alpha_timings,
+        const std::vector<number>& ball
+    );
 
 
     /// all synapses located on a specified edge

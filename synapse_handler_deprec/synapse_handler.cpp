@@ -370,6 +370,7 @@ grid_first_available()
 
 	/// set activation timing for AlphaSynapses globally
 	set_activation_timing_with_grid();
+
 	/// set activation timing for AlphaSynapses in ball regions
 	set_activation_timing_ball_alpha_syn_with_grid();
 

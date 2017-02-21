@@ -408,6 +408,26 @@ set_activation_timing_biexp
 
 template <typename TDomain>
 void SynapseHandler<TDomain>::
+add_activation_timing_alpha_ball
+(
+    const std::vector<number>& alpha_timings,
+    const std::vector<number>& ball
+)
+{
+    // consistency checks
+    UG_COND_THROW(m_bInited, "The activation timing cannot be changed after addition of the\n"
+                  "original CableEquation object to the domain discretization.");
+
+    UG_COND_THROW(alpha_timings.size() != 6, "Expected 6 timing values for alpha synapses.");
+    UG_COND_THROW(ball.size() != 4, "Expected 4 parameters (x, y, z, d) to describe the ball in 3d.");
+
+    // add activation timing for a ball
+    m_vTimingBalls.push_back(std::make_pair(alpha_timings, ball));
+}
+
+
+template <typename TDomain>
+void SynapseHandler<TDomain>::
 set_activation_timing_with_grid()
 {
     // check availability of all needed structures
@@ -444,22 +464,22 @@ set_activation_timing_with_grid()
 #endif
 
     // alpha synapse distributions
-    boost::normal_distribution<double> start_dist(m_primary_alpha_onset_mean, m_primary_alpha_onset_dev);
-    boost::variate_generator<boost::mt19937, boost::normal_distribution<double> > var_start(rng_alpha, start_dist);
-    boost::normal_distribution<double> tau_dist(m_primary_alpha_tau_mean, m_primary_alpha_tau_dev);
-    boost::variate_generator<boost::mt19937, boost::normal_distribution<double> > var_tau(rng_alpha, tau_dist);
-    boost::normal_distribution<double> cond_dist(m_primary_alpha_peak_cond_mean, m_primary_alpha_peak_cond_dev);
-    boost::variate_generator<boost::mt19937, boost::normal_distribution<double> > var_cond(rng_alpha, cond_dist);
+    boost::normal_distribution<number> start_dist(m_primary_alpha_onset_mean, m_primary_alpha_onset_dev);
+    boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > var_start(rng_alpha, start_dist);
+    boost::normal_distribution<number> tau_dist(m_primary_alpha_tau_mean, m_primary_alpha_tau_dev);
+    boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > var_tau(rng_alpha, tau_dist);
+    boost::normal_distribution<number> cond_dist(m_primary_alpha_peak_cond_mean, m_primary_alpha_peak_cond_dev);
+    boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > var_cond(rng_alpha, cond_dist);
 
     // biexp synapse distributions
-    boost::normal_distribution<double> onset_dist(m_prim_biexp_onset_mean, m_prim_biexp_onset_dev);
-    boost::variate_generator<boost::mt19937, boost::normal_distribution<double> > var_onset(rng_biexp, onset_dist);
-    boost::normal_distribution<double> tau1_dist(m_prim_biexp_tau1_mean, m_prim_biexp_tau1_dev);
-    boost::variate_generator<boost::mt19937, boost::normal_distribution<double> > var_tau1(rng_biexp, tau1_dist);
-    boost::normal_distribution<double> tau2_dist(m_prim_biexp_tau2_mean, m_prim_biexp_tau2_dev);
-    boost::variate_generator<boost::mt19937, boost::normal_distribution<double> > var_tau2(rng_biexp, tau2_dist);
-    boost::normal_distribution<double> peakCond_dist(m_prim_biexp_peak_cond_mean, m_prim_biexp_peak_cond_dev);
-    boost::variate_generator<boost::mt19937, boost::normal_distribution<double> > var_peakCond(rng_biexp, peakCond_dist);
+    boost::normal_distribution<number> onset_dist(m_prim_biexp_onset_mean, m_prim_biexp_onset_dev);
+    boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > var_onset(rng_biexp, onset_dist);
+    boost::normal_distribution<number> tau1_dist(m_prim_biexp_tau1_mean, m_prim_biexp_tau1_dev);
+    boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > var_tau1(rng_biexp, tau1_dist);
+    boost::normal_distribution<number> tau2_dist(m_prim_biexp_tau2_mean, m_prim_biexp_tau2_dev);
+    boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > var_tau2(rng_biexp, tau2_dist);
+    boost::normal_distribution<number> peakCond_dist(m_prim_biexp_peak_cond_mean, m_prim_biexp_peak_cond_dev);
+    boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > var_peakCond(rng_biexp, peakCond_dist);
 
     // loop onset_pre_synapses
     SynapseIter<OnsetPreSynapse> it = begin<OnsetPreSynapse>();
@@ -542,10 +562,90 @@ set_activation_timing_with_grid()
             default: break;
         }
     }
+
+
+    // finally, evaluate alpha synapse activation balls
+    // possibly overriding the previously set activation pattern
+    typedef std::vector<std::pair<std::vector<number>, std::vector<number> > >::const_iterator ball_it_type;
+    ball_it_type ball_it = m_vTimingBalls.begin();
+    ball_it_type ball_it_end = m_vTimingBalls.end();
+    for (; ball_it != ball_it_end; ++ball_it)
+    {
+        const std::vector<number>& alpha_timings = ball_it->first;
+        const std::vector<number>& ball = ball_it->second;
+
+        // timings
+        number onset = alpha_timings[0];
+        number onset_dev = alpha_timings[1];
+        number tau = alpha_timings[2];
+        number tau_dev = alpha_timings[3];
+        number peak_cond = alpha_timings[4];
+        number peak_cond_dev = alpha_timings[5];
+
+        // ball region
+        vector3 center(ball[0], ball[1], ball[2]);
+        number radius = ball[3];
+
+        // sample from distribution for this ball
+        boost::normal_distribution<number> start_dist(onset, onset_dev);
+        boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > var_start(rng_alpha, start_dist);
+        boost::normal_distribution<number> tau_dist(tau, tau_dev);
+        boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > var_tau(rng_alpha, tau_dist);
+        boost::normal_distribution<number> cond_dist(peak_cond, peak_cond_dev);
+        boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > var_cond(rng_alpha, cond_dist);
+
+        SynapseIter<OnsetPreSynapse> it = begin<OnsetPreSynapse>();
+        for (; it != it_end; ++it)
+        {
+            OnsetPreSynapse* onsetSyn = *it;
+
+            // check whether synapse is located in within ball
+            Edge* e = m_mPreSynapseIdToEdge[onsetSyn->id()];
+            vector3 a = m_aaPosition[e->vertex(0)];
+            vector3 b = m_aaPosition[e->vertex(1)];
+            if (VecDistanceSq(a, center) >= radius*radius || VecDistanceSq(b, center) >= radius*radius)
+                continue;
+
+            // here, this is the case; now, get corresponding post-synapse
+            IPostSynapse* post = m_mPostSynapses[onsetSyn->id()];
+
+            // depending on type, set activation
+            SynapseType type = post->type();
+            switch (type)
+            {
+                case ALPHA_POST_SYNAPSE:
+                {
+                    // cast to alpha post-synapse
+                    AlphaPostSynapse* alphaPost = dynamic_cast<AlphaPostSynapse*>(post);
+                    UG_COND_THROW(!alphaPost, "Synapse claiming to be alpha post synapse, but is not.");
+
+                    number t_onset = var_start();
+                    t_onset = t_onset < 0 ? 0 : t_onset;
+
+                    number tau = var_tau();
+                    tau = tau < 0 ? 0 : tau;
+
+                    number cond = var_cond();
+                    cond = cond < 0 ? 0 : cond;
+
+                    // This will parameterize the alpha_synapse in such a way that
+                    // it is active until the current decays to 5% of its maximal strength.
+                    onsetSyn->set_onset(t_onset);
+                    onsetSyn->set_duration(6.0*tau);
+                    alphaPost->set_tau(tau);
+                    alphaPost->set_gMax(cond);
+
+                    break;
+                }
+
+                // exp2 balls do not exist (yet)
+
+                default:
+                    break;
+            }
+        }
+    }
 }
-
-
-
 
 
 
