@@ -489,7 +489,13 @@ set_activation_timing_with_grid()
         OnsetPreSynapse* onsetSyn = *it;
 
         // get corresponding post-synapse
-        IPostSynapse* post = m_mPostSynapses[onsetSyn->id()];
+        std::map<synapse_id, IPostSynapse*>::iterator postIt = m_mPostSynapses.find(onsetSyn->id());
+
+        // Technically, it is possible that this post synapse is not located on the same proc.
+        // This should not happen, as OnsetPreSynapses belong to primary post-synapses and those are located
+        // on the same edge, but you never know what an evil user might do ...
+        UG_COND_THROW(postIt == m_mPostSynapses.end(), "Post-synapse for OnsetPreSynapse not on the same proc.")
+        IPostSynapse* post = postIt->second;
 
         // depending on type, set activation
         SynapseType type = post->type();
@@ -607,7 +613,13 @@ set_activation_timing_with_grid()
                 continue;
 
             // here, this is the case; now, get corresponding post-synapse
-            IPostSynapse* post = m_mPostSynapses[onsetSyn->id()];
+            std::map<synapse_id, IPostSynapse*>::iterator postIt = m_mPostSynapses.find(onsetSyn->id());
+
+            // Technically, it is possible that this post synapse is not located on the same proc.
+            // This should not happen, as OnsetPreSynapses belong to primary post-synapses and those are located
+            // on the same edge, but you never know what an evil user might do ...
+            UG_COND_THROW(postIt == m_mPostSynapses.end(), "Post-synapse for OnsetPreSynapse not on the same proc.")
+            IPostSynapse* post = postIt->second;
 
             // depending on type, set activation
             SynapseType type = post->type();
