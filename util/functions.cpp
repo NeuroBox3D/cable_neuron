@@ -531,7 +531,7 @@ void save_neuron_to_swc
         // write line to file
         outFile << ++ind << " " << type << " "
             << coord[0]*scale << " " << coord[1]*scale << " " << coord[2]*scale << " "
-            << diam << " " << conn << std::endl;
+            << 0.5*diam << " " << conn << std::endl;
 
         // push neighboring elems to queue
         Grid::traits<Edge>::secure_container edges;
