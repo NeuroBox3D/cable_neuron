@@ -83,7 +83,6 @@ void ThresholdPreSynapse::put_to(std::ostream& os) const
 	strs << name() << " ";
 	strs << id() << " ";
 	strs << location() << " ";
-	strs << m_onset << " ";
 	strs << m_duration << " ";
 	strs << m_threshold;
 	os << strs.str();
@@ -103,12 +102,6 @@ void ThresholdPreSynapse::get_from(std::istream& is)
 	is >> tmp;
 	loc = lexical_cast<number>(tmp);
 	set_location(loc);
-	tmp.clear();
-
-	number onset;
-	is >> tmp;
-	onset = lexical_cast<number>(tmp);
-	set_onset(std::numeric_limits<number>::quiet_NaN());
 	tmp.clear();
 
 	number duration;

@@ -96,7 +96,6 @@ void Exp2PostSynapse::put_to(std::ostream& os) const
 	strs << name() << " ";					//identifier for reconstruction
 	strs << id() << " ";
 	strs << location() << " ";
-	strs << m_onset << " ";
 	strs << m_gMax << " ";
 	strs << m_tau1 << " ";
 	strs << m_tau2 << " ";
@@ -115,12 +114,6 @@ void Exp2PostSynapse::get_from(std::istream& is)
 	is >> tmp;
 	loc = lexical_cast<number>(tmp);
 	set_location(loc);
-	tmp.clear();
-
-	number onset;
-	is >> tmp;
-	onset = lexical_cast<number>(tmp);
-	set_onset(std::numeric_limits<number>::quiet_NaN());
 	tmp.clear();
 
 	number gMax;
