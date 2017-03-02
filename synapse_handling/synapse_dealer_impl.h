@@ -8,6 +8,7 @@
 #include "common/error.h"
 #include "common/log.h"
 #include "synapse_handler.h"
+#include <cstring>  // memset
 
 namespace ug {
 namespace cable_neuron {
@@ -65,7 +66,7 @@ bridge::ExportedClass<TSyn>& SynapseDealer::register_synapse_type
 
 #ifdef UG_PARALLEL
 	char* buf = new char[sizeof(TSyn)];
-	memset(buf, 0, sizeof(TSyn));
+	std::memset(buf, 0, sizeof(TSyn));
 	new (buf) TSyn();
 	find_no_overwrite_bytes(buf, uid);
 	delete[] buf;
