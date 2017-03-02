@@ -250,18 +250,18 @@ public:
 
 
     /// all synapses located on a specified edge
-    std::vector<IBaseSynapse*>& get_synapses_on_edge(Edge* e) {return m_aaSyn[e];}
+    const std::vector<IBaseSynapse*>& get_synapses_on_edge(Edge* e) const {return m_aaSyn[e];}
 
 
     /// Dummy interface method for compatibility reasons, wraps current_on_edge.
-    bool synapse_on_edge(const Edge* edge, size_t scv, number time, number& current);
+    bool synapse_on_edge(const Edge* edge, size_t scv, number time, number& current) const;
 
 
     /// total synaptic current for sub-control volume scv on edge e at time t
-    number current_on_edge(const Edge* e, size_t scv, number t);
+    number current_on_edge(const Edge* e, size_t scv, number t) const;
 
     //
-    number current(synapse_id);
+    number current(synapse_id) const;
 
     /**
      * Returns vector of currents, and a vector of their corresponding synapse id's
@@ -290,7 +290,8 @@ public:
      */
     void update_presyn(number time);
 
-    const std::vector<synapse_id> active_presynapses();
+    // TODO: make that return a const reference and just return m_mActivePreSynapses
+    const std::vector<synapse_id> active_presynapses() const;
 
     /**
 	 * Returns a begin iterator to the desired synapse type.

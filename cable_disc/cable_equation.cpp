@@ -219,7 +219,7 @@ template<typename TDomain> number CableEquation<TDomain>::flux_na() {return m_na
 template<typename TDomain> number CableEquation<TDomain>::flux_ca() {return m_ca;}
 template<typename TDomain> number CableEquation<TDomain>::flux_v() {return m_v;}*/
 
-template <typename TDomain> number CableEquation<TDomain>::time() {return m_time;}
+template <typename TDomain> number CableEquation<TDomain>::time() const {return m_time;}
 
 template<typename TDomain>
 number CableEquation<TDomain>::vm(Vertex* vrt) const

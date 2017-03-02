@@ -183,7 +183,7 @@ class CableEquation
 		/// \}
 
 		/// get current time
-		number time();
+		number time() const;
 
 		/// get membrane potential at a vertex
 		number vm(Vertex* vrt) const;
