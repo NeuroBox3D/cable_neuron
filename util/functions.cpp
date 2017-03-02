@@ -267,7 +267,9 @@ int check_domain(SmartPtr<TDomain> dom, int verbosity)
 }
 
 
-
+// This is a debugging tool for a very specific problem.
+// Do not compile but for the specific debuging purpose.
+#if 0
 template <typename TDomain>
 void test_vertices(SmartPtr<TDomain> dom)
 {
@@ -298,7 +300,24 @@ void test_vertices(SmartPtr<TDomain> dom)
 	UG_LOGN("Correct vPtr is " << std::hex << std::setfill('0')
 			<< std::setw(16) << vptr_val << std::dec);
 }
+#endif
 
+
+static
+void depth_first_search(Grid& g, Grid::VertexAttachmentAccessor<Attachment<int> >& aaNID, Vertex* v, int id)
+{
+    aaNID[v] = id;
+
+    Grid::traits<Edge>::secure_container edges;
+    g.associated_elements(edges, v);
+
+    size_t sz = edges.size();
+    for (size_t i = 0; i < sz; ++i)
+    {
+        Vertex* otherEnd = GetOpposingSide(g, edges[i], v);
+        depth_first_search(g, aaNID, otherEnd, id);
+    }
+}
 
 
 void neuron_identification(Grid& g)
@@ -326,26 +345,8 @@ void neuron_identification(Grid& g)
     int nid = -1;
     for (it = g.begin<Vertex>(); it != it_end; ++it)
         if (aaNID[*it] == -1)
-            deep_first_search(g, aaNID, *it, ++nid);
+            depth_first_search(g, aaNID, *it, ++nid);
 }
-
-
-void deep_first_search(Grid& g, Grid::VertexAttachmentAccessor<Attachment<int> >& aaNID, Vertex* v, int id)
-{
-    if (aaNID[v] >= 0) return;
-    else aaNID[v] = id;
-
-    Grid::traits<Edge>::secure_container edges;
-    g.associated_elements(edges, v);
-
-    size_t sz = edges.size();
-    for (size_t i = 0; i < sz; ++i)
-    {
-        Vertex* otherEnd = GetOpposingSide(g, edges[i], v);
-        deep_first_search(g, aaNID, otherEnd, id);
-    }
-}
-
 
 
 
@@ -427,7 +428,7 @@ void save_neuron_to_swc
             if (aaNID[*it] == -1)
             {
                 if (++nid == (int) neuronIndex) break;
-                deep_first_search(*mg, aaNID, *it, nid);
+                depth_first_search(*mg, aaNID, *it, nid);
             }
         }
 
@@ -526,12 +527,12 @@ void save_neuron_to_swc
 
         const Domain3d::position_type& coord = aaPos[v];
 
-        number diam = scale*aaDiam[v];
+        number radius = 0.5*scale*aaDiam[v];
 
         // write line to file
         outFile << ++ind << " " << type << " "
             << coord[0]*scale << " " << coord[1]*scale << " " << coord[2]*scale << " "
-            << 0.5*diam << " " << conn << std::endl;
+            << radius << " " << conn << std::endl;
 
         // push neighboring elems to queue
         Grid::traits<Edge>::secure_container edges;
@@ -597,19 +598,16 @@ number subset_length(const char* subset, ConstSmartPtr<MGSubsetHandler> sh)
 	template bool is_acyclic<Domain1d>(SmartPtr<Domain1d>, int);
 	template int check_presyn_indices<Domain1d>(SmartPtr<Domain1d>, int);
 	template int check_domain<Domain1d>(SmartPtr<Domain1d>, int);
-	template void test_vertices<Domain1d>(SmartPtr<Domain1d>);
 #endif
 #ifdef UG_DIM_2
 	template bool is_acyclic<Domain2d>(SmartPtr<Domain2d>, int);
 	template int check_presyn_indices<Domain2d>(SmartPtr<Domain2d>, int);
 	template int check_domain<Domain2d>(SmartPtr<Domain2d>, int);
-	template void test_vertices<Domain2d>(SmartPtr<Domain2d>);
 #endif
 #ifdef UG_DIM_3
 	template bool is_acyclic<Domain3d>(SmartPtr<Domain3d>, int);
 	template int check_presyn_indices<Domain3d>(SmartPtr<Domain3d>, int);
 	template int check_domain<Domain3d>(SmartPtr<Domain3d>, int);
-	template void test_vertices<Domain3d>(SmartPtr<Domain3d>);
 #endif
 
 
