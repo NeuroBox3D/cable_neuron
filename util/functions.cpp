@@ -306,6 +306,7 @@ void test_vertices(SmartPtr<TDomain> dom)
 static
 void depth_first_search(Grid& g, Grid::VertexAttachmentAccessor<Attachment<int> >& aaNID, Vertex* v, int id)
 {
+	if (aaNID[v] >= 0) return;
     aaNID[v] = id;
 
     Grid::traits<Edge>::secure_container edges;
