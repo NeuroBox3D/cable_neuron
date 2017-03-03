@@ -215,7 +215,7 @@ class CableEquation
 		virtual void prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid);
 
 		/// prepare the time step
-		void prep_timestep(number time, VectorProxyBase* up);
+		void prep_timestep(number future_time, number time, VectorProxyBase* up);
 
 		///	prepares the loop over all elements
 		template <typename TElem, typename TFVGeom>

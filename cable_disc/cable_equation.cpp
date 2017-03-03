@@ -475,7 +475,7 @@ void CableEquation<TDomain>::prepare_setting(const std::vector<LFEID>& vLfeID, b
 
 template <typename TDomain>
 void CableEquation<TDomain>::
-prep_timestep(number time, VectorProxyBase* upb)
+prep_timestep(number future_time, number time, VectorProxyBase* upb)
 {
 	PROFILE_FUNC_GROUP("Discretization CableEquation");
 
