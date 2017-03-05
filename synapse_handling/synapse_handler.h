@@ -344,7 +344,7 @@ public:
     }
 
 	/// Prints list with all synapses and their parameters/id's etc.
-	void show_status();
+	void show_status(number t);
 
 
 protected:

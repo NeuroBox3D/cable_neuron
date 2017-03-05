@@ -79,6 +79,7 @@ template <typename TDomain>
 number SynapseHandler<TDomain>::current(synapse_id id) const
 {
 	//find edge
+
 	ConstEdgeIterator eIter = m_spGrid->begin<Edge>();
 	ConstEdgeIterator eIterEnd = m_spGrid->end<Edge>();
 	while(eIter != eIterEnd) {
@@ -86,10 +87,16 @@ number SynapseHandler<TDomain>::current(synapse_id id) const
 		std::vector<IBaseSynapse*> v = m_aaSyn[e];
 		for(size_t i=0; i<v.size(); ++i) { //find synapse
 			if( (v[i]->id()==id) &&  (v[i]->is_postsynapse())) {
+
+
 				number rel_loc=v[i]->location();
 				number t = m_spCEDisc->time();
-				number vm = m_spCEDisc->vm( (*e)[0])*rel_loc + m_spCEDisc->vm( (*e)[1])*(1-rel_loc) ;
-				return ((IPostSynapse*)v[i])->current(t, vm);
+				Vertex* v0 = e->vertex(0);
+				Vertex* v1 = e->vertex(1);
+				number vm = m_spCEDisc->vm( v0)*rel_loc + m_spCEDisc->vm(v1)*(1-rel_loc);
+				number curr = ((IPostSynapse*)v[i])->current(t, vm);
+
+				return curr;
 			}
 		}
 		eIter++;
@@ -685,10 +692,16 @@ set_activation_timing_with_grid()
 
 
 template <typename TDomain>
-void SynapseHandler<TDomain>::show_status()
+void SynapseHandler<TDomain>::show_status(number t)
 {
     for(size_t i=0; i<m_vAllSynapses.size(); ++i) {
-        std::cout << i << ": " << " " << m_vAllSynapses[i] << std::endl;
+    	if(m_vAllSynapses[i]->is_presynapse()) {
+    		IPreSynapse* s = (IPreSynapse*)m_vAllSynapses[i];
+    		std::cout << i << ":" << t << " " << m_vAllSynapses[i] << ( (s->is_active(t))?" active":" inactive")  << std::endl;
+    	} else if(m_vAllSynapses[i]->is_postsynapse()) {
+    		IPostSynapse* s = (IPostSynapse*)m_vAllSynapses[i];
+    		std::cout << i << ":" << t << " " << m_vAllSynapses[i] << " " << current(s->id()) << std::endl;
+    	}
     }
     std::cout << std::endl;
     //std::cout << "Synapse iterator begin(): " << &*(m_vAllSynapses.begin()) << std::endl;
