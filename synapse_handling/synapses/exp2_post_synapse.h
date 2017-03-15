@@ -69,7 +69,7 @@ public:
 	const std::string& name() const {return name_string;}
 
 	//functionality
-	number current(const number& t, const number& vm);
+	number current(const number& t, const number& vm) const;
 
 	//serialization interface methods
 	void put_to(std::ostream& os) const;			//'put_to' == operator<<

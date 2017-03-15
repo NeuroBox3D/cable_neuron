@@ -33,7 +33,8 @@ public:
 	virtual bool is_presynapse() const {return false;}
 	virtual bool is_postsynapse() const {return true;}
 
-	virtual number current(const number& t, const number& vm) = 0;
+	/// (outward) current of a synapse
+	virtual number current(const number& t, const number& vm) const = 0;
 
 	//from serialization interface IBaseSynapse
 	virtual void put_to(std::ostream& os) const = 0;			//'put_to' == operator<<

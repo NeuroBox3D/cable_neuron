@@ -59,20 +59,23 @@ AlphaPostSynapse::~AlphaPostSynapse()
 {}
 
 
-number AlphaPostSynapse::current(const number& t, const number& vm)
+number AlphaPostSynapse::current(const number& t, const number& vm) const
 {
 
 	if (t >= m_onset) {	// this excludes onset == NaN
 		double curr = m_gMax * (t - m_onset) / m_tau
 		              * std::exp(-(t - m_onset - m_tau)/m_tau) * (vm - m_rev);	// current (in units of A);
-//		std::cout << "AlphaPostSynapse" << id() << ":" << std::endl
-//				  << "location: " << location() << std::endl
-//				  << "onset: " << onset() << std::endl
-//				  << "gMax: " << gMax() << std::endl
-//				  << "tau: " << tau() << std::endl
-//				  << "rev:" << rev() << std::endl
-//				  << "is_active(" << t << "): " << is_active(t) << std::endl
-//				  << "current: " << curr << std::endl << std::endl;
+#if 0
+		// debug
+		std::cout << "AlphaPostSynapse" << id() << ":" << std::endl
+				  << "location: " << location() << std::endl
+				  << "onset: " << onset() << std::endl
+				  << "gMax: " << gMax() << std::endl
+				  << "tau: " << tau() << std::endl
+				  << "rev:" << rev() << std::endl
+				  << "is_active(" << t << "): " << is_active(t) << std::endl
+				  << "current: " << curr << std::endl << std::endl;
+#endif
 		return curr;
 	}
 

@@ -91,6 +91,7 @@ private:
 
 	std::map<synapse_id, IPreSynapse*> m_mActivePreSynapses; //internal memory of currently active presynapses
 	std::map<synapse_id, Edge*> m_mPreSynapseIdToEdge; //maps presynapses to their edge
+	std::map<synapse_id, Edge*> m_mPostSynapseIdToEdge; //maps presynapses to their edge
 
 	SmartPtr<GeomObjDataSerializer<Edge> > m_spSAS;
 	MessageHub::SPCallbackId m_spGridDistributionCallbackID;
@@ -292,6 +293,15 @@ public:
 
     // TODO: make that return a const reference and just return m_mActivePreSynapses
     const std::vector<synapse_id> active_presynapses() const;
+
+    /// getter for active synapse IDs and their currents
+    void active_postsynapses_and_currents
+	(
+		std::vector<synapse_id>& vActSynOut,
+		std::vector<number>& vSynCurrOut,
+		number time
+	) const;
+
 
     /**
 	 * Returns a begin iterator to the desired synapse type.

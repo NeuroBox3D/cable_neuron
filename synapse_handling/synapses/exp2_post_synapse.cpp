@@ -65,7 +65,7 @@ Exp2PostSynapse::Exp2PostSynapse
 Exp2PostSynapse::~Exp2PostSynapse()
 {}
 
-number Exp2PostSynapse::current(const number& t, const number &vm)
+number Exp2PostSynapse::current(const number& t, const number &vm) const
 {
 	if (t >= m_onset)	// this excludes onset == NaN
 	{

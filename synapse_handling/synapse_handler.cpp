@@ -38,6 +38,7 @@ SynapseHandler<TDomain>::SynapseHandler()
   m_mPostSynapses(std::map<synapse_id,IPostSynapse*>()),
   m_mActivePreSynapses(std::map<synapse_id, IPreSynapse*>()),
   m_mPreSynapseIdToEdge(std::map<synapse_id,Edge*>()),
+  m_mPostSynapseIdToEdge(std::map<synapse_id,Edge*>()),
   m_spSAS(SPNULL),
   m_primary_alpha_onset_mean(std::numeric_limits<number>::max()), m_primary_alpha_onset_dev(0.0),
   m_primary_alpha_tau_mean(0.0), m_primary_alpha_tau_dev(0.0),
@@ -237,6 +238,7 @@ SynapseHandler<TDomain>::collect_synapses_from_grid()
 	m_mPreSynapses.clear();
 	m_mPostSynapses.clear();
 	m_mPreSynapseIdToEdge.clear();
+	m_mPostSynapseIdToEdge.clear();
 
 	// (re)populate synapse lists from surface(!) edges
 	ConstSmartPtr<DoFDistribution> dd = m_spApprox->dd(GridLevel());
@@ -262,6 +264,7 @@ SynapseHandler<TDomain>::collect_synapses_from_grid()
 				// postsynapse map
 				IPostSynapse* s = (IPostSynapse*) syn;
 				m_mPostSynapses[s->id()] = s;
+				m_mPostSynapseIdToEdge[s->id()] = *eit;
 			}
 		}
 	}
@@ -724,6 +727,42 @@ const std::vector<synapse_id> SynapseHandler<TDomain>::active_presynapses() cons
 
 	return syn_id_ret;
 }
+
+
+template <typename TDomain>
+void SynapseHandler<TDomain>::active_postsynapses_and_currents
+(
+	std::vector<synapse_id>& vActSynOut,
+	std::vector<number>& vSynCurrOut,
+	number time
+) const
+{
+	vActSynOut.clear();
+	vSynCurrOut.clear();
+
+	std::map<synapse_id, IPreSynapse*>::const_iterator it = m_mActivePreSynapses.begin();
+	std::map<synapse_id, IPreSynapse*>::const_iterator itEnd = m_mActivePreSynapses.end();
+
+	while (it != itEnd) {
+		synapse_id id = it->first;
+		vActSynOut.push_back(id);
+
+		Edge* e = m_mPostSynapseIdToEdge.at(id);
+		Vertex* v0 = e->vertex(0);
+		Vertex* v1 = e->vertex(1);
+
+		number rel_loc = it->second->location();
+		number vm = m_spCEDisc->vm(v0)*(1.0-rel_loc) + m_spCEDisc->vm(v1)*rel_loc;
+
+		IPostSynapse* post = m_mPostSynapses.at(id);
+		number curr = post->current(time, vm);
+
+		vSynCurrOut.push_back(curr);
+
+		++it;
+	}
+}
+
 
 template <typename TDomain>
 void SynapseHandler<TDomain>::grid_distribution_callback(const GridMessage_Distribution& gmd)
