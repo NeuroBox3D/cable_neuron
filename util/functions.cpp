@@ -13,6 +13,7 @@
 #include <stack>
 #include <utility>
 #include <fstream>
+#include <limits>
 
 #include "lib_disc/domain.h"
 #include "lib_grid/grid/grid.h"
@@ -20,6 +21,7 @@
 #include "lib_grid/grid/grid_base_object_traits.h"
 #include "lib_grid/global_attachments.h" // global attachments
 #include "lib_grid/tools/surface_view.h"
+#include "lib_grid/tools/subset_group.h"
 #include "lib_grid/algorithms/element_side_util.h" // GetOpposingSide
 #include "lib_disc/domain_util.h" // LoadDomain
 #include "pcl/pcl_base.h"
@@ -304,9 +306,15 @@ void test_vertices(SmartPtr<TDomain> dom)
 
 
 static
-void depth_first_search(Grid& g, Grid::VertexAttachmentAccessor<Attachment<int> >& aaNID, Vertex* v, int id)
+void depth_first_search
+(
+	Grid& g,
+	Grid::VertexAttachmentAccessor<Attachment<uint> >& aaNID,
+	Vertex* v,
+	uint id
+)
 {
-	if (aaNID[v] >= 0) return;
+	if (aaNID[v] != (uint) -1) return;
     aaNID[v] = id;
 
     Grid::traits<Edge>::secure_container edges;
@@ -323,8 +331,12 @@ void depth_first_search(Grid& g, Grid::VertexAttachmentAccessor<Attachment<int> 
 
 void neuron_identification(Grid& g)
 {
+    // in case the IDs have already been calculated: do nothing
+	static bool hasBeenDone = false;
+	if (hasBeenDone) return;
+
     // synapse index attachment available?
-    typedef Attachment<int> ANeuronID;
+    typedef Attachment<uint> ANeuronID;
 
     if (!GlobalAttachments::is_declared("neuronID"))
         UG_THROW("GlobalAttachment 'NeuronID' not declared.");
@@ -332,7 +344,7 @@ void neuron_identification(Grid& g)
     ANeuronID aNID(GlobalAttachments::attachment<ANeuronID>("neuronID"));
 
     if (!g.has_vertex_attachment(aNID))
-        g.attach_to_vertices(aNID);
+    	g.attach_to_vertices(aNID);
 
     Grid::VertexAttachmentAccessor<ANeuronID> aaNID = Grid::VertexAttachmentAccessor<ANeuronID>(g, aNID);
 
@@ -340,13 +352,50 @@ void neuron_identification(Grid& g)
     // initialize with -1
     VertexIterator it = g.begin<Vertex>();
     VertexIterator it_end = g.end<Vertex>();
-    for (; it != it_end; ++it )
-        aaNID[*it] = -1;
+    for (; it != it_end; ++it)
+        aaNID[*it] = (uint) -1;
 
-    int nid = -1;
+    uint nid = (uint) -1;
     for (it = g.begin<Vertex>(); it != it_end; ++it)
-        if (aaNID[*it] == -1)
+        if (aaNID[*it] == (uint) -1)
             depth_first_search(g, aaNID, *it, ++nid);
+
+#ifdef UG_PARALLEL
+    // in the parallel case, we need to offset distributed IDs
+    unsigned long num_id = ++nid;
+    if (pcl::NumProcs() > 1)
+    {
+    	size_t numProcs = (size_t) pcl::NumProcs();
+    	int rank = pcl::ProcRank();
+    	unsigned long* gatheredNIDcounts = NULL;
+    	if (rank == 0)
+    		gatheredNIDcounts = new unsigned long[numProcs];
+    	pcl::ProcessCommunicator pc;
+    	pc.gather(&num_id, 1, PCL_DT_UNSIGNED_LONG, gatheredNIDcounts, 1, PCL_DT_UNSIGNED_LONG, 0);
+
+    	// calculate offsets
+    	if (rank == 0)
+    	{
+    		unsigned long nextOffset = 0;
+    		for (size_t i = 0; i < numProcs; ++i)
+    		{
+    			nextOffset += gatheredNIDcounts[i];
+    			gatheredNIDcounts[i] = nextOffset - gatheredNIDcounts[i];
+    		}
+    	}
+
+    	// scatter offsets
+    	unsigned long offset;
+    	pc.scatter(gatheredNIDcounts, 1, PCL_DT_UNSIGNED_LONG, &offset, 1, PCL_DT_UNSIGNED_LONG, 0);
+
+    	// add the offset to all ids
+    	for (it = g.begin<Vertex>(); it != it_end; ++it)
+			aaNID[*it] += (uint) offset;
+    }
+#endif
+
+    // don not calculate IDs again
+	hasBeenDone = true;
 }
 
 
@@ -380,7 +429,7 @@ void save_neuron_to_swc
 
 
     // find a vertex of the neuron with required index
-    typedef Attachment<int> ANeuronID;
+    typedef Attachment<uint> ANeuronID;
 
     if (!GlobalAttachments::is_declared("neuronID"))
         UG_THROW("GlobalAttachment 'NeuronID' not declared.");
@@ -400,7 +449,7 @@ void save_neuron_to_swc
         // iterate vertices until correct nid is encountered
         VertexIterator it = mg->begin<Vertex>();
         VertexIterator it_end = mg->end<Vertex>();
-        while (it != it_end && m_aaNID[*it] != (int) neuronIndex)
+        while (it != it_end && m_aaNID[*it] != neuronIndex)
             ++it;
 
         UG_COND_THROW(it == it_end, "A neuron with the required index " << neuronIndex
@@ -423,17 +472,17 @@ void save_neuron_to_swc
         for (; it != it_end; ++it )
             aaNID[*it] = -1;
 
-        int nid = -1;
+        uint nid = (uint) -1;
         for (it = mg->begin<Vertex>(); it != it_end; ++it)
         {
-            if (aaNID[*it] == -1)
+            if (aaNID[*it] == (uint) -1)
             {
-                if (++nid == (int) neuronIndex) break;
+                if (++nid == neuronIndex) break;
                 depth_first_search(*mg, aaNID, *it, nid);
             }
         }
 
-        UG_COND_THROW(nid < (int) neuronIndex, "Neuron with index " << neuronIndex << " cannot be saved.\n"
+        UG_COND_THROW(nid < neuronIndex, "Neuron with index " << neuronIndex << " cannot be saved.\n"
             "Only " << nid+1 << " neurons contained in grid.");
 
         start = *it;
@@ -557,6 +606,105 @@ void save_neuron_to_swc
             "upper/lower case can be ignored.");
 
     outFile.close();
+}
+
+
+
+
+size_t innermost_neuron_id_in_subset(const std::string& ss, ConstSmartPtr<MGSubsetHandler> sh)
+{
+	// get subset id from name
+	SubsetGroup ssg(sh, ss);
+	UG_COND_THROW(ssg.size() != 1,
+		"Could not determine a unique subset ID from given subset name '" << ss << "'.");
+	int si = ssg[0];
+
+	// position access
+	const Domain3d::position_accessor_type& aaPos
+		= Grid::VertexAttachmentAccessor<APosition>(*sh->grid(), aPosition);
+
+	// neuron IDs
+	typedef Attachment<uint> ANeuronID;
+
+	if (!GlobalAttachments::is_declared("neuronID"))
+		UG_THROW("GlobalAttachment 'NeuronID' not declared.");
+
+	ANeuronID aNID(GlobalAttachments::attachment<ANeuronID>("neuronID"));
+	Grid::VertexAttachmentAccessor<ANeuronID> m_aaNID;
+
+	if (!sh->grid()->has_vertex_attachment(aNID))
+	{
+		sh->grid()->attach_to_vertices(aNID);
+		neuron_identification(*sh->grid());
+	}
+	m_aaNID = Grid::VertexAttachmentAccessor<ANeuronID>(*sh->grid(), aNID);
+
+
+	// calculate center
+	size_t n = 0;
+	vector3 center(0.0);
+	ConstVertexIterator it = sh->begin<Vertex>(si, 0);
+	ConstVertexIterator it_end = sh->end<Vertex>(si, 0);
+	for (; it != it_end; ++it)
+	{
+		++n;
+		VecAdd(center, center, aaPos[*it]);
+	}
+
+	// communicate center and number
+#ifdef UG_PARALLEL
+	if (pcl::NumProcs() > 1)
+	{
+		pcl::ProcessCommunicator pc;
+		n = pc.allreduce(n, PCL_RO_SUM);
+		vector3 globCenter;
+		pc.allreduce(&center[0], &globCenter[0], 3, PCL_RO_SUM);
+		center = globCenter;
+	}
+#endif
+
+	VecScale(center, center, (number) 1.0 / n);
+
+	// find vertex nearest to center
+	uint minID = 0;
+	number minSqDist = std::numeric_limits<number>::max();
+	for (it = sh->begin<Vertex>(si, 0); it != it_end; ++it)
+	{
+		number distSq = VecDistanceSq(center, aaPos[*it]);
+		if (distSq < minSqDist)
+		{
+			minSqDist = distSq;
+			minID = m_aaNID[*it];
+		}
+	}
+
+	// communicate
+#ifdef UG_PARALLEL
+	if (pcl::NumProcs() > 1)
+	{
+		pcl::ProcessCommunicator pc;
+		size_t nProc = pcl::NumProcs();
+
+		number* minDists = NULL;
+		if (pcl::ProcRank() == 0)
+			minDists = new number[nProc];
+		pc.gather(&minSqDist, 1, PCL_DT_DOUBLE, minDists, 1, PCL_DT_DOUBLE, 0);
+
+		size_t minProc = 0;
+		if (pcl::ProcRank() == 0)
+		{
+			for (size_t i = 1; i < nProc; ++i)
+				if (minDists[i] < minSqDist)
+					minProc = i;
+
+			delete[] minDists;
+		}
+		pc.broadcast(minProc, 0);
+		pc.broadcast(minID, minProc);
+	}
+#endif
+
+	return minID;
 }
 
 

@@ -123,6 +123,17 @@ void save_neuron_to_swc
 );
 
 
+/**
+ * @brief calculate neuron ID of innermost vertex of subset
+ *
+ * This method can be useful to determine the neuron ID of a neuron
+ * well inside a large network.
+ *
+ * @param ss subset name
+ * @param sh subset handler
+ */
+size_t innermost_neuron_id_in_subset(const std::string& ss, ConstSmartPtr<MGSubsetHandler> sh);
+
 
 /// length of neurite subset
 number subset_length(int si, ConstSmartPtr<MGSubsetHandler> sh);

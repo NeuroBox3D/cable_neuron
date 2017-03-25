@@ -801,6 +801,10 @@ struct Functionality
 		                 "", "ugx file name # neuron index # swc file name # scale",
 		                 "Save a single neuron from a ugx neuronal network to swc.");
 
+		// innermost_neuron_id_in_subset
+		reg.add_function("innermost_neuron_id_in_subset", &innermost_neuron_id_in_subset, grp.c_str(),
+						 "", "subset name # subset handler", "");
+
 		// neurite subset length
 		reg.add_function("subset_length", static_cast<number (*) (int, ConstSmartPtr<MGSubsetHandler>)>(&subset_length),
             grp.c_str(), "length of neurite subset",
@@ -820,6 +824,8 @@ struct Functionality
 
 
 
+
+
 /// This function is called when the plugin is loaded.
 extern "C" void
 InitUGPlugin_cable_neuron(Registry* reg, string grp)
@@ -829,7 +835,7 @@ InitUGPlugin_cable_neuron(Registry* reg, string grp)
 	// declare global grid attachments for diameter, synapses and presynaptic indices
 	typedef ANumber ADiameter;
 	typedef Attachment<std::vector<IBaseSynapse*> >AVSynapse;
-	typedef Attachment<int> ANeuronID;
+	typedef Attachment<uint> ANeuronID;
 
 	GlobalAttachments::declare_attachment<ADiameter>("diameter", true);
 	GlobalAttachments::declare_attachment<AVSynapse>("synapses", false);

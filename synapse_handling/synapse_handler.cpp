@@ -2,7 +2,7 @@
  * SynapseHandler.cpp
  *
  *  Created on: Mar 23, 2016
- *      Author: lreinhardt
+ *      Author: lreinhardt, mbreit
  */
 
 #include "synapse_handler.h"
@@ -158,7 +158,6 @@ void SynapseHandler<TDomain>::grid_first_available()
 
    	// gather all synapses from surface and build all maps
 	collect_synapses_from_grid();
-	neuron_identification(*m_spGrid);
 
 	// set activation timing for alpha synapses
     set_activation_timing_with_grid();
@@ -177,7 +176,7 @@ void SynapseHandler<TDomain>::grid_first_available()
     m_bInited = true;
 }
 
-
+#if 0
 template <typename TDomain>
 void
 SynapseHandler<TDomain>::get_currents
@@ -227,7 +226,7 @@ SynapseHandler<TDomain>::get_currents
     }
 #endif
 }
-
+#endif
 
 template <typename TDomain>
 void
@@ -355,8 +354,10 @@ update_presyn(number time)
 	for (size_t i=0; i<vNewActivePostSynapseIds_global.size(); ++i) {
 		synapse_id psid = vNewActivePostSynapseIds_global[i];
 
-		if (m_mPostSynapses.find(psid) != m_mPostSynapses.end()) { // synapse id found on local process
-			m_mPostSynapses[psid]->activate(time);
+		std::map<synapse_id, IPostSynapse*>::iterator post_it = m_mPostSynapses.find(psid);
+		if (post_it != m_mPostSynapses.end()) { // synapse id found on local process
+			post_it->second->activate(time);
+			m_mActivePostSynapses[psid] = post_it->second;
 		}
 	}
 
@@ -364,8 +365,10 @@ update_presyn(number time)
 	for (size_t i=0; i<vNewInactivePostSynapseIds_global.size(); ++i) {
 		synapse_id psid = vNewInactivePostSynapseIds_global[i];
 
-		if (m_mPostSynapses.find(psid) != m_mPostSynapses.end()) {
-			m_mPostSynapses[psid]->deactivate();
+		std::map<synapse_id, IPostSynapse*>::iterator post_it = m_mPostSynapses.find(psid);
+		if (post_it != m_mPostSynapses.end()) {
+			post_it->second->deactivate();
+			m_mActivePostSynapses.erase(psid);
 		}
 	}
 #endif
@@ -712,6 +715,8 @@ void SynapseHandler<TDomain>::show_status(number t)
     //std::cout << "AlphaPreSynapse iterator end(): " << &*end<AlphaPreSynapse>() << std::endl;
 }
 
+#if 0
+// unused
 template <typename TDomain>
 const std::vector<synapse_id> SynapseHandler<TDomain>::active_presynapses() const
 {
@@ -727,7 +732,7 @@ const std::vector<synapse_id> SynapseHandler<TDomain>::active_presynapses() cons
 
 	return syn_id_ret;
 }
-
+#endif
 
 template <typename TDomain>
 void SynapseHandler<TDomain>::active_postsynapses_and_currents
@@ -740,10 +745,11 @@ void SynapseHandler<TDomain>::active_postsynapses_and_currents
 	vActSynOut.clear();
 	vSynCurrOut.clear();
 
-	std::map<synapse_id, IPreSynapse*>::const_iterator it = m_mActivePreSynapses.begin();
-	std::map<synapse_id, IPreSynapse*>::const_iterator itEnd = m_mActivePreSynapses.end();
+	std::map<synapse_id, IPostSynapse*>::const_iterator it = m_mActivePostSynapses.begin();
+	std::map<synapse_id, IPostSynapse*>::const_iterator itEnd = m_mActivePostSynapses.end();
 
-	while (it != itEnd) {
+	while (it != itEnd)
+	{
 		synapse_id id = it->first;
 		vActSynOut.push_back(id);
 
@@ -761,6 +767,27 @@ void SynapseHandler<TDomain>::active_postsynapses_and_currents
 
 		++it;
 	}
+}
+
+
+template <typename TDomain>
+Edge* SynapseHandler<TDomain>::postsyn_edge(synapse_id postSynID) const
+{
+	std::map<synapse_id, Edge*>::const_iterator it = m_mPostSynapseIdToEdge.find(postSynID);
+	UG_COND_THROW(it == m_mPostSynapseIdToEdge.end(), "Requested edge for post-synapse with ID "
+		<< postSynID << " which is not present.");
+
+	return it->second;
+}
+
+template <typename TDomain>
+Edge* SynapseHandler<TDomain>::presyn_edge(synapse_id preSynID) const
+{
+	std::map<synapse_id, Edge*>::const_iterator it = m_mPreSynapseIdToEdge.find(preSynID);
+	UG_COND_THROW(it == m_mPreSynapseIdToEdge.end(), "Requested edge for pre-synapse with ID "
+		<< preSynID << " which is not present.");
+
+	return it->second;
 }
 
 

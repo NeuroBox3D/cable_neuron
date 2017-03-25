@@ -2,7 +2,7 @@
  * SynapseHandler.h
  *
  *  Created on: Mar 23, 2016
- *      Author: lreinhardt
+ *      Author: lreinhardt, mbreit
  */
 
 #ifndef UG__PLUGINS__CABLE_NEURON__SYNAPSE_HANDLING__SYNAPSE_HANDLER_H_
@@ -89,9 +89,10 @@ private:
 	std::map<synapse_id, IPreSynapse*> m_mPreSynapses; // " ... "
 	std::map<synapse_id, IPostSynapse*> m_mPostSynapses; // " ... "
 
-	std::map<synapse_id, IPreSynapse*> m_mActivePreSynapses; //internal memory of currently active presynapses
-	std::map<synapse_id, Edge*> m_mPreSynapseIdToEdge; //maps presynapses to their edge
-	std::map<synapse_id, Edge*> m_mPostSynapseIdToEdge; //maps presynapses to their edge
+	std::map<synapse_id, IPreSynapse*> m_mActivePreSynapses; // internal memory of currently active pre-synapses
+	std::map<synapse_id, IPostSynapse*> m_mActivePostSynapses; // internal memory of currently active post-synapses
+	std::map<synapse_id, Edge*> m_mPreSynapseIdToEdge; // maps presynapses to their edge
+	std::map<synapse_id, Edge*> m_mPostSynapseIdToEdge; // maps presynapses to their edge
 
 	SmartPtr<GeomObjDataSerializer<Edge> > m_spSAS;
 	MessageHub::SPCallbackId m_spGridDistributionCallbackID;
@@ -264,11 +265,13 @@ public:
     //
     number current(synapse_id) const;
 
+#if 0
     /**
      * Returns vector of currents, and a vector of their corresponding synapse id's
      * at time t on neuron nid.
      */
     void get_currents(number t, int nid, std::vector<number>& vCurrOut, std::vector<synapse_id>& vSidOut);
+#endif
 
     /**
      * @brief Functionality executed when the grid is first known to synapse handler.
@@ -291,8 +294,8 @@ public:
      */
     void update_presyn(number time);
 
-    // TODO: make that return a const reference and just return m_mActivePreSynapses
-    const std::vector<synapse_id> active_presynapses() const;
+    // unused
+    //const std::vector<synapse_id> active_presynapses() const;
 
     /// getter for active synapse IDs and their currents
     void active_postsynapses_and_currents
@@ -301,6 +304,10 @@ public:
 		std::vector<number>& vSynCurrOut,
 		number time
 	) const;
+
+
+    Edge* postsyn_edge(synapse_id postSynID) const;
+    Edge* presyn_edge(synapse_id preSynID) const;
 
 
     /**
