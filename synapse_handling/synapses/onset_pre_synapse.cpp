@@ -8,6 +8,7 @@
 #include "onset_pre_synapse.h"
 
 #include <boost/lexical_cast.hpp>
+#include <limits>
 
 
 namespace ug {
@@ -19,7 +20,7 @@ const std::string OnsetPreSynapse::name_string = "OnsetPreSynapse";
 
 OnsetPreSynapse::OnsetPreSynapse()
 :IPreSynapse(0, 0),
- m_onset(0),m_duration(0)
+ m_onset(std::numeric_limits<number>::max()), m_duration(0)
 {}
 
 OnsetPreSynapse::OnsetPreSynapse(
