@@ -792,6 +792,20 @@ Edge* SynapseHandler<TDomain>::presyn_edge(synapse_id preSynID) const
 
 
 template <typename TDomain>
+IPreSynapse* SynapseHandler<TDomain>::pre_synapse(synapse_id id) const
+{
+	return m_mPreSynapses.at(id);
+}
+
+
+template <typename TDomain>
+IPostSynapse* SynapseHandler<TDomain>::post_synapse(synapse_id id) const
+{
+	return m_mPostSynapses.at(id);
+}
+
+
+template <typename TDomain>
 void SynapseHandler<TDomain>::grid_distribution_callback(const GridMessage_Distribution& gmd)
 {
 	if (gmd.msg() == GMDT_DISTRIBUTION_STARTS)

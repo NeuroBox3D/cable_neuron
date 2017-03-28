@@ -309,6 +309,8 @@ public:
     Edge* postsyn_edge(synapse_id postSynID) const;
     Edge* presyn_edge(synapse_id preSynID) const;
 
+    IPreSynapse* pre_synapse(synapse_id id) const;
+    IPostSynapse* post_synapse(synapse_id id) const;
 
     /**
 	 * Returns a begin iterator to the desired synapse type.
