@@ -20,15 +20,18 @@ namespace synapse_handler {
 
 /*!
  * \brief synapses types
+ * @todo somehow move the association of types and integers
+ *       to the synapse_dealer and automize it
  */
-enum SynapseType {
-	EMPTY_SYNAPSE=0,
-	ALPHA_SYNAPSE,
-	EXP2_SYNAPSE,
-	JANA_SYNAPSE_FROM_MARKUS_WITH_LOVE, // credit to M.S. for creative naming :)
+enum SynapseType
+{
+	// add new synapse types here
+	// beware to keep sub-types in order:
+	// all pre-synapses first, then all post-synapses
+	UNDEF = 0,
 	ONSET_PRE_SYNAPSE,
-	ALPHA_POST_SYNAPSE,
 	THRESHOLD_PRE_SYNAPSE,
+	ALPHA_POST_SYNAPSE,
 	EXP2_POST_SYNAPSE
 };
 

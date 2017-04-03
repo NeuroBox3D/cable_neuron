@@ -71,12 +71,12 @@ template <typename TDomain>
 class SynapseHandler
 {
 private:
-	typedef Attachment<std::vector<IBaseSynapse*> > AVSSynapse;
+	typedef Attachment<std::vector<IBaseSynapse*> > AVSynapse;
 	Grid::VertexAttachmentAccessor<APosition> m_aaPosition;
 
 
-	AVSSynapse m_aSyn;
-	Grid::EdgeAttachmentAccessor<AVSSynapse> m_aaSyn;
+	AVSynapse m_aSyn;
+	Grid::EdgeAttachmentAccessor<AVSynapse> m_aaSyn;
 
 	bool m_bInited;
 	SmartPtr<MultiGrid> m_spGrid;
@@ -313,6 +313,8 @@ public:
     /**
 	 * Returns a begin iterator to the desired synapse type.
 	 * Templates have to be specialized for use in LUA.
+	 * TODO: Improve at least to log(N) complexity (m_vAllSynapses is type-ordered!)
+	 *       Better yet, save offsets for types for constant access.
 	 */
 	template <typename TSyn>
 	SynapseIter<TSyn> begin() {
@@ -334,6 +336,8 @@ public:
 	/**
 	 * Returns an end iterator to the desired synapse type.
 	 * Templates have to be specialized for use in LUA.
+	 * TODO: Improve at least to log(N) complexity (m_vAllSynapses is type-ordered!)
+	 *       Better yet, save offsets for types for constant access.
 	 */
 	template <typename TSyn>
 	SynapseIter<TSyn> end() {

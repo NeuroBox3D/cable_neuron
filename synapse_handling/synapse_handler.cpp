@@ -12,15 +12,15 @@
 #include "../util/functions.h"   // neuron_identification
 #include "synapse_info_io_traits.h" // needed in GlobalAttachments::attachment
 #include "synapse_attachment_serializer.h"
-#include "synapses/alpha_post_synapse.h"
-#include "synapses/exp2_post_synapse.h"
 #include <boost/random.hpp>
 #include <boost/random/normal_distribution.hpp>
 
-#include <algorithm>    // std::sort
-
 #include "synapses/onset_pre_synapse.h"
 #include "synapses/threshold_pre_synapse.h"
+#include "synapses/alpha_post_synapse.h"
+#include "synapses/exp2_post_synapse.h"
+
+#include <algorithm>    // std::sort
 
 
 namespace ug {
@@ -29,7 +29,7 @@ namespace synapse_handler {
 
 template <typename TDomain>
 SynapseHandler<TDomain>::SynapseHandler()
-: m_aSyn(GlobalAttachments::attachment<AVSSynapse>("synapses")),
+: m_aSyn(GlobalAttachments::attachment<AVSynapse>("synapses")),
   m_bInited(false),
   m_spGrid(SPNULL),
   m_spCEDisc(SPNULL),
@@ -148,7 +148,7 @@ void SynapseHandler<TDomain>::grid_first_available()
     m_aaPosition = Grid::VertexAttachmentAccessor<APosition>(*m_spGrid, aPosition);
 
     // synapse access
-    m_aaSyn = Grid::EdgeAttachmentAccessor<AVSSynapse>(*m_spGrid, m_aSyn);
+    m_aaSyn = Grid::EdgeAttachmentAccessor<AVSynapse>(*m_spGrid, m_aSyn);
 
     // propagate synapse attachments through levels
     m_ssah.set_grid(m_spGrid);
