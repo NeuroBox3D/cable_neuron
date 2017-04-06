@@ -557,9 +557,14 @@ struct Functionality
                     "", "timing values as six-component vector (mean onset, dev onset, mean tau, dev tau, mean peak conductance, dev peak conductance)"
                         "#ball region as four component vector (center coordinates, radius)",
                     "Add a ball-shaped region with specific activation pattern for alpha post-synapses.")
+                 .add_method("add_activation_timing_exp2_ball", &TSH::add_activation_timing_exp2_ball,
+                                        "", "timing values as six-component vector (mean onset, dev onset, mean tau, dev tau, mean peak conductance, dev peak conductance)"
+                                            "#ball region as four component vector (center coordinates, radius)",
+                                        "Add a ball-shaped region with specific activation pattern for exp2 post-synapses.")
 
 				.add_method("show_status", &TSH::show_status)
 				.set_construct_as_smart_pointer(true);
+			///FIXME add correct parameters for exp2 ball
 			reg.add_class_to_group(name, "SynapseHandler", tag);
 		}
 

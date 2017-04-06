@@ -121,8 +121,29 @@ private:
     bool m_prim_biexp_constSeed;
     /// @}
 
+    ///// FIXME: This should be refactored into something accordingly I suggest:
+    /**
+     * struct ballTimings {
+     *	 template <typename TSyn>
+     *	 void handle_ball_timing(TSyn begin, TSyn end) {
+     *	 	/// handle timing for synapse depending on synapse type
+     *	 	/// e.g. iterate only over stimulation balls which correspond to synapse type
+     *	 }
+     *	 private:
+     *	 typedef std::vector<std::pair<std::vector<number>, std::vector<number> > >  TIMINGS;
+     *	 std::pair<SYNAPSE_TYPE, std::vector<TIMINGS> > m_pTimings;
+     *	 void add_ball_timing(const TIMINGS& timing, const SYNAPSE_TYPE& type) {
+     *	 	 m_pTimings[type].push_back(timing);
+     *	 }
+     *
+     *  Then: synapse_handler.cpp can call handle_ball_timings<SynapseType>(it_begin, it_end);
+     *  and all responsibilities for the ball timings are hidden properly...
+     *
+     */
     /// alpha synapse ball timings
-    std::vector<std::pair<std::vector<number>, std::vector<number> > > m_vTimingBalls;
+    std::vector<std::pair<std::vector<number>, std::vector<number> > > m_vTimingAlphaBalls;
+    /// biexp synapse ball timings
+    std::vector<std::pair<std::vector<number>, std::vector<number> > > m_vTimingBiExpBalls;
 
 private:
 	// do not use copy ctor
@@ -249,6 +270,22 @@ public:
         const std::vector<number>& alpha_timings,
         const std::vector<number>& ball
     );
+
+   /**
+     * @brief Adds an activation timing for a ball region.
+     * Specify alpha synapses timings by providing a vector with start time,
+     * duration, start time deviation, duration deviation & peak conductance
+     * FIXME add correct parameters
+     *
+     * @param biexp_timings
+     * @param ball
+     */
+    void add_activation_timing_exp2_ball
+    (
+        const std::vector<number>& biexp_timings,
+        const std::vector<number>& ball
+    );
+
 
 
     /// all synapses located on a specified edge
