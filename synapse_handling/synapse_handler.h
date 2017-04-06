@@ -142,6 +142,7 @@ private:
      */
     /// alpha synapse ball timings
     std::vector<std::pair<std::vector<number>, std::vector<number> > > m_vTimingAlphaBalls;
+
     /// biexp synapse ball timings
     std::vector<std::pair<std::vector<number>, std::vector<number> > > m_vTimingBiExpBalls;
 

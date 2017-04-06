@@ -660,7 +660,6 @@ set_activation_timing_with_grid()
         for (; it != it_end; ++it)
         {
             OnsetPreSynapse* onsetSyn = *it;
-
             // check whether synapse is located in within ball
             Edge* e = m_mPreSynapseIdToEdge[onsetSyn->id()];
             vector3 a = m_aaPosition[e->vertex(0)];
