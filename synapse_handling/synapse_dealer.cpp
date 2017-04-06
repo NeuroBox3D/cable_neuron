@@ -8,7 +8,9 @@
 #include "synapse_dealer.h"
 #include "common/log.h"
 #include "common/assert.h"
+#ifdef UG_PARALLEL
 #include "pcl/pcl_process_communicator.h"
+#endif
 
 
 namespace ug {

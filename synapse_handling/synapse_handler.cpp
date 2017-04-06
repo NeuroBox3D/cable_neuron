@@ -8,7 +8,9 @@
 #include "synapse_handler.h"
 
 #include "common/error.h"
+#ifdef UG_PARALLEL
 #include "pcl/pcl_process_communicator.h"
+#endif
 #include "../util/functions.h"   // neuron_identification
 #include "synapse_info_io_traits.h" // needed in GlobalAttachments::attachment
 #include "synapse_attachment_serializer.h"
