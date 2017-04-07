@@ -776,10 +776,6 @@ set_activation_timing_with_grid()
             {
             case EXP2_POST_SYNAPSE:
                 {
-                    // if parameters have not been set, do nothing
-                    if (m_prim_biexp_onset_mean == std::numeric_limits<number>::max())
-                        break;
-
                     // cast to alpha post-synapse
                 	Exp2PostSynapse* exp2Post = dynamic_cast<Exp2PostSynapse*>(post);
                     UG_COND_THROW(!exp2Post, "Synapse claiming to be exp2 post synapse, but is not.");
