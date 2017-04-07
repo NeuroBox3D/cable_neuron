@@ -475,7 +475,7 @@ add_activation_timing_exp2_ball
     UG_COND_THROW(m_bInited, "The activation timing cannot be changed after addition of the\n"
                   "original CableEquation object to the domain discretization.");
 
-    UG_COND_THROW(biexp_timings.size() != 8, "Expected 8 timing values for alpha synapses.");
+    UG_COND_THROW(biexp_timings.size() != 8, "Expected 8 timing values for exp2 synapses.");
     UG_COND_THROW(ball.size() != 4, "Expected 4 parameters (x, y, z, d) to describe the ball in 3d.");
 
     // add activation timing for a ball
@@ -791,7 +791,7 @@ set_activation_timing_with_grid()
                     tau1 = tau1 < 0 ? 0 : tau1;
 
                     number tau2 = var_tau2();
-                    tau1 = tau2 < 0 ? 0 : tau2;
+                    tau2 = tau2 < 0 ? 0 : tau2;
 
                     number cond = var_cond();
                     cond = cond < 0 ? 0 : cond;

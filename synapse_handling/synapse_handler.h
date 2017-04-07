@@ -272,11 +272,12 @@ public:
         const std::vector<number>& ball
     );
 
+
    /**
      * @brief Adds an activation timing for a ball region.
-     * Specify alpha synapses timings by providing a vector with start time,
-     * duration, start time deviation, duration deviation & peak conductance
-     * FIXME add correct parameters
+     * Specify exp2 synapses timings by providing a vector with onset time,
+     * tau1 mean, tau2 mean, peak conductance, onset deviation tau1 deviation
+     * tau2 deviation and deviation of peak conductance
      *
      * @param biexp_timings
      * @param ball
