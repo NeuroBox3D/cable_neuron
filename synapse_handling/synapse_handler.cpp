@@ -854,7 +854,7 @@ void SynapseHandler<TDomain>::active_postsynapses_and_currents
 	std::vector<synapse_id>& vActSynOut,
 	std::vector<number>& vSynCurrOut,
 	const std::vector<uint>& vNid,
-	const Grid::VertexAttachmentAccessor<uint>& aaNID,
+	const Grid::VertexAttachmentAccessor<Attachment<uint> >& aaNID,
 	number time
 ) const
 {
