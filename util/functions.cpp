@@ -694,9 +694,13 @@ size_t innermost_neuron_id_in_subset(const std::string& ss, ConstSmartPtr<MGSubs
 		if (pcl::ProcRank() == 0)
 		{
 			for (size_t i = 1; i < nProc; ++i)
+			{
 				if (minDists[i] < minSqDist)
+				{
+					minSqDist = minDists[i];
 					minProc = i;
-
+				}
+			}
 			delete[] minDists;
 		}
 		pc.broadcast(minProc, 0);
