@@ -457,6 +457,7 @@ void SynapseDistributor::place_synapses_uniform
 
         vector3 a = m_aaPosition[e->vertex(0)];
         vector3 b = m_aaPosition[e->vertex(1)];
+        /// FIXME: unsafe comparison
         if (VecDistanceSq(a, center) < radius*radius && VecDistanceSq(b, center) < radius*radius)
         {
             length += EdgeLength(e, m_aaPosition);
@@ -467,6 +468,43 @@ void SynapseDistributor::place_synapses_uniform
     // place synapses on in-ball edges
     size_t numSynapses = (size_t) (length * density);
     place_synapses_uniform(vEdges, numSynapses, type);
+}
+
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+// place_synapses_uniform
+void SynapseDistributor::place_synapses_uniform
+(
+	size_t numSyn,
+	number x,
+	number y,
+	number z,
+	number r,
+	const std::string& type
+) {
+	// center of ball
+    vector3 center(x, y, z);
+
+    // save all edges within ball centered at center and radius r
+	std::vector<Edge*> vEdges;
+	EdgeIterator it = m_spGrid->begin<Edge>(0);
+	EdgeIterator it_end = m_spGrid->end<Edge>(0);
+	for (; it != it_end; ++it)
+	{
+		Edge* e = *it;
+	    vector3 start = m_aaPosition[e->vertex(0)];
+	    vector3 end = m_aaPosition[e->vertex(1)];
+	    number distanceFromStartToCenter = fabs(VecDistanceSq(start, center) - r*r);
+	    number distanceFromEndToCenter = fabs(VecDistanceSq(end, center) - r*r);
+	    if (distanceFromStartToCenter < SMALL && distanceFromEndToCenter < SMALL)
+	    {
+            vEdges.push_back(e);
+	    }
+	}
+
+	/// place number of synapses (numSyn) on detected edges in ball uniformly
+    place_synapses_uniform(vEdges, numSyn, type);
 }
 
 

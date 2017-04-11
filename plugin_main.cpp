@@ -777,9 +777,11 @@ struct Functionality
                 .add_method("place_synapses_uniform",
                     static_cast<void (TSD::*)(number, number, number, number, number, const string&)>(&TSD::place_synapses_uniform),
                     "", "subset name#density (m^-1)#synapse type", "Uniformly distributes post-synapses in ball region.")
+                .add_method("place_synapses_uniform",
+                    static_cast<void (TSD::*)(size_t, number, number, number, number, const string&)>(&TSD::place_synapses_uniform),
+                    "", "number of synapses#x#y#z#radius#type of synapse")
 				.add_method("place_synapses", &TSD::place_synapses,
 				    "", "", "Distributes post-synapses according to given distribution on the subsets.")
-
 				.add_method("degenerate_uniform", static_cast<void (TSD::*)(number)>(&TSD::degenerate_uniform),
 				    "", "percentage", "Removes a percentage of synapses from the grid.")
 				.add_method("degenerate_uniform", static_cast<void (TSD::*)(number, int)>(&TSD::degenerate_uniform),

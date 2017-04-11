@@ -776,7 +776,7 @@ set_activation_timing_with_grid()
             {
             case EXP2_POST_SYNAPSE:
                 {
-                    // cast to alpha post-synapse
+                    // cast to exp2 post-synapse
                 	Exp2PostSynapse* exp2Post = dynamic_cast<Exp2PostSynapse*>(post);
                     UG_COND_THROW(!exp2Post, "Synapse claiming to be exp2 post synapse, but is not.");
 
@@ -789,8 +789,8 @@ set_activation_timing_with_grid()
                     number tau2 = var_tau2();
                     tau2 = tau2 < 0 ? 0 : tau2;
 
-                    number cond = var_cond();
-                    cond = cond < 0 ? 0 : cond;
+                    number peakCond = var_peakCond();
+                    peakCond = peakCond < 0 ? 0 : peakCond;
 
                     number duration = tau1 * tau2 / (tau2 - tau1) * log(tau2 / tau1);
                     duration += 3*tau2;
@@ -799,7 +799,7 @@ set_activation_timing_with_grid()
                     onsetSyn->set_duration(duration);
                     exp2Post->set_tau1(tau1);
                     exp2Post->set_tau2(tau2);
-                    exp2Post->set_gMax(cond);
+                    exp2Post->set_gMax(peakCond);
                     break;
                 }
                 default:

@@ -112,10 +112,21 @@ public:
      * @param[in] x x coordinate of center
      * @param[in] y y coordinate of center
      * @param[in] z z coordinate of center
-     * @param[in] radius radius of the ball
+     * @param[in] w radius radius of the ball
      * @param[in] type synapse type
      */
 	void place_synapses_uniform(number density, number x, number y, number z, number radius, const std::string& type);
+
+   /**
+     * @brief Place synapses uniformly on all edges contained within a ball.
+     * @param[in] numSyn number of synapses to be distributed
+     * @param[in] x x coordinate of center
+     * @param[in] y y coordinate of center
+     * @param[in] z z coordinate of center
+     * @param[in] w radius radius of the ball
+     * @param[in] type synapse type
+     */
+	void place_synapses_uniform(size_t numSyn, number x, number y, number z, number radius, const std::string& type);
 
 // synapse degeneration //
 	/// Randomly remove a given percentage of all synapses from the grid.
