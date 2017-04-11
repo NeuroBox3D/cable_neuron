@@ -341,6 +341,8 @@ public:
 	(
 		std::vector<synapse_id>& vActSynOut,
 		std::vector<number>& vSynCurrOut,
+		const std::vector<uint>& vNid,
+		const Grid::VertexAttachmentAccessor<Attachment<uint> >& aaNID,
 		number time
 	) const;
 

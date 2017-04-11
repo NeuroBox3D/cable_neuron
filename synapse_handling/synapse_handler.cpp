@@ -853,22 +853,33 @@ void SynapseHandler<TDomain>::active_postsynapses_and_currents
 (
 	std::vector<synapse_id>& vActSynOut,
 	std::vector<number>& vSynCurrOut,
+	const std::vector<uint>& vNid,
+	const Grid::VertexAttachmentAccessor<Attachment<uint> >& aaNID,
 	number time
 ) const
 {
 	vActSynOut.clear();
 	vSynCurrOut.clear();
 
+	const size_t nNid = vNid.size();
+
 	std::map<synapse_id, IPostSynapse*>::const_iterator it = m_mActivePostSynapses.begin();
 	std::map<synapse_id, IPostSynapse*>::const_iterator itEnd = m_mActivePostSynapses.end();
 
-	while (it != itEnd)
+	for (; it != itEnd; ++it)
 	{
 		synapse_id id = it->first;
-		vActSynOut.push_back(id);
-
 		Edge* e = m_mPostSynapseIdToEdge.at(id);
 		Vertex* v0 = e->vertex(0);
+
+		// only treat neuron IDs of interest further
+		uint nid = aaNID[v0];
+		for (size_t n = 0; n < nNid; ++n)
+			if (vNid[n] == nid)
+				goto nid_of_interest;
+		continue;
+
+nid_of_interest:
 		Vertex* v1 = e->vertex(1);
 
 		number rel_loc = it->second->location();
@@ -877,9 +888,8 @@ void SynapseHandler<TDomain>::active_postsynapses_and_currents
 		IPostSynapse* post = m_mPostSynapses.at(id);
 		number curr = post->current(time, vm);
 
+		vActSynOut.push_back(id);
 		vSynCurrOut.push_back(curr);
-
-		++it;
 	}
 }
 
