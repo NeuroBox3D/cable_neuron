@@ -321,20 +321,27 @@ update_presyn(number time)
 			m_mActivePreSynapses[s->id()] = s;
 #ifdef UG_PARALLEL
 			if (pcl::NumProcs() > 1)
-			    vNewActivePostSynapseIds_local.push_back(s->id());
+				vNewActivePostSynapseIds_local.push_back(s->id());
 			else
 #endif
-			    m_mPostSynapses[s->id()]->activate(time);
-
+			{
+				std::map<synapse_id, IPostSynapse*>::iterator post_it = m_mPostSynapses.find(s->id());
+				UG_COND_THROW(post_it == m_mPostSynapses.end(), "Presynapse index " << s->id() << " without postsynapse.");
+				m_mPostSynapses[post_it->first]->activate(time);
+				m_mActivePostSynapses[post_it->first] = post_it->second;
+			}
 		// pre-synapse becomes inactive
 		} else if (!s->is_active(time) && m_mActivePreSynapses.find(s->id()) != m_mActivePreSynapses.end()) {
-		    m_mActivePreSynapses.erase(s->id());
+			m_mActivePreSynapses.erase(s->id());
 #ifdef UG_PARALLEL
-		    if (pcl::NumProcs() > 1)
-		        vNewInactivePostSynapseIds_local.push_back(s->id());
-		    else
+			if (pcl::NumProcs() > 1)
+				vNewInactivePostSynapseIds_local.push_back(s->id());
+			else
 #endif
-		        m_mPostSynapses[s->id()]->deactivate();
+			{
+				m_mPostSynapses[s->id()]->deactivate();
+				m_mActivePostSynapses.erase(s->id());
+			}
 		}
 	}
 
@@ -609,7 +616,10 @@ set_activation_timing_with_grid()
                 peakCond = peakCond < 0 ? 0 : peakCond;
 
                 number duration = tau1 * tau2 / (tau2 - tau1) * log(tau2 / tau1);
-                duration += 3*tau2;
+				if (fabs(1.0 - tau1/tau2) < 1e-8)
+					duration = tau2;
+
+				duration += 5*tau2;
 
 
                 onsetSyn->set_onset(t_onset);
@@ -793,7 +803,10 @@ set_activation_timing_with_grid()
                     peakCond = peakCond < 0 ? 0 : peakCond;
 
                     number duration = tau1 * tau2 / (tau2 - tau1) * log(tau2 / tau1);
-                    duration += 3*tau2;
+                    if (fabs(1.0 - tau1/tau2) < 1e-8)
+                    	duration = tau2;
+
+                    duration += 5*tau2;
 
                     onsetSyn->set_onset(t_onset);
                     onsetSyn->set_duration(duration);

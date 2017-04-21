@@ -100,6 +100,8 @@ bool is_acyclic(SmartPtr<TDomain> dom, int verbosity)
 					{
 						if (verbosity > 1)
 							UG_LOGN("Found cycle involving vertex at " << aaPos[v] << ".");
+
+						dom->grid()->end_marking();
 						return false;
 					}
 
