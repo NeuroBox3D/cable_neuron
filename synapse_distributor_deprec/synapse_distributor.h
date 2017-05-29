@@ -14,6 +14,7 @@
 
 // ugcore includes
 #include "lib_grid/lib_grid.h"
+#include "lib_disc/domain.h"
 
 // plugin includes
 //#include "../synapse_handler/grid/synapse_info.h"
