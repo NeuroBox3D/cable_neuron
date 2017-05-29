@@ -15,6 +15,7 @@
 
 // ugcore includes
 #include "common/util/smart_pointer.h"
+#include "lib_disc/domain.h"
 #include "lib_grid/lib_grid.h"
 #include "common/types.h"
 
