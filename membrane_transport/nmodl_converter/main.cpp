@@ -8,19 +8,22 @@
 #include <iostream>
 #include <stdexcept>
 #include "Converter.h"
+#include <cstdlib>
 
 
 
 int main(int argn, char* argv[]) {
 if (argn == 3)
 {
-	std::cout << "Programm gestartet" << std::endl;
 	Converter test = Converter();
 	std::vector<string> Zeilen;
 	Zeilen = test.Openfile(argv[1]);
+
 	std::cout << "Datei ist eingelesn" << std::endl;
 	std::vector<pair<int, int> > Blocks;
 	Blocks = test.FindBlocks(Zeilen);
+	std::cout << Blocks.size() << " " << std::endl;
+
 	std::cout << "Blocks wurden erstellt" << std::endl;
 
 	string tester(argv[1]);

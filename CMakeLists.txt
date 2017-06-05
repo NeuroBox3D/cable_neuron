@@ -21,6 +21,10 @@ message(STATUS "Info: Additional options (-DCN) for the cable_neuron plugin")
 option(CNConvertedTransport "ConvertedTransport")
 message(STATUS "      ConvertedTransport: " ${CNConvertedTransport} " (options are: ON, OFF)")
 
+# compile and register nmodl-converted bap only if CNConvertedTransportbAP is set
+option(CNConvertedTransportbAP "ConvertedTransportbAP")
+message(STATUS "      ConvertedTransportbAP: " ${CNConvertedTransportbAP} " (options are: ON, OFF)")
+
 # compile Converter
 option(CNBuildConverter "BuildConverter" OFF)
 message(STATUS "      BuildConverter:     " ${CNBuildConverter} " (options are: ON, OFF)")
@@ -54,6 +58,10 @@ set (SOURCES
 if (CNConvertedTransport)
     include(membrane_transport/nmodl_converter/converted/sources.cmake)
 endif (CNConvertedTransport)
+
+if (CNConvertedTransportbAP)
+    include(membrane_transport/nmodl_converter/converted/sources_bAP.cmake)
+endif (CNConvertedTransportbAP)
 
 # synapse_handling sources
 include(synapse_handling/sources.cmake)

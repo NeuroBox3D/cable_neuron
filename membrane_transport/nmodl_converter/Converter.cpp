@@ -955,9 +955,11 @@ std::vector<vector<string> > Converter::write_derivative_block(std::vector<pair<
 
 	for (size_t j = 0; j<DERIVATIVE.size(); j++)
 	{
+
 		if (DERIVATIVE[j].find("DERIVATIVE") != DERIVATIVE[j].npos)
 		{
 			vars = build_proc_vars(DERIVATIVE[j+1]);
+
 			for (size_t i = 0; i<vars.size(); i++)
 			{
 				//TODO write Unit -> changes
@@ -1119,6 +1121,7 @@ std::vector<string> Converter::writer_proc_block(std::vector<pair<int, int> > Pa
 //with given PROCEDURE string
 std::vector<string> Converter::build_proc_vars(string s)
 {
+
 	string fname, var;
 	size_t startf, endf, endvars, buf, buf1;
 	std::vector<string> vars;
@@ -1133,13 +1136,16 @@ std::vector<string> Converter::build_proc_vars(string s)
 	buf = 0;
 	// writs all vars out
 	vars.push_back(fname.substr(count_beg(fname), fname.npos-count_beg(fname)));
+
 	while (var.find(",", buf)!=var.npos)
 	{
 		buf1 = var.find(",", buf);
 		vars.push_back(var.substr(buf, buf1-buf));
 		buf = buf1+1;
 	}
+
 	vars.push_back(var.substr(buf, var.npos));
+
 	return vars;
 }
 
@@ -1193,6 +1199,7 @@ string Converter::build_func_head(string s)
 
 size_t Converter::count_beg(string beg)
 {
+
 	size_t begi = 0;
 	if (beg.find("\t")!=beg.npos)
 	{
@@ -1203,6 +1210,7 @@ size_t Converter::count_beg(string beg)
 	{
 		begi += 1;
 	}
+
 	return begi;
 }
 
@@ -1355,10 +1363,11 @@ std::vector<string> Converter::Openfile(string filename)
 	const char* filenamechar = filename.c_str();
 	ifstream ModFile(filenamechar, std::ios::out);
 
-	string zeile;
-		while (!ModFile.eof())          // Solange noch Daten vorliegen
+
+	while (!ModFile.eof())          // Solange noch Daten vorliegen
 	{
 		////std::cout << "while" << std::endl;
+		string zeile;
 	    getline(ModFile, zeile);        // Lese eine Zeile
 	    if (zeile.find(":")!=zeile.npos)
 	    {
@@ -1370,7 +1379,6 @@ std::vector<string> Converter::Openfile(string filename)
 	    //replace FARADAY with F
 	    if (zeile.find("FARADAY")!=zeile.npos)
 	    	zeile.replace(zeile.find("FARADAY"), 7, "F");
-
 
 	    zeilen.push_back(zeile);    // Zeige sie auf dem Bildschirm
 	}
@@ -1403,21 +1411,20 @@ std::vector<std::pair<int, int> > Converter::FindBlocks(std::vector<string> Zeil
 		start = Zeilen[i].find("{");
 		ende = Zeilen[i].find("}");
 
-		if (start!=Zeilen[i].npos && ende!=Zeilen[i].npos)
+		if (start!=Zeilen[i].npos && ende!=Zeilen[i].npos) // true, if both brackets have been found on line i
 		{
-			size_t tester = Zeilen[i].find("STATE");
-			if (Zeilen[i].find("STATE")==Zeilen[i].npos)
+			if (Zeilen[i].find("STATE")==Zeilen[i].npos)	// if STATE has not been found, ignore line i
 				failure=true;
 		}
 
 		if (failure == false)
 		{
-			if (start!=Zeilen[i].npos)
+			if (start!=Zeilen[i].npos)	// '{' found on line i
 			{
 				if (works==false)
 				{
-					blockH = i;
-					works = true;
+					blockH = i;		// beginning of a block
+					works = true;		// ignore '{'s until a '}' has been found
 				}
 			}
 			if (ende!=Zeilen[i].npos)
@@ -3394,10 +3401,12 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  std::vector<int> stats_begins;
 
 	  std::cout << "before initial size: " << INITIAL.size() << std::endl;
+
 	  if (INITIAL.size() > 0)
 	  {
-		  begin = count_beg(INITIAL[1]);
+		  begin = count_beg(INITIAL[1]); //original
 	  }
+
 	  ////std::cout << "beg: INITIAL!" << std::endl;
 
 	  if (INITIAL.size() > 0)
@@ -3753,6 +3762,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  Proc_funcs = write_proc_block(Pairs, Zeilen);
 
 	  std::vector<vector< string> > Der_funcs;
+
 	  Der_funcs = write_derivative_block(Pairs, Zeilen);
 
 
