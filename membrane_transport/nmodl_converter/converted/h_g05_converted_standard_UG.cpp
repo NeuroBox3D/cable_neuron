@@ -32,7 +32,7 @@ void h_g05_converted_standard_UG<TDomain>::ce_obj_available()
  celsius = m_pCE->temperature_celsius(); 
 }  
  
- 
+
  
 template<typename TDomain> 
 double h_g05_converted_standard_UG<TDomain>::getgbar() 
