@@ -12,10 +12,10 @@ template<typename TDomain>
 double nax_g01_converted_standard_UG<TDomain>::trap0(double v, double th, double a, double q) 
 { 
 double trap0; 
-	if (fabs((v-th)*1(/mV)) > 1e-6) {
-	        return  1(ms/mV)*a * (v - th) / (1 - exp(-(v - th)/q)); 
+	if (fabs((v-th)) > 1e-6) {
+	        return  a * (v - th) / (1 - exp(-(v - th)/q));
 	} else {
-	        return  1(ms/mV)*a * q; 
+	        return  a * q;
  	}
 }	
 
@@ -337,21 +337,22 @@ number dt = m_pCE->time();
 // make preparing vor getting values of every edge 
 number v = vrt_values[CableEquation<TDomain>::_v_]; 
 number na = vrt_values[CableEquation<TDomain>::_na_]; 
-
+double m = aamGate[vrt];
+double h = aahGate[vrt];
  
 number vm = v;
 double           a, b, qt; 
-qt= pow(q10 , ((celsius-24)/10(degC))); 
+qt= pow(q10 , ((celsius-24)/10));
 	a = trap0(vm,tha,Ra,qa); 
 	b = trap0(-vm,-tha,Rb,qa); 
-double 	mtau = 1(ms)/(a+b)/qt; 
+double 	mtau = 1/(a+b)/qt;
         if (mtau<mmin) {mtau=mmin;};; 
         mtau = mtau/mscale; 
 double 	minf = a/(a+b); 
 double         mexp = 1 - exp(-dt/mtau); 
 	a = trap0(vm,thi1,Rd,qd); 
 	b = trap0(-vm,-thi2,Rg,qg); 
-double 	htau =  1(ms)/(a+b)/qt; 
+double 	htau =  1/(a+b)/qt;
         if (htau<hmin) {htau=hmin;};; 
         htau = htau/hscale; 
 double 	hinf = 1/(1+exp((vm-thinf)/qinf)); 
@@ -388,17 +389,17 @@ double h = aahGate[vrt];
  
 number vm = v;
 double           a, b, qt; 
-qt= pow(q10 , ((celsius-24)/10(degC))); 
+qt= pow(q10 , ((celsius-24)/10));
 	a = trap0(vm,tha,Ra,qa); 
 	b = trap0(-vm,-tha,Rb,qa); 
-double 	mtau = 1(ms)/(a+b)/qt; 
+double 	mtau = 1/(a+b)/qt;
         if (mtau<mmin) {mtau=mmin;};; 
         mtau = mtau/mscale; 
 double 	minf = a/(a+b); 
 double         mexp = 1 - exp(-dt/mtau); 
 	a = trap0(vm,thi1,Rd,qd); 
 	b = trap0(-vm,-thi2,Rg,qg); 
-double 	htau =  1(ms)/(a+b)/qt; 
+double 	htau =  1/(a+b)/qt;
         if (htau<hmin) {htau=hmin;};; 
         htau = htau/hscale; 
 double 	hinf = 1/(1+exp((vm-thinf)/qinf)); 
@@ -430,7 +431,6 @@ number m_T, m_R, m_F;
 m_T = m_pCE->temperature(); 
 m_R = m_pCE->R; 
 m_F = m_pCE->F; 
- 
  
 number m = aamGate[ver]; 
 number h = aahGate[ver]; 

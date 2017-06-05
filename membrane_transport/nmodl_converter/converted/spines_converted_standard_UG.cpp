@@ -164,7 +164,14 @@ number t = m_pCE->time();
  
  
 const number helpV = 1e3*(m_pCE->R*m_pCE->temperature())/m_pCE->F; 
- 
+}
+
+template<typename TDomain>
+void spines_converted_standard_UG<TDomain>::specify_write_function_indices()
+{
+
+this->m_vWFctInd.push_back(CableEquation<TDomain>::_v_);
+}
  
 //////////////////////////////////////////////////////////////////////////////// 
 //	explicit template instantiations 

@@ -249,7 +249,7 @@ number v = vrt_values[CableEquation<TDomain>::_v_];
 
  
 double      a, b, q10; 
-q10= pow(qten , ((celsius-temp)/10(degC))); 
+q10= pow(qten , ((celsius-temp)/10));
     a = q10*alpha(v); 
     b = q10*beta(v); 
     inf = a/(a+b); 
@@ -282,7 +282,7 @@ double hh = aahhGate[vrt];
  
  
 double      a, b, q10; 
-q10= pow(qten , ((celsius-temp)/10(degC))); 
+q10= pow(qten , ((celsius-temp)/10));
     a = q10*alpha(v); 
     b = q10*beta(v); 
     inf = a/(a+b); 

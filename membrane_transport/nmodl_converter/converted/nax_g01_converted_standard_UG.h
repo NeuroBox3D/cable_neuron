@@ -1,6 +1,6 @@
 #ifndef nax_g01_converted_standard_UG_H_
 #define nax_g01_converted_standard_UG_H_
-#include "../../membrane_transport/cable_membrane_transport_interface.h" 
+#include "../../cable_membrane_transport_interface.h"
 #include "lib_grid/lg_base.h" 
 #include "lib_grid/grid/grid_base_objects.h" 
 
@@ -22,7 +22,7 @@
 #include "common/util/smart_pointer.h" 
 #include "common/util/vector_util.h" 
 
-#include "../../cable_equation.h" 
+#include "../../../cable_disc/cable_equation.h"
  
 #include <vector> 
 #include <stdio.h> 
@@ -188,8 +188,7 @@ bool m_log_mGate;
 bool m_log_hGate; 
 // Standard-NModl-File-Params 
 number F, R, K, celsius; 
-const double         thegna = gbar*m*m*m*h; 
-const double 	ina = thegna * (v - ena); 
+
 }; 
  
 } // namespace cable_neuron

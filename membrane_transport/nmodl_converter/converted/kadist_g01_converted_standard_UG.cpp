@@ -13,24 +13,24 @@ double kadist_g01_converted_standard_UG<TDomain>::alpn(double v)
 { 
 double zeta; 
   zeta=zetan+pw/(1+exp((v-tq)/qq)); 
-  return  exp(1.e-3*zeta*(v-vhalfn)*9.648e4 (degC/mV)/(8.315*(273.16+celsius))) ; 
+  return  exp(1.e-3*zeta*(v-vhalfn)*9.648e4 /(8.315*(273.16+celsius))) ;
 }
 template<typename TDomain> 
 double kadist_g01_converted_standard_UG<TDomain>::betn(double v) 
 { 
 double zeta; 
   zeta=zetan+pw/(1+exp((v-tq)/qq)); 
-  return  exp(1.e-3*zeta*gmn*(v-vhalfn)*9.648e4 (degC/mV)/(8.315*(273.16+celsius))) ; 
+  return  exp(1.e-3*zeta*gmn*(v-vhalfn)*9.648e4 /(8.315*(273.16+celsius))) ;
 }
 template<typename TDomain> 
 double kadist_g01_converted_standard_UG<TDomain>::alpl(double v) 
 { 
-  return  exp(1.e-3*zetal*(v-vhalfl)*9.648e4 (degC/mV)/(8.315*(273.16+celsius))) ; 
+  return  exp(1.e-3*zetal*(v-vhalfl)*9.648e4 /(8.315*(273.16+celsius))) ;
 }
 template<typename TDomain> 
 double kadist_g01_converted_standard_UG<TDomain>::betl(double v) 
 { 
-  return  exp(1.e-3*zetal*gml*(v-vhalfl)*9.648e4 (degC/mV)/(8.315*(273.16+celsius))) ; 
+  return  exp(1.e-3*zetal*gml*(v-vhalfl)*9.648e4 /(8.315*(273.16+celsius))) ;
 }
 
  
@@ -360,10 +360,11 @@ number dt = m_pCE->time();
 // make preparing vor getting values of every edge 
 number v = vrt_values[CableEquation<TDomain>::_v_]; 
 number k = vrt_values[CableEquation<TDomain>::_k_]; 
-
+double n = aanGate[vrt];
+double l = aalGate[vrt];
  
 double          a,qt; 
-qt= pow(q10 , ((celsius-24)/10(degC))); 
+qt= pow(q10 , ((celsius-24)/10));
         a = alpn(v); 
 double         ninf = 1/(1 + a); 
 double         taun = betn(v)/(qt*a0n*(1+a)); 
@@ -372,7 +373,7 @@ double         taun = betn(v)/(qt*a0n*(1+a));
 double         facn = (1 - exp(-dt/taun)); 
         a = alpl(v); 
 double         linf = 1/(1+ a); 
-double 	taul = 0.26(ms/mV)*(v+50)/qtl; 
+double 	taul = 0.26*(v+50)/qtl;
         taul = taul/lscale; 
 	if (taul<lmin/qtl) {taul=lmin/qtl;};; 
 double         facl = (1 - exp(-dt/taul)); 
@@ -408,7 +409,7 @@ double l = aalGate[vrt];
  
  
 double          a,qt; 
-qt= pow(q10 , ((celsius-24)/10(degC))); 
+qt= pow(q10 , ((celsius-24)/10));
         a = alpn(v); 
 double         ninf = 1/(1 + a); 
 double         taun = betn(v)/(qt*a0n*(1+a)); 
@@ -417,7 +418,7 @@ double         taun = betn(v)/(qt*a0n*(1+a));
 double         facn = (1 - exp(-dt/taun)); 
         a = alpl(v); 
 double         linf = 1/(1+ a); 
-double 	taul = 0.26(ms/mV)*(v+50)/qtl; 
+double 	taul = 0.26*(v+50)/qtl;
         taul = taul/lscale; 
 	if (taul<lmin/qtl) {taul=lmin/qtl;};; 
 double         facl = (1 - exp(-dt/taul)); 

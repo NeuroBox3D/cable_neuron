@@ -11,12 +11,12 @@ namespace cable_neuron {
 template<typename TDomain> 
 double kdrca1_g01_converted_standard_UG<TDomain>::alpn(double v) 
 { 
-  return  exp(1.e-3*zetan*(v-vhalfn)*9.648e4(degC/mV)/(8.315*(273.16+celsius))) ; 
+  return  exp(1.e-3*zetan*(v-vhalfn)*9.648e4/(8.315*(273.16+celsius))) ;
 }
 template<typename TDomain> 
 double kdrca1_g01_converted_standard_UG<TDomain>::betn(double v) 
 { 
-  return  exp(1.e-3*zetan*gmn*(v-vhalfn)*9.648e4(degC/mV)/(8.315*(273.16+celsius))) ; 
+  return  exp(1.e-3*zetan*gmn*(v-vhalfn)*9.648e4/(8.315*(273.16+celsius))) ;
 }
 
  
@@ -247,10 +247,10 @@ number dt = m_pCE->time();
 // make preparing vor getting values of every edge 
 number v = vrt_values[CableEquation<TDomain>::_v_]; 
 number k = vrt_values[CableEquation<TDomain>::_k_]; 
-
+double n = aanGate[vrt];
  
 double          a,qt; 
-qt= pow(q10 , ((celsius-24)/10(degC))); 
+qt= pow(q10 , ((celsius-24)/10));
         a = alpn(v); 
 double         ninf = 1/(1+a); 
 double         taun = betn(v)/(qt*a0n*(1+a)); 
@@ -287,7 +287,7 @@ double n = aanGate[vrt];
  
  
 double          a,qt; 
-qt= pow(q10 , ((celsius-24)/10(degC))); 
+qt= pow(q10 , ((celsius-24)/10));
         a = alpn(v); 
 double         ninf = 1/(1+a); 
 double         taun = betn(v)/(qt*a0n*(1+a)); 
@@ -333,11 +333,9 @@ number t = m_pCE->time();
  
  
 const number helpV = 1e3*(m_pCE->R*m_pCE->temperature())/m_pCE->F; 
- 
- 
-	SOLVE states METHOD cnexp; 
-	gkdr = gkdrbar*n; 
-	ik = gkdr*(v-ek); 
+
+	double gkdr = gkdrbar*n;
+	double ik = gkdr*(v-ek);
 double i; 
  
 if (ik>ikmax)
@@ -345,8 +343,7 @@ if (ik>ikmax)
  ik=ikmax ; 
 } 
 }
-outCurrentValues.push_back(0); 
-} 
+
  
  
 template<typename TDomain> 

@@ -2448,7 +2448,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  myhfile << "#ifndef " + filename + "_H_\n";
 	  myhfile << "#define " + filename + "_H_\n";
 
-	  myhfile << "#include \"../../membrane_transport/cable_membrane_transport_interface.h\" \n";
+	  myhfile << "#include \"../../cable_membrane_transport_interface.h\" \n";
 
 	  myhfile << "#include \"lib_grid/lg_base.h\" \n";
 	  myhfile << "#include \"lib_grid/grid/grid_base_objects.h\" \n";
@@ -2475,7 +2475,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  myhfile << "#include \"common/util/vector_util.h\" \n";
 	  myhfile << "\n";
 
-	  myhfile << "#include \"../../cable_equation.h\" \n \n";
+	  myhfile << "#include \"../../../cable_disc/cable_equation.h\" \n \n";
 
 	  myhfile << "#include <vector> \n";
 	  myhfile << "#include <stdio.h> \n";
