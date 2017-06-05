@@ -105,6 +105,11 @@ if(buildEmbeddedPlugins)
 		ExportSingleFileDefinitions(${CMAKE_CURRENT_SOURCE_DIR}/plugin_main.cpp CONVERTED_TRANSPORT_ENABLED)
 	endif (CNConvertedTransport)
 	
+	if (CNConvertedTransportbAP)
+		# add definition to plugin_main.cpp to include all converted transport mechanisms regarding bAP
+		ExportSingleFileDefinitions(${CMAKE_CURRENT_SOURCE_DIR}/plugin_main.cpp CONVERTED_TRANSPORT_BAP_ENABLED)
+	endif (CNConvertedTransportbAP)
+	
 	if (CNTestsuite)
 		target_link_libraries (CNTestsuite ug4)
 	endif (CNTestsuite)
@@ -116,6 +121,11 @@ else(buildEmbeddedPlugins)
 		# add definition to plugin_main.cpp to include all converted transport mechanisms
 		set_source_files_properties(plugin_main.cpp PROPERTIES COMPILE_DEFINITIONS CONVERTED_TRANSPORT_ENABLED)
 	endif (CNConvertedTransport)
+	
+	if (CNConvertedTransportbAP)
+		# add definition to plugin_main.cpp to include all converted transport mechanisms
+		set_source_files_properties(plugin_main.cpp PROPERTIES COMPILE_DEFINITIONS CONVERTED_TRANSPORT_BAP_ENABLED)
+	endif (CNConvertedTransportbAP)
 	
 	target_link_libraries(${pluginName} ug4)
 	

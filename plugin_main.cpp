@@ -38,6 +38,11 @@
 	#include "membrane_transport/nmodl_converter/converted/includefile.h"
 #endif
 
+// converted bap modls
+#ifdef CONVERTED_TRANSPORT_BAP_ENABLED
+	#include "membrane_transport/nmodl_converter/converted/includefile_bAP.h"
+#endif
+
 // synapse handling
 #include "synapse_handling/synapses/base_synapse.h"
 #include "synapse_handling/synapse_info_io_traits.h"
