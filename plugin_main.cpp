@@ -773,13 +773,13 @@ struct Functionality
                 .add_method("place_synapses_uniform",
                     static_cast<void (TSD::*)(const char*, size_t, const string&)>(&TSD::place_synapses_uniform),
                     "", "subset name#number of synapses#synapse type", "Distributes post-synapses uniformly on subset.")
-                .add_method("place_synapses_uniform",
+                .add_method("place_synapses_uniform_density",
                     static_cast<void (TSD::*)(int, number, const string&)>(&TSD::place_synapses_uniform),
                     "", "subset index#density (m^-1)#synapse type", "Uniformly distributes post-synapses on subset with given density.")
                 .add_method("place_synapses_uniform",
                     static_cast<void (TSD::*)(const char*, number, const string&)>(&TSD::place_synapses_uniform),
                     "", "subset name#density (m^-1)#synapse type", "Uniformly distributes post-synapses on subset with given density.")
-                .add_method("place_synapses_uniform",
+				.add_method("place_synapses_uniform_density",
                     static_cast<void (TSD::*)(number, number, number, number, number, const string&)>(&TSD::place_synapses_uniform),
                     "", "subset name#density (m^-1)#synapse type", "Uniformly distributes post-synapses in ball region.")
                 .add_method("place_synapses_uniform",

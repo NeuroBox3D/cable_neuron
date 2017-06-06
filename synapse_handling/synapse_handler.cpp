@@ -1,3 +1,4 @@
+
 /*
  * SynapseHandler.cpp
  *
@@ -756,7 +757,7 @@ set_activation_timing_with_grid()
         boost::normal_distribution<number> tau2_dist(tau2_mean, tau2_dev);
         boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > var_tau2(rng_biexp, tau2_dist);
         boost::normal_distribution<number> cond_dist(peak_cond, peak_cond_dev);
-        boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > var_cond(rng_biexp, cond_dist);
+        boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > var_peakCond(rng_biexp, cond_dist);
 
         SynapseIter<OnsetPreSynapse> it = begin<OnsetPreSynapse>();
         for (; it != it_end; ++it)
@@ -784,7 +785,7 @@ set_activation_timing_with_grid()
             SynapseType type = post->type();
             switch (type)
             {
-            case EXP2_POST_SYNAPSE:
+            	case EXP2_POST_SYNAPSE:
                 {
                     // cast to exp2 post-synapse
                 	Exp2PostSynapse* exp2Post = dynamic_cast<Exp2PostSynapse*>(post);
@@ -813,6 +814,7 @@ set_activation_timing_with_grid()
                     exp2Post->set_tau1(tau1);
                     exp2Post->set_tau2(tau2);
                     exp2Post->set_gMax(peakCond);
+
                     break;
                 }
                 default:

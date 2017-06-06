@@ -317,6 +317,9 @@ void SynapseDistributor::place_synapse(Edge* e, const std::string& type)
 
 void SynapseDistributor::place_synapses_uniform(const std::vector<Edge*>& vEdges, size_t numSyn, const std::string& type)
 {
+	// prevent segfault if edge vector is emtpy
+	if (vEdges.empty()) return;
+
 //	Determine discrete random distribution of given edges by their lengths
 	std::vector<number> probs;
 	number totLength = 0.0;
@@ -495,12 +498,8 @@ void SynapseDistributor::place_synapses_uniform
 		Edge* e = *it;
 	    vector3 start = m_aaPosition[e->vertex(0)];
 	    vector3 end = m_aaPosition[e->vertex(1)];
-	    number distanceFromStartToCenter = fabs(VecDistanceSq(start, center) - r*r);
-	    number distanceFromEndToCenter = fabs(VecDistanceSq(end, center) - r*r);
-	    if (distanceFromStartToCenter < SMALL && distanceFromEndToCenter < SMALL)
-	    {
-            vEdges.push_back(e);
-	    }
+	    if (VecDistanceSq(start, center) < r*r && VecDistanceSq(end, center) < r*r)
+	    	vEdges.push_back(e);
 	}
 
 	/// place number of synapses (numSyn) on detected edges in ball uniformly
