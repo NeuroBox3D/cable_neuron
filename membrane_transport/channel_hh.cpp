@@ -260,6 +260,16 @@ void ChannelHH<TDomain>::init(Vertex* vrt, const std::vector<number>& vrt_values
 	this->m_aaHGate[vrt] = AlphaHh / (AlphaHh + BetaHh);
 	this->m_aaMGate[vrt] = AlphaHm / (AlphaHm + BetaHm);
 	this->m_aaNGate[vrt] = AlphaHn / (AlphaHn + BetaHn);
+/*
+	static bool first = true;
+	if (first)
+	{
+		UG_LOGN("h_inf = " << m_aaHGate[vrt]);
+		UG_LOGN("m_inf = " << m_aaMGate[vrt]);
+		UG_LOGN("n_inf = " << m_aaNGate[vrt]);
+		first = false;
+	}
+*/
 }
 
 template<typename TDomain>
