@@ -572,6 +572,8 @@ struct Functionality
 			reg.add_class_to_group(name, "SynapseHandler", tag);
 		}
 
+
+#ifdef CONVERTED_TRANSPORT_BAP_ENABLED
 		{
 			typedef nax_g01_converted_standard_UG<TDomain> TNAX;
 			string name = string("nax_g01").append(suffix);
@@ -816,7 +818,7 @@ struct Functionality
 		{
 			//todo: spines?
 		}
-
+#endif
 	}
 
 	/**
