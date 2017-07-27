@@ -1891,7 +1891,7 @@ std::vector<string> Converter::GetBlock(std::vector<pair<int, int> > Pairs, std:
 						size_t NumberOfLines = 1;
 						size_t else_line = 0;
 
-						for (size_t k=j; k<Pairs[i].second; k++)
+						for (size_t k = j; k < (size_t) Pairs[i].second; k++)
 						{
 							//std::cout << "searching else" << std::endl;
 							//std::cout << "from " << k << " to " << Pairs[i].second << std::endl;
@@ -1939,14 +1939,14 @@ std::vector<string> Converter::GetBlock(std::vector<pair<int, int> > Pairs, std:
 						//std::cout << "before writing linesnumbers " << NumberOfLines << std::endl;
 						for (size_t k=j; k<NumberOfLines+j; k++)
 						{
-							if (j!=k)
+							if ((size_t)j != k)
 							{
 								Zeilen[j] = Zeilen[j] + Zeilen[k];
 								Zeilen[k] = "\n";
 							}
 							//std::cout << "second if" << std::endl;
 							if (k==(NumberOfLines+j-1))
-								if (Zeilen[j].find_last_of("}")!=Zeilen[j].npos)
+								if (Zeilen[j].find_last_of("}") != Zeilen[j].npos)
 								{
 									Zeilen[j].replace(Zeilen[j].find_last_of("}"),1 ,";}");
 									Zeilen[j] = Zeilen[j] + ";";
@@ -2253,7 +2253,7 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 								 && Remove_all(FUNCTION[i])!="}")
 							  {
 
-								  	  bool var_in_ii;
+								  	  bool var_in_ii = false;
 									  // normal vars handling
 									  if (FUNCTION[i].find(" = ")!=FUNCTION[i].npos)
 									  {
@@ -3426,7 +3426,6 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 					  string init_vars = Remove_all(INITIAL[i].substr(INITIAL[i].find("(")+1));
 					  init_vars = init_vars.replace(init_vars.find(")"), 1, "");
 					  std::cout << "string vars: " << init_vars << std::endl;
-					  size_t init_vars_size = 0;
 					  size_t begin_con = 0;
 					  size_t con = init_vars.find(',');
 					  std::cout << "first con " << con << std::endl;
@@ -3840,7 +3839,6 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 	  					 string init_vars = Remove_all(DERIVATIVE[i].substr(DERIVATIVE[i].find("(")+1));
 	  					 init_vars = init_vars.replace(init_vars.find(")"), 1, "");
 	     				 std::cout << "string vars: " << init_vars << std::endl;
-	  					 size_t init_vars_size = 0;
 	  					 size_t begin_con = 0;
 	  					 size_t con = init_vars.find(',');
 	  					 std::cout << "first con " << con << std::endl;
@@ -4029,11 +4027,11 @@ void Converter::WriteStart(string filename, std::vector<pair<int, int> > Pairs, 
 			  for (size_t i=deriv_begin; i<deriv_end; i++)
 			  {
 				  // writings at the end
-				  if (i >= Deriv_begins[m])
+				  if (i >= (size_t) Deriv_begins[m])
 				  {
 					  // Writting derivfuncs
 					  //std::cout << "before deriv" << std::endl;
-					  if ((i> Deriv_begins[m]) && (i < DERIVATIVE.size()-1))
+					  if ((i > (size_t) Deriv_begins[m]) && (i < DERIVATIVE.size()-1))
 					  {
 						if (DERIVATIVE[i]!="")
 						{
