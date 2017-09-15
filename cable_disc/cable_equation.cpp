@@ -351,7 +351,7 @@ estimate_cfl_cond(ConstSmartPtr<TVector> u)
 			// consider synapse currents too (important for large number of active synapses)
 			// TODO: This assumes any synaptic current is of the form: conductivity * (-V).
 			// Better implement a Jacobian for synapses, equivalent to channel functionality
-			if	(m_spSH.valid())
+			if (m_spSH.valid())
 			{
 				number current = 0.0;
 
@@ -797,9 +797,9 @@ void CableEquation<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, cons
 		PROFILE_END()
 		PROFILE_BEGIN_GROUP(rhs_synapses, "CableEquationRHS");
 		// synapses (handled by synapse_handler)
-		if	(m_spSH.valid())
+		if (m_spSH.valid())
 		{
-			number current = 0;
+			number current = 0.0;
 			if (m_spSH->synapse_on_edge(pElem, co, m_time, current))
 			{
 				//UG_COND_THROW(isnan(current), "Synapse current is nan.");
