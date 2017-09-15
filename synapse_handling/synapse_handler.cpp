@@ -60,19 +60,21 @@ template <typename TDomain>
 number SynapseHandler<TDomain>::current_on_edge(const Edge* e, size_t scv, number t) const
 {
 	const std::vector<IBaseSynapse*>& vSyns = m_aaSyn[e];
-	number vm_postsyn = m_spCEDisc->vm(e->vertex(scv));
+	const number vm_postsyn = m_spCEDisc->vm(e->vertex(scv));
 	number curr = 0.0;
 
-	for(size_t i=0; i<vSyns.size(); ++i) {
+	for (size_t i = 0; i < vSyns.size(); ++i)
+	{
 		IBaseSynapse* s = vSyns[i];
 
 		// only post synapses can invoke a current
-		if(s->is_postsynapse()) {
+		if (s->is_postsynapse())
+		{
 			IPostSynapse* ps = static_cast<IPostSynapse*>(s);
 
-			if(ps->is_active(t)) {
+			// only add current if on the right side of the edge
+			//if ((ps->location() < 0.5 && scv == 0) || (ps->location() >= 0.5 && scv == 1))
 				curr += ps->current(t, vm_postsyn);
-			}
 		}
 	}
 
@@ -82,39 +84,38 @@ number SynapseHandler<TDomain>::current_on_edge(const Edge* e, size_t scv, numbe
 template <typename TDomain>
 number SynapseHandler<TDomain>::current(synapse_id id) const
 {
-	//find edge
+	// find edge
+	std::map<synapse_id, Edge*>::const_iterator it;
+	if ((it = m_mPostSynapseIdToEdge.find(id)) != m_mPostSynapseIdToEdge.end())
+	{
+		Edge* e = it->second;
+		const std::vector<IBaseSynapse*>& v = m_aaSyn[e];
 
-	ConstEdgeIterator eIter = m_spGrid->begin<Edge>();
-	ConstEdgeIterator eIterEnd = m_spGrid->end<Edge>();
-	while(eIter != eIterEnd) {
-		Edge* e = *eIter;
-		std::vector<IBaseSynapse*> v = m_aaSyn[e];
-		for(size_t i=0; i<v.size(); ++i) { //find synapse
-			if( (v[i]->id()==id) &&  (v[i]->is_postsynapse())) {
-
-
-				number rel_loc=v[i]->location();
-				number t = m_spCEDisc->time();
+		// find synapse
+		for (size_t i = 0; i < v.size(); ++i)
+		{
+			if (v[i]->id() == id && v[i]->is_postsynapse())
+			{
+				const number rel_loc = v[i]->location();
+				const number t = m_spCEDisc->time();
 				Vertex* v0 = e->vertex(0);
 				Vertex* v1 = e->vertex(1);
-				number vm = m_spCEDisc->vm( v0)*rel_loc + m_spCEDisc->vm(v1)*(1-rel_loc);
-				number curr = ((IPostSynapse*)v[i])->current(t, vm);
-
-				return curr;
+				const number vm = m_spCEDisc->vm(v0) * rel_loc + m_spCEDisc->vm(v1) * (1-rel_loc);
+				return static_cast<IPostSynapse*>(v[i])->current(t, vm);
 			}
 		}
-		eIter++;
 	}
-	return 0;
+
+	// if no synapse of this ID is found return 0.0
+	return 0.0;
 }
 
 
 template <typename TDomain>
 bool SynapseHandler<TDomain>::synapse_on_edge(const Edge* edge, size_t scv, number time, number& current) const
 {
-	current = current_on_edge(edge, scv,time);
-
-	return true;
+	current = current_on_edge(edge, scv, time);
+	return current != 0.0;
 }
 
 template <typename TDomain>
@@ -637,7 +638,7 @@ set_activation_timing_with_grid()
     }
 
 
-    // finally, evaluate alpha synapse activation balls
+    // finally, evaluate alpha/biexp synapse activation balls
     // possibly overriding the previously set activation pattern
     typedef std::vector<std::pair<std::vector<number>, std::vector<number> > >::const_iterator ball_it_type;
     ball_it_type ball_it = m_vTimingAlphaBalls.begin();
@@ -648,30 +649,30 @@ set_activation_timing_with_grid()
         const std::vector<number>& ball = ball_it->second;
 
         // timings
-        number onset = alpha_timings[0];
-        number onset_dev = alpha_timings[1];
-        number tau = alpha_timings[2];
-        number tau_dev = alpha_timings[3];
-        number peak_cond = alpha_timings[4];
-        number peak_cond_dev = alpha_timings[5];
+        const number alpha_onset = alpha_timings[0];
+        const number alpha_onset_dev = alpha_timings[1];
+        const number alpha_tau = alpha_timings[2];
+        const number alpha_tau_dev = alpha_timings[3];
+        const number alpha_peak_cond = alpha_timings[4];
+        const number alpha_peak_cond_dev = alpha_timings[5];
 
         // ball region
         vector3 center(ball[0], ball[1], ball[2]);
         number radius = ball[3];
 
         // sample from distribution for this ball
-        boost::normal_distribution<number> start_dist(onset, onset_dev);
-        boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > var_start(rng_alpha, start_dist);
-        boost::normal_distribution<number> tau_dist(tau, tau_dev);
-        boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > var_tau(rng_alpha, tau_dist);
-        boost::normal_distribution<number> cond_dist(peak_cond, peak_cond_dev);
-        boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > var_cond(rng_alpha, cond_dist);
+        boost::normal_distribution<number> alpha_start_dist(alpha_onset, alpha_onset_dev);
+        boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > alpha_var_onset(rng_alpha, alpha_start_dist);
+        boost::normal_distribution<number> alpha_tau_dist(alpha_tau, alpha_tau_dev);
+        boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > alpha_var_tau(rng_alpha, alpha_tau_dist);
+        boost::normal_distribution<number> alpha_cond_dist(alpha_peak_cond, alpha_peak_cond_dev);
+        boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > alpha_var_cond(rng_alpha, alpha_cond_dist);
 
         SynapseIter<OnsetPreSynapse> it = begin<OnsetPreSynapse>();
         for (; it != it_end; ++it)
         {
             OnsetPreSynapse* onsetSyn = *it;
-            // check whether synapse is located in within ball
+            // check whether synapse is located within ball
             Edge* e = m_mPreSynapseIdToEdge[onsetSyn->id()];
             vector3 a = m_aaPosition[e->vertex(0)];
             vector3 b = m_aaPosition[e->vertex(1)];
@@ -698,13 +699,13 @@ set_activation_timing_with_grid()
                     AlphaPostSynapse* alphaPost = dynamic_cast<AlphaPostSynapse*>(post);
                     UG_COND_THROW(!alphaPost, "Synapse claiming to be alpha post synapse, but is not.");
 
-                    number t_onset = var_start();
+                    number t_onset = alpha_var_onset();
                     t_onset = t_onset < 0 ? 0 : t_onset;
 
-                    number tau = var_tau();
+                    number tau = alpha_var_tau();
                     tau = tau < 0 ? 0 : tau;
 
-                    number cond = var_cond();
+                    number cond = alpha_var_cond();
                     cond = cond < 0 ? 0 : cond;
 
                     // This will parameterize the alpha_synapse in such a way that
@@ -717,7 +718,7 @@ set_activation_timing_with_grid()
                     break;
                 }
 
-                // exp2 balls do not exist (yet)
+                // exp2 balls are treated in a separate loop below
 
                 default:
                     break;
@@ -764,7 +765,7 @@ set_activation_timing_with_grid()
         {
             OnsetPreSynapse* onsetSyn = *it;
 
-            // check whether synapse is located in within ball
+            // check whether synapse is located within ball
             Edge* e = m_mPreSynapseIdToEdge[onsetSyn->id()];
             vector3 a = m_aaPosition[e->vertex(0)];
             vector3 b = m_aaPosition[e->vertex(1)];
