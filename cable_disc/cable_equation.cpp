@@ -349,7 +349,7 @@ estimate_cfl_cond(ConstSmartPtr<TVector> u)
 			}
 
 			// consider synapse currents too (important for large number of active synapses)
-			// TODO: This assumes any synaptic current is of the form: conductivity * (-V).
+			// TODO: This assumes any synaptic (outward) current is of the form: conductance * V.
 			// Better implement a Jacobian for synapses, equivalent to channel functionality
 			if (m_spSH.valid())
 			{
@@ -363,6 +363,7 @@ estimate_cfl_cond(ConstSmartPtr<TVector> u)
 				{
 					if (vrt_values[_v_] > 1e-8)
 					{
+UG_COND_THROW(current / vrt_values[_v_] < 0, "negative synapse conductance!")
 						linDep += current / vrt_values[_v_];
 //		                linDepSyn += current / vrt_values[_v_];
 					}

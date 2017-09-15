@@ -272,7 +272,39 @@ void VDCC_BG_cable<TDomain>::current(Vertex* vrt, const std::vector<number>& vrt
 	if (fabs(VM) < 1e-8) maxFluxDensity = m_perm * ((caExt - caCyt) - F/(R*T) * (caExt + caCyt)*VM);
 	else maxFluxDensity = -m_perm * 2*F/(R*T) * VM * (caExt - caCyt*exp(2*F/(R*T)*VM)) / (1.0 - exp(2*F/(R*T)*VM));
 
+	outCurrentValues.push_back(-gating * maxFluxDensity * 2*F);
 	outCurrentValues.push_back(-gating * maxFluxDensity);
+}
+
+template<typename TDomain>
+number VDCC_BG_cable<TDomain>::lin_dep_on_pot(Vertex* vrt, const std::vector<number>& vrt_values)
+{
+	const number MGate = m_aaMGate[vrt];
+	const number HGate = m_aaHGate[vrt];
+	const number VM 	 = vrt_values[CableEquation<TDomain>::_v_];
+	const number caCyt = vrt_values[CableEquation<TDomain>::_ca_];
+	const number caExt = m_pCE->ca_out();
+
+	const number R = m_pCE->R;
+	const number F = m_pCE->F;
+	const number T = m_pCE->temperature();
+
+	const number gating = pow(MGate, m_mp) * pow(HGate, m_hp);
+
+	// flux derived from Goldman-Hodgkin-Katz equation,
+	number maxFluxDensityDeriv;
+
+	// near V_m == 0: approximate by first order Taylor to avoid relative errors and div-by-0
+	if (fabs(VM) < 1e-8) maxFluxDensityDeriv = -m_perm * F/(R*T) * (caExt + caCyt);
+	else
+	{
+		number in = 2*F/(R*T)*VM;
+		number ex = exp(in);
+		maxFluxDensityDeriv = -m_perm * 2*F/(R*T) * (caExt*(1.0 - (1.0 - in)*ex) + caCyt*(ex - (1.0 + in))*ex)
+						/ ((1.0 - ex) * (1.0 - ex));
+	}
+
+	return -gating * maxFluxDensityDeriv * 2*F;
 }
 
 
@@ -281,6 +313,7 @@ void VDCC_BG_cable<TDomain>::
 specify_write_function_indices()
 {
 	// prepare vector containing CableEquation fct indices which this channel writes to
+	this->m_vWFctInd.push_back(CableEquation<TDomain>::_v_);
 	this->m_vWFctInd.push_back(CableEquation<TDomain>::_ca_);
 }
 
