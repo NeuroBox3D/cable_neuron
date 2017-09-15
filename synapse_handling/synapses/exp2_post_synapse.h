@@ -78,7 +78,7 @@ public:
 	void activate(number time);
 	void deactivate();
 
-	bool is_active(number time);
+	bool is_active(number time) const;
 };
 
 } // namespace synapse_handler

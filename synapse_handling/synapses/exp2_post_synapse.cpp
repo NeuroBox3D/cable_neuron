@@ -77,8 +77,8 @@ number Exp2PostSynapse::current(const number& t, const number &vm) const
 		number factor = 1.0 / (std::exp(-tp/m_tau2) - std::exp(-tp/m_tau1));		// normalization factor
 		return m_gMax * factor * (vm - m_rev) * (std::exp(-(t-m_onset)/m_tau2) - std::exp(-(t-m_onset)/m_tau1));
 
-/*
-		std::cout << "Exp2PostSynapse" << id() << ":" << std::endl
+#if 0
+		std::cout << "Exp2PostSynapse " << id() << ":" << std::endl
 				  << "location: " << location() << std::endl
 				  << "onset: " << onset() << std::endl
 				  << "gMax: " << gMax() << std::endl
@@ -87,7 +87,7 @@ number Exp2PostSynapse::current(const number& t, const number &vm) const
 				  << "rev:" << rev() << std::endl
 				  << "is_active(" << t << "): " << is_active(t) << std::endl
 				  << "current: " << i << std::endl << std::endl;
-*/
+#endif
 	}
 
 	return 0.0;
@@ -150,7 +150,7 @@ void Exp2PostSynapse::activate(number time) {m_onset = time;}
 void Exp2PostSynapse::deactivate() {m_onset = std::numeric_limits<number>::quiet_NaN();}
 
 
-bool Exp2PostSynapse::is_active(number time)
+bool Exp2PostSynapse::is_active(number time) const
 {
 	return m_onset == m_onset; //if false: m_onset is nan -> inactive
 }

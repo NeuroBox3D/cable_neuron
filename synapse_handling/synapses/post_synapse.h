@@ -42,7 +42,7 @@ public:
 
 	virtual void activate(number time) = 0;
 	virtual void deactivate() = 0;
-	virtual bool is_active(number time) = 0;
+	virtual bool is_active(number time) const = 0;
 };
 
 } // namespace synapse_handler

@@ -141,7 +141,7 @@ void AlphaPostSynapse::deactivate()
 }
 
 
-bool AlphaPostSynapse::is_active(number time)
+bool AlphaPostSynapse::is_active(number time) const
 {
 	return m_onset == m_onset;
 }
