@@ -49,6 +49,7 @@ class IonLeakage
 		virtual void update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values);
 		virtual void current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues);
 		virtual void ce_obj_available();
+		virtual number lin_dep_on_pot(Vertex* vrt, const std::vector<number>& vrt_values);
 
 	private:
 		virtual void specify_write_function_indices();

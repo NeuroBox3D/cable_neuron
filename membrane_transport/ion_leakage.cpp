@@ -140,7 +140,37 @@ void IonLeakage<TDomain>::current(Vertex* vrt, const std::vector<number>& vrt_va
 	if (fabs(VM) < 1e-8) leak = -m_perm * ((conc_out - conc_in) - z*F/(2*R*T) * (conc_out + conc_in)*VM);
 		else leak = m_perm * z*F/(R*T) * VM * (conc_out - conc_in*exp(z*F/(R*T)*VM)) / (1.0 - exp(z*F/(R*T)*VM));
 
+	outCurrentValues.push_back(leak * z*F);
 	outCurrentValues.push_back(leak);
+}
+
+
+template<typename TDomain>
+number IonLeakage<TDomain>::lin_dep_on_pot(Vertex* vrt, const std::vector<number>& vrt_values)
+{
+	const number& conc_in 	 = vrt_values[m_lfInd];
+	const number& conc_out 	 = this->m_pCE->conc_out(m_lfInd);
+	const number& VM	 	 = vrt_values[CableEquation<TDomain>::_v_];
+
+	const number& R = m_pCE->R;
+	const number& F = m_pCE->F;
+	const number& T = m_pCE->temperature();
+	const int z = m_valency;
+
+	// flux derived from Goldman-Hodgkin-Katz equation,
+	number leakDeriv;
+
+	// near V_m == 0: approximate by first order Taylor to avoid relative errors and div-by-0
+	if (fabs(VM) < 1e-8) leakDeriv = m_perm * z*F/(2*R*T) * (conc_out + conc_in);
+	else
+	{
+		number in = z*F/(R*T)*VM;
+		number ex = exp(in);
+		leakDeriv = m_perm * 2*F/(R*T) * (conc_out*(1.0 - (1.0 - in)*ex) + conc_in*(ex - (1.0 + in))*ex)
+						/ ((1.0 - ex) * (1.0 - ex));
+	}
+
+	return leakDeriv * z*F;
 }
 
 
@@ -149,6 +179,7 @@ void IonLeakage<TDomain>::
 specify_write_function_indices()
 {
 	// prepare vector containing CableEquation fct indices which this channel writes to
+	this->m_vWFctInd.push_back(CableEquation<TDomain>::_v_);
 	this->m_vWFctInd.push_back(m_lfInd);
 }
 
