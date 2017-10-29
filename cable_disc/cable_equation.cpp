@@ -144,7 +144,7 @@ template<typename TDomain> void CableEquation<TDomain>::set_influx_subset(int in
 	//std::cout << "before num id" << std::endl;
 	m_influx_subset.push_back(influx_subset); //char* ??
 	//std::cout << "after num id" << std::endl;
-	m_vSubsetInflux.push_back(input);
+	m_vSubsetInfluxDensity.push_back(input);
 	m_vSubsetInfluxStart.push_back(start);
 	m_vSubsetInfluxDur.push_back(dur);
 	//std::cout << "alls setted" << std::endl;
@@ -344,6 +344,9 @@ estimate_cfl_cond(ConstSmartPtr<TVector> u)
 				if (m_channel[ch]->is_def_on_subset(m_si))
 				{
 					linDep += scvSurf * m_channel[ch]->lin_dep_on_pot(vrt, vrt_values);
+UG_COND_THROW(scvSurf * m_channel[ch]->lin_dep_on_pot(vrt, vrt_values) < 0, "negative channel conductance!\n"
+	<< "scvSurf = " << scvSurf << ",  m_channel[" << ch << "]->lin_dep_on_pot(vrt, vrt_values) = "
+	<< m_channel[ch]->lin_dep_on_pot(vrt, vrt_values) << " for " << ElementDebugInfo(*dom.grid(), vrt));
 //					linDepCh += scvSurf * m_channel[ch]->lin_dep_on_pot(vrt, vrt_values);
 				}
 			}
@@ -789,9 +792,7 @@ void CableEquation<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, cons
 			if (m_influx_subset[i] == si)
 			{
 				if (m_vSubsetInfluxStart[i] <= time && (m_vSubsetInfluxDur[i] + m_vSubsetInfluxStart[i]) >= time)
-				{
-					d(_v_, co) += m_vSubsetInflux[i];
-				}
+					d(_v_, co) += scv.volume()*PI*diam * m_vSubsetInfluxDensity[i];
 			}
 		}
 

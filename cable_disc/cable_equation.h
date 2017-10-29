@@ -298,7 +298,7 @@ class CableEquation
 
 		// vars for influx via subset
 		std::vector<int> m_influx_subset;
-		std::vector<number> m_vSubsetInflux, m_vSubsetInfluxStart, m_vSubsetInfluxDur;
+		std::vector<number> m_vSubsetInfluxDensity, m_vSubsetInfluxStart, m_vSubsetInfluxDur;
 
 	protected:
 		std::vector<number> m_vCurrent, m_vCurrentStart, m_vCurrentDur;		///< values describing influxes
