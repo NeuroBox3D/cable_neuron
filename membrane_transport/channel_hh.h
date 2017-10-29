@@ -45,6 +45,9 @@ class ChannelHH
 		void set_conductances(number gK, number gNa, const std::vector<std::string>& subsets);
 		/// \}
 
+		/// whether or not temperature dependency is to be enabled
+		void enable_temperature_dependency(bool enable);
+
 		/// setter for output behavior of gatings
 		void set_log_nGate(bool bLogNGate);
 		void set_log_hGate(bool bLogHGate);
@@ -88,6 +91,9 @@ class ChannelHH
 
 		// attachment log_files
 		bool m_log_nGate, m_log_hGate, m_log_mGate;
+
+		// temperature dependency flag
+		bool m_bTempDep;
 };
 
 

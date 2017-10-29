@@ -290,6 +290,7 @@ struct Functionality
 						"Na conductance (S/m^2) | default | value=1.2e3#"
 						"subset(s) as vector of string",
 						"sets Na and K conductance values for HH mechanism")
+				.add_method("enable_temperature_dependency", &T::enable_temperature_dependency)
 				.add_method("set_log_mGate", &T::set_log_mGate)
 				.add_method("set_log_nGate", &T::set_log_nGate)
 				.add_method("set_log_hGate", &T::set_log_hGate)

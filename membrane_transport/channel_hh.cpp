@@ -19,7 +19,7 @@ namespace cable_neuron {
 template<typename TDomain>
 ChannelHH<TDomain>::ChannelHH(const char* functions, const char* subsets)
 try : ICableMembraneTransport<TDomain>(functions, subsets),
-m_log_nGate(false), m_log_hGate(false), m_log_mGate(false) {}
+m_log_nGate(false), m_log_hGate(false), m_log_mGate(false), m_bTempDep(true) {}
 UG_CATCH_THROW("Error in ChannelHH initializer list.");
 
 template<typename TDomain>
@@ -29,7 +29,7 @@ ChannelHH<TDomain>::ChannelHH
 	const std::vector<std::string>& subsets
 )
 try : ICableMembraneTransport<TDomain>(functions, subsets),
-m_log_nGate(false), m_log_hGate(false), m_log_mGate(false) {}
+m_log_nGate(false), m_log_hGate(false), m_log_mGate(false), m_bTempDep(true) {}
 UG_CATCH_THROW("Error in ChannelHH initializer list.");
 
 
@@ -72,6 +72,13 @@ set_conductances(number gK, number gNa, const std::vector<std::string>& subsets)
 		m_mSubsetParams2Save[subsets[i]].gK = gK;
 		m_mSubsetParams2Save[subsets[i]].gNa = gNa;
 	}
+}
+
+
+template<typename TDomain>
+void ChannelHH<TDomain>:: enable_temperature_dependency(bool enable)
+{
+	m_bTempDep = enable;
 }
 
 
@@ -278,7 +285,7 @@ void ChannelHH<TDomain>::update_gating(number newTime, Vertex* vrt, const std::v
 	number dt = 1e3*(newTime - m_pCE->time());					// time step in ms
 	number VM = 1e3*vrt_values[CableEquation<TDomain>::_v_];	// potential in mV
 	number tmp = m_pCE->temperature_celsius();
-	number tmp_factor = std::pow(2.3, (tmp-23.0)/10.0);
+	number tmp_factor = m_bTempDep ? std::pow(2.3, (tmp-23.0)/10.0) : 1.0;
 
 	// values for m gate
 	number AlphaHm = 0.1 * vtrap(-(VM+40.0),10.0);
@@ -292,6 +299,7 @@ void ChannelHH<TDomain>::update_gating(number newTime, Vertex* vrt, const std::v
 	number AlphaHh = 0.07 * exp(-(VM+65.0)/20.0);
 	number BetaHh = 1.0 / (exp(-(VM+35.0)/10.0) + 1.0);
 
+	/*
 	// explicit
 	number rate_h = tmp_factor * (AlphaHh - m_aaHGate[vrt] * (AlphaHh+BetaHh));
 	number rate_m = tmp_factor * (AlphaHm - m_aaMGate[vrt] * (AlphaHm+BetaHm));
@@ -300,11 +308,12 @@ void ChannelHH<TDomain>::update_gating(number newTime, Vertex* vrt, const std::v
 	m_aaHGate[vrt] += rate_h * dt;
 	m_aaMGate[vrt] += rate_m * dt;
 	m_aaNGate[vrt] += rate_n * dt;
+	*/
 
 	// implicit version
-	//m_aaHGate[vrt] = (m_aaHGate[vrt] + dt*tmp_factor*AlphaHh) / (1.0 + (AlphaHh+BetaHh)*tmp_factor*dt);
-	//m_aaMGate[vrt] = (m_aaMGate[vrt] + dt*tmp_factor*AlphaHm) / (1.0 + (AlphaHm+BetaHm)*tmp_factor*dt);
-	//m_aaNGate[vrt] = (m_aaNGate[vrt] + dt*tmp_factor*AlphaHn) / (1.0 + (AlphaHn+BetaHn)*tmp_factor*dt);
+	m_aaHGate[vrt] = (m_aaHGate[vrt] + dt*tmp_factor*AlphaHh) / (1.0 + (AlphaHh+BetaHh)*tmp_factor*dt);
+	m_aaMGate[vrt] = (m_aaMGate[vrt] + dt*tmp_factor*AlphaHm) / (1.0 + (AlphaHm+BetaHm)*tmp_factor*dt);
+	m_aaNGate[vrt] = (m_aaNGate[vrt] + dt*tmp_factor*AlphaHn) / (1.0 + (AlphaHn+BetaHn)*tmp_factor*dt);
 
 	//std::cout << "VM: " << VM << "   h: "<< m_aaHGate[vrt] << "   m: "<< m_aaMGate[vrt] <<  "   n: "<< m_aaNGate[vrt] <<std::endl;
 	//std::cout << "Rates: " << rate_h << " , " << rate_m << " , " << rate_n << std::endl;
@@ -329,7 +338,7 @@ void ChannelHH<TDomain>::current(Vertex* vrt, const std::vector<number>& vrt_val
 	number rev_pot_Na = m_pCE->rev_pot_na();
 
 	number tmp = m_pCE->temperature_celsius();
-	number tmp_factor = std::pow(2.3, (tmp-23.0)/10.0);
+	number tmp_factor = m_bTempDep ? std::pow(2.3, (tmp-23.0)/10.0) : 1.0;
 
 	// single channel type fluxes
 	const number potassium_part_of_flux = tmp_factor * gK * pow(NGate,4) * (VM - rev_pot_K);
@@ -384,7 +393,7 @@ lin_dep_on_pot(Vertex* vrt, const std::vector<number>& vrt_values)
 	const number gNa = m_mSubsetParams[si].gNa;
 
 	number tmp = m_pCE->temperature_celsius();
-	number tmp_factor = std::pow(2.3, (tmp-23.0)/10.0);
+	number tmp_factor = m_bTempDep ? std::pow(2.3, (tmp-23.0)/10.0) : 1.0;
 
 	// single channel type fluxes
 	const number potassium_part_of_flux = tmp_factor * gK * pow(NGate,4);
@@ -682,6 +691,8 @@ void ChannelHHNernst<TDomain>::update_gating(number newTime, Vertex* vrt, const 
 	number AlphaHh = 0.07 * exp(-(VM+65.0)/20.0);
 	number BetaHh = 1.0 / (exp(-(VM+35.0)/10.0) + 1.0);
 
+	/*
+	// explicit version
 	number rate_h = tmp_factor * (AlphaHh - m_aaHGate[vrt] * (AlphaHh+BetaHh));
 	number rate_m = tmp_factor * (AlphaHm - m_aaMGate[vrt] * (AlphaHm+BetaHm));
 	number rate_n = tmp_factor * (AlphaHn - m_aaNGate[vrt] * (AlphaHn+BetaHn));
@@ -689,6 +700,12 @@ void ChannelHHNernst<TDomain>::update_gating(number newTime, Vertex* vrt, const 
 	m_aaHGate[vrt] += rate_h * dt;
 	m_aaMGate[vrt] += rate_m * dt;
 	m_aaNGate[vrt] += rate_n * dt;
+	*/
+
+	// implicit version
+	m_aaHGate[vrt] = (m_aaHGate[vrt] + dt*tmp_factor*AlphaHh) / (1.0 + (AlphaHh+BetaHh)*tmp_factor*dt);
+	m_aaMGate[vrt] = (m_aaMGate[vrt] + dt*tmp_factor*AlphaHm) / (1.0 + (AlphaHm+BetaHm)*tmp_factor*dt);
+	m_aaNGate[vrt] = (m_aaNGate[vrt] + dt*tmp_factor*AlphaHn) / (1.0 + (AlphaHn+BetaHn)*tmp_factor*dt);
 }
 
 
