@@ -508,6 +508,12 @@ struct Functionality
 							 "", "approxSpace", "vertex ordering for solver optimization");
 		}
 
+		// domain scaling
+		{
+			reg.add_function("scale_domain", &scale_domain<TDomain>, grp.c_str(),
+							 "", "domain, scaling factor", "scales the domain (also diameter)");
+		}
+
 		// checks for acyclicity, presynaptic indices, both
 		{
 			reg.add_function("is_acyclic", static_cast<bool (*) (SmartPtr<TDomain>)>(&is_acyclic<TDomain>), grp.c_str(),

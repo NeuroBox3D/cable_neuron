@@ -18,6 +18,11 @@ namespace ug {
 namespace cable_neuron {
 
 
+/// scales the domain
+template <typename TDomain>
+void scale_domain(SmartPtr<TDomain> dom, number scale);
+
+
 ///@{
 /**
  * @brief Checks whether the given domain contains a cycle.

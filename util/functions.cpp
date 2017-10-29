@@ -32,6 +32,34 @@ namespace cable_neuron {
 
 
 
+template <typename TDomain>
+void scale_domain(SmartPtr<TDomain> dom, number scale)
+{
+	// get attachment accessors
+	typename TDomain::position_accessor_type& aaPos = dom->position_accessor();
+	ANumber aDiam(GlobalAttachments::attachment<ANumber>("diameter"));
+	UG_COND_THROW(!dom->grid()->has_vertex_attachment(aDiam),
+		"Diameter attachment not available.");
+	Grid::VertexAttachmentAccessor<ANumber> aaDiam(*dom->grid(), aDiam);
+
+	UG_COND_THROW(dom->grid()->num_levels() > 1,
+		"Grid must not be refined for this function to work properly.")
+
+	// iterate vertices
+	VertexIterator it = dom->grid()->template begin<Vertex>(0);
+	VertexIterator itEnd = dom->grid()->template end<Vertex>(0);
+	for (; it != itEnd; ++it)
+	{
+		Vertex* vrt = *it;
+
+		aaPos[vrt] *= scale;
+		aaDiam[vrt] *= scale;
+	}
+}
+
+
+
+
 enum ErrorConstants
 {
 	EC_NO_ERROR = 0,
@@ -40,7 +68,6 @@ enum ErrorConstants
 	EC_MISSING_INDEX = 1 << 2
 };
 typedef Flag<ErrorConstants, unsigned int, EC_NO_ERROR>	ErrorState;
-
 
 
 
@@ -750,16 +777,19 @@ number subset_length(const char* subset, ConstSmartPtr<MGSubsetHandler> sh)
 
 
 #ifdef UG_DIM_1
+	template void scale_domain<Domain1d>(SmartPtr<Domain1d>, number);
 	template bool is_acyclic<Domain1d>(SmartPtr<Domain1d>, int);
 	template int check_presyn_indices<Domain1d>(SmartPtr<Domain1d>, int);
 	template int check_domain<Domain1d>(SmartPtr<Domain1d>, int);
 #endif
 #ifdef UG_DIM_2
+	template void scale_domain<Domain2d>(SmartPtr<Domain2d>, number);
 	template bool is_acyclic<Domain2d>(SmartPtr<Domain2d>, int);
 	template int check_presyn_indices<Domain2d>(SmartPtr<Domain2d>, int);
 	template int check_domain<Domain2d>(SmartPtr<Domain2d>, int);
 #endif
 #ifdef UG_DIM_3
+	template void scale_domain<Domain3d>(SmartPtr<Domain3d>, number);
 	template bool is_acyclic<Domain3d>(SmartPtr<Domain3d>, int);
 	template int check_presyn_indices<Domain3d>(SmartPtr<Domain3d>, int);
 	template int check_domain<Domain3d>(SmartPtr<Domain3d>, int);
