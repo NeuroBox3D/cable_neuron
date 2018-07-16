@@ -15,7 +15,7 @@ include(${UG_ROOT_CMAKE_PATH}/ug_plugin_includes.cmake)
 
 
 message(STATUS "")
-message(STATUS "Info: Additional options (-DCN) for the cable_neuron plugin")
+message(STATUS "Additional options (-DCN) for the cable_neuron plugin")
 
 # compile and register nmodl-converted Transport only if # ENABLE_CONVERTED_Transport is set
 option(CNConvertedTransport "ConvertedTransport")
