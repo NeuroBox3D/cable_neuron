@@ -9,6 +9,7 @@
 #include "bridge/util_domain_dependent.h"
 #include "bridge/util_domain_algebra_dependent.h"
 #include "cable_disc/cable_equation.h"
+#include "cable_disc/cable_equation_withOuterPot.h"
 #include "cable_disc/ElemDiscHH_base.h"
 #include "cable_disc/ElemDiscHH_fv1.h"
 #include "cable_disc/ElemDiscHH_Nernst_fv1.h"
@@ -496,6 +497,18 @@ struct Functionality
 				.add_method("set_synapse_handler", &T::set_synapse_handler)
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "CableEquation", tag);
+		}
+
+		// CableEquationWithOuterPot
+		{
+			typedef CableEquationWithOuterPot<TDomain> T;
+			typedef CableEquation<TDomain> TBase;
+			string name = string("CableEquationWithOuterPot").append(suffix);
+			reg.add_class_<T, TBase >(name, grp)
+				.template add_constructor<void (*)(const char*, const char*)>
+					("Fcts (inner potential, outer potential) # Subset(s)")
+				.set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "CableEquationWithOuterPot", tag);
 		}
 
 #ifdef CONVERTED_TRANSPORT_ENABLED

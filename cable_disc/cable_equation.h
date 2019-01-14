@@ -68,6 +68,9 @@ class CableEquation
 		///	constructor
 		CableEquation(const char* subsets, bool withConcs = true, number init_time = 0.0);
 
+		/// constructor for compatibility with CableEquationWithOuterPot
+		CableEquation(const char* fcts, const char* subsets);
+
 		///	destructor
 		virtual ~CableEquation() {};
 
@@ -271,7 +274,7 @@ class CableEquation
 		number m_constDiam;											///< constant diameter (if set)
 		bool m_bConstDiamSet;										///< whether const diameter is set
 
-	private:
+	protected:
 		number m_spec_res;					///< specific resistance in units of Ohm*m
 		number m_spec_cap;					///< specific capacitance in units of F/m^2
 

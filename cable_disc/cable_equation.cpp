@@ -64,6 +64,30 @@ CableEquation<TDomain>::CableEquation(const char* subsets, bool withConcs, numbe
 	}
 }
 
+template<typename TDomain>
+CableEquation<TDomain>::CableEquation(const char* fcts, const char* subsets)
+: IElemDisc<TDomain>(fcts, subsets),
+	m_numb_ion_funcs(0),
+	R(8.314), F(96485.0),
+	m_aDiameter(GlobalAttachments::attachment<ANumber>("diameter")),
+	m_constDiam(1e-6), m_bConstDiamSet(false),
+	m_spec_res(1.0), m_spec_cap(1.0e-2),
+	m_k_out(4.0), m_na_out(150.0), m_ca_out(1.5),
+	m_ek(-0.09), m_ena(0.06), m_eca(0.14),
+	m_eqConc_ca(5e-5), m_reactionRate_ca(11.0),
+	m_temperature(310.0),
+	m_influx_ac(1e-7),
+	m_bOutput(false),
+	m_output_x(0), m_output_y(0), m_output_z(0),
+	m_outputPath(""),
+	m_spSH(SPNULL),
+	m_v(0), m_na(0), m_k(0), m_ca(0),
+	m_init_time(0.0), m_time(0.0),
+	m_bNonRegularGrid(false),
+	m_bLocked(false),
+	m_si(-1)
+{}
+
 
 // /////////////////////
 // setting parameters //

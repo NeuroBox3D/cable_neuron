@@ -38,6 +38,7 @@ message(STATUS "      Testsuite:          " ${CNTestsuite} " (options are: ON, O
 # cable equation sources
 set (SOURCES
 	cable_disc/cable_equation.cpp
+	cable_disc/cable_equation_withOuterPot.cpp
 	cable_disc/ElemDiscHH_base.cpp
 	cable_disc/ElemDiscHH_fv1.cpp
 	cable_disc/ElemDiscHH_Nernst_fv1.cpp
