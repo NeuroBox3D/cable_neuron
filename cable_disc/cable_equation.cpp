@@ -81,7 +81,7 @@ set_diameter(const number d)
 }
 
 template<typename TDomain> void CableEquation<TDomain>::set_spec_res(number val) {m_spec_res = val;}
-template<typename TDomain> void CableEquation<TDomain>::set_spec_cap(number val) {	m_spec_cap = val;}
+template<typename TDomain> void CableEquation<TDomain>::set_spec_cap(number val) {m_spec_cap = val;}
 
 template<typename TDomain> void CableEquation<TDomain>::set_k_out(number value) {m_k_out = value;}
 template<typename TDomain> void CableEquation<TDomain>::set_na_out(number value) {m_na_out = value;}
@@ -720,7 +720,7 @@ void CableEquation<TDomain>::add_def_M_elem(LocalVector& d, const LocalVector& u
 		// get associated node
 		const int co = scv.node_id();
 
-		//get Diameter from element
+		// get diameter
 		number diam = m_aaDiameter[pElem->vertex(co)];
 
 		// potential equation time derivative

@@ -156,7 +156,7 @@ template<typename TDomain>
 void ChannelLeak<TDomain>::current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
 {
 	// getting attachments for vertex
-	number VM 	 = vrt_values[m_pCE->_v_];
+	number VM = vrt_values[m_pCE->_v_];
 
 	// params for this subset
 	int si = m_pCE->current_subset_index();
