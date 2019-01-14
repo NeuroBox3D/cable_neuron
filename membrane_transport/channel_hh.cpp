@@ -76,7 +76,7 @@ set_conductances(number gK, number gNa, const std::vector<std::string>& subsets)
 
 
 template<typename TDomain>
-void ChannelHH<TDomain>:: enable_temperature_dependency(bool enable)
+void ChannelHH<TDomain>::enable_temperature_dependency(bool enable)
 {
 	m_bTempDep = enable;
 }
@@ -310,10 +310,23 @@ void ChannelHH<TDomain>::update_gating(number newTime, Vertex* vrt, const std::v
 	m_aaNGate[vrt] += rate_n * dt;
 	*/
 
+	/*
 	// implicit version
 	m_aaHGate[vrt] = (m_aaHGate[vrt] + dt*tmp_factor*AlphaHh) / (1.0 + (AlphaHh+BetaHh)*tmp_factor*dt);
 	m_aaMGate[vrt] = (m_aaMGate[vrt] + dt*tmp_factor*AlphaHm) / (1.0 + (AlphaHm+BetaHm)*tmp_factor*dt);
 	m_aaNGate[vrt] = (m_aaNGate[vrt] + dt*tmp_factor*AlphaHn) / (1.0 + (AlphaHn+BetaHn)*tmp_factor*dt);
+	*/
+
+	// exact version
+	const number tau_h = 1.0 / (AlphaHh + BetaHh);
+	const number h_inf = AlphaHh * tau_h;
+	const number tau_m = 1.0 / (AlphaHm + BetaHm);
+	const number m_inf = AlphaHm * tau_m;
+	const number tau_n = 1.0 / (AlphaHn + BetaHn);
+	const number n_inf = AlphaHn * tau_n;
+	m_aaHGate[vrt] = h_inf - (h_inf - m_aaHGate[vrt]) * exp(-dt*tmp_factor/tau_h);
+	m_aaMGate[vrt] = m_inf - (m_inf - m_aaMGate[vrt]) * exp(-dt*tmp_factor/tau_m);
+	m_aaNGate[vrt] = n_inf - (n_inf - m_aaNGate[vrt]) * exp(-dt*tmp_factor/tau_n);
 
 	//std::cout << "VM: " << VM << "   h: "<< m_aaHGate[vrt] << "   m: "<< m_aaMGate[vrt] <<  "   n: "<< m_aaNGate[vrt] <<std::endl;
 	//std::cout << "Rates: " << rate_h << " , " << rate_m << " , " << rate_n << std::endl;
