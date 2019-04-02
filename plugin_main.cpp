@@ -18,6 +18,9 @@
 #include "lib_grid/global_attachments.h" // global attachments
 #include "lib_disc/function_spaces/grid_function.h"
 
+// configuration file for compile options
+#include "cn_config.h"
+
 // cable equation includes
 #include "membrane_transport/cable_membrane_transport_interface.h"
 

@@ -19,7 +19,7 @@ message(STATUS "Additional options (-DCN) for the cable_neuron plugin")
 
 # compile and register nmodl-converted Transport only if # ENABLE_CONVERTED_Transport is set
 option(CNConvertedTransport "ConvertedTransport")
-message(STATUS "      ConvertedTransport: " ${CNConvertedTransport} " (options are: ON, OFF)")
+message(STATUS "      ConvertedTransport:    " ${CNConvertedTransport} " (options are: ON, OFF)")
 
 # compile and register nmodl-converted bap only if CNConvertedTransportbAP is set
 option(CNConvertedTransportbAP "ConvertedTransportbAP")
@@ -27,11 +27,11 @@ message(STATUS "      ConvertedTransportbAP: " ${CNConvertedTransportbAP} " (opt
 
 # compile Converter
 option(CNBuildConverter "BuildConverter" OFF)
-message(STATUS "      BuildConverter:     " ${CNBuildConverter} " (options are: ON, OFF)")
+message(STATUS "      BuildConverter:        " ${CNBuildConverter} " (options are: ON, OFF)")
 
 # whether to build the test suite
 option(CNTestsuite "Build Testsuite" OFF)
-message(STATUS "      Testsuite:          " ${CNTestsuite} " (options are: ON, OFF)")
+message(STATUS "      Testsuite:             " ${CNTestsuite} " (options are: ON, OFF)")
 
 
 
@@ -56,11 +56,22 @@ set (SOURCES
 	util/functions.cpp
 )
 
+if (PARALLEL)
+	set (SOURCES ${SOURCES} util/simple_cable_neuron_partitioner.cpp)
+endif (PARALLEL)
+
+if (Parmetis)
+	set (NC_WITH_PARMETIS 1)
+	set (SOURCES ${SOURCES} util/cable_neuron_unificator.cpp)
+endif (Parmetis)
+
 if (CNConvertedTransport)
+	set (CONVERTED_TRANSPORT_ENABLED 1)
     include(membrane_transport/nmodl_converter/converted/sources.cmake)
 endif (CNConvertedTransport)
 
 if (CNConvertedTransportbAP)
+	set (CONVERTED_TRANSPORT_BAP_ENABLED 1)
     include(membrane_transport/nmodl_converter/converted/sources_bAP.cmake)
 endif (CNConvertedTransportbAP)
 
@@ -97,19 +108,15 @@ endif (CNTestsuite)
 
 
 
+# This will copy the configurable file config_cmake.h to
+# the final configuration header cn_config.h,
+# setting the #defines as given by the current CMake variables.
+configure_file(config_cmake.h ${CMAKE_BINARY_DIR}/cn_config.h)
+
+
 if(buildEmbeddedPlugins)
 	# add the sources to ug4 sources
 	EXPORTSOURCES(${CMAKE_CURRENT_SOURCE_DIR} ${SOURCES})
-	
-	if (CNConvertedTransport)
-		# add definition to plugin_main.cpp to include all converted transport mechanisms
-		ExportSingleFileDefinitions(${CMAKE_CURRENT_SOURCE_DIR}/plugin_main.cpp CONVERTED_TRANSPORT_ENABLED)
-	endif (CNConvertedTransport)
-	
-	if (CNConvertedTransportbAP)
-		# add definition to plugin_main.cpp to include all converted transport mechanisms regarding bAP
-		ExportSingleFileDefinitions(${CMAKE_CURRENT_SOURCE_DIR}/plugin_main.cpp CONVERTED_TRANSPORT_BAP_ENABLED)
-	endif (CNConvertedTransportbAP)
 	
 	if (CNTestsuite)
 		target_link_libraries (CNTestsuite ug4)
@@ -117,16 +124,11 @@ if(buildEmbeddedPlugins)
 	
 else(buildEmbeddedPlugins)
 	add_library(${pluginName} SHARED ${SOURCES})
-	
-	if (CNConvertedTransport)
-		# add definition to plugin_main.cpp to include all converted transport mechanisms
-		set_source_files_properties(plugin_main.cpp PROPERTIES COMPILE_DEFINITIONS CONVERTED_TRANSPORT_ENABLED)
-	endif (CNConvertedTransport)
-	
-	if (CNConvertedTransportbAP)
-		# add definition to plugin_main.cpp to include all converted transport mechanisms
-		set_source_files_properties(plugin_main.cpp PROPERTIES COMPILE_DEFINITIONS CONVERTED_TRANSPORT_BAP_ENABLED)
-	endif (CNConvertedTransportbAP)
+		
+	if (Parmetis)
+		# make plugin link against Parmetis
+		set(linkLibraries Parmetis ${linkLibraries})
+	endif (Parmetis)
 	
 	target_link_libraries(${pluginName} ug4)
 	
