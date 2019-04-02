@@ -10,6 +10,9 @@
 #include "../synapse_handling/synapse_info_io_traits.h"
 #include "synapse_dealer.h"
 #include "../util/functions.h"  // subset_length
+#include "common/util/file_util.h"  // for FindDirInStandardPaths
+#include "common/util/os_info.h"  // for GetPathSeparator
+#include "common/util/string_util.h"  // for PathFromFilename
 
 // boost includes
 #include <boost/random.hpp>
@@ -722,12 +725,18 @@ bool SynapseDistributor::export_grid(const std::string& outfile)
 {
 	m_LastMessage = "export_grid(): Saving to "+outfile+"...";
 
-	if(SaveGridToFile(*m_spGrid, *m_spSubsetHandler, outfile.c_str())) {
+	std::string fileName = FilenameWithoutPath(outfile);
+	std::string outFilePath = PathFromFilename(outfile);
+	std::string absolutePath = FindDirInStandardPaths(outFilePath.c_str());
+	std::string finalOutFile = absolutePath + GetPathSeparator() + fileName;
+
+	if(SaveGridToFile(*m_spGrid, *m_spSubsetHandler, finalOutFile.c_str())) {
 		m_LastMessage.append("done.");
 		return true;
 	}
 	else {
 		m_LastMessage.append("SaveGridToFile(*pm_Grid, *m_spSubsetHandler, outfile.c_str()) failed.");
+		UG_THROW("Failed saving synapse grid to file '" << finalOutFile << "'.");
 		return false;
 	}
 }
