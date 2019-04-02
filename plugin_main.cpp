@@ -371,8 +371,15 @@ struct Functionality
 			reg.add_class_<T, TBase >(name, grp)
 				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
 				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
-				.add_method("set_perm", &T::set_perm, "", "flux at rest (mol/(m^2*s))#inner concentration at rest (mM)# outer concentration at rest (mM)#potential at rest (V)",
-						    "tunes the channel to equilibrate fluxes at resting conditions")
+				.add_method("set_perm", static_cast<void (T::*)(number)>(&T::set_perm),
+					"", "permeability", "sets a constant permeability")
+				.add_method("set_perm", static_cast<void (T::*)(number, number, number, number, int)>(&T::set_perm),
+					"", "flux at rest (mol/(m^2*s))#inner concentration at rest (mM)# outer concentration at rest (mM)#potential at rest (V)",
+					"tunes the channel to equilibrate fluxes at resting conditions")
+				.add_method("set_valency", &T::set_valency, "", "ion valency", "")
+				.add_method("set_ohmic", &T::set_ohmic, "", "ohmic?", "whether an Ohmic model is to be used")
+				.add_method("set_cond", &T::set_cond, "", "conductance", "set the conductance")
+				.add_method("set_rev_pot", &T::set_rev_pot, "", "reversal potential", "set the reversal potential")
 				.add_method("set_leaking_quantity", &T::set_leaking_quantity, "", "", "")
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "IonLeakage", tag);

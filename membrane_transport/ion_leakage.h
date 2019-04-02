@@ -42,7 +42,20 @@ class IonLeakage
 		void set_leaking_quantity(const std::string& lq);
 
 		/// set permeability
+		void set_perm(number perm);
 		void set_perm(number flux_at_rest, number conc_in_rest, number conc_out_rest, number vm_rest, int valency);
+
+		/// set ion valency
+		void set_valency(int v);
+
+		/// set the leakage model to Ohmic currents
+		void set_ohmic(bool b);
+
+		/// set conductance for Ohmic model
+		void set_cond(number g);
+
+		/// set reversal potential for Ohmic model
+		void set_rev_pot(number e);
 
 		// inherited from ICableMembraneTransport
 		virtual void init(Vertex* vrt, const std::vector<number>& vrt_values);
@@ -58,6 +71,11 @@ class IonLeakage
 		// membrane permeability (m/s)
 		number m_perm;
 
+		// ohmic current model
+		bool m_bOhmic;
+		number m_cond;
+		number m_revPot;
+
 		// leaking function name
 		std::string m_leaking_fct;
 
@@ -68,6 +86,8 @@ class IonLeakage
 		number m_conc_in_rest;
 		number m_conc_out_rest;
 		number m_vm_rest;
+		bool m_bPermSetByRestingConds;
+
 		int m_valency;
 };
 

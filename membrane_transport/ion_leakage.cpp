@@ -14,8 +14,9 @@ namespace cable_neuron {
 template<typename TDomain>
 IonLeakage<TDomain>::IonLeakage(const char* functions, const char* subsets)
 try : ICableMembraneTransport<TDomain>(functions, subsets),
-m_perm(1.0), m_leaking_fct(std::string("")), m_lfInd(0),
-m_flux_at_rest(0.0), m_conc_in_rest(5e-5), m_conc_out_rest(1.5), m_vm_rest(-0.065), m_valency(2)
+m_perm(1.0), m_bOhmic(false), m_cond(0.0), m_revPot(0.0), m_leaking_fct(std::string("")), m_lfInd(0),
+m_flux_at_rest(0.0), m_conc_in_rest(5e-5), m_conc_out_rest(1.5), m_vm_rest(-0.065), m_bPermSetByRestingConds(false),
+m_valency(2)
 {
     // check that there is one given function at most
     std::vector<std::string> function_tokens = TokenizeString(functions, ',');
@@ -34,8 +35,9 @@ IonLeakage<TDomain>::IonLeakage
 	const std::vector<std::string>& subsets
 )
 try : ICableMembraneTransport<TDomain>(functions, subsets),
-m_perm(1.0), m_leaking_fct(std::string("")), m_lfInd(0),
-m_flux_at_rest(0.0), m_conc_in_rest(5e-5), m_conc_out_rest(1.5), m_vm_rest(-0.065), m_valency(2)
+m_perm(1.0), m_bOhmic(false), m_cond(0.0), m_revPot(0.0), m_leaking_fct(std::string("")), m_lfInd(0),
+m_flux_at_rest(0.0), m_conc_in_rest(5e-5), m_conc_out_rest(1.5), m_vm_rest(-0.065), m_bPermSetByRestingConds(false),
+m_valency(2)
 {
     // check that there is one given function at most
     UG_COND_THROW(functions.size() > 1, "Only one function argument is supported for ion leakage.");
@@ -73,6 +75,44 @@ set_perm(number flux_at_rest, number conc_in_rest, number conc_out_rest, number 
 	m_conc_out_rest = conc_out_rest;
 	m_vm_rest = vm_rest;
 	m_valency = valency;
+	m_bPermSetByRestingConds = true;
+}
+
+
+template<typename TDomain>
+void IonLeakage<TDomain>::
+set_perm(number perm)
+{
+	m_perm = perm;
+	m_bPermSetByRestingConds = false;
+}
+
+
+template<typename TDomain>
+void IonLeakage<TDomain>::set_valency(int v)
+{
+	m_valency = v;
+}
+
+
+template<typename TDomain>
+void IonLeakage<TDomain>::set_ohmic(bool b)
+{
+	m_bOhmic = b;
+}
+
+
+template<typename TDomain>
+void IonLeakage<TDomain>::set_cond(number g)
+{
+	m_cond = g;
+}
+
+
+template<typename TDomain>
+void IonLeakage<TDomain>::set_rev_pot(number e)
+{
+	m_revPot = e;
 }
 
 
@@ -85,19 +125,23 @@ void IonLeakage<TDomain>::ce_obj_available()
 	}
 	UG_CATCH_THROW("Leaking quantity for Leakage machanism not defined in functions of CableEquation.")
 
-	// set permeability coeff
-	const number& R = m_pCE->R;
-	const number& F = m_pCE->F;
-	const number& T = m_pCE->temperature();
-	const int z = m_valency;
+	if (m_bPermSetByRestingConds)
+	{
 
-	if (fabs(m_vm_rest) < 1e-8) m_perm = m_flux_at_rest / ((m_conc_out_rest - m_conc_in_rest) - z*F/(2*R*T) * (m_conc_out_rest + m_conc_in_rest)*m_vm_rest);
-	else m_perm = m_flux_at_rest / (z*F/(R*T) * m_vm_rest * (m_conc_out_rest - m_conc_in_rest*exp(z*F/(R*T)*m_vm_rest)) / (1.0 - exp(z*F/(R*T)*m_vm_rest)));
+		// set permeability coeff
+		const number& R = m_pCE->R;
+		const number& F = m_pCE->F;
+		const number& T = m_pCE->temperature();
+		const int z = m_valency;
 
-	// check that permeability is positive (else: modeling error!)
-	UG_COND_THROW(m_perm < 0, "The permeability coefficient of your ion leakage term is negative.\n"
-				  "This is not allowed since this mechanism only represents passive fluxes. You may "
-				  "want to consider adding an active mechanism (pump) to your model.");
+		if (fabs(m_vm_rest) < 1e-8) m_perm = m_flux_at_rest / ((m_conc_out_rest - m_conc_in_rest) - z*F/(2*R*T) * (m_conc_out_rest + m_conc_in_rest)*m_vm_rest);
+		else m_perm = m_flux_at_rest / (z*F/(R*T) * m_vm_rest * (m_conc_out_rest - m_conc_in_rest*exp(z*F/(R*T)*m_vm_rest)) / (1.0 - exp(z*F/(R*T)*m_vm_rest)));
+
+		// check that permeability is positive (else: modeling error!)
+		UG_COND_THROW(m_perm < 0, "The permeability coefficient of your ion leakage term is negative.\n"
+					  "This is not allowed since this mechanism only represents passive fluxes. You may "
+					  "want to consider adding an active mechanism (pump) to your model.");
+	}
 }
 
 
@@ -125,10 +169,22 @@ void IonLeakage<TDomain>::update_gating(number newTime, Vertex* vrt, const std::
 template<typename TDomain>
 void IonLeakage<TDomain>::current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues)
 {
+	const number& vm = vrt_values[CableEquation<TDomain>::_v_];
+
+	// ohmic currents
+	if (m_bOhmic)
+	{
+		const number leak = m_cond * (vm - m_revPot);
+		outCurrentValues.push_back(leak);
+		outCurrentValues.push_back(leak / (m_valency*m_pCE->F));
+		return;
+	}
+
+	// GHK currents
+
 	// getting attachments for vertex
-	const number& conc_in 	 = vrt_values[m_lfInd];
-	const number& conc_out 	 = this->m_pCE->conc_out(m_lfInd);
-	const number& VM	 	 = vrt_values[CableEquation<TDomain>::_v_];
+	const number& conc_in = vrt_values[m_lfInd];
+	const number& conc_out = this->m_pCE->conc_out(m_lfInd);
 
 	const number& R = m_pCE->R;
 	const number& F = m_pCE->F;
@@ -137,8 +193,8 @@ void IonLeakage<TDomain>::current(Vertex* vrt, const std::vector<number>& vrt_va
 
 	number leak;
 
-	if (fabs(VM) < 1e-8) leak = -m_perm * ((conc_out - conc_in) - z*F/(2*R*T) * (conc_out + conc_in)*VM);
-		else leak = m_perm * z*F/(R*T) * VM * (conc_out - conc_in*exp(z*F/(R*T)*VM)) / (1.0 - exp(z*F/(R*T)*VM));
+	if (fabs(vm) < 1e-8) leak = -m_perm * ((conc_out - conc_in) - z*F/(2*R*T) * (conc_out + conc_in)*vm);
+		else leak = m_perm * z*F/(R*T) * vm * (conc_out - conc_in*exp(z*F/(R*T)*vm)) / (1.0 - exp(z*F/(R*T)*vm));
 
 	outCurrentValues.push_back(leak * z*F);
 	outCurrentValues.push_back(leak);
@@ -148,9 +204,14 @@ void IonLeakage<TDomain>::current(Vertex* vrt, const std::vector<number>& vrt_va
 template<typename TDomain>
 number IonLeakage<TDomain>::lin_dep_on_pot(Vertex* vrt, const std::vector<number>& vrt_values)
 {
-	const number& conc_in 	 = vrt_values[m_lfInd];
-	const number& conc_out 	 = this->m_pCE->conc_out(m_lfInd);
-	const number& VM	 	 = vrt_values[CableEquation<TDomain>::_v_];
+	// ohmic currents
+	if (m_bOhmic)
+		return m_cond;
+
+	// GHK currents
+	const number& vm = vrt_values[CableEquation<TDomain>::_v_];
+	const number& conc_in = vrt_values[m_lfInd];
+	const number& conc_out = this->m_pCE->conc_out(m_lfInd);
 
 	const number& R = m_pCE->R;
 	const number& F = m_pCE->F;
@@ -161,10 +222,11 @@ number IonLeakage<TDomain>::lin_dep_on_pot(Vertex* vrt, const std::vector<number
 	number leakDeriv;
 
 	// near V_m == 0: approximate by first order Taylor to avoid relative errors and div-by-0
-	if (fabs(VM) < 1e-8) leakDeriv = m_perm * z*F/(2*R*T) * (conc_out + conc_in);
+	if (fabs(vm) < 1e-8)
+		leakDeriv = m_perm * z*F/(2*R*T) * (conc_out + conc_in);
 	else
 	{
-		number in = z*F/(R*T)*VM;
+		number in = z*F/(R*T)*vm;
 		number ex = exp(in);
 		leakDeriv = m_perm * 2*F/(R*T) * (conc_out*(1.0 - (1.0 - in)*ex) + conc_in*(ex - (1.0 + in))*ex)
 						/ ((1.0 - ex) * (1.0 - ex));
