@@ -151,12 +151,15 @@ class CableEquation
 		/// get temperature in units of degrees C
 		number temperature_celsius();
 
+
 		// ////////////////////////////
 		// setters for functionality //
 		// ////////////////////////////
+		void set_influx_function(const char* fct, const char* subset);
+		void set_influx_function(SmartPtr<LuaUserData<number, dim> > fct, const std::string& subset);
 
 		/// setter for influx via subset
-		void set_influx_subset(int influx_subset, number input, number dur, number start);
+		void set_influx_subset(const std::string& influx_subset, number input, number dur, number start);
 
 		/// set influx position accuracy
 		void set_influx_ac(number influx_ac);
@@ -300,14 +303,18 @@ class CableEquation
 		std::string m_outputPath;
 
 		// vars for influx via subset
-		std::vector<int> m_influx_subset;
+		std::vector<std::string> m_vTmpInfluxFctSubsetNames;
+		std::vector<SmartPtr<LuaUserData<number, dim > > > m_vTmpInfluxFcts;
+		std::map<int, std::vector<SmartPtr<LuaUserData<number, dim > > > > m_mInfluxFcts;
+		std::vector<int> m_vInfluxSubset;
+		std::vector<std::string> m_vInfluxSubsetString;
 		std::vector<number> m_vSubsetInfluxDensity, m_vSubsetInfluxStart, m_vSubsetInfluxDur;
 
 	protected:
 		std::vector<number> m_vCurrent, m_vCurrentStart, m_vCurrentDur;		///< values describing influxes
 		std::vector<MathVector<dim> > m_vCurrentCoords;					///< vector for influx coordinates x, y, z
 
-		//synapse handler
+		// synapse handler
 		SmartPtr<synapse_handler::SynapseHandler<TDomain> > m_spSH;
 
 		std::vector<SmartPtr<TIChannel> > m_channel;					///< list of channels
@@ -323,13 +330,11 @@ class CableEquation
 		bool m_bNonRegularGrid;				///< current regular grid flag
 		bool m_bLocked;						///< flag indicating whether approximation space has been set
 
-		/// vector of subset indices this disc is declared on
-		std::vector<int> m_vSI;
-
 		int m_si;
 		std::vector<SmartPtr<TIChannel> > m_channelsOnCurrSubset;
 		std::vector<std::vector<size_t> > m_vvCurrChWFctInd;
 		std::vector<number> m_currVrtValues[domain_traits<dim>::MaxNumVerticesOfElem];
+		const std::vector<SmartPtr<LuaUserData<number, dim> > >* m_pvCurrInfluxFcts;
 
 		std::vector<Vertex*> m_vSurfVrt;
 };

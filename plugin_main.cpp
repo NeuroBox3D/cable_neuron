@@ -490,6 +490,16 @@ struct Functionality
 						"sets position, duration and current strength of an influx")
 				.add_method("write_states_for_position", &T::write_states_for_position)
 				.add_method("set_output_point_and_path", &T::set_output_point_and_path)
+#ifdef UG_FOR_LUA
+				.add_method("set_influx_function",
+					static_cast<void (T::*)(const char*, const char*)> (&T::set_influx_function),
+					"", "lua function name # subset name", "Set an influx density function on a subset.")
+#ifndef UG_FOR_VRL
+				.add_method("set_influx_function",
+					static_cast<void (T::*)(SmartPtr<LuaUserData<number, dim> >, const std::string&)> (&T::set_influx_function),
+					"", "LuaUserFunction # subset name", "Set an influx density function on a subset.")
+#endif
+#endif
 				.add_method("set_influx_subset", &T::set_influx_subset)
 #ifdef UG_CPU_1
 				.add_method("estimate_cfl_cond", &T::template estimate_cfl_cond<CPUAlgebra::vector_type>)

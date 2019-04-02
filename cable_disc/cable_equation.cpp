@@ -44,7 +44,7 @@ CableEquation<TDomain>::CableEquation(const char* subsets, bool withConcs, numbe
 	m_ek(-0.09), m_ena(0.06), m_eca(0.14),
 	m_eqConc_ca(5e-5), m_reactionRate_ca(11.0),
 	m_temperature(310.0),
-	m_influx_ac(1e-7),
+	m_influx_ac(1e-10),
 	m_bOutput(false),
 	m_output_x(0), m_output_y(0), m_output_z(0),
 	m_outputPath(""),
@@ -53,7 +53,8 @@ CableEquation<TDomain>::CableEquation(const char* subsets, bool withConcs, numbe
 	m_init_time(init_time), m_time(init_time),
 	m_bNonRegularGrid(false),
 	m_bLocked(false),
-	m_si(-1)
+	m_si(-1),
+	m_pvCurrInfluxFcts(NULL)
 {
 	// set diff constants
 	if (withConcs)
@@ -76,7 +77,7 @@ CableEquation<TDomain>::CableEquation(const char* fcts, const char* subsets)
 	m_ek(-0.09), m_ena(0.06), m_eca(0.14),
 	m_eqConc_ca(5e-5), m_reactionRate_ca(11.0),
 	m_temperature(310.0),
-	m_influx_ac(1e-7),
+	m_influx_ac(1e-10),
 	m_bOutput(false),
 	m_output_x(0), m_output_y(0), m_output_z(0),
 	m_outputPath(""),
@@ -85,7 +86,8 @@ CableEquation<TDomain>::CableEquation(const char* fcts, const char* subsets)
 	m_init_time(0.0), m_time(0.0),
 	m_bNonRegularGrid(false),
 	m_bLocked(false),
-	m_si(-1)
+	m_si(-1),
+	m_pvCurrInfluxFcts(NULL)
 {}
 
 
@@ -158,20 +160,40 @@ template<typename TDomain> number CableEquation<TDomain>::flux_na() {return 0.0;
 template<typename TDomain> number CableEquation<TDomain>::flux_k()  {return 0.0;}
 
 
-template<typename TDomain> void CableEquation<TDomain>::set_influx_subset(int influx_subset, number input, number dur, number start)
-{
-	//std::cout << "is working" << std::endl;
-	//ConstSmartPtr<DoFDistribution> dd = this->approx_space()->dof_distribution(GridLevel(), false);
-	//std::cout << "fehler in dd" << std::endl;
 
-	//const char* influx_sub = influx_subset.c_str();
-	//std::cout << "before num id" << std::endl;
-	m_influx_subset.push_back(influx_subset); //char* ??
-	//std::cout << "after num id" << std::endl;
+template<typename TDomain>
+void CableEquation<TDomain>::set_influx_function(const char* fct, const char* subset)
+{
+	m_vTmpInfluxFcts.push_back(LuaUserDataFactory<number, dim>::create(fct));
+	m_vTmpInfluxFctSubsetNames.push_back(subset);
+}
+
+
+template<typename TDomain>
+void CableEquation<TDomain>::set_influx_function
+(
+	SmartPtr<LuaUserData<number, dim> > fct,
+	const std::string& subset
+)
+{
+	m_vTmpInfluxFcts.push_back(fct);
+	m_vTmpInfluxFctSubsetNames.push_back(subset);
+}
+
+
+template<typename TDomain>
+void CableEquation<TDomain>::set_influx_subset
+(
+	const std::string& influx_subset,
+	number input,
+	number dur,
+	number start
+)
+{
+	m_vInfluxSubsetString.push_back(influx_subset);
 	m_vSubsetInfluxDensity.push_back(input);
 	m_vSubsetInfluxStart.push_back(start);
 	m_vSubsetInfluxDur.push_back(dur);
-	//std::cout << "alls setted" << std::endl;
 }
 
 // ////////////////////////////
@@ -440,6 +462,33 @@ void CableEquation<TDomain>::approximation_space_changed()
 	// only do this the first time the approx changes (when it is initially set)
 	if (m_bLocked) return;
 
+
+	// treat influx subset names
+	const typename TDomain::subset_handler_type& sh = this->subset_handler();
+
+	{
+		const size_t nSubsetInfluxes = m_vInfluxSubsetString.size();
+		m_vInfluxSubset.resize(nSubsetInfluxes);
+		for (size_t i = 0; i < nSubsetInfluxes; ++i)
+			m_vInfluxSubset[i] = sh.get_subset_index(m_vInfluxSubsetString[i].c_str());
+		std::vector<std::string> tmp;
+		m_vInfluxSubsetString.swap(tmp);
+	}
+
+	{
+		const size_t nInfluxFcts = m_vTmpInfluxFctSubsetNames.size();
+		for (size_t i = 0; i < nInfluxFcts; ++i)
+		{
+			const int si = sh.get_subset_index(m_vTmpInfluxFctSubsetNames[i].c_str());
+			m_mInfluxFcts[si].push_back(m_vTmpInfluxFcts[i]);
+		}
+		std::vector<SmartPtr<LuaUserData<number, dim > > > tmp1;
+		m_vTmpInfluxFcts.swap(tmp1);
+		std::vector<std::string> tmp2;
+		m_vTmpInfluxFctSubsetNames.swap(tmp2);
+	}
+
+
 	SmartPtr<MultiGrid> grid = this->approx_space()->domain()->grid();
 
 	// handle diameter attachment
@@ -608,6 +657,13 @@ void CableEquation<TDomain>::prep_elem_loop(const ReferenceObjectID roid, const 
 	ch_sz = m_channelsOnCurrSubset.size();
 	for (size_t i = 0; i < ch_sz; ++i)
 		m_vvCurrChWFctInd.push_back(m_channelsOnCurrSubset[i]->fct_indices());
+
+	// prepare influx functions defined on the subset
+	typename std::map<int, std::vector<SmartPtr<LuaUserData<number, dim > > > >::const_iterator it;
+	if ((it = m_mInfluxFcts.find(si)) != m_mInfluxFcts.end())
+		m_pvCurrInfluxFcts = &it->second;
+	else
+		m_pvCurrInfluxFcts = NULL;
 }
 
 
@@ -617,10 +673,7 @@ void CableEquation<TDomain>::prep_elem(const LocalVector& u, GridObject* elem, R
 {
 	// update geometry for this element
 	static TFVGeom& geo = GeomProvider<TFVGeom>::get();
-	try
-	{
-		geo.update(elem, vCornerCoords, &(this->subset_handler()));
-	}
+	try {geo.update(elem, vCornerCoords, &(this->subset_handler()));}
 	UG_CATCH_THROW("Cannot update Finite Volume Geometry.\n");
 
 	// update current vertex values (for old solution) of elem
@@ -719,7 +772,6 @@ void CableEquation<TDomain>::add_def_A_elem(LocalVector& d, const LocalVector& u
 
 			d(k, scvf.from()) -= diff_flux;
 			d(k, scvf.to()  ) += diff_flux;
-
 		}
 	}
 }
@@ -769,8 +821,6 @@ void CableEquation<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, cons
 	TElem* pElem = dynamic_cast<TElem*>(elem);
 	if (!pElem) {UG_THROW("Wrong element type.");}
 
-	MGSubsetHandler& ssh = *this->approx_space()->domain()->subset_handler();
-
 	// membrane transport mechanisms and forced influx
 	for (size_t ip = 0; ip < geo.num_scv(); ++ip)
 	{
@@ -783,10 +833,10 @@ void CableEquation<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, cons
 		// get diam from attachment
 		number diam = m_aaDiameter[pElem->vertex(co)];
 
+		// influx from point sources
 		PROFILE_BEGIN_GROUP(rhs_pointInflux, "CableEquationRHS");
-		// influx handling coordinates
 		number time = this->time();
-		for (size_t i = 0; i < m_vCurrent.size(); i++)
+		for (size_t i = 0; i < m_vCurrent.size(); ++i)
 		{
 			// inward current to edge center
 			if (m_vCurrentStart[i] <= time && m_vCurrentDur[i] + m_vCurrentStart[i] >= time)
@@ -805,15 +855,25 @@ void CableEquation<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, cons
 			//    && fabs(vCornerCoords[co][1] - m_coords[i][1]) < m_influx_ac
 			//    && fabs(vCornerCoords[co][2] - m_coords[i][2]) < m_influx_ac)
 		}
-
 		PROFILE_END()
-		PROFILE_BEGIN_GROUP(rhs_subsetInflux, "CableEquationRHS");
-		// TODO: It would be preferable to have vertices (not edges) as influx source.
-		for (size_t i=0; i<m_influx_subset.size(); i++)
+
+		// influx functions
+		if (m_pvCurrInfluxFcts)
 		{
-			// influx handling subset
-			int si = ssh.get_subset_index(elem);
-			if (m_influx_subset[i] == si)
+			const size_t nInfluxes = m_pvCurrInfluxFcts->size();
+			for (size_t i = 0; i < nInfluxes; ++i)
+			{
+				number influxDensity = 0.0;
+				(*m_pvCurrInfluxFcts)[i]->evaluate(influxDensity, vCornerCoords[co], time, m_si);
+				d(_v_, co) += scv.volume()*PI*diam * influxDensity;
+			}
+		}
+
+		// influx from subsets
+		PROFILE_BEGIN_GROUP(rhs_subsetInflux, "CableEquationRHS");
+		for (size_t i = 0; i < m_vInfluxSubset.size(); ++i)
+		{
+			if (m_vInfluxSubset[i] == m_si)
 			{
 				if (m_vSubsetInfluxStart[i] <= time && (m_vSubsetInfluxDur[i] + m_vSubsetInfluxStart[i]) >= time)
 					d(_v_, co) += scv.volume()*PI*diam * m_vSubsetInfluxDensity[i];
