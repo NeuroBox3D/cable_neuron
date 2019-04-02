@@ -17,6 +17,9 @@
 
 #include "lib_grid/global_attachments.h" // global attachments
 #include "lib_disc/function_spaces/grid_function.h"
+#ifdef UG_PARALLEL
+#include "lib_disc/parallelization/domain_load_balancer.h"  // for DomainPartitioner
+#endif
 
 // configuration file for compile options
 #include "cn_config.h"
@@ -65,6 +68,13 @@
 // utility
 #include "util/functions.h"
 
+// partitioning
+#ifdef UG_PARALLEL
+#include "util/simple_cable_neuron_partitioner.h"
+#endif
+#ifdef NC_WITH_PARMETIS
+#include "util/cable_neuron_unificator.h"
+#endif
 
 using namespace std;
 using namespace ug::bridge;
@@ -1110,6 +1120,30 @@ struct Functionality
 		reg.add_function("subset_length", static_cast<number (*) (const char*, ConstSmartPtr<MGSubsetHandler>)>(&subset_length),
             grp.c_str(), "length of neurite subset",
             "subset index#subset handler", "Get the total length of all neurite segments in subset.");
+
+#ifdef UG_PARALLEL
+#ifdef UG_DIM_3
+		{
+			typedef DomainPartitioner<Domain3d, SimpleCableNeuronPartitioner> T;
+			string name = "SimpleCableNeuronPartitioner";
+			reg.add_class_<T, IPartitioner>(name, grp)
+				.add_constructor<void (*)(Domain3d&)>("domain")
+				.set_construct_as_smart_pointer(true);
+		}
+#endif
+#endif
+
+#ifdef NC_WITH_PARMETIS
+		{
+			typedef CableNeuronUnificator T;
+			std::string name = std::string("CableNeuronUnificator");
+			typedef parmetis::IUnificator<Edge> TBase;
+			reg.add_class_<T, TBase>(name, grp)
+				.add_constructor<void (*)()>()
+				.set_construct_as_smart_pointer(true);
+		}
+#endif
+
 	}
 
 }; // end Functionality
