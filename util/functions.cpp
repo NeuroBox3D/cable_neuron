@@ -423,7 +423,7 @@ void neuron_identification(Grid& g)
     }
 #endif
 
-    // don not calculate IDs again
+    // do not calculate IDs again
 	hasBeenDone = true;
 }
 
