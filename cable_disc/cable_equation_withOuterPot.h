@@ -22,7 +22,7 @@ class CableEquationWithOuterPot
 	public:
 		// indices for unknowns
 		enum {_VM_ = 0, _PHIO_};
-		using CableEquation<TDomain>::dim;
+		static const int dim = CableEquation<TDomain>::dim;
 
 	public:
 		///	constructor
