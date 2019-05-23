@@ -40,6 +40,7 @@
 #include "membrane_transport/na_k_pump.h"
 #include "membrane_transport/ncx.h"
 #include "membrane_transport/pmca.h"
+#include "membrane_transport/ka_dist_golding01.h"
 
 // converted membrane transporters
 #ifdef CONVERTED_TRANSPORT_ENABLED
@@ -456,6 +457,26 @@ struct Functionality
 				.add_method("set_K_Na", &T::set_K_Na, "", "K_D value inner [Na] (mM) | default | value=5.74", "sets K_D value for inner [Na]")
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "Na_K_Pump", tag);
+		}
+
+
+		// Ka dist Golding 2001
+		{
+			typedef KaDist_Golding01<TDomain> T;
+			typedef ICableMembraneTransport<TDomain> TBase;
+			string name = string("KaDist_Golding01").append(suffix);
+			reg.add_class_<T, TBase >(name, grp)
+				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
+				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
+				.add_method("set_conductance",  &T::set_gkabar, "",
+					"K conductance (S/m^2) | default | value=80.0#"
+					"subset(s) as vector of string", "sets K conductance value")
+				.add_method("set_reversal_potential", &T::set_ek, "",
+					"K reversal potential | default | value=0.09", "sets K reversal potential")
+				.add_method("set_logLGate", &T::set_logLGate)
+				.add_method("set_logNGate", &T::set_logNGate)
+				.set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "KaDist_Golding01", tag);
 		}
 
 		// CableEquation discretization class

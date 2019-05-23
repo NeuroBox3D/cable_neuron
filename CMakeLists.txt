@@ -51,6 +51,7 @@ set (SOURCES
 	membrane_transport/pmca.cpp
 	membrane_transport/ncx.cpp
 	membrane_transport/vdcc_bg.cpp
+	membrane_transport/ka_dist_golding01.cpp
 	util/diam_attachment_handler.cpp
 	util/order.cpp
 	util/functions.cpp
