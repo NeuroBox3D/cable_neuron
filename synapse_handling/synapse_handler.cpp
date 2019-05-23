@@ -898,11 +898,12 @@ void SynapseHandler<TDomain>::active_postsynapses_and_currents
 nid_of_interest:
 		Vertex* v1 = e->vertex(1);
 
-		number rel_loc = it->second->location();
-		number vm = m_spCEDisc->vm(v0)*(1.0-rel_loc) + m_spCEDisc->vm(v1)*rel_loc;
+		IPostSynapse* post = it->second;
 
-		IPostSynapse* post = m_mPostSynapses.at(id);
-		number curr = post->current(time, vm);
+		const number rel_loc = post->location();
+		const number vm = m_spCEDisc->vm(v0)*(1.0-rel_loc) + m_spCEDisc->vm(v1)*rel_loc;
+
+		const number curr = post->current(time, vm);
 
 		vActSynOut.push_back(id);
 		vSynCurrOut.push_back(curr);

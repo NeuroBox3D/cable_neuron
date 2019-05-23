@@ -840,13 +840,13 @@ void CableEquation<TDomain>::add_rhs_elem(LocalVector& d, GridObject* elem, cons
 			// inward current to edge center
 			if (m_vCurrentStart[i] <= time && m_vCurrentDur[i] + m_vCurrentStart[i] >= time)
 			{
-			    MathVector<dim> diff;
-			    VecScaleAdd(diff, 0.5, vCornerCoords[0], 0.5, vCornerCoords[1], -1.0, m_vCurrentCoords[i]);
-			    if (VecNormSquared(diff) < m_influx_ac*m_influx_ac)
-			    {
-			        // use real current here, thus the influx is independent from the geometry
-			        d(_v_, co) += 0.5*m_vCurrent[i]; // equally distributed to both vertices
-			    }
+				MathVector<dim> diff;
+				VecScaleAdd(diff, 0.5, vCornerCoords[0], 0.5, vCornerCoords[1], -1.0, m_vCurrentCoords[i]);
+				if (VecNormSquared(diff) < m_influx_ac*m_influx_ac)
+				{
+					// use real current here, thus the influx is independent from the geometry
+					d(_v_, co) += 0.5*m_vCurrent[i]; // equally distributed to both vertices
+				}
 			}
 			// inward flux to vertex x (if used, the specified influx has to be scaled by 1/valence of vertex x)
 			//if (m_beg_flux[i] <= time && m_dur_flux[i] + m_beg_flux[i] >= time
