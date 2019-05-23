@@ -30,6 +30,7 @@
 // solver includes
 #include "util/cable_ass_tuner.h"
 #include "util/order.h"
+#include "util/neuronal_topology_importer.h"
 
 // implemented membrane transporters
 #include "membrane_transport/channel_hh.h"
@@ -1144,6 +1145,27 @@ struct Functionality
 		}
 #endif
 
+		// NeuronalTopologyImporter
+		{
+			typedef neuronal_topology_importer::NeuronalTopologyImporter T;
+			std::string name = std::string("NeuronalTopologyImporter");
+			reg.add_class_<T>(name, grp)
+				.add_constructor<void (*) ()>("", "", grp)
+				.add_method("set_scaling_factors", &T::set_scaling_factors, "", "length # time # potential # conductance", "")
+				.add_method("set_length_scaling", &T::set_length_scaling, "", "length scaling factor", "")
+				.add_method("set_time_scaling", &T::set_time_scaling, "", "time scaling factor", "")
+				.add_method("set_potential_scaling", &T::set_potential_scaling, "", "potential scaling factor", "")
+				.add_method("set_conductance_scaling", &T::set_conductance_scaling, "", "conductance scaling factor", "")
+				.add_method("add_joining_criterion", &T::add_joining_criterion, "", "criterion", "")
+				.add_method("rm_joining_criterion", &T::rm_joining_criterion, "", "criterion", "")
+				.add_method("import_geometry_and_generate_grid",
+					(bool (T::*)(const std::string&)) (&T::import_and_generate_grid),
+					"success", "file name")
+				.add_method("import_geometry_and_generate_grid",
+					(bool (T::*)(const std::string&, const std::string&)) (&T::import_and_generate_grid),
+					"success", "file base name # format (hoc, ngx, swc, txt)")
+				.set_construct_as_smart_pointer(true);
+		}
 	}
 
 }; // end Functionality

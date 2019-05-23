@@ -54,6 +54,7 @@ set (SOURCES
 	util/diam_attachment_handler.cpp
 	util/order.cpp
 	util/functions.cpp
+	util/neuronal_topology_importer.cpp
 )
 
 if (PARALLEL)
@@ -74,6 +75,17 @@ if (CNConvertedTransportbAP)
 	set (CONVERTED_TRANSPORT_BAP_ENABLED 1)
     include(membrane_transport/nmodl_converter/converted/sources_bAP.cmake)
 endif (CNConvertedTransportbAP)
+
+# check whether compiler supports C++11 standard (required for HOC import)
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
+if (COMPILER_SUPPORTS_CXX11)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c++11")
+	set(NETI_ALL_FEATURES 1)
+else (COMPILER_SUPPORTS_CXX11)
+	message(STATUS "      Compiler does not support C++11: HOC import will not be available.")
+endif (COMPILER_SUPPORTS_CXX11)
 
 # synapse_handling sources
 include(synapse_handling/sources.cmake)

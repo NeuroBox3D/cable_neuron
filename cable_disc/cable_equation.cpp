@@ -12,7 +12,6 @@
 
 #include "lib_grid/global_attachments.h"
 #include "../util/functions.h"
-//#include "../../NeuronalTopologyImporter/neuronal_topology_importer.h"
 
 
 namespace ug {

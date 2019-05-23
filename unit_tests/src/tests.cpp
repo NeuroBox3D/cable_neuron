@@ -23,19 +23,39 @@
 #include "../../synapse_handling/types.h"
 #include "../../synapse_handling/synapse_dealer.h"
 #include "../../synapse_handling/synapse_distributor.h"
+#include "../../util/neuronal_topology_importer.h"
+#include "geometry_information.h"
+
+#include "ug.h"  // UGInit
+#include "bridge/bridge.h"  // GetUGRegistry
+#include "lib_disc/domain.h"  // Domain3d
 
 
 
 // using directives
 using namespace boost::unit_test;
+using namespace ug;
 using namespace ug::cable_neuron;
-using namespace synapse_handler;
+using namespace ug::cable_neuron::synapse_handler;
+using namespace ug::cable_neuron::neuronal_topology_importer;
 using namespace std;
 
 /// begin of test suite presynapses
 BOOST_AUTO_TEST_SUITE(PRESYNAPSES);
 
 BOOST_AUTO_TEST_CASE(ALPHAPRESYNAPSE) {
+	// init ug (only needed once in very first test)
+	try {
+		int argc = 1;
+		char arg0[8] = {'u', 'g', 's', 'h', 'e', 'l', 'l', '\0'};
+		char* arg0p = &arg0[0];
+		char** argv = &arg0p;
+		UGInit(&argc, &argv);
+		script::RegisterDefaultLuaBridge(&bridge::GetUGRegistry());
+	} catch (const UGError& e) {
+		throw framework::setup_error(e.get_stacktrace());
+	}
+
 	synapse_id id0 = 1;
 	synapse_id id1 = 10;
 	synapse_id id2 = 23;
@@ -73,68 +93,68 @@ BOOST_AUTO_TEST_CASE(ALPHAPRESYNAPSE) {
 	s->set_location(location2);
 	s->set_onset(onset1);
 	s->set_duration(duration0);
-	BOOST_REQUIRE_MESSAGE(s->id() == id1,"id check0");
-	BOOST_REQUIRE_MESSAGE(s->location() == location2,"location check0");
-	BOOST_REQUIRE_MESSAGE(s->onset() == onset1,"onset check0");
-	BOOST_REQUIRE_MESSAGE(s->duration() == duration0,"duration check0");
-	BOOST_REQUIRE_MESSAGE(s->type() == ONSET_PRE_SYNAPSE,"type check");
+	BOOST_CHECK_MESSAGE(s->id() == id1,"id check0");
+	BOOST_CHECK_MESSAGE(s->location() == location2,"location check0");
+	BOOST_CHECK_MESSAGE(s->onset() == onset1,"onset check0");
+	BOOST_CHECK_MESSAGE(s->duration() == duration0,"duration check0");
+	BOOST_CHECK_MESSAGE(s->type() == ONSET_PRE_SYNAPSE,"type check");
 
 	u->set_id(id2);
-	BOOST_REQUIRE_MESSAGE(u->id() == id2,"id check1");
-	BOOST_REQUIRE_MESSAGE(u->name() == "ONSET_PRE_SYNAPSE", "name check");
+	BOOST_CHECK_MESSAGE(u->id() == id2,"id check1");
+	BOOST_CHECK_MESSAGE(u->name() == OnsetPreSynapse::name_string, "name check");
 
 
 	/**
 	 * Functionality tests
 	 */
-	BOOST_REQUIRE_MESSAGE( !s0->is_active(t0) &&
+	BOOST_CHECK_MESSAGE( !s0->is_active(t0) &&
 						   !s1->is_active(t0) &&
 						   !s2->is_active(t0), "active check (t0)");
 
-	BOOST_REQUIRE_MESSAGE(  s0->is_active(t1) &&
+	BOOST_CHECK_MESSAGE(  s0->is_active(t1) &&
 						   !s1->is_active(t1) &&
 						   !s2->is_active(t1), "active check (t1)");
 
-	BOOST_REQUIRE_MESSAGE(  s0->is_active(t2) &&
+	BOOST_CHECK_MESSAGE(  s0->is_active(t2) &&
 						    s1->is_active(t2) &&
 						   !s2->is_active(t2), "active check (t2)");
 
-	BOOST_REQUIRE_MESSAGE(  s0->is_active(t3) &&
+	BOOST_CHECK_MESSAGE(  s0->is_active(t3) &&
 						    s1->is_active(t3) &&
 						    s2->is_active(t3), "active check (t3)");
 
-	BOOST_REQUIRE_MESSAGE( !s0->is_active(t4) &&
+	BOOST_CHECK_MESSAGE( !s0->is_active(t4) &&
 						   !s1->is_active(t4) &&
 						    s2->is_active(t4), "active check (t4)");
 
 	//serialization
 	ostringstream oss1;
 	ostringstream oss2;
-	istringstream iss("ONSET_PRE_SYNAPSE 111 1.4 3e-08 4");
+	istringstream iss("OnsetPreSynapse 111 1.4 3e-08 4");
 	oss1 << s1;
 
-	oss2 << "ONSET_PRE_SYNAPSE" << " ";
+	oss2 << "OnsetPreSynapse" << " ";
 	oss2 << id1 << " ";
 	oss2 << location1 << " ";
 	oss2 << onset1 << " ";
 	oss2 << duration1;
 
-	BOOST_REQUIRE_MESSAGE(oss1.str() == oss2.str(), "serialization check");
+	BOOST_CHECK_MESSAGE(oss1.str() == oss2.str(), "serialization check");
 
 	std::string ident;
 	iss >> ident; //pop identifier away
 	iss >> s3;
-	BOOST_REQUIRE_MESSAGE(s3->type() == ONSET_PRE_SYNAPSE, "deserialization check");
-	BOOST_REQUIRE_MESSAGE(s3->name() == "ONSET_PRE_SYNAPSE", "deserialization check");
-	BOOST_REQUIRE_MESSAGE(s3->id() == 111, "deserialization check");
-	BOOST_REQUIRE_MESSAGE(s3->location() == 1.4, "deserialization check");
-	BOOST_REQUIRE_MESSAGE(s3->onset() == 3e-08, "deserialization check");
-	BOOST_REQUIRE_MESSAGE(s3->duration() == 4, "deserialization check");
+	BOOST_CHECK_MESSAGE(s3->type() == ONSET_PRE_SYNAPSE, "deserialization check");
+	BOOST_CHECK_MESSAGE(s3->name() == "OnsetPreSynapse", "deserialization check");
+	BOOST_CHECK_MESSAGE(s3->id() == 111, "deserialization check");
+	BOOST_CHECK_MESSAGE(s3->location() == 1.4, "deserialization check");
+	BOOST_CHECK_MESSAGE(s3->onset() == 3e-08, "deserialization check");
+	BOOST_CHECK_MESSAGE(s3->duration() == 4, "deserialization check");
 
-//	synapse dealer
-	SynapseDealer::instance()->register_synapse_type<OnsetPreSynapse>("ONSET_PRE_SYNAPSE");
-	IBaseSynapse* s4 = SynapseDealer::instance()->deal("ONSET_PRE_SYNAPSE");
-	BOOST_REQUIRE_MESSAGE(s4->name() == "ONSET_PRE_SYNAPSE", "SynapseDealer check");
+	// synapse dealer
+	SynapseDealer::instance()->register_synapse_type<OnsetPreSynapse>();
+	IBaseSynapse* s4 = SynapseDealer::instance()->deal(OnsetPreSynapse::name_string);
+	BOOST_CHECK_MESSAGE(s4->name() == OnsetPreSynapse::name_string, "SynapseDealer check");
 
 	delete s;
 	delete u;
@@ -155,7 +175,6 @@ BOOST_AUTO_TEST_CASE(EXP2PRESYNAPSE) {
 	number location1 = 1;
 	number location2 = 0.3;
 
-	number onset0 = 0;
 	number onset1 = 1e-5;
 	number onset2 = 5e-5;
 
@@ -166,10 +185,6 @@ BOOST_AUTO_TEST_CASE(EXP2PRESYNAPSE) {
 	number threshold0 = -0.01;
 	number threshold1 = -0.01;
 	number threshold2 = -0.01;
-
-	number t0 = 1e-5;
-	number t1 = 3e-5;
-	number t2 = 1e-4;
 
 	number v0 = -0.065; //-65mV
 	number v1 = -0.020; //-20mV
@@ -205,15 +220,15 @@ BOOST_AUTO_TEST_CASE(EXP2PRESYNAPSE) {
 
 	u->set_id(id2);
 
-	BOOST_REQUIRE_MESSAGE(s->id() == id1,"id getter and setter check1");
-	BOOST_REQUIRE_MESSAGE(s->location() == location1,"location getter and setter check1");
-	BOOST_REQUIRE_MESSAGE(s->onset() == onset1,"onset getter and setter check1");
-	BOOST_REQUIRE_MESSAGE(s->duration() == duration1,"duration getter and setter check1");
-	BOOST_REQUIRE_MESSAGE(s->threshold() == threshold1,"threshold getter and setter check1");
-	BOOST_REQUIRE_MESSAGE(s->type() == THRESHOLD_PRE_SYNAPSE,"type check");
+	BOOST_CHECK_MESSAGE(s->id() == id1,"id getter and setter check1");
+	BOOST_CHECK_MESSAGE(s->location() == location1,"location getter and setter check1");
+	BOOST_CHECK_MESSAGE(s->onset() == onset1,"onset getter and setter check1");
+	BOOST_CHECK_MESSAGE(s->duration() == duration1,"duration getter and setter check1");
+	BOOST_CHECK_MESSAGE(s->threshold() == threshold1,"threshold getter and setter check1");
+	BOOST_CHECK_MESSAGE(s->type() == THRESHOLD_PRE_SYNAPSE,"type check");
 
-	BOOST_REQUIRE_MESSAGE(u->id() == id2,"id getter and setter check2");
-	BOOST_REQUIRE_MESSAGE(u->name() == "THRESHOLD_PRE_SYNAPSE","name check");
+	BOOST_CHECK_MESSAGE(u->id() == id2,"id getter and setter check2");
+	BOOST_CHECK_MESSAGE(u->name() == ThresholdPreSynapse::name_string,"name check");
 
 	/**
 	 * Functionality tests
@@ -230,7 +245,7 @@ BOOST_AUTO_TEST_CASE(EXP2PRESYNAPSE) {
 			std::vector<number> x; x.push_back(vm);
 			s0->update(t, x);
 
-			BOOST_REQUIRE_MESSAGE((s0->is_active(t)) == false, "active check0(t="<<t<<")");
+			BOOST_CHECK_MESSAGE((s0->is_active(t)) == false, "active check0(t="<<t<<")");
 
 			t += dt;
 			vm += dv;
@@ -249,7 +264,7 @@ BOOST_AUTO_TEST_CASE(EXP2PRESYNAPSE) {
 			std::vector<number> x; x.push_back(vm);
 			s0->update(t, x);
 
-			BOOST_REQUIRE_MESSAGE((s0->is_active(t)) == (vm >= threshold0), "active check1");
+			BOOST_CHECK_MESSAGE((s0->is_active(t)) == (vm >= threshold0), "active check1");
 
 			t += dt;
 			vm += dv;
@@ -261,32 +276,30 @@ BOOST_AUTO_TEST_CASE(EXP2PRESYNAPSE) {
 	//serialization
 	ostringstream oss1;
 	ostringstream oss2;
-	istringstream iss("THRESHOLD_PRE_SYNAPSE 111 1.4 3e-08 3 -0.010");
+	istringstream iss("ThresholdPreSynapse 111 1.4 3 -0.010");
 	oss1 << s2;
 
-	oss2 << "THRESHOLD_PRE_SYNAPSE" << " ";
+	oss2 << "ThresholdPreSynapse" << " ";
 	oss2 << id2 << " ";
 	oss2 << location2 << " ";
-	oss2 << nan("") << " ";
 	oss2 << duration2 << " ";
 	oss2 << threshold2;
-	BOOST_REQUIRE_MESSAGE(oss1.str() == oss2.str(), "serialization check");
+	BOOST_CHECK_MESSAGE(oss1.str() == oss2.str(), "serialization check");
 
 	std::string ident;
 	iss >> ident; //pop identifier away
 	iss >> s3;
-	BOOST_REQUIRE_MESSAGE(s3->type() == THRESHOLD_PRE_SYNAPSE, "deserialization check");
-	BOOST_REQUIRE_MESSAGE(s3->name() == "THRESHOLD_PRE_SYNAPSE", "deserialization check");
-	BOOST_REQUIRE_MESSAGE(s3->id() == 111, "deserialization check");
-	BOOST_REQUIRE_MESSAGE(s3->location() == 1.4, "deserialization check");
-	BOOST_REQUIRE_MESSAGE(s3->onset() != s3->onset(), "deserialization check");
-	BOOST_REQUIRE_MESSAGE(s3->duration() == 3, "deserialization check");
-	BOOST_REQUIRE_MESSAGE(s3->threshold() == -0.010, "deserialization check");
+	BOOST_CHECK_MESSAGE(s3->type() == THRESHOLD_PRE_SYNAPSE, "deserialization check");
+	BOOST_CHECK_MESSAGE(s3->name() == "ThresholdPreSynapse", "deserialization check");
+	BOOST_CHECK_MESSAGE(s3->id() == 111, "deserialization check");
+	BOOST_CHECK_MESSAGE(s3->location() == 1.4, "deserialization check");
+	BOOST_CHECK_MESSAGE(s3->duration() == 3, "deserialization check");
+	BOOST_CHECK_MESSAGE(s3->threshold() == -0.010, "deserialization check");
 
-//	synapse dealer
-	SynapseDealer::instance()->register_synapse_type<ThresholdPreSynapse>("THRESHOLD_PRE_SYNAPSE");
-	IBaseSynapse* s4 = SynapseDealer::instance()->deal("THRESHOLD_PRE_SYNAPSE");
-	BOOST_REQUIRE_MESSAGE(s4->name() == "THRESHOLD_PRE_SYNAPSE", "SynapseDealer check");
+	// synapse dealer
+	SynapseDealer::instance()->register_synapse_type<ThresholdPreSynapse>();
+	IBaseSynapse* s4 = SynapseDealer::instance()->deal(ThresholdPreSynapse::name_string);
+	BOOST_CHECK_MESSAGE(s4->name() == ThresholdPreSynapse::name_string, "SynapseDealer check");
 
 	delete s;
 	delete u;
@@ -306,16 +319,12 @@ BOOST_AUTO_TEST_SUITE_END();
 BOOST_AUTO_TEST_SUITE(POSTSYNAPSES);
 
 BOOST_AUTO_TEST_CASE(ALPHAPOSTSYNAPSE) {
-	synapse_id id0 = 1;
-	synapse_id id1 = 3;
 	synapse_id id2 = 195;
 
 	number location0 = 0;
 	number location1 = 1;
 	number location2 = 0.6;
 
-	number onset0 = 2;
-	number onset1 = 2;
 	number onset2 = 2;
 
 	number gmax0 = 0.000511591;
@@ -330,10 +339,6 @@ BOOST_AUTO_TEST_CASE(ALPHAPOSTSYNAPSE) {
 	number rev1 = 0.0;
 	number rev2 = 0.0;
 
-	number vm0 = -0.065;
-	number vm1 = -0.065;
-	number vm2 = -0.065;
-
 	number t0 = 1e-5;
 	number t1 = 5e-5;
 	number t2 = 7e-5;
@@ -347,28 +352,28 @@ BOOST_AUTO_TEST_CASE(ALPHAPOSTSYNAPSE) {
 	s->set_gMax(gmax2);
 	s->set_tau(tau2);
 	s->set_rev(rev2);
-	BOOST_REQUIRE_MESSAGE(s->name() == "ALPHA_POST_SYNAPSE","name check");
-	BOOST_REQUIRE_MESSAGE(s->id() == id2,"getter and setter check0");
-	BOOST_REQUIRE_MESSAGE(s->location() == location2,"getter and setter check0");
-	BOOST_REQUIRE_MESSAGE(s->onset() == onset2,"getter and setter check0");
-	BOOST_REQUIRE_MESSAGE(s->gMax() == gmax2,"getter and setter check0");
-	BOOST_REQUIRE_MESSAGE(s->tau() == tau2,"getter and setter check0");
-	BOOST_REQUIRE_MESSAGE(s->rev() == rev2,"getter and setter check0");
-	BOOST_REQUIRE_MESSAGE(s->type() == ALPHA_POST_SYNAPSE,"type check");
+	BOOST_CHECK_MESSAGE(s->name() == AlphaPostSynapse::name_string,"name check");
+	BOOST_CHECK_MESSAGE(s->id() == id2,"getter and setter check0");
+	BOOST_CHECK_MESSAGE(s->location() == location2,"getter and setter check0");
+	BOOST_CHECK_MESSAGE(s->onset() == onset2,"getter and setter check0");
+	BOOST_CHECK_MESSAGE(s->gMax() == gmax2,"getter and setter check0");
+	BOOST_CHECK_MESSAGE(s->tau() == tau2,"getter and setter check0");
+	BOOST_CHECK_MESSAGE(s->rev() == rev2,"getter and setter check0");
+	BOOST_CHECK_MESSAGE(s->type() == ALPHA_POST_SYNAPSE,"type check");
 
-	AlphaPostSynapse* s1 = new AlphaPostSynapse(id0, location0, onset0, gmax0, tau0, rev0);
-	AlphaPostSynapse* s2 = new AlphaPostSynapse(id1, location1, onset1, gmax1, tau1, rev1);
-	AlphaPostSynapse* s3 = new AlphaPostSynapse(id2, location2, onset2, gmax2, tau2, rev2);
+	AlphaPostSynapse* s1 = new AlphaPostSynapse(location0, gmax0, tau0, rev0);
+	AlphaPostSynapse* s2 = new AlphaPostSynapse(location1, gmax1, tau1, rev1);
+	AlphaPostSynapse* s3 = new AlphaPostSynapse(location2, gmax2, tau2, rev2);
 	AlphaPostSynapse* s4 = new AlphaPostSynapse();
 
-	BOOST_REQUIRE_MESSAGE(s1->is_active(t0) == false,"is_active check");
+	BOOST_CHECK_MESSAGE(s1->is_active(t0) == false,"is_active check");
 
 	s2->activate(t1);
-	BOOST_REQUIRE_MESSAGE(s2->is_active(t1) == true,"is_active check");
+	BOOST_CHECK_MESSAGE(s2->is_active(t1) == true,"is_active check");
 
 	s3->activate(t2);
-	s3->deactivate(t3);
-	BOOST_REQUIRE_MESSAGE(s3->is_active(t3) == false,"is_active check");
+	s3->deactivate();
+	BOOST_CHECK_MESSAGE(s3->is_active(t3) == false,"is_active check");
 
 
 	//todo:
@@ -377,32 +382,31 @@ BOOST_AUTO_TEST_CASE(ALPHAPOSTSYNAPSE) {
 	//serialization
 	ostringstream oss1;
 	ostringstream oss2;
-	istringstream iss("ALPHA_POST_SYNAPSE 1 4 3 1 2 1");
-	oss1 << s3;
-	oss2 << "ALPHA_POST_SYNAPSE" << " ";
+	istringstream iss("AlphaPostSynapse 1 4 1 2 1");
+	oss1 << s;
+	oss2 << "AlphaPostSynapse" << " ";
 	oss2 << id2 << " ";
 	oss2 << location2 << " ";
-	oss2 << nan("") << " ";
 	oss2 << gmax2 << " ";
 	oss2 << tau2 << " ";
 	oss2 << rev2;
-	BOOST_REQUIRE_MESSAGE(oss1.str() == oss2.str(), "serialization check");
+	BOOST_CHECK_MESSAGE(oss1.str() == oss2.str(), "serialization check");
 
 	std::string ident;
 	iss >> ident; //pop identifier away
 
 	iss >> s4;
-	BOOST_REQUIRE_MESSAGE(s4->id()== 1, "deserialization check");
-	BOOST_REQUIRE_MESSAGE(s4->location() == 4, "deserialization check");
-	BOOST_REQUIRE_MESSAGE(s4->onset() != s4->onset(), "deserialization check");
-	BOOST_REQUIRE_MESSAGE(s4->gMax() == 1, "deserialization check");
-	BOOST_REQUIRE_MESSAGE(s4->tau() == 2, "deserialization check");
-	BOOST_REQUIRE_MESSAGE(s4->rev() == 1, "deserialization check");
+	BOOST_CHECK_MESSAGE(s4->id()== 1, "deserialization check");
+	BOOST_CHECK_MESSAGE(s4->name() == "AlphaPostSynapse", "deserialization check");
+	BOOST_CHECK_MESSAGE(s4->location() == 4, "deserialization check");
+	BOOST_CHECK_MESSAGE(s4->gMax() == 1, "deserialization check");
+	BOOST_CHECK_MESSAGE(s4->tau() == 2, "deserialization check");
+	BOOST_CHECK_MESSAGE(s4->rev() == 1, "deserialization check");
 
 	//synapse dealer
-	SynapseDealer::instance()->register_synapse_type<AlphaPostSynapse>("ALPHA_POST_SYNAPSE");
-	IBaseSynapse* s0 = SynapseDealer::instance()->deal("ALPHA_POST_SYNAPSE");
-	BOOST_REQUIRE_MESSAGE(s4->name() == "ALPHA_POST_SYNAPSE", "SynapseDealer check");
+	SynapseDealer::instance()->register_synapse_type<AlphaPostSynapse>();
+	IBaseSynapse* s0 = SynapseDealer::instance()->deal(AlphaPostSynapse::name_string);
+	BOOST_CHECK_MESSAGE(s4->name() == AlphaPostSynapse::name_string, "SynapseDealer check");
 
 	delete s;
 	delete s0;
@@ -421,8 +425,6 @@ BOOST_AUTO_TEST_CASE(EXP2POSTSYNAPSE) {
 	number location1 = 1;
 	number location2 = 0.6;
 
-	number onset0 = 2;
-	number onset1 = 2;
 	number onset2 = 2;
 
 	number gmax0 = 0.000511591;
@@ -441,10 +443,6 @@ BOOST_AUTO_TEST_CASE(EXP2POSTSYNAPSE) {
 	number rev1 = 0.0;
 	number rev2 = 0.0;
 
-	number vm0 = -0.065;
-	number vm1 = -0.065;
-	number vm2 = -0.065;
-
 	number t0 = 1e-5;
 	number t1 = 5e-5;
 	number t2 = 7e-5;
@@ -458,15 +456,15 @@ BOOST_AUTO_TEST_CASE(EXP2POSTSYNAPSE) {
 	s->set_tau1(tau12);
 	s->set_tau2(tau22);
 	s->set_rev(rev2);
-	BOOST_REQUIRE_MESSAGE(s->name() == "EXP2_POST_SYNAPSE", "name test");
-	BOOST_REQUIRE_MESSAGE(s->type() == EXP2_POST_SYNAPSE, "type test");
-	BOOST_REQUIRE_MESSAGE(s->id() == id2, "getter and setter test");
-	BOOST_REQUIRE_MESSAGE(s->location() == location2, "getter and setter test");
-	BOOST_REQUIRE_MESSAGE(s->onset() == onset2, "getter and setter test");
-	BOOST_REQUIRE_MESSAGE(s->gMax() == gmax2, "getter and setter test");
-	BOOST_REQUIRE_MESSAGE(s->tau1() == tau12, "getter and setter test");
-	BOOST_REQUIRE_MESSAGE(s->tau2() == tau22, "getter and setter test");
-	BOOST_REQUIRE_MESSAGE(s->rev() == rev2, "getter and setter test");
+	BOOST_CHECK_MESSAGE(s->name() == Exp2PostSynapse::name_string, "name test");
+	BOOST_CHECK_MESSAGE(s->type() == EXP2_POST_SYNAPSE, "type test");
+	BOOST_CHECK_MESSAGE(s->id() == id2, "getter and setter test");
+	BOOST_CHECK_MESSAGE(s->location() == location2, "getter and setter test");
+	BOOST_CHECK_MESSAGE(s->onset() == onset2, "getter and setter test");
+	BOOST_CHECK_MESSAGE(s->gMax() == gmax2, "getter and setter test");
+	BOOST_CHECK_MESSAGE(s->tau1() == tau12, "getter and setter test");
+	BOOST_CHECK_MESSAGE(s->tau2() == tau22, "getter and setter test");
+	BOOST_CHECK_MESSAGE(s->rev() == rev2, "getter and setter test");
 
 	Exp2PostSynapse* s0 = new Exp2PostSynapse(id0, location0, gmax0, tau10, tau20, rev0);
 	Exp2PostSynapse* s1 = new Exp2PostSynapse(id1, location1, gmax1, tau11, tau21, rev1);
@@ -474,45 +472,44 @@ BOOST_AUTO_TEST_CASE(EXP2POSTSYNAPSE) {
 	Exp2PostSynapse* s3 = new Exp2PostSynapse();
 
 
-	BOOST_REQUIRE_MESSAGE(s1->is_active(t0) == false,"is_active check");
+	BOOST_CHECK_MESSAGE(s1->is_active(t0) == false,"is_active check");
 
 	s2->activate(t1);
-	BOOST_REQUIRE_MESSAGE(s2->is_active(t1) == true,"is_active check");
+	BOOST_CHECK_MESSAGE(s2->is_active(t1) == true,"is_active check");
 
 	s3->activate(t2);
-	s3->deactivate(t3);
-	BOOST_REQUIRE_MESSAGE(s3->is_active(t3) == false,"is_active check");
+	s3->deactivate();
+	BOOST_CHECK_MESSAGE(s3->is_active(t3) == false,"is_active check");
 
 	//serialization
 	ostringstream oss1;
 	ostringstream oss2;
-	istringstream iss("EXP2_POST_SYNAPSE 1 3 1 1 2 4 1");
+	istringstream iss("Exp2PostSynapse 1 3 1 2 4 1");
 	oss1 << s1;
-	oss2 << "EXP2_POST_SYNAPSE" << " ";
+	oss2 << "Exp2PostSynapse" << " ";
 	oss2 << id1 << " ";
 	oss2 << location1 << " ";
-	oss2 << nan("") << " ";
 	oss2 << gmax1 << " ";
 	oss2 << tau11 << " ";
 	oss2 << tau21 << " ";
 	oss2 << rev1;
-	BOOST_REQUIRE_MESSAGE(oss1.str() == oss2.str(), "serialization check");
+	BOOST_CHECK_MESSAGE(oss1.str() == oss2.str(), "serialization check");
 
 	std::string ident;
 	iss >> ident; //pop identifier away
 	iss >> s3;
-	BOOST_REQUIRE_MESSAGE(s3->id() == 1, "deserialization check");
-	BOOST_REQUIRE_MESSAGE(s3->location() == 3, "deserialization check");
-	BOOST_REQUIRE_MESSAGE(s3->onset() != s3->onset(), "deserialization check");
-	BOOST_REQUIRE_MESSAGE(s3->gMax() == 1, "deserialization check");
-	BOOST_REQUIRE_MESSAGE(s3->tau1() == 2, "deserialization check");
-	BOOST_REQUIRE_MESSAGE(s3->tau2() == 4, "deserialization check");
-	BOOST_REQUIRE_MESSAGE(s3->rev() == 1, "deserialization check");
+	BOOST_CHECK_MESSAGE(s3->id() == 1, "deserialization check");
+	BOOST_CHECK_MESSAGE(s3->name() == "Exp2PostSynapse", "deserialization check");
+	BOOST_CHECK_MESSAGE(s3->location() == 3, "deserialization check");
+	BOOST_CHECK_MESSAGE(s3->gMax() == 1, "deserialization check");
+	BOOST_CHECK_MESSAGE(s3->tau1() == 2, "deserialization check");
+	BOOST_CHECK_MESSAGE(s3->tau2() == 4, "deserialization check");
+	BOOST_CHECK_MESSAGE(s3->rev() == 1, "deserialization check");
 
 	//synapse dealer
-	SynapseDealer::instance()->register_synapse_type<Exp2PostSynapse>("EXP2_POST_SYNAPSE");
-	IBaseSynapse* s4 = SynapseDealer::instance()->deal("EXP2_POST_SYNAPSE");
-	BOOST_REQUIRE_MESSAGE(s4->name() == "EXP2_POST_SYNAPSE", "SynapseDealer check");
+	SynapseDealer::instance()->register_synapse_type<Exp2PostSynapse>();
+	IBaseSynapse* s4 = SynapseDealer::instance()->deal(Exp2PostSynapse::name_string);
+	BOOST_CHECK_MESSAGE(s4->name() == Exp2PostSynapse::name_string, "SynapseDealer check");
 
 	delete s;
 	delete s0;
@@ -523,3 +520,197 @@ BOOST_AUTO_TEST_CASE(EXP2POSTSYNAPSE) {
 
 /// end of test suite postsynapses
 BOOST_AUTO_TEST_SUITE_END();
+
+
+
+////////////////////////////////////////////////////////////////////////
+/// testsuite to test the swc import
+////////////////////////////////////////////////////////////////////////
+BOOST_AUTO_TEST_SUITE(SWC_IMPORT);
+
+BOOST_AUTO_TEST_CASE(CONVERT_FROM_SWC)
+{
+	// convert SWC geometry
+	try
+	{
+		NeuronalTopologyImporter neti;
+		BOOST_REQUIRE_MESSAGE(neti.import_and_generate_grid("02a_pyramidal2aFI.swc"),
+			"Failed to import '02a_pyramidal2aFI.swc'.");
+	}
+	catch (const UGError& e)
+	{
+		throw std::runtime_error(e.get_stacktrace());
+	}
+
+	// load converted geometry
+	Domain3d dom;
+	try {LoadDomain(dom, "02a_pyramidal2aFI.ugx");}
+	catch (const UGError& e)
+	{
+		throw std::runtime_error(e.get_stacktrace());
+	}
+
+	// asserts
+	BOOST_CHECK_MESSAGE(dom.grid()->num_edges() == 1513,
+		"Exactly 1513 edges should be available in the generated UGX grid");
+	BOOST_CHECK_MESSAGE(dom.grid()->num_vertices() == 1514,
+		"Exactly 1514 vertices should be available in the generated UGX grid");
+}
+
+
+BOOST_AUTO_TEST_CASE(COMPARE_GENERATED_WITH_REFERENCE_GRID)
+{
+	std::ifstream ifs1("02a_pyramidal2aFI.ugx");
+	std::ifstream ifs2("02a_pyramidal2aFI_ref.ugx");
+
+    std::istream_iterator<char> b1(ifs1), e1;
+    std::istream_iterator<char> b2(ifs2), e2;
+
+    BOOST_CHECK_EQUAL_COLLECTIONS(b1, e1, b2, e2);
+}
+
+BOOST_AUTO_TEST_SUITE_END();
+
+
+////////////////////////////////////////////////////////////////////////
+/// testsuite to test the hoc import
+////////////////////////////////////////////////////////////////////////
+BOOST_AUTO_TEST_SUITE(HOC_IMPORT);
+
+BOOST_AUTO_TEST_CASE(CONVERT_FROM_HOC)
+{
+	// todo implement
+	BOOST_CHECK_MESSAGE(true, "Dummy check.");
+}
+
+BOOST_AUTO_TEST_SUITE_END();
+
+
+////////////////////////////////////////////////////////////////////////
+/// testsuite to test the txt import
+////////////////////////////////////////////////////////////////////////
+BOOST_AUTO_TEST_SUITE(TXT_IMPORT);
+
+BOOST_AUTO_TEST_CASE(CONVERT_FROM_TXT)
+{
+	// test geometries
+	std::vector<std::pair<std::string, GeometryInformation> > testGeometries;
+	testGeometries.push_back
+	(
+		std::pair<std::string, GeometryInformation>(
+		"small_network6", GeometryInformation(42340, 42328, 8, 441, 441, 8))
+	);
+
+	typedef std::vector<std::pair<std::string, GeometryInformation> >::const_iterator VGeometryIter;
+	for (VGeometryIter it = testGeometries.begin(); it != testGeometries.end(); ++it)
+	{
+		// import geometry
+		NeuronalTopologyImporter neti;
+		std::ostringstream ossFail;
+		ossFail << "Failed to import '" << it->first << "'.";
+		try
+		{
+			BOOST_REQUIRE_MESSAGE(neti.import_and_generate_grid(it->first, "txt"),
+				ossFail.str());
+		}
+		catch (const UGError& e)
+		{
+			throw std::runtime_error(e.get_stacktrace());
+		}
+
+		// load converted geometry
+		Domain3d dom;
+		try {LoadDomain(dom, (it->first + ".ugx").c_str());}
+		catch (const UGError& e)
+		{
+			throw std::runtime_error(e.get_stacktrace());
+		}
+		SmartPtr<MultiGrid> grid = dom.grid();
+
+		// # vertices
+		BOOST_CHECK_MESSAGE(dom.grid()->num_vertices() == it->second.num_vertices(),
+		   "# vertices don't match (Reference #" << it->second.num_vertices()
+		   << " vs. generated #" << dom.grid()->num_vertices());
+
+		// # edges
+		BOOST_CHECK_MESSAGE(dom.grid()->num_edges() == it->second.num_edges(),
+		   "# edges don't match (Reference #" << it->second.num_edges()
+		   << " vs. generated #" << dom.grid()->num_edges());
+
+
+		// synapse handling
+		typedef Attachment<std::vector<IBaseSynapse*> > AVSynapse;
+		AVSynapse aSyn = GlobalAttachments::attachment<AVSynapse>("synapses");
+		Grid::EdgeAttachmentAccessor<AVSynapse> aaSyn(*grid, aSyn);
+
+		// collect all synapses from grid
+		size_t nOnsetPresyn = 0;
+		size_t nThresholdPresyn = 0;
+		size_t nAlphaPostsyn = 0;
+		size_t nExp2Postsyn = 0;
+		typename geometry_traits<Edge>::const_iterator eit = grid->begin<Edge>();
+		typename geometry_traits<Edge>::const_iterator eit_end = grid->end<Edge>();
+		for (; eit != eit_end; ++eit)
+		{
+			const std::vector<IBaseSynapse*>& syns = aaSyn[*eit];
+			const size_t sz = syns.size();
+			for (size_t i = 0; i < sz; ++i)
+			{
+				IBaseSynapse* syn = syns[i];
+				if (dynamic_cast<OnsetPreSynapse*>(syn))
+				{
+					++nOnsetPresyn;
+					continue;
+				}
+				if (dynamic_cast<ThresholdPreSynapse*>(syn))
+				{
+					++nThresholdPresyn;
+					continue;
+				}
+				if (dynamic_cast<AlphaPostSynapse*>(syn))
+				{
+					++nAlphaPostsyn;
+					continue;
+				}
+				if (dynamic_cast<Exp2PostSynapse*>(syn))
+				{
+					++nExp2Postsyn;
+					continue;
+				}
+			}
+		}
+
+		// # onset presynapses
+		BOOST_CHECK_MESSAGE(nOnsetPresyn == it->second.num_onset_presyn(),
+		   "# OnsetPreSynapses don't match (Reference #" << it->second.num_onset_presyn()
+		   << " vs. generated #" << nOnsetPresyn);
+
+		// # threshold presynapses
+		BOOST_CHECK_MESSAGE(nThresholdPresyn == it->second.num_threshold_presyn(),
+		   "# ThresholdPreSynapses don't match (Reference #" << it->second.num_threshold_presyn()
+		   << " vs. generated #" << nThresholdPresyn);
+
+		// # alpha synapses
+		BOOST_CHECK_MESSAGE(nAlphaPostsyn == it->second.num_alphasyn(),
+		   "# AlphaPostSynapses don't match (Reference #" << it->second.num_alphasyn()
+		   << " vs. generated #" << nAlphaPostsyn);
+
+		// # exp2 synapses
+		BOOST_CHECK_MESSAGE(nExp2Postsyn == it->second.num_exp2syn(),
+		   "# Exp2PostSynapses don't match (Reference #" << it->second.num_exp2syn()
+		   << " vs. generated #" << nExp2Postsyn);
+	}
+}
+
+BOOST_AUTO_TEST_CASE(COMPARE_GENERATED_WITH_REFERNCE_GRID) {
+	std::ifstream ifs1("small_network6.ugx");
+	std::ifstream ifs2("small_network6_ref.ugx");
+
+    std::istream_iterator<char> b1(ifs1), e1;
+    std::istream_iterator<char> b2(ifs2), e2;
+
+    BOOST_CHECK_EQUAL_COLLECTIONS(b1, e1, b2, e2);
+}
+
+BOOST_AUTO_TEST_SUITE_END();
+

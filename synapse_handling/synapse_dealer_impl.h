@@ -15,6 +15,40 @@ namespace cable_neuron {
 namespace synapse_handler {
 
 
+template <typename TSyn>
+void SynapseDealer::register_synapse_type()
+{
+	// assign a unique id to each synapse type;
+	// save corresponding generators and object sizes
+	size_t uid = get_unique_id();
+	ISynapseGenerator* sg = new SynapseGenerator<TSyn>();
+	m_synReg[TSyn::name_string] = uid;
+	m_vSynGen.resize(uid+1);
+	m_vSynGen[uid] = sg;
+	m_vSize.resize(uid+1);
+	m_vSize[uid] = sizeof(TSyn);
+
+	// compute and save byte positions not to be overwritten
+	// when communicating this object type from one proc to another
+	m_vNoOverwriteBytes.resize(uid+1);
+
+	#ifdef UG_PARALLEL
+	char* buf = new char[sizeof(TSyn)];
+	std::memset(buf, 0, sizeof(TSyn));
+	new (buf) TSyn();
+	find_no_overwrite_bytes(buf, uid);
+	delete[] buf;
+	#endif
+
+	/* DEBUGGING
+	UG_LOGN("Current synapse registry");
+	for (std::map<std::string, size_t>::const_iterator it = m_register.begin(); it != m_register.end(); ++it)
+		UG_LOGN(it->first << ": " << it->second);
+	UG_LOGN("");
+	*/
+}
+
+
 template <typename TSyn, typename SynSubtype>
 bridge::ExportedClass<TSyn>& SynapseDealer::register_synapse_type
 (
@@ -48,36 +82,6 @@ bridge::ExportedClass<TSyn>& SynapseDealer::register_synapse_type
     UG_COND_THROW(!shClass3, "No class registered as SynapseHandler3d could be found in registry.");
     shClass3->add_method("begin_" + name, &TSH::template begin_wrapper<TSyn>);
     shClass3->add_method("end_" + name, &TSH::template end_wrapper<TSyn>);
-
-
-	// assign a unique id to each synapse type;
-	// save corresponding generators and object sizes
-	size_t uid = get_unique_id();
-	ISynapseGenerator* sg = new SynapseGenerator<TSyn>();
-	m_synReg[name] = uid;
-	m_vSynGen.resize(uid+1);
-	m_vSynGen[uid] = sg;
-	m_vSize.resize(uid+1);
-	m_vSize[uid] = sizeof(TSyn);
-
-	// compute and save byte positions not to be overwritten
-	// when communicating this object type from one proc to another
-	m_vNoOverwriteBytes.resize(uid+1);
-
-#ifdef UG_PARALLEL
-	char* buf = new char[sizeof(TSyn)];
-	std::memset(buf, 0, sizeof(TSyn));
-	new (buf) TSyn();
-	find_no_overwrite_bytes(buf, uid);
-	delete[] buf;
-#endif
-
-	/* DEBUGGING
-	UG_LOGN("Current synapse registry");
-	for (std::map<std::string, size_t>::const_iterator it = m_register.begin(); it != m_register.end(); ++it)
-		UG_LOGN(it->first << ": " << it->second);
-	UG_LOGN("");
-	*/
 
 	return expClass;
 }

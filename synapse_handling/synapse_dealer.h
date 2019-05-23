@@ -44,6 +44,7 @@ class SynapseDealer {
 		SynapseDealer();
 
 	public:
+        /// register pre-synpase at synapse type registry and UG registry
         template <typename TSyn>
         bridge::ExportedClass<TSyn>& register_pre_synapse_type
         (
@@ -51,12 +52,17 @@ class SynapseDealer {
             const std::string& grp
         );
 
+        /// register post-synpase at synapse type registry and UG registry
         template <typename TSyn>
         bridge::ExportedClass<TSyn>& register_post_synapse_type
         (
             bridge::Registry* reg,
             const std::string& grp
         );
+
+        /// register only at synapse type registry, but not at UG registry
+        template <typename TSyn>
+        void register_synapse_type();
 
 		size_t unique_id(const std::string& name);
 
