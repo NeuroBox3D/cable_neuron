@@ -417,6 +417,9 @@ void neuron_identification(Grid& g)
     	unsigned long offset;
     	pc.scatter(gatheredNIDcounts, 1, PCL_DT_UNSIGNED_LONG, &offset, 1, PCL_DT_UNSIGNED_LONG, 0);
 
+		if (rank == 0)
+			delete[] gatheredNIDcounts;
+
     	// add the offset to all ids
     	for (it = g.begin<Vertex>(); it != it_end; ++it)
 			aaNID[*it] += (uint) offset;
