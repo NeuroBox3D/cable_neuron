@@ -48,7 +48,7 @@ class VDCC_BG_cable
 		virtual void update_gating(number newTime, Vertex* vrt, const std::vector<number>& vrt_values);
 		virtual void current(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outCurrentValues);
 		virtual void ce_obj_available();
-		virtual std::vector<number> state_values(number x, number y, number z);
+		virtual std::vector<number> state_values(number x, number y, number z) const;
 		virtual number lin_dep_on_pot(Vertex* vrt, const std::vector<number>& vrt_values);
 
 	private:

@@ -63,7 +63,8 @@ class ICableMembraneTransport
 		virtual void ce_obj_available() {};
 
 		/// getting values of internal channel states
-		virtual std::vector<number> state_values(number x, number y, number z) {return std::vector<number>(0);};
+		virtual std::vector<number> state_values(number x, number y, number z) const
+		{return std::vector<number>(0);}
 
 		// TODO: think about generalizing this to a real Jacobian;
 		// and about making implementation of this method mandatory (for time step security!)

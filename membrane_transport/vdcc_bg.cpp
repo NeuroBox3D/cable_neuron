@@ -59,7 +59,7 @@ void VDCC_BG_cable<TDomain>::ce_obj_available()
 }
 
 template<typename TDomain>
-std::vector<number> VDCC_BG_cable<TDomain>::state_values(number x, number y, number z)
+std::vector<number> VDCC_BG_cable<TDomain>::state_values(number x, number y, number z) const
 {
 	//var for output
 	std::vector<number> GatingAccesors;

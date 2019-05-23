@@ -129,15 +129,6 @@ void ChannelLeak<TDomain>::init_attachments()
 
 }
 
-template<typename TDomain>
-std::vector<number> ChannelLeak<TDomain>::state_values(number x, number y, number z)
-{
-	std::vector<number> GatingAccesors;
-
-
-	return GatingAccesors;
-}
-
 // Methods for using gatings
 template<typename TDomain>
 void ChannelLeak<TDomain>::init(Vertex* vrt, const std::vector<number>& vrt_values)

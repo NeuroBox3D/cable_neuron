@@ -131,7 +131,7 @@ void ChannelHH<TDomain>::ce_obj_available()
 }
 
 template<typename TDomain>
-std::vector<number> ChannelHH<TDomain>::state_values(number x, number y, number z)
+std::vector<number> ChannelHH<TDomain>::state_values(number x, number y, number z) const
 {
 	//var for output
 	std::vector<number> GatingAccesors;
@@ -544,7 +544,7 @@ void ChannelHHNernst<TDomain>::ce_obj_available()
 }
 
 template<typename TDomain>
-std::vector<number> ChannelHHNernst<TDomain>::state_values(number x, number y, number z)
+std::vector<number> ChannelHHNernst<TDomain>::state_values(number x, number y, number z) const
 {
 	//var for output
 	std::vector<number> GatingAccesors;
