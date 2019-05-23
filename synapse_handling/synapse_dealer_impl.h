@@ -83,6 +83,9 @@ bridge::ExportedClass<TSyn>& SynapseDealer::register_synapse_type
     shClass3->add_method("begin_" + name, &TSH::template begin_wrapper<TSyn>);
     shClass3->add_method("end_" + name, &TSH::template end_wrapper<TSyn>);
 
+    // register with this class' synapse "registry"
+    register_synapse_type<TSyn>();
+
 	return expClass;
 }
 

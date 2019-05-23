@@ -109,7 +109,9 @@ void SynapseDealer::find_no_overwrite_bytes
 	if (pcl::ProcRank() == 0)
 	{
 		recBufAnd = new char[sz];
+		std::memset(recBufAnd, 0, sz);
 		recBufOr = new char[sz];
+		std::memset(recBufOr, 0, sz);
 	}
 
 	com.reduce(buf, recBufAnd, sz, PCL_DT_CHAR, PCL_RO_BAND, 0);
