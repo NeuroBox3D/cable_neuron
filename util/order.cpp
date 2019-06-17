@@ -237,13 +237,6 @@ void order_cuthillmckee(ApproximationSpace<TDomain>& approxSpace)
 }
 
 
-
-#ifdef UG_DIM_1
-	template void order_cuthillmckee<Domain1d>(ApproximationSpace<Domain1d>& approxSpace);
-#endif
-#ifdef UG_DIM_2
-	template void order_cuthillmckee<Domain2d>(ApproximationSpace<Domain2d>& approxSpace);
-#endif
 #ifdef UG_DIM_3
 	template void order_cuthillmckee<Domain3d>(ApproximationSpace<Domain3d>& approxSpace);
 #endif

@@ -1216,13 +1216,20 @@ InitUGPlugin_cable_neuron(Registry* reg, string grp)
 
 	typedef cable_neuron::Functionality Functionality;
 
+	// we only need to compile for 3D, as cable models are always in a 3D space
+	typedef boost::mpl::list<
+	#ifdef UG_DIM_3
+		Domain3d
+	#endif
+	> OurCompileDomainList;
+
 	try
 	{
 		RegisterCommon<Functionality>(*reg,grp);
 		//RegisterDimensionDependent<Functionality>(*reg,grp);
-		RegisterDomainDependent<Functionality>(*reg,grp);
+		RegisterDomainDependent<Functionality, OurCompileDomainList>(*reg,grp);
 		//RegisterAlgebraDependent<Functionality>(*reg,grp);
-		RegisterDomainAlgebraDependent<Functionality>(*reg,grp);
+		RegisterDomainAlgebraDependent<Functionality, OurCompileDomainList>(*reg,grp);
 	}
     UG_REGISTRY_CATCH_THROW(grp);
 

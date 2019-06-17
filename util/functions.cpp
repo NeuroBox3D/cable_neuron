@@ -779,18 +779,6 @@ number subset_length(const char* subset, ConstSmartPtr<MGSubsetHandler> sh)
 
 
 
-#ifdef UG_DIM_1
-	template void scale_domain<Domain1d>(SmartPtr<Domain1d>, number);
-	template bool is_acyclic<Domain1d>(SmartPtr<Domain1d>, int);
-	template int check_presyn_indices<Domain1d>(SmartPtr<Domain1d>, int);
-	template int check_domain<Domain1d>(SmartPtr<Domain1d>, int);
-#endif
-#ifdef UG_DIM_2
-	template void scale_domain<Domain2d>(SmartPtr<Domain2d>, number);
-	template bool is_acyclic<Domain2d>(SmartPtr<Domain2d>, int);
-	template int check_presyn_indices<Domain2d>(SmartPtr<Domain2d>, int);
-	template int check_domain<Domain2d>(SmartPtr<Domain2d>, int);
-#endif
 #ifdef UG_DIM_3
 	template void scale_domain<Domain3d>(SmartPtr<Domain3d>, number);
 	template bool is_acyclic<Domain3d>(SmartPtr<Domain3d>, int);

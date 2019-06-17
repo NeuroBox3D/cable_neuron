@@ -964,15 +964,6 @@ void SynapseHandler<TDomain>::grid_distribution_callback(const GridMessage_Distr
 // ////////////////////////////////////
 //	explicit template instantiations //
 // ////////////////////////////////////
-
-#ifdef UG_DIM_1
-	template class SynapseHandler<Domain1d>;
-#endif
-
-#ifdef UG_DIM_2
-	template class SynapseHandler<Domain2d>;
-#endif
-
 #ifdef UG_DIM_3
 	template class SynapseHandler<Domain3d>;
 #endif

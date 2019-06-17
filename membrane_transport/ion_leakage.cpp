@@ -250,15 +250,6 @@ specify_write_function_indices()
 ////////////////////////////////////////////////////////////////////////////////
 //	explicit template instantiations
 ////////////////////////////////////////////////////////////////////////////////
-
-#ifdef UG_DIM_1
-	template class IonLeakage<Domain1d>;
-#endif
-
-#ifdef UG_DIM_2
-	template class IonLeakage<Domain2d>;
-#endif
-
 #ifdef UG_DIM_3
 	template class IonLeakage<Domain3d>;
 #endif

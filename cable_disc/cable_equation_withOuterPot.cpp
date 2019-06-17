@@ -196,15 +196,6 @@ my_register_func()
 // ////////////////////////////////////
 //	explicit template instantiations //
 // ////////////////////////////////////
-
-#ifdef UG_DIM_1
-	template class CableEquationWithOuterPot<Domain1d>;
-#endif
-
-#ifdef UG_DIM_2
-	template class CableEquationWithOuterPot<Domain2d>;
-#endif
-
 #ifdef UG_DIM_3
 	template class CableEquationWithOuterPot<Domain3d>;
 #endif
