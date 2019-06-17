@@ -39,10 +39,9 @@ message(STATUS "      Testsuite:             " ${CNTestsuite} " (options are: ON
 set (SOURCES
 	cable_disc/cable_equation.cpp
 	cable_disc/cable_equation_withOuterPot.cpp
-	cable_disc/ElemDiscHH_base.cpp
-	cable_disc/ElemDiscHH_fv1.cpp
-	cable_disc/ElemDiscHH_Nernst_fv1.cpp
-	cable_disc/ElemDiscHH_Nernst_neuron_fv1.cpp
+	cable_disc/implicit_active_cable_disc_base.cpp
+	cable_disc/implicit_active_cable_disc.cpp
+	cable_disc/implicit_active_cable_disc_nernst.cpp
 	membrane_transport/cable_membrane_transport_interface.cpp
 	membrane_transport/channel_hh.cpp
 	membrane_transport/leakage.cpp

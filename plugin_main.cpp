@@ -10,10 +10,9 @@
 #include "bridge/util_domain_algebra_dependent.h"
 #include "cable_disc/cable_equation.h"
 #include "cable_disc/cable_equation_withOuterPot.h"
-#include "cable_disc/ElemDiscHH_base.h"
-#include "cable_disc/ElemDiscHH_fv1.h"
-#include "cable_disc/ElemDiscHH_Nernst_fv1.h"
-#include "cable_disc/ElemDiscHH_Nernst_neuron_fv1.h"
+#include "cable_disc/implicit_active_cable_disc.h"
+#include "cable_disc/implicit_active_cable_disc_base.h"
+#include "cable_disc/implicit_active_cable_disc_nernst.h"
 
 #include "lib_grid/global_attachments.h" // global attachments
 #include "lib_disc/function_spaces/grid_function.h"
@@ -120,81 +119,66 @@ struct Functionality
 		// //////// cable disc ////////////////
 		// ////////////////////////////////////
 
-		// Kabel Diff Base
+		// fully implicit cable equation (base class)
 		{
-			typedef ElemDiscHH_Base<TDomain> T;
+			typedef ImplicitActiveCableDiscBase<TDomain> T;
 			typedef IElemDisc<TDomain> TBase;
 			string name = string("ElemDiscHH_Base").append(suffix);
 			reg.add_class_<T, TBase >(name, grp)
-					//.add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)");
-						.add_method("set_spec_capa", static_cast<void (T::*)(SmartPtr<CplUserData<number, dim> >)>(&T::set_spec_capa), "", "Spec Capa")
-						.add_method("set_spec_capa", static_cast<void (T::*)(number)>(&T::set_spec_capa), "", "Spec Capa")
+				.add_method("set_spec_cap", static_cast<void (T::*)(number)>(&T::set_spec_cap), "", "specific capacitance (in F/m^2)")
+				.add_method("set_spec_cap", static_cast<void (T::*)(SmartPtr<CplUserData<number, dim> >)>(&T::set_spec_cap), "", "specific capacitance (in F/m^2) function")
 			#ifdef UG_FOR_LUA
-						.add_method("set_spec_capa", static_cast<void (T::*)(const char*)>(&T::set_spec_capa), "", "Spec Capa");
-			#else
-			;
+				.add_method("set_spec_cap", static_cast<void (T::*)(const char*)>(&T::set_spec_cap), "", "specific capacitance (in F/m^2) function name")
 			#endif
+
+				.add_method("set_spec_res", static_cast<void (T::*)(number)>(&T::set_spec_res), "", "specific resistance (in Ohm m)")
+				.add_method("set_spec_res", static_cast<void (T::*)(SmartPtr<CplUserData<number, dim> >)>(&T::set_spec_res), "", "specific resistance (in Ohm m) function")
+			#ifdef UG_FOR_LUA
+				.add_method("set_spec_res", static_cast<void (T::*)(const char*)>(&T::set_spec_res), "", "specific resistance (in Ohm m) function name")
+			#endif
+
+				.add_method("set_conductances", static_cast<void (T::*)(number, number, number)>(&T::set_conductances), "", "conductances for K+, Na+ and leakage (in S/m^2)")
+				.add_method("set_conductances", static_cast<void (T::*)(SmartPtr<CplUserData<number, dim> >, SmartPtr<CplUserData<number, dim> >, SmartPtr<CplUserData<number, dim> >)>(&T::set_conductances), "", "conductance functions for K+, Na+ and leakage (in S/m^2)")
+			#ifdef UG_FOR_LUA
+				.add_method("set_conductances", static_cast<void (T::*)(const char*, const char* , const char*)>(&T::set_conductances), "", "conductance function names for K+, Na+ and leakage (in S/m^2)")
+			#endif
+
+				.add_method("set_rev_pot", static_cast<void (T::*)(number, number, number)>(&T::set_rev_pot), "", "reversal potentials (in V) for K+, Na+ and leakage")
+				.add_method("set_rev_pot", static_cast<void (T::*)(SmartPtr<CplUserData<number, dim> >, SmartPtr<CplUserData<number, dim> >, SmartPtr<CplUserData<number, dim> >)>(&T::set_rev_pot), "", "reversal potential (in V) functions for K+, Na+ and leakage")
+			#ifdef UG_FOR_LUA
+				.add_method("set_rev_pot", static_cast<void (T::*)(const char*, const char* , const char*)>(&T::set_rev_pot), "", "reversal potential (in V) function names for K+, Na+ and leakage")
+			#endif
+
+				.add_method("set_diameter", &T::set_diameter, "", "constant diameter (in m)")
+				.add_method("set_injection", &T::set_injection, "", "injection current (in A/m^2)")
+				.add_method("set_temperature", &T::set_temperature, "", "temperature (in K)")
+				.add_method("enable_temperature_dependency", &T::enable_temperature_dependency,
+					"", "whether gating change rates are to be temperature-dependent");
 			reg.add_class_to_group(name, "ElemDiscHH_Base", tag);
 		}
 
-
-
-		// Kabel Diff FV1 with constant reversal potential of K and Na
+		// fully implicit cable discretization with constant reversal potential for K and Na
 		{
-			typedef ElemDiscHH_FV1<TDomain> T;
-			typedef ElemDiscHH_Base<TDomain> TBase;
-			string name = string("ElemDiscHH_FV1").append(suffix);
+			typedef ImplicitActiveCableDisc<TDomain> T;
+			typedef ImplicitActiveCableDiscBase<TDomain> TBase;
+			string name = string("ImplicitActiveCableDisc").append(suffix);
 			reg.add_class_<T, TBase >(name, grp)
-				.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >, const char*,const char*)>("Function(s)#Subset(s)")
-				.add_method("set_injection", &T::set_injection)
-				.add_method("set_diameter", &T::set_diameter)
-				.add_method("set_spec_res", &T::set_spec_res)
-				.add_method("set_consts", &T::set_consts)
-				.add_method("set_rev_pot", &T::set_rev_pot)
-				.add_method("set_accuracy", &T::set_accuracy)
+				.template add_constructor<void (*) (const char*, const char*)>("function(s) # subset(s)")
 				.set_construct_as_smart_pointer(true);
-			reg.add_class_to_group(name, "ElemDiscHH_FV1", tag);
+			reg.add_class_to_group(name, "ImplicitActiveCableDisc", tag);
 		}
 
-
-
-		// Kabel Diff FV1 with dynamic calculated reversal potential of K and Na (Nernst-Equatation)
+		// Kabel Diff FV1 with dynamically calculated K+ and Na+ Nernst potentials
 		{
-			typedef ElemDiscHH_Nernst_FV1<TDomain> T;
-			typedef ElemDiscHH_Base<TDomain> TBase;
-			string name = string("ElemDiscHH_Nernst_FV1").append(suffix);
+			typedef ImplicitActiveCableDiscNernst<TDomain> T;
+			typedef ImplicitActiveCableDiscBase<TDomain> TBase;
+			string name = string("ImplicitActiveCableDiscNernst").append(suffix);
 			reg.add_class_<T, TBase >(name, grp)
-				.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >, const char*,const char*)>("Function(s)#Subset(s)")
-				.add_method("set_injection", &T::set_injection)
-				.add_method("set_diameter", &T::set_diameter)
-				.add_method("set_spec_res", &T::set_spec_res)
-				.add_method("set_consts", &T::set_consts)
-				.add_method("set_nernst_consts", &T::set_nernst_consts)
-				.add_method("set_accuracy", &T::set_accuracy)
-				.add_method("set_diff_Na", &T::set_diff_Na)
-				.add_method("set_diff_K", &T::set_diff_K)
+				.template add_constructor<void (*)(const char*, const char*)>("function(s) # subset(s)")
+				.add_method("set_diffusion_constants", &T::set_diffusion_constants)
+				.add_method("set_outside_concs", &T::set_outside_concs)
 				.set_construct_as_smart_pointer(true);
-			reg.add_class_to_group(name, "ElemDiscHH_Nernst_FV1", tag);
-		}
-
-		// Kabel Diff FV1 with dynamic calculated reversal potential of K and Na (Nernst-Equatation)
-		// Gating functions from neuron
-		{
-			typedef ElemDiscHH_Nernst_neuron_FV1<TDomain> T;
-			typedef ElemDiscHH_Base<TDomain> TBase;
-			string name = string("ElemDiscHH_Nernst_neuron_FV1").append(suffix);
-			reg.add_class_<T, TBase >(name, grp)
-				.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >, const char*,const char*)>("Function(s)#Subset(s)")
-				.add_method("set_injection", &T::set_injection)
-				.add_method("set_diameter", &T::set_diameter)
-				.add_method("set_spec_res", &T::set_spec_res)
-				.add_method("set_consts", &T::set_consts)
-				.add_method("set_nernst_consts", &T::set_nernst_consts)
-				.add_method("set_accuracy", &T::set_accuracy)
-				.add_method("set_diff_Na", &T::set_diff_Na)
-				.add_method("set_diff_K", &T::set_diff_K)
-				.set_construct_as_smart_pointer(true);
-			reg.add_class_to_group(name, "ElemDiscHH_Nernst_neuron_FV1", tag);
+			reg.add_class_to_group(name, "ImplicitActiveCableDiscNernst", tag);
 		}
 
 
