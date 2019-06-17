@@ -40,7 +40,9 @@
 #include "membrane_transport/na_k_pump.h"
 #include "membrane_transport/ncx.h"
 #include "membrane_transport/pmca.h"
-#include "membrane_transport/ka_dist_golding01.h"
+#include "membrane_transport/ka_golding01.h"
+#include "membrane_transport/kdr_golding01.h"
+#include "membrane_transport/nax_golding01.h"
 
 // converted membrane transporters
 #ifdef CONVERTED_TRANSPORT_ENABLED
@@ -391,23 +393,95 @@ struct Functionality
 		}
 
 
-		// Ka dist Golding 2001
+		// K-channel (A-type) Golding 2001
 		{
-			typedef KaDist_Golding01<TDomain> T;
+			typedef KA_Golding01<TDomain> T;
 			typedef ICableMembraneTransport<TDomain> TBase;
-			string name = string("KaDist_Golding01").append(suffix);
+			string name = string("KA_Golding01").append(suffix);
 			reg.add_class_<T, TBase >(name, grp)
 				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
 				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
-				.add_method("set_conductance",  &T::set_gkabar, "",
-					"K conductance (S/m^2) | default | value=80.0#"
-					"subset(s) as vector of string", "sets K conductance value")
-				.add_method("set_reversal_potential", &T::set_ek, "",
-					"K reversal potential | default | value=0.09", "sets K reversal potential")
+				.add_method("set_conductance", static_cast<void (T::*) (number)>(&T::set_gkbar),
+					"", "K conductance (S/m^2)", "")
+#ifdef UG_FOR_LUA
+				.add_method("set_conductance", static_cast<void (T::*) (SmartPtr<LuaUserData<number, dim> >)>(&T::set_gkbar),
+					"", "K conductance function (S/m^2)", "sets coordinate-dependent K conductance value")
+				.add_method("set_conductance", static_cast<void (T::*) (const char*)>(&T::set_gkbar),
+					"", "Lua name of K conductance function (S/m^2)",
+					"sets coordinate-dependent K conductance value")
+#endif
+				.add_method("set_vhalfn", &T::set_vhalfn)
+				.add_method("set_a0n", &T::set_a0n)
+				.add_method("set_zetan", &T::set_zetan)
+				.add_method("set_gmn", &T::set_gmn)
+				.add_method("set_vhalfn_dist", &T::set_vhalfn_dist)
+				.add_method("set_a0n_dist", &T::set_a0n_dist)
+				.add_method("set_zetan_dist", &T::set_zetan_dist)
+				.add_method("set_gmn_dist", &T::set_gmn_dist)
+#ifdef UG_FOR_LUA
+				// investigate: very strangely, it is not possible to register the following two methods in reverse order...:
+				// this gives: Registry ERROR: Unregistered Class used in Method:
+				// 'void KA_Golding011d:set_proximality_fct(SmartPtr<> set proximality function)': for Parameter 1
+				.add_method("set_proximality_fct", static_cast<void (T::*) (const char*)>(&T::set_proximality_fct),
+					"", "proximality function name",
+					"The proximality function returns 1 if a position is to be considered proximal "
+					"and 0 if it is to be considered distal.")
+				.add_method("set_proximality_fct", static_cast<void (T::*) (SmartPtr<LuaUserData<number, dim> >)>(&T::set_proximality_fct),
+					"", "proximality function",
+					"The proximality function returns 1 if a position is to be considered proximal "
+					"and 0 if it is to be considered distal.")
+#endif
+				.add_method("set_logNGate", &T::set_logNGate)
 				.add_method("set_logLGate", &T::set_logLGate)
+				.set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "KA_Golding01", tag);
+		}
+
+		// K-channel (delayed rectifier) Golding 2001
+		{
+			typedef KDR_Golding01<TDomain> T;
+			typedef ICableMembraneTransport<TDomain> TBase;
+			string name = string("KDR_Golding01").append(suffix);
+			reg.add_class_<T, TBase >(name, grp)
+				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
+				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
+				.add_method("set_conductance", static_cast<void (T::*) (number)>(&T::set_gkbar), "",
+					"K conductance (S/m^2) | default | value=30.0#"
+					"subset(s) as vector of string", "sets K conductance value")
+#ifdef UG_FOR_LUA
+				.add_method("set_conductance", static_cast<void (T::*) (SmartPtr<LuaUserData<number, dim> >)>(&T::set_gkbar),
+					"", "K conductance function (S/m^2)", "sets coordinate-dependent K conductance value")
+				.add_method("set_conductance", static_cast<void (T::*) (const char*)>(&T::set_gkbar),
+					"", "Lua name of K conductance function (S/m^2)",
+					"sets coordinate-dependent K conductance value")
+#endif
 				.add_method("set_logNGate", &T::set_logNGate)
 				.set_construct_as_smart_pointer(true);
-			reg.add_class_to_group(name, "KaDist_Golding01", tag);
+			reg.add_class_to_group(name, "KDR_Golding01", tag);
+		}
+
+		// Na-channel (axon) Golding 2001
+		{
+			typedef Nax_Golding01<TDomain> T;
+			typedef ICableMembraneTransport<TDomain> TBase;
+			string name = string("Nax_Golding01").append(suffix);
+			reg.add_class_<T, TBase >(name, grp)
+				.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
+				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
+				.add_method("set_conductance", static_cast<void (T::*) (number)>(&T::set_gbar), "",
+					"Na conductance (S/m^2) | default | value=100.0#"
+					"subset(s) as vector of string", "sets Na conductance value")
+#ifdef UG_FOR_LUA
+				.add_method("set_conductance", static_cast<void (T::*) (SmartPtr<LuaUserData<number, dim> >)>(&T::set_gbar),
+					"", "Na conductance function (S/m^2)", "sets coordinate-dependent Na conductance value")
+				.add_method("set_conductance", static_cast<void (T::*) (const char*)>(&T::set_gbar),
+					"", "Lua name of Na conductance function (S/m^2)",
+					"sets coordinate-dependent Na conductance value")
+#endif
+				.add_method("set_logMGate", &T::set_logMGate)
+				.add_method("set_logHGate", &T::set_logHGate)
+				.set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "Nax_Golding01", tag);
 		}
 
 		// CableEquation discretization class
