@@ -38,7 +38,12 @@ CableEquation<TDomain>::CableEquation(const char* subsets, bool withConcs, numbe
 	R(8.314), F(96485.0),
 	m_aDiameter(GlobalAttachments::attachment<ANumber>("diameter")),
 	m_constDiam(1e-6), m_bConstDiamSet(false),
-	m_spec_res(1.0), m_spec_cap(1.0e-2),
+	m_spec_res(1.0),
+	m_spec_cap(1.0e-2),
+#ifdef UG_FOR_LUA
+	m_bCapacitanceDependsOnCoordinates(false),
+	m_spCapFct(SPNULL),
+#endif
 	m_k_out(4.0), m_na_out(150.0), m_ca_out(1.5),
 	m_ek(-0.09), m_ena(0.06), m_eca(0.14),
 	m_eqConc_ca(5e-5), m_reactionRate_ca(11.0),
@@ -71,7 +76,12 @@ CableEquation<TDomain>::CableEquation(const char* fcts, const char* subsets)
 	R(8.314), F(96485.0),
 	m_aDiameter(GlobalAttachments::attachment<ANumber>("diameter")),
 	m_constDiam(1e-6), m_bConstDiamSet(false),
-	m_spec_res(1.0), m_spec_cap(1.0e-2),
+	m_spec_res(1.0),
+	m_spec_cap(1.0e-2),
+#ifdef UG_FOR_LUA
+	m_bCapacitanceDependsOnCoordinates(false),
+	m_spCapFct(SPNULL),
+#endif
 	m_k_out(4.0), m_na_out(150.0), m_ca_out(1.5),
 	m_ek(-0.09), m_ena(0.06), m_eca(0.14),
 	m_eqConc_ca(5e-5), m_reactionRate_ca(11.0),
@@ -88,6 +98,19 @@ CableEquation<TDomain>::CableEquation(const char* fcts, const char* subsets)
 	m_si(-1),
 	m_pvCurrInfluxFcts(NULL)
 {}
+
+template<typename TDomain>
+CableEquation<TDomain>::~CableEquation()
+{
+#ifdef UG_FOR_LUA
+	if (m_bCapacitanceDependsOnCoordinates)
+	{
+		SmartPtr<Grid> spGrid = this->approx_space()->domain()->grid();
+		if (spGrid->has_vertex_attachment(m_aCm))
+			spGrid->detach_from_vertices(m_aCm);
+	}
+#endif
+}
 
 
 // /////////////////////
@@ -106,7 +129,28 @@ set_diameter(const number d)
 }
 
 template<typename TDomain> void CableEquation<TDomain>::set_spec_res(number val) {m_spec_res = val;}
-template<typename TDomain> void CableEquation<TDomain>::set_spec_cap(number val) {m_spec_cap = val;}
+
+template<typename TDomain>
+void CableEquation<TDomain>::set_spec_cap(number val)
+{
+	m_spec_cap = val;
+}
+#ifdef UG_FOR_LUA
+template <typename TDomain>
+void CableEquation<TDomain>::set_spec_cap(SmartPtr<LuaUserData<number, TDomain::dim> > fct)
+{
+	m_spCapFct = fct;
+	m_bCapacitanceDependsOnCoordinates = true;
+}
+
+template <typename TDomain>
+void CableEquation<TDomain>::set_spec_cap(const char* fct)
+{
+	m_spCapFct = LuaUserDataFactory<number, TDomain::dim>::create(fct);
+	m_bCapacitanceDependsOnCoordinates = true;
+}
+#endif
+
 
 template<typename TDomain> void CableEquation<TDomain>::set_k_out(number value) {m_k_out = value;}
 template<typename TDomain> void CableEquation<TDomain>::set_na_out(number value) {m_na_out = value;}
@@ -420,7 +464,13 @@ UG_COND_THROW(current / vrt_values[_v_] < 0, "negative synapse conductance!")
 			}
 		}
 
-		number cfl = 2.0 * m_spec_cap * massFac / linDep;
+		number cm = m_spec_cap;
+#ifdef UG_FOR_LUA
+		if (m_bCapacitanceDependsOnCoordinates)
+			cm = m_aaCm[vrt];
+#endif
+
+		number cfl = 2.0 * cm * massFac / linDep;
 		minCFL = std::min(minCFL, cfl);
 
 //if (minCFL == cfl)
@@ -459,7 +509,8 @@ template<typename TDomain>
 void CableEquation<TDomain>::approximation_space_changed()
 {
 	// only do this the first time the approx changes (when it is initially set)
-	if (m_bLocked) return;
+	if (m_bLocked)
+		return;
 
 
 	// treat influx subset names
@@ -487,8 +538,8 @@ void CableEquation<TDomain>::approximation_space_changed()
 		m_vTmpInfluxFctSubsetNames.swap(tmp2);
 	}
 
-
 	SmartPtr<MultiGrid> grid = this->approx_space()->domain()->grid();
+
 
 	// handle diameter attachment
 	if (!grid->has_attachment<Vertex>(m_aDiameter))
@@ -516,6 +567,30 @@ void CableEquation<TDomain>::approximation_space_changed()
 
 	// create a list of surface vertices as this takes forever later otherwise
 	update_surface_verts();
+
+#ifdef UG_FOR_LUA
+	// attach capacitance attachment if necessary and fill values
+	if (m_bCapacitanceDependsOnCoordinates)
+	{
+		if (grid->has_vertex_attachment(m_aCm))
+			UG_THROW("Attachment necessary (c_m) for CableEquation "
+				"could not be made, since it already exists.");
+		grid->attach_to_vertices(m_aCm);
+		m_aaCm = Grid::AttachmentAccessor<Vertex, ANumber>(*grid, m_aCm);
+
+		const typename TDomain::position_accessor_type& aaPos =
+			this->approx_space()->domain()->position_accessor();
+
+		size_t sv_sz = m_vSurfVrt.size();
+		for (size_t sv = 0; sv < sv_sz; ++sv)
+		{
+			Vertex* vrt = m_vSurfVrt[sv];
+			const int si = sh.get_subset_index(vrt);
+			const MathVector<TDomain::dim>& coords = aaPos[vrt];
+			m_spCapFct->evaluate(m_aaCm[vrt], coords, 0.0, si);
+		}
+	}
+#endif
 
 	// set this class as listener for distribution events
 	m_spGridDistributionCallbackID = grid->message_hub()->register_class_callback(this,
@@ -570,7 +645,7 @@ prep_timestep(number future_time, number time, VectorProxyBase* upb)
 
 	ConstSmartPtr<DoFDistribution> dd = this->approx_space()->dof_distribution(GridLevel(), false);
 	std::vector<DoFIndex> dofIndex;
-	MGSubsetHandler& ssh = *this->approx_space()->domain()->subset_handler();
+	const MGSubsetHandler& ssh = this->subset_handler();
 
 	std::vector<number> vrt_values(m_numb_ion_funcs+1);
 	size_t ch_sz = m_channel.size();
@@ -796,10 +871,16 @@ void CableEquation<TDomain>::add_def_M_elem(LocalVector& d, const LocalVector& u
 		const int co = scv.node_id();
 
 		// get diameter
-		number diam = m_aaDiameter[pElem->vertex(co)];
+		Vertex* vrt = pElem->vertex(co);
+		number diam = m_aaDiameter[vrt];
 
 		// potential equation time derivative
-		d(_v_, co) += PI*diam*scv.volume()*u(_v_, co)*m_spec_cap;
+		number cm = m_spec_cap;
+#ifdef UG_FOR_LUA
+		if (m_bCapacitanceDependsOnCoordinates)
+			cm = m_aaCm[vrt];
+#endif
+		d(_v_, co) += PI*diam*scv.volume()*u(_v_, co)*cm;
 
 		// ion species time derivative
 		for (size_t k = 1; k < m_numb_ion_funcs+1; k++)
@@ -1031,10 +1112,16 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		const int co = scv.node_id();
 
 		// get diameter at corner
-		number diam = m_aaDiameter[pElem->vertex(co)];
+		Vertex* vrt = pElem->vertex(co);
+		number diam = m_aaDiameter[vrt];
 
 		// potential equation
-		J(_v_, co, _v_, co) += PI*diam*scv.volume()*m_spec_cap;
+		number cm = m_spec_cap;
+#ifdef UG_FOR_LUA
+		if (m_bCapacitanceDependsOnCoordinates)
+			cm = m_aaCm[vrt];
+#endif
+		J(_v_, co, _v_, co) += PI*diam*scv.volume()*cm;
 
 		// mass part for ion diffusion
 		for (size_t k = 1; k < m_numb_ion_funcs+1; k++)

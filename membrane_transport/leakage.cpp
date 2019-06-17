@@ -13,7 +13,11 @@ namespace cable_neuron {
 
 template<typename TDomain>
 ChannelLeak<TDomain>::ChannelLeak(const char* functions, const char* subsets)
-try : ICableMembraneTransport<TDomain>(functions, subsets) {}
+try : ICableMembraneTransport<TDomain>(functions, subsets)
+#ifdef UG_FOR_LUA
+	, m_spCondFct(SPNULL)
+#endif
+{}
 UG_CATCH_THROW("Error in ChannelHH initializer list.");
 
 template<typename TDomain>
@@ -22,8 +26,25 @@ ChannelLeak<TDomain>::ChannelLeak
 	const std::vector<std::string>& functions,
 	const std::vector<std::string>& subsets
 )
-try : ICableMembraneTransport<TDomain>(functions, subsets) {}
+try : ICableMembraneTransport<TDomain>(functions, subsets)
+#ifdef UG_FOR_LUA
+	, m_spCondFct(SPNULL)
+#endif
+{}
 UG_CATCH_THROW("Error in ChannelHH initializer list.");
+
+template <typename TDomain>
+ChannelLeak<TDomain>::~ChannelLeak()
+{
+#ifdef UG_FOR_LUA
+	if (m_spCondFct.valid())
+	{
+		SmartPtr<Grid> spGrid = m_pCE->approx_space()->domain()->grid();
+		if (spGrid->has_vertex_attachment(m_aG))
+			spGrid->detach_from_vertices(m_aG);
+	}
+#endif
+}
 
 
 template<typename TDomain>
@@ -59,6 +80,21 @@ set_cond(number g, const std::vector<std::string>& subsets)
 		m_mSubsetParams2Save[subsets[i]].g = g;
 }
 
+#ifdef UG_FOR_LUA
+template <typename TDomain>
+void ChannelLeak<TDomain>::set_cond(SmartPtr<LuaUserData<number, TDomain::dim> > fct)
+{
+	m_spCondFct = fct;
+}
+
+template <typename TDomain>
+void ChannelLeak<TDomain>::set_cond(const char* fct)
+{
+	m_spCondFct = LuaUserDataFactory<number, TDomain::dim>::create(fct);
+}
+#endif
+
+
 template<typename TDomain>
 void ChannelLeak<TDomain>::set_rev_pot(number e)
 {
@@ -85,6 +121,8 @@ void ChannelLeak<TDomain>::set_rev_pot(number e, const std::vector<std::string>&
 template<typename TDomain>
 void ChannelLeak<TDomain>::ce_obj_available()
 {
+	init_attachments();
+
 // save parameters for subset indices
 	ConstSmartPtr<MGSubsetHandler> ssh = m_pCE->approx_space()->domain()->subset_handler();
 
@@ -126,14 +164,34 @@ void ChannelLeak<TDomain>::ce_obj_available()
 template<typename TDomain>
 void ChannelLeak<TDomain>::init_attachments()
 {
-
+#ifdef UG_FOR_LUA
+	// attach conductance attachment if necessary
+	if (m_spCondFct.valid())
+	{
+		SmartPtr<Grid> spGrid = m_pCE->approx_space()->domain()->grid();
+		if (spGrid->has_vertex_attachment(m_aG))
+			UG_THROW("Attachment necessary (g) for " << name() << " channel dynamics "
+				"could not be made, since it already exists.");
+		spGrid->attach_to_vertices(m_aG);
+		m_aaG = Grid::AttachmentAccessor<Vertex, ANumber>(*spGrid, m_aG);
+	}
+#endif
 }
 
 // Methods for using gatings
 template<typename TDomain>
 void ChannelLeak<TDomain>::init(Vertex* vrt, const std::vector<number>& vrt_values)
 {
-	// nothing to do
+#ifdef UG_FOR_LUA
+	// write conductance value to attachment
+	if (m_spCondFct.valid())
+	{
+		const int si = this->m_pCE->approx_space()->domain()->subset_handler()->get_subset_index(vrt);
+		const MathVector<TDomain::dim>& coords =
+			this->m_pCE->approx_space()->domain()->position_accessor()[vrt];
+		m_spCondFct->evaluate(m_aaG[vrt], coords, 0.0, si);
+	}
+#endif
 }
 
 template<typename TDomain>
@@ -151,31 +209,18 @@ void ChannelLeak<TDomain>::current(Vertex* vrt, const std::vector<number>& vrt_v
 
 	// params for this subset
 	int si = m_pCE->current_subset_index();
-	const number g = m_mSubsetParams[si].g;
+	number g = m_mSubsetParams[si].g;
 	const number E = m_mSubsetParams[si].E;
+
+#ifdef UG_FOR_LUA
+	if (m_spCondFct.valid())
+		g = m_aaG[vrt];
+#endif
 
 	const number leakage_part_of_flux = g * (VM - E);
 
 	outCurrentValues.push_back(leakage_part_of_flux);
 }
-
-
-#if 0
-template<typename TDomain>
-void ChannelLeak<TDomain>::Jacobi_sets(Vertex* vrt, const std::vector<number>& vrt_values, std::vector<number>& outJFlux)
-{
-	number NGate = m_aaNGate[vrt];
-	number MGate = m_aaMGate[vrt];
-	number HGate = m_aaHGate[vrt];
-
-
-	number Jac = (m_g_K*pow(NGate,4) + m_g_Na*pow(MGate,3)*HGate + m_g);
-
-	outJFlux.push_back(Jac);
-
-}
-
-#endif
 
 
 template<typename TDomain>

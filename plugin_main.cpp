@@ -64,9 +64,6 @@
 #include "synapse_handling/synapse_container.h"
 #include "synapse_handling/synapse_handler.h"
 
-//synapse distributor
-//#include "synapse_distributor/synapse_distributor.h"
-
 // utility
 #include "util/functions.h"
 
@@ -115,79 +112,6 @@ struct Functionality
 		static const int dim = TDomain::dim;
 		string suffix = GetDomainSuffix<TDomain>();
 		string tag = GetDomainTag<TDomain>();
-
-
-		// /////////////////////////////////////////
-		// //////// synapse handler ////////////////
-		// /////////////////////////////////////////
-/*
-		{
-			using namespace synapse_handler;
-
-			// synapse handler interface
-			typedef ISynapseHandler<TDomain> TISH;
-			std::string name = std::string("ISynapseHandler").append(suffix);
-			reg.add_class_<TISH>(name, grp)
-				.add_method("name", &TISH::name);
-			reg.add_class_to_group(name, "ISynapseHandler", tag);
-
-			// NETI synapse handler
-			typedef NETISynapseHandler<TDomain> TNETISH;
-			name = std::string("NETISynapseHandler").append(suffix);
-			reg.add_class_<TNETISH, TISH>(name, grp)
-				.template add_constructor<void (*)()> ()
-				.add_method("set_ce_object", &TNETISH::set_ce_object)
-				.add_method("set_presyn_subset", &TNETISH::set_presyn_subset)
-				.add_method("set_activation_timing",
-					static_cast<void (TNETISH::*)(number, number, number, number)>(&TNETISH::set_activation_timing),
-					"", "start_time#duration#start time deviation#duration deviation", "")
-				.add_method("set_activation_timing",
-					static_cast<void (TNETISH::*)(number, number, number, number, number)>(&TNETISH::set_activation_timing),
-					"", "start_time#duration#start time deviation#duration deviation#peak conductance", "")
-				.add_method("set_activation_timing",
-					static_cast<void (TNETISH::*)(number, number, number, number, number, bool)>(&TNETISH::set_activation_timing),
-					"", "start_time#duration#start time deviation#duration deviation#peak conductance#constant seed?", "")
-				.add_method("set_activation_timing",
-					static_cast<void (TNETISH::*)(number, number, number, number, number, number, bool)>(&TNETISH::set_activation_timing),
-					"", "start_time#duration#peak conductance#start time deviation#duration deviation#peak conductance deviation#constant seed?", "")
-				.add_method("set_activation_timing_biexp",
-					static_cast<void (TNETISH::*)(number, number, number, number, number, number)>(&TNETISH::set_activation_timing_biexp),
-					"", "mean onset#mean tau1#mean tau2#onset deviation#tau1 deviation#tau2 deviation", "")
-				.add_method("set_activation_timing_biexp",
-					static_cast<void (TNETISH::*)(number, number, number, number, number, number, number)>(&TNETISH::set_activation_timing_biexp),
-					"", "mean onset#mean tau1#mean tau2#onset deviation#tau1 deviation#tau2 deviation#peak conductance", "")
-				.add_method("set_activation_timing_biexp",
-					static_cast<void (TNETISH::*)(number, number, number, number, number, number, number, bool)>(&TNETISH::set_activation_timing_biexp),
-					"", "mean onset#mean tau1#mean tau2#onset deviation#tau1 deviation#tau2 deviation#peak conductance#constant seed?", "")
-				.add_method("set_activation_timing_biexp",
-					static_cast<void (TNETISH::*)(number, number, number, number, number, number, number, number, bool)>(&TNETISH::set_activation_timing_biexp),
-					"", "mean onset#mean tau1#mean tau2#mean peak conductance#onset deviation#tau1 deviation#tau2 deviation#peak conductance deviation#constant seed?", "")
-				//.add_method("update_presyn", &TNETISH::update_presyn)	// no, handled internally
-				.add_method("print_synapse_statistics", &TNETISH::print_synapse_statistics, "", "soma subset index", "")
-				.add_method("write_activity_to_file", &TNETISH::write_activity_to_file, "", "file base name#time", "")
-				.add_method("add_activation_timing_ball",
-                    static_cast<void (TNETISH::*)(const std::vector<number>&, const std::vector<number>&)>(&TNETISH::add_activation_timing_ball),
-                    "timing values#ball region")
-				.set_construct_as_smart_pointer(true);
-			reg.add_class_to_group(name, "NETISynapseHandler", tag);
-
-			// SynapseDistributor synapse handler
-			typedef SynapseDistributorSynapseHandler<TDomain> TSDSH;
-			name = std::string("SDSynapseHandler").append(suffix);
-			reg.add_class_<TSDSH, TISH>(name, grp)
-				.add_method("set_sd", &TSDSH::set_sd)
-				.set_construct_as_smart_pointer(true);
-			reg.add_class_to_group(name, "SDSynapseHandler", tag);
-
-			// utility
-			reg.add_function("LoadDomainFromGridInMemory",
-				static_cast<void (*)(TDomain&, const ug::MultiGrid* const grid, const ug::MGSubsetHandler* const sh, int)>
-					(&LoadDomainFromGridInMemory<TDomain>));
-			reg.add_function("LoadDomainFromGridInMemory",
-				static_cast<void (*)(TDomain&, const ug::MultiGrid* const grid, const ug::MGSubsetHandler* const sh)>
-					(&LoadDomainFromGridInMemory<TDomain>));
-		}
-*/
 
 
 		// ////////////////////////////////////
@@ -357,13 +281,20 @@ struct Functionality
 				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
 				.add_method("set_cond", static_cast<void (T::*)(number)>(&T::set_cond),
 							"", "leak conductance (S/m^2) | default | value=1.0",
-							"sets leak conductance for leak channel")
+							"sets leak conductance for leakage")
 				.add_method("set_cond", static_cast<void (T::*)(number, const char*)>(&T::set_cond),
 							"", "leak conductance (S/m^2) | default | value=1.0 # subset(s) as C-type string",
-							"sets leak conductance for leak channel")
+							"sets leak conductance for leakage")
 				.add_method("set_cond", static_cast<void (T::*)(number, const std::vector<std::string>&)>(&T::set_cond),
 							"", "leak conductance (S/m^2) | default | value=1.0 # subset(s) as vector of strings",
-							"sets leak conductance for leak channel")
+							"sets leak conductance for leakage")
+#ifdef UG_FOR_LUA
+				.add_method("set_cond", static_cast<void (T::*) (SmartPtr<LuaUserData<number, dim> >)>(&T::set_cond),
+					"", "leak conductance function (S/m^2)", "sets coordinate-dependent leak conductance value")
+				.add_method("set_cond", static_cast<void (T::*) (const char*)>(&T::set_cond),
+					"", "Lua name of leak conductance function (S/m^2)",
+					"sets coordinate-dependent leak conductance value")
+#endif
 				.add_method("set_rev_pot",  static_cast<void (T::*)(number)>(&T::set_rev_pot), "",
 							"leakage equilibrium potential (V) | default | value=-0.065",
 							"sets leakage equilibrium potential")
@@ -492,44 +423,52 @@ struct Functionality
 				.template add_constructor<void (*)(const char*, bool, number)>
 					("Subset(s)#with ion concentrations?#InitTime")
 				.add_method("set_diameter", static_cast<void (T::*)(number)>(&T::set_diameter),
-						"", "diameter (m) | default | value=1e-6", "sets a new diameter")
+					"", "diameter (m) | default | value=1e-6", "sets a new diameter")
 
 				.add_method("set_spec_res", static_cast<void (T::*)(number)>(&T::set_spec_res),
-						"", "specific resistance (Ohm m) | default | value=1.0", "sets a new specific resistance")
+					"", "specific resistance (Ohm m) | default | value=1.0", "sets a new specific resistance")
 				.add_method("set_spec_cap", static_cast<void (T::*)(number)>(&T::set_spec_cap),
-						"", "specific capacitance (F/m^2) | default | value=1e-2", "sets a new specific capacitance")
+					"", "specific capacitance (F/m^2) | default | value=1e-2", "sets a new specific capacitance")
+#ifdef UG_FOR_LUA
+				.add_method("set_spec_cap", static_cast<void (T::*)(SmartPtr<LuaUserData<number, TDomain::dim> >)>(&T::set_spec_cap),
+					"", "specific capacitance function (F/m^2)",
+					"sets a new specific capacitance on subsets given as C-style string")
+				.add_method("set_spec_cap", static_cast<void (T::*)(const char*)>(&T::set_spec_cap),
+					"", "specific capacitance function name (F/m^2)",
+					"sets a new specific capacitance on subsets given as vector of string")
+#endif
 
 				.add_method("set_k_out", static_cast<void (T::*)(number)>(&T::set_k_out),
-						"", "extracellular [K] (mM) | default | value=4.0", "sets extracellular [K]")
+					"", "extracellular [K] (mM) | default | value=4.0", "sets extracellular [K]")
 				.add_method("set_na_out", static_cast<void (T::*)(number)>(&T::set_na_out),
-						"", "extracellular [Na] (mM) | default | value=150.0", "sets extracellular [Na]")
+					"", "extracellular [Na] (mM) | default | value=150.0", "sets extracellular [Na]")
 				.add_method("set_ca_out", static_cast<void (T::*)(number)>(&T::set_ca_out),
-						"", "extracellular [Ca] (mM) | default | value=1.5", "sets extracellular [Ca]")
+					"", "extracellular [Ca] (mM) | default | value=1.5", "sets extracellular [Ca]")
 
 				.add_method("set_rev_pot_na", static_cast<void (T::*)(number)>(&T::set_rev_pot_na),
-						"", "Na reversal potential (V) | default | value=0.06", "sets reversal potential for Na")
+					"", "Na reversal potential (V) | default | value=0.06", "sets reversal potential for Na")
 				.add_method("set_rev_pot_k", static_cast<void (T::*)(number)>(&T::set_rev_pot_k),
-						"", "K reversal potential (V) | default | value=-0.09", "sets reversal potential for K")
+					"", "K reversal potential (V) | default | value=-0.09", "sets reversal potential for K")
 				.add_method("set_rev_pot_ca", static_cast<void (T::*)(number)>(&T::set_rev_pot_ca),
-						"", "Ca reversal potential (V) | default | value=0.14", "sets reversal potential for Ca")
+					"", "Ca reversal potential (V) | default | value=0.14", "sets reversal potential for Ca")
 
 				.add_method("set_temperature", static_cast<void (T::*)(number)>(&T::set_temperature),
-						"", "temperature (K) | default | value=310", "sets new temperature")
+					"", "temperature (K) | default | value=310", "sets new temperature")
 				.add_method("set_temperature_celsius", static_cast<void (T::*)(number)>(&T::set_temperature_celsius),
-						"", "temperature (degrees C) | default | value=37", "sets new temperature")
+					"", "temperature (degrees C) | default | value=37", "sets new temperature")
 
 				.add_method("set_diff_coeffs", static_cast<void (T::*)(const std::vector<number>&)> (&T::set_diff_coeffs), "",
-						"diffusion coefficients of K, Na and Ca (m^2/s)", "sets diffusion coefficients")
+					"diffusion coefficients of K, Na and Ca (m^2/s)", "sets diffusion coefficients")
 
 				.add_method("add", &T::add)
 				.add_method("set_influx", static_cast<void (T::*)(number, number, number, number, number, number)>(&T::set_influx), "",
-						"current (A) | default | value=1e-9 #"
-						"x-coordinate of influx position (m) | default | 0.0 #"
-						"y-coordinate of influx position (m) | default | 0.0 #"
-						"z-coordinate of influx position (m) | default | 0.0 #"
-						"start time (s) | default | 0 #"
-						"duration (s) | default | 0 ",
-						"sets position, duration and current strength of an influx")
+					"current (A) | default | value=1e-9 #"
+					"x-coordinate of influx position (m) | default | 0.0 #"
+					"y-coordinate of influx position (m) | default | 0.0 #"
+					"z-coordinate of influx position (m) | default | 0.0 #"
+					"start time (s) | default | 0 #"
+					"duration (s) | default | 0 ",
+					"sets position, duration and current strength of an influx")
 				.add_method("write_states_for_position", &T::write_states_for_position)
 				.add_method("set_output_point_and_path", &T::set_output_point_and_path)
 #ifdef UG_FOR_LUA

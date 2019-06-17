@@ -72,7 +72,7 @@ class CableEquation
 		CableEquation(const char* fcts, const char* subsets);
 
 		///	destructor
-		virtual ~CableEquation() {};
+		virtual ~CableEquation();
 
 		// /////////////////////
 		// setting parameters //
@@ -80,11 +80,19 @@ class CableEquation
 		/// set constant diameter in units of m
 		void set_diameter(const number d);
 
-		/// set specific resistance in units of mV/(C/ms)*m = 1e-6 Ohm*m
+		/// set specific resistance in units of Ohm*m
 		void set_spec_res(number val);
 
-		/// set specific capacity in units of C/mV/m^2 = 1e-3 F/m^2
+		/// set specific capacitance in units of F/m^2
 		void set_spec_cap(number val);
+
+#ifdef UG_FOR_LUA
+		/// set specific capacitance by Lua function (in units of F/m^2)
+		/// \{
+		void set_spec_cap(SmartPtr<LuaUserData<number, TDomain::dim> > fct);
+		void set_spec_cap(const char* fct);
+		/// \}
+#endif
 
 		/// set outer ion concentrations (in units of mol/m^3 = mM)
 		///	\{
@@ -93,10 +101,10 @@ class CableEquation
 		void set_ca_out(number value);
 		/// \}
 
-		/// set diffusion coefficients in units of m^2/ms
+		/// set diffusion coefficients in units of m^2/s
 		void set_diff_coeffs(const std::vector<number>& diff_coeffs);
 
-		/// set Nernst potentials for ion species in units of mV
+		/// set Nernst potentials for ion species in units of V
 		///	\{
 		// TODO: make that set_rev_pot(string ion, number value)
 		void set_rev_pot_k(number value);
@@ -116,10 +124,10 @@ class CableEquation
 		/// get constant diameter in units of m
 		number diameter();
 
-		/// get specific resistance in units of mV/(C/ms)*m = 1e-6 Ohm*m
+		/// get specific resistance in units of Ohm*m
 		number spec_res();
 
-		/// get specific capacity in units of C/mV/m^2 = 1e-3 F/m^2
+		/// get specific capacity in units of F/m^2
 		number spec_cap();
 
 		/// get outer ion concentrations (in units of mol/m^3 = mM)
@@ -135,10 +143,10 @@ class CableEquation
 		number flux_na();
 		number flux_k();
 
-		/// get diffusion coefficients in units of m^2/ms
+		/// get diffusion coefficients in units of m^2/s
 		const std::vector<number>& diff_coeffs();
 
-		/// get Nernst potentials for ion species in units of mV
+		/// get Nernst potentials for ion species in units of V
 		///	\{
 		number rev_pot_k();
 		number rev_pot_na();
@@ -280,6 +288,12 @@ class CableEquation
 	protected:
 		number m_spec_res;					///< specific resistance in units of Ohm*m
 		number m_spec_cap;					///< specific capacitance in units of F/m^2
+#ifdef UG_FOR_LUA
+		bool m_bCapacitanceDependsOnCoordinates;
+		SmartPtr<LuaUserData<number, TDomain::dim> > m_spCapFct;
+		ANumber m_aCm;
+		Grid::AttachmentAccessor<Vertex, ANumber> m_aaCm;
+#endif
 
 		number m_k_out;     				///< outer [K] in units of  mol/m^3 = mM
 		number m_na_out;     				///< outer [Na] in units of  mol/m^3 = mM

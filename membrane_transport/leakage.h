@@ -30,7 +30,7 @@ class ChannelLeak
 		ChannelLeak(const std::vector<std::string>& functions, const std::vector<std::string>& subsets);
 
 		/// destructor
-		virtual ~ChannelLeak() {};
+		virtual ~ChannelLeak();
 
 		/// name
 		virtual std::string name();
@@ -40,11 +40,20 @@ class ChannelLeak
 
 		/// set leakage conductance
 		void set_cond(number g);
+
 		/// set leakage conductance on specific subsets
 		/// \{
 		void set_cond(number g, const char* subsets);
 		void set_cond(number g, const std::vector<std::string>& subsets);
 		/// \}
+
+#ifdef UG_FOR_LUA
+		/// set leakage conductance by Lua function
+		/// \{
+		void set_cond(SmartPtr<LuaUserData<number, TDomain::dim> > fct);
+		void set_cond(const char* fct);
+		/// \}
+#endif
 
 		/// set leakage equilibrium potential
 		void set_rev_pot(number e);
@@ -71,6 +80,12 @@ class ChannelLeak
 			number g; ///< membrane conductance (S/m^2)
 			number E; ///< reversal potential (V)
 		};
+
+#ifdef UG_FOR_LUA
+		SmartPtr<LuaUserData<number, TDomain::dim> > m_spCondFct;
+		ANumber m_aG;
+		Grid::AttachmentAccessor<Vertex, ANumber> m_aaG;
+#endif
 
 		std::map<std::string, Params> m_mSubsetParams2Save;
 		std::map<int, Params> m_mSubsetParams;
