@@ -1,5 +1,43 @@
+/*
+ * Copyright (c) 2009-2019: G-CSC, Goethe University Frankfurt
+ *
+ * Authors: Markus Breit, Stephan Grein, Lukas Reinhardt
+ * Creation date: 2019-06-12
+ *
+ * This file is part of NeuroBox, which is based on UG4.
+ *
+ * NeuroBox and UG4 are free software: You can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License version 3
+ * (as published by the Free Software Foundation) with the following additional
+ * attribution requirements (according to LGPL/GPL v3 §7):
+ *
+ * (1) The following notice must be displayed in the appropriate legal notices
+ * of covered and combined works: "Based on UG4 (www.ug4.org/license)".
+ *
+ * (2) The following notice must be displayed at a prominent place in the
+ * terminal output of covered works: "Based on UG4 (www.ug4.org/license)".
+ *
+ * (3) The following bibliography is recommended for citation and must be
+ * preserved in all covered files:
+ * "Reiter, S., Vogel, A., Heppner, I., Rupp, M., and Wittum, G. A massively
+ *   parallel geometric multigrid solver on hierarchically distributed grids.
+ *   Computing and visualization in science 16, 4 (2013), 151-164"
+ * "Vogel, A., Reiter, S., Rupp, M., Nägel, A., and Wittum, G. UG4 -- a novel
+ *   flexible software system for simulating PDE based models on high performance
+ *   computers. Computing and visualization in science 16, 4 (2013), 165-179"
+ * "Stepniewski, M., Breit, M., Hoffer, M. and Queisser, G.
+ *   NeuroBox: computational mathematics in multiscale neuroscience.
+ *   Computing and visualization in science (2019).
+ * "Breit, M. et al. Anatomically detailed and large-scale simulations studying
+ *   synapse loss and synchrony using NeuroBox. Front. Neuroanat. 10 (2016), 8"
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ */
+
 /*!
- * \file plugins/experimental/synapse_handler/unit_tests/src/tests.cpp
  * \brief boost unit test for the synapse_handler plugin
  *
  * \author Stephan Grein
@@ -86,9 +124,7 @@ BOOST_AUTO_TEST_CASE(ALPHAPRESYNAPSE) {
 	OnsetPreSynapse* s2 = new OnsetPreSynapse(id2, location2, onset2, duration2);
 	OnsetPreSynapse* s3 = new OnsetPreSynapse();
 
-	/**
-	 * Getter and setter tests
-	 */
+	// getter and setter tests
 	s->set_id(id1);
 	s->set_location(location2);
 	s->set_onset(onset1);
@@ -104,9 +140,7 @@ BOOST_AUTO_TEST_CASE(ALPHAPRESYNAPSE) {
 	BOOST_CHECK_MESSAGE(u->name() == OnsetPreSynapse::name_string, "name check");
 
 
-	/**
-	 * Functionality tests
-	 */
+	// functionality tests
 	BOOST_CHECK_MESSAGE( !s0->is_active(t0) &&
 						   !s1->is_active(t0) &&
 						   !s2->is_active(t0), "active check (t0)");
@@ -193,25 +227,18 @@ BOOST_AUTO_TEST_CASE(EXP2PRESYNAPSE) {
 	std::vector<number> x1; x1.push_back(v1);
 	std::vector<number> x2; x2.push_back(v2);
 
-	/**
-	 * Test getter and setter with these
-	 */
+	// test getter and setter with these
 	ThresholdPreSynapse* s = new ThresholdPreSynapse();
 	ThresholdPreSynapse* u = new ThresholdPreSynapse(location2, onset2, duration2, threshold2);
 
-
-	/**
-	 * Test current/activation/deactivation functionality with these
-	 */
+	// test current/activation/deactivation functionality with these
 	ThresholdPreSynapse* s0 = new ThresholdPreSynapse(id0, location0, duration0, threshold0);
 	ThresholdPreSynapse* s1 = new ThresholdPreSynapse(id1, location1, duration1, threshold1);
 	ThresholdPreSynapse* s2 = new ThresholdPreSynapse(id2, location2, duration2, threshold2);
 	ThresholdPreSynapse* s3 = new ThresholdPreSynapse();
 
 
-	/**
-	 * Getter and setter tests
-	 */
+	// getter and setter tests
 	s->set_id(id1);
 	s->set_location(location1);
 	s->set_onset(onset1);
@@ -230,11 +257,10 @@ BOOST_AUTO_TEST_CASE(EXP2PRESYNAPSE) {
 	BOOST_CHECK_MESSAGE(u->id() == id2,"id getter and setter check2");
 	BOOST_CHECK_MESSAGE(u->name() == ThresholdPreSynapse::name_string,"name check");
 
-	/**
-	 * Functionality tests
-	 */
 
-	//rising potential until -13mV
+	// functionality tests
+
+	// rising potential until -13mV
 	{
 		number vm = v0;
 		number t = 0.0;
@@ -253,7 +279,7 @@ BOOST_AUTO_TEST_CASE(EXP2PRESYNAPSE) {
 	}
 
 
-	//rising potential until -7mV
+	// rising potential until -7mV
 	{
 		number vm = v0;
 		number t = 0.0;
@@ -273,7 +299,7 @@ BOOST_AUTO_TEST_CASE(EXP2PRESYNAPSE) {
 
 
 
-	//serialization
+	// serialization
 	ostringstream oss1;
 	ostringstream oss2;
 	istringstream iss("ThresholdPreSynapse 111 1.4 3 -0.010");
@@ -287,7 +313,7 @@ BOOST_AUTO_TEST_CASE(EXP2PRESYNAPSE) {
 	BOOST_CHECK_MESSAGE(oss1.str() == oss2.str(), "serialization check");
 
 	std::string ident;
-	iss >> ident; //pop identifier away
+	iss >> ident; // pop identifier away
 	iss >> s3;
 	BOOST_CHECK_MESSAGE(s3->type() == THRESHOLD_PRE_SYNAPSE, "deserialization check");
 	BOOST_CHECK_MESSAGE(s3->name() == "ThresholdPreSynapse", "deserialization check");
@@ -376,8 +402,7 @@ BOOST_AUTO_TEST_CASE(ALPHAPOSTSYNAPSE) {
 	BOOST_CHECK_MESSAGE(s3->is_active(t3) == false,"is_active check");
 
 
-	//todo:
-	//test current?
+	// todo: test current?
 
 	//serialization
 	ostringstream oss1;
@@ -393,7 +418,7 @@ BOOST_AUTO_TEST_CASE(ALPHAPOSTSYNAPSE) {
 	BOOST_CHECK_MESSAGE(oss1.str() == oss2.str(), "serialization check");
 
 	std::string ident;
-	iss >> ident; //pop identifier away
+	iss >> ident; // pop identifier away
 
 	iss >> s4;
 	BOOST_CHECK_MESSAGE(s4->id()== 1, "deserialization check");
@@ -403,7 +428,7 @@ BOOST_AUTO_TEST_CASE(ALPHAPOSTSYNAPSE) {
 	BOOST_CHECK_MESSAGE(s4->tau() == 2, "deserialization check");
 	BOOST_CHECK_MESSAGE(s4->rev() == 1, "deserialization check");
 
-	//synapse dealer
+	// synapse dealer
 	SynapseDealer::instance()->register_synapse_type<AlphaPostSynapse>();
 	IBaseSynapse* s0 = SynapseDealer::instance()->deal(AlphaPostSynapse::name_string);
 	BOOST_CHECK_MESSAGE(s4->name() == AlphaPostSynapse::name_string, "SynapseDealer check");
@@ -481,7 +506,7 @@ BOOST_AUTO_TEST_CASE(EXP2POSTSYNAPSE) {
 	s3->deactivate();
 	BOOST_CHECK_MESSAGE(s3->is_active(t3) == false,"is_active check");
 
-	//serialization
+	// serialization
 	ostringstream oss1;
 	ostringstream oss2;
 	istringstream iss("Exp2PostSynapse 1 3 1 2 4 1");
@@ -496,7 +521,7 @@ BOOST_AUTO_TEST_CASE(EXP2POSTSYNAPSE) {
 	BOOST_CHECK_MESSAGE(oss1.str() == oss2.str(), "serialization check");
 
 	std::string ident;
-	iss >> ident; //pop identifier away
+	iss >> ident; // pop identifier away
 	iss >> s3;
 	BOOST_CHECK_MESSAGE(s3->id() == 1, "deserialization check");
 	BOOST_CHECK_MESSAGE(s3->name() == "Exp2PostSynapse", "deserialization check");
@@ -506,7 +531,7 @@ BOOST_AUTO_TEST_CASE(EXP2POSTSYNAPSE) {
 	BOOST_CHECK_MESSAGE(s3->tau2() == 4, "deserialization check");
 	BOOST_CHECK_MESSAGE(s3->rev() == 1, "deserialization check");
 
-	//synapse dealer
+	// synapse dealer
 	SynapseDealer::instance()->register_synapse_type<Exp2PostSynapse>();
 	IBaseSynapse* s4 = SynapseDealer::instance()->deal(Exp2PostSynapse::name_string);
 	BOOST_CHECK_MESSAGE(s4->name() == Exp2PostSynapse::name_string, "SynapseDealer check");
@@ -572,9 +597,7 @@ BOOST_AUTO_TEST_CASE(COMPARE_GENERATED_WITH_REFERENCE_GRID)
 BOOST_AUTO_TEST_SUITE_END();
 
 
-////////////////////////////////////////////////////////////////////////
 /// testsuite to test the hoc import
-////////////////////////////////////////////////////////////////////////
 BOOST_AUTO_TEST_SUITE(HOC_IMPORT);
 
 BOOST_AUTO_TEST_CASE(CONVERT_FROM_HOC)
@@ -586,9 +609,7 @@ BOOST_AUTO_TEST_CASE(CONVERT_FROM_HOC)
 BOOST_AUTO_TEST_SUITE_END();
 
 
-////////////////////////////////////////////////////////////////////////
 /// testsuite to test the txt import
-////////////////////////////////////////////////////////////////////////
 BOOST_AUTO_TEST_SUITE(TXT_IMPORT);
 
 BOOST_AUTO_TEST_CASE(CONVERT_FROM_TXT)
