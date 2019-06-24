@@ -56,17 +56,9 @@ include(${UG_ROOT_CMAKE_PATH}/ug_plugin_includes.cmake)
 message(STATUS "")
 message(STATUS "Additional options (-DCN) for the cable_neuron plugin")
 
-# compile and register nmodl-converted Transport only if # ENABLE_CONVERTED_Transport is set
-option(CNConvertedTransport "ConvertedTransport")
-message(STATUS "      ConvertedTransport:    " ${CNConvertedTransport} " (options are: ON, OFF)")
-
-# compile Converter
-option(CNBuildConverter "BuildConverter" OFF)
-message(STATUS "      BuildConverter:        " ${CNBuildConverter} " (options are: ON, OFF)")
-
 # whether to build the test suite
 option(CNTestsuite "Build Testsuite" OFF)
-message(STATUS "      Testsuite:             " ${CNTestsuite} " (options are: ON, OFF)")
+message(STATUS "      Testsuite:   " ${CNTestsuite} " (options are: ON, OFF)")
 
 
 
@@ -103,11 +95,6 @@ if (Parmetis)
 	set (SOURCES ${SOURCES} util/cable_neuron_unificator.cpp)
 endif (Parmetis)
 
-if (CNConvertedTransport)
-	set (CONVERTED_TRANSPORT_ENABLED 1)
-    include(membrane_transport/nmodl_converter/converted/sources.cmake)
-endif (CNConvertedTransport)
-
 # check whether compiler supports C++11 standard (required for HOC import)
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
@@ -124,18 +111,6 @@ include(synapse_handling/sources.cmake)
 
 # plugin source
 set(SOURCES	${SOURCES} plugin_main.cpp)
-
-
-# decide if Converter binary is to be built
-if (CNBuildConverter)
-	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${UG_ROOT_PATH}/bin/)
-	set(SOURCES_CONVERTER
-		membrane_transport/nmodl_converter/Converter.cpp
-		membrane_transport/nmodl_converter/main.cpp)
-	
-	# add converter as a target
-	add_executable(nmodl-converter ${SOURCES_CONVERTER})   
-endif (CNBuildConverter)
 
 
 # decide if boost testsuite executable (CNTestsuite) is to be built

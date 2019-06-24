@@ -1,8 +1,0 @@
-set (SOURCES ${SOURCES}
-		membrane_transport/nmodl_converter/converted/h_g05_converted_standard_UG.cpp
-		membrane_transport/nmodl_converter/converted/kadist_g01_converted_standard_UG.cpp
-		membrane_transport/nmodl_converter/converted/kaprox_g01_converted_standard_UG.cpp
-		membrane_transport/nmodl_converter/converted/kdrca1_g01_converted_standard_UG.cpp
-		membrane_transport/nmodl_converter/converted/nax_g01_converted_standard_UG.cpp
-		membrane_transport/nmodl_converter/converted/spines_converted_standard_UG.cpp
-	)

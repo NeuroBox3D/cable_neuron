@@ -75,11 +75,6 @@
 #include "membrane_transport/kdr_golding01.h"
 #include "membrane_transport/nax_golding01.h"
 
-// converted membrane transporters
-#ifdef CONVERTED_TRANSPORT_ENABLED
-	#include "membrane_transport/nmodl_converter/converted/includefile.h"
-#endif
-
 // synapse handling
 #include "synapse_handling/synapses/base_synapse.h"
 #include "synapse_handling/synapse_info_io_traits.h"
@@ -586,10 +581,6 @@ struct Functionality
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "CableEquationWithOuterPot", tag);
 		}
-
-#ifdef CONVERTED_TRANSPORT_ENABLED
-		#include "membrane_transport/nmodl_converter/converted/channels.cpp"
-#endif
 
 		// Cuthill-McKee ordering
 		{
