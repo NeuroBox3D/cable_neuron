@@ -60,10 +60,6 @@ message(STATUS "Additional options (-DCN) for the cable_neuron plugin")
 option(CNConvertedTransport "ConvertedTransport")
 message(STATUS "      ConvertedTransport:    " ${CNConvertedTransport} " (options are: ON, OFF)")
 
-# compile and register nmodl-converted bap only if CNConvertedTransportbAP is set
-option(CNConvertedTransportbAP "ConvertedTransportbAP")
-message(STATUS "      ConvertedTransportbAP: " ${CNConvertedTransportbAP} " (options are: ON, OFF)")
-
 # compile Converter
 option(CNBuildConverter "BuildConverter" OFF)
 message(STATUS "      BuildConverter:        " ${CNBuildConverter} " (options are: ON, OFF)")
@@ -112,11 +108,6 @@ if (CNConvertedTransport)
     include(membrane_transport/nmodl_converter/converted/sources.cmake)
 endif (CNConvertedTransport)
 
-if (CNConvertedTransportbAP)
-	set (CONVERTED_TRANSPORT_BAP_ENABLED 1)
-    include(membrane_transport/nmodl_converter/converted/sources_bAP.cmake)
-endif (CNConvertedTransportbAP)
-
 # check whether compiler supports C++11 standard (required for HOC import)
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
@@ -130,9 +121,6 @@ endif (COMPILER_SUPPORTS_CXX11)
 
 # synapse_handling sources
 include(synapse_handling/sources.cmake)
-
-# synapse distributor sources
-#set(SOURCES ${SOURCES} synapse_distributor/synapse_distributor.cpp)
 
 # plugin source
 set(SOURCES	${SOURCES} plugin_main.cpp)
