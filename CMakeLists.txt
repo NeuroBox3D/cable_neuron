@@ -99,8 +99,6 @@ endif (Parmetis)
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
 if (COMPILER_SUPPORTS_CXX11)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c++11")
 	set(NETI_ALL_FEATURES 1)
 else (COMPILER_SUPPORTS_CXX11)
 	message(STATUS "      Compiler does not support C++11: HOC import will not be available.")
@@ -130,17 +128,25 @@ endif (CNTestsuite)
 configure_file(config_cmake.h ${CMAKE_BINARY_DIR}/cn_config.h)
 
 
-if(buildEmbeddedPlugins)
+if (buildEmbeddedPlugins)
 	# add the sources to ug4 sources
 	EXPORTSOURCES(${CMAKE_CURRENT_SOURCE_DIR} ${SOURCES})
+	
+	if (COMPILER_SUPPORTS_CXX11)
+		ExportSingleFileCompileFlags(${CMAKE_CURRENT_SOURCE_DIR}/util/neuronal_topology_importer.cpp "-std=c++11")
+	endif (COMPILER_SUPPORTS_CXX11)
 	
 	if (CNTestsuite)
 		target_link_libraries (CNTestsuite ug4)
 	endif (CNTestsuite)
 	
-else(buildEmbeddedPlugins)
+else (buildEmbeddedPlugins)
 	add_library(${pluginName} SHARED ${SOURCES})
-		
+	
+	if (COMPILER_SUPPORTS_CXX11)
+		set_source_files_properties(util/neuronal_topology_importer.cpp PROPERTIES COMPILE_FLAGS -std=c++11)
+	endif (COMPILER_SUPPORTS_CXX11)
+	
 	if (Parmetis)
 		# make plugin link against Parmetis
 		set(linkLibraries Parmetis ${linkLibraries})
@@ -151,5 +157,5 @@ else(buildEmbeddedPlugins)
 	if (CNTestsuite)
 		target_link_libraries (CNTestsuite ${pluginName} ug4)
 	endif (CNTestsuite)
-endif(buildEmbeddedPlugins)
+endif (buildEmbeddedPlugins)
 
