@@ -58,8 +58,11 @@ message(STATUS "Additional options (-DCN) for the cable_neuron plugin")
 
 # whether to build the test suite
 option(CNTestsuite "Build Testsuite" OFF)
-message(STATUS "      Testsuite:   " ${CNTestsuite} " (options are: ON, OFF)")
+message(STATUS "      Testsuite:     " ${CNTestsuite} " (options are: ON, OFF)")
 
+# whether to leave out C++11 features (only HOc import in NeuronalTopologyImporter)
+option(CNCpp11Features "enable C++11 features" ON)
+message(STATUS "      Cpp11Features: " ${CNCpp11Features} " (options are: ON, OFF)")
 
 
 # cable equation sources
@@ -98,11 +101,13 @@ endif (Parmetis)
 # check whether compiler supports C++11 standard (required for HOC import)
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
-if (COMPILER_SUPPORTS_CXX11)
+if (COMPILER_SUPPORTS_CXX11 AND CNCpp11Features)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c++11")
 	set(NETI_ALL_FEATURES 1)
-else (COMPILER_SUPPORTS_CXX11)
+else (COMPILER_SUPPORTS_CXX11 AND CNCpp11Features)
 	message(STATUS "      Compiler does not support C++11: HOC import will not be available.")
-endif (COMPILER_SUPPORTS_CXX11)
+endif (COMPILER_SUPPORTS_CXX11 AND CNCpp11Features)
 
 # synapse_handling sources
 include(synapse_handling/sources.cmake)
@@ -133,18 +138,18 @@ if (buildEmbeddedPlugins)
 	EXPORTSOURCES(${CMAKE_CURRENT_SOURCE_DIR} ${SOURCES})
 	
 	# add compiler and linker flag for C++11 compatibility
-	if (COMPILER_SUPPORTS_CXX11)
+	if (COMPILER_SUPPORTS_CXX11 AND CNCpp11Features)
 		ExportSingleFileCompileFlags(${CMAKE_CURRENT_SOURCE_DIR}/util/neuronal_topology_importer.cpp "-std=c++11")
 		ExportLinkerFlags("-std=c++11")
-	endif (COMPILER_SUPPORTS_CXX11)
+	endif (COMPILER_SUPPORTS_CXX11 AND CNCpp11Features)
 else (buildEmbeddedPlugins)
 	add_library(${pluginName} SHARED ${SOURCES})
 	
 	# add compiler and linker flag for C++11 compatibility
-	if (COMPILER_SUPPORTS_CXX11)
+	if (COMPILER_SUPPORTS_CXX11 AND CNCpp11Features)
 		set_source_files_properties(util/neuronal_topology_importer.cpp PROPERTIES COMPILE_FLAGS -std=c++11)
 		set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -std=c++11")
-	endif (COMPILER_SUPPORTS_CXX11)
+	endif (COMPILER_SUPPORTS_CXX11 AND CNCpp11Features)
 	
 	if (Parmetis)
 		# make plugin link against Parmetis
