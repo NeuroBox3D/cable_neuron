@@ -132,19 +132,18 @@ if (buildEmbeddedPlugins)
 	# add the sources to ug4 sources
 	EXPORTSOURCES(${CMAKE_CURRENT_SOURCE_DIR} ${SOURCES})
 	
+	# add compiler and linker flag for C++11 compatibility
 	if (COMPILER_SUPPORTS_CXX11)
 		ExportSingleFileCompileFlags(${CMAKE_CURRENT_SOURCE_DIR}/util/neuronal_topology_importer.cpp "-std=c++11")
+		ExportLinkerFlags("-std=c++11")
 	endif (COMPILER_SUPPORTS_CXX11)
-	
-	if (CNTestsuite)
-		target_link_libraries (CNTestsuite ug4)
-	endif (CNTestsuite)
-	
 else (buildEmbeddedPlugins)
 	add_library(${pluginName} SHARED ${SOURCES})
 	
+	# add compiler and linker flag for C++11 compatibility
 	if (COMPILER_SUPPORTS_CXX11)
 		set_source_files_properties(util/neuronal_topology_importer.cpp PROPERTIES COMPILE_FLAGS -std=c++11)
+		set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -std=c++11")
 	endif (COMPILER_SUPPORTS_CXX11)
 	
 	if (Parmetis)
