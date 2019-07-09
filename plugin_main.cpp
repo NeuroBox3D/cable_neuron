@@ -149,25 +149,25 @@ struct Functionality
 			reg.add_class_<T, TBase >(name, grp)
 				.add_method("set_spec_cap", static_cast<void (T::*)(number)>(&T::set_spec_cap), "", "specific capacitance (in F/m^2)")
 				.add_method("set_spec_cap", static_cast<void (T::*)(SmartPtr<CplUserData<number, dim> >)>(&T::set_spec_cap), "", "specific capacitance (in F/m^2) function")
-			#ifdef UG_FOR_LUA
+			#if defined(UG_FOR_LUA) && !defined(UG_FOR_VRL)
 				.add_method("set_spec_cap", static_cast<void (T::*)(const char*)>(&T::set_spec_cap), "", "specific capacitance (in F/m^2) function name")
 			#endif
 
 				.add_method("set_spec_res", static_cast<void (T::*)(number)>(&T::set_spec_res), "", "specific resistance (in Ohm m)")
 				.add_method("set_spec_res", static_cast<void (T::*)(SmartPtr<CplUserData<number, dim> >)>(&T::set_spec_res), "", "specific resistance (in Ohm m) function")
-			#ifdef UG_FOR_LUA
+			#if defined(UG_FOR_LUA) && !defined(UG_FOR_VRL)
 				.add_method("set_spec_res", static_cast<void (T::*)(const char*)>(&T::set_spec_res), "", "specific resistance (in Ohm m) function name")
 			#endif
 
 				.add_method("set_conductances", static_cast<void (T::*)(number, number, number)>(&T::set_conductances), "", "conductances for K+, Na+ and leakage (in S/m^2)")
 				.add_method("set_conductances", static_cast<void (T::*)(SmartPtr<CplUserData<number, dim> >, SmartPtr<CplUserData<number, dim> >, SmartPtr<CplUserData<number, dim> >)>(&T::set_conductances), "", "conductance functions for K+, Na+ and leakage (in S/m^2)")
-			#ifdef UG_FOR_LUA
+			#if defined(UG_FOR_LUA) && !defined(UG_FOR_VRL)
 				.add_method("set_conductances", static_cast<void (T::*)(const char*, const char* , const char*)>(&T::set_conductances), "", "conductance function names for K+, Na+ and leakage (in S/m^2)")
 			#endif
 
 				.add_method("set_rev_pot", static_cast<void (T::*)(number, number, number)>(&T::set_rev_pot), "", "reversal potentials (in V) for K+, Na+ and leakage")
 				.add_method("set_rev_pot", static_cast<void (T::*)(SmartPtr<CplUserData<number, dim> >, SmartPtr<CplUserData<number, dim> >, SmartPtr<CplUserData<number, dim> >)>(&T::set_rev_pot), "", "reversal potential (in V) functions for K+, Na+ and leakage")
-			#ifdef UG_FOR_LUA
+			#if defined(UG_FOR_LUA) && !defined(UG_FOR_VRL)
 				.add_method("set_rev_pot", static_cast<void (T::*)(const char*, const char* , const char*)>(&T::set_rev_pot), "", "reversal potential (in V) function names for K+, Na+ and leakage")
 			#endif
 
@@ -296,7 +296,7 @@ struct Functionality
 				.add_method("set_cond", static_cast<void (T::*)(number, const std::vector<std::string>&)>(&T::set_cond),
 							"", "leak conductance (S/m^2) | default | value=1.0 # subset(s) as vector of strings",
 							"sets leak conductance for leakage")
-#ifdef UG_FOR_LUA
+#if defined(UG_FOR_LUA) && !defined(UG_FOR_VRL)
 				.add_method("set_cond", static_cast<void (T::*) (SmartPtr<LuaUserData<number, dim> >)>(&T::set_cond),
 					"", "leak conductance function (S/m^2)", "sets coordinate-dependent leak conductance value")
 				.add_method("set_cond", static_cast<void (T::*) (const char*)>(&T::set_cond),
@@ -409,7 +409,7 @@ struct Functionality
 				.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("Function(s)#Subset(s)")
 				.add_method("set_conductance", static_cast<void (T::*) (number)>(&T::set_gkbar),
 					"", "K conductance (S/m^2)", "")
-#ifdef UG_FOR_LUA
+#if defined(UG_FOR_LUA) && !defined(UG_FOR_VRL)
 				.add_method("set_conductance", static_cast<void (T::*) (SmartPtr<LuaUserData<number, dim> >)>(&T::set_gkbar),
 					"", "K conductance function (S/m^2)", "sets coordinate-dependent K conductance value")
 				.add_method("set_conductance", static_cast<void (T::*) (const char*)>(&T::set_gkbar),
@@ -424,7 +424,7 @@ struct Functionality
 				.add_method("set_a0n_dist", &T::set_a0n_dist)
 				.add_method("set_zetan_dist", &T::set_zetan_dist)
 				.add_method("set_gmn_dist", &T::set_gmn_dist)
-#ifdef UG_FOR_LUA
+#if defined(UG_FOR_LUA) && !defined(UG_FOR_VRL)
 				// investigate: very strangely, it is not possible to register the following two methods in reverse order...:
 				// this gives: Registry ERROR: Unregistered Class used in Method:
 				// 'void KA_Golding011d:set_proximality_fct(SmartPtr<> set proximality function)': for Parameter 1
@@ -454,7 +454,7 @@ struct Functionality
 				.add_method("set_conductance", static_cast<void (T::*) (number)>(&T::set_gkbar), "",
 					"K conductance (S/m^2) | default | value=30.0#"
 					"subset(s) as vector of string", "sets K conductance value")
-#ifdef UG_FOR_LUA
+#if defined(UG_FOR_LUA) && !defined(UG_FOR_VRL)
 				.add_method("set_conductance", static_cast<void (T::*) (SmartPtr<LuaUserData<number, dim> >)>(&T::set_gkbar),
 					"", "K conductance function (S/m^2)", "sets coordinate-dependent K conductance value")
 				.add_method("set_conductance", static_cast<void (T::*) (const char*)>(&T::set_gkbar),
@@ -477,7 +477,7 @@ struct Functionality
 				.add_method("set_conductance", static_cast<void (T::*) (number)>(&T::set_gbar), "",
 					"Na conductance (S/m^2) | default | value=100.0#"
 					"subset(s) as vector of string", "sets Na conductance value")
-#ifdef UG_FOR_LUA
+#if defined(UG_FOR_LUA) && !defined(UG_FOR_VRL)
 				.add_method("set_conductance", static_cast<void (T::*) (SmartPtr<LuaUserData<number, dim> >)>(&T::set_gbar),
 					"", "Na conductance function (S/m^2)", "sets coordinate-dependent Na conductance value")
 				.add_method("set_conductance", static_cast<void (T::*) (const char*)>(&T::set_gbar),
@@ -509,7 +509,7 @@ struct Functionality
 					"", "specific resistance (Ohm m) | default | value=1.0", "sets a new specific resistance")
 				.add_method("set_spec_cap", static_cast<void (T::*)(number)>(&T::set_spec_cap),
 					"", "specific capacitance (F/m^2) | default | value=1e-2", "sets a new specific capacitance")
-#ifdef UG_FOR_LUA
+#if defined(UG_FOR_LUA) && !defined(UG_FOR_VRL)
 				.add_method("set_spec_cap", static_cast<void (T::*)(SmartPtr<LuaUserData<number, TDomain::dim> >)>(&T::set_spec_cap),
 					"", "specific capacitance function (F/m^2)",
 					"sets a new specific capacitance on subsets given as C-style string")
@@ -551,15 +551,13 @@ struct Functionality
 					"sets position, duration and current strength of an influx")
 				.add_method("write_states_for_position", &T::write_states_for_position)
 				.add_method("set_output_point_and_path", &T::set_output_point_and_path)
-#ifdef UG_FOR_LUA
+#if defined(UG_FOR_LUA) && !defined(UG_FOR_VRL)
 				.add_method("set_influx_function",
 					static_cast<void (T::*)(const char*, const char*)> (&T::set_influx_function),
 					"", "lua function name # subset name", "Set an influx density function on a subset.")
-#ifndef UG_FOR_VRL
 				.add_method("set_influx_function",
 					static_cast<void (T::*)(SmartPtr<LuaUserData<number, dim> >, const std::string&)> (&T::set_influx_function),
 					"", "LuaUserFunction # subset name", "Set an influx density function on a subset.")
-#endif
 #endif
 				.add_method("set_influx_subset", &T::set_influx_subset)
 #ifdef UG_CPU_1
