@@ -58,12 +58,6 @@
 #include <boost/property_tree/ptree.hpp>
 
 
-/// debug ids
-extern ug::DebugID NETIGeometry;
-extern ug::DebugID NETIGrid;
-
-
-
 namespace ug {
 namespace cable_neuron {
 namespace neuronal_topology_importer {
