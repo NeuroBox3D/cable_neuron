@@ -76,15 +76,8 @@
 namespace ug {
 namespace cable_neuron {
 namespace neuronal_topology_importer {
-
-
-DebugID NETIGeometry("NETI_DID.import_geometry");
-DebugID NETIGrid("NETI_DID.generate_grid");
-
-
+	
 const number NeuronalTopologyImporter::REMOVE_DOUBLES_THRESHOLD = 1e-8;
-
-
 
 NeuronalTopologyImporter::NeuronalTopologyImporter()
 : m_scaleLength(1e-6),  // um -> m
