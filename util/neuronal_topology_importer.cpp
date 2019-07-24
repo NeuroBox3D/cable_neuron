@@ -380,6 +380,7 @@ bool NeuronalTopologyImporter::import_geometry_from_TXT()
 
 	// read sections file
 	//clock_t begin = clock();
+	//UG_LOGN("extracting points and sections");
 	try {extract_points_and_sections_from_txt(fileNameSecs);}
 	UG_CATCH_THROW("Failed extracting points and sections from txt file.");
 	//clock_t end = clock();
@@ -388,6 +389,7 @@ bool NeuronalTopologyImporter::import_geometry_from_TXT()
 
 	// read connections file
 	//begin = clock();
+	//UG_LOGN("extracting connections");
 	try {extract_connections_from_txt(fileNameConn);}
 	UG_CATCH_THROW("Failed extracting connections from txt file.");
 	//end = clock();
@@ -396,6 +398,7 @@ bool NeuronalTopologyImporter::import_geometry_from_TXT()
 
 	// read synapses file
 	//begin = clock();
+	//UG_LOGN("extracting synapses");
 	try {extract_synapses_from_txt(fileNameSyn);}
 	UG_CATCH_THROW("Failed extracting synapses from txt file.");
 	//end = clock();
@@ -1091,7 +1094,7 @@ static size_t closest_pt_to_section_position
 (
 	const SectionInfo& sec,
 	number locPos,
-	const std::vector<PointInfo> vPts
+	const std::vector<PointInfo>& vPts
 )
 {
 	if (locPos <= 0.0)
