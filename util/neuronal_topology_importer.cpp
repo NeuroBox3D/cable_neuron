@@ -1717,8 +1717,8 @@ bool NeuronalTopologyImporter::generate_grid()
 				UG_CATCH_THROW("Could not determine edge for synapse.");
 
 				// scaling synapse params from Neuron default units (mV, ms, uS) to cable_neuron units (V, s, S)
-				IBaseSynapse* presyn = new OnsetPreSynapse(id, locCoord, 1e-3*synInfo.onset, 1e-3*6.0*synInfo.tau1);
-				IBaseSynapse* postsyn = new AlphaPostSynapse(id, locCoord, 1e-6*synInfo.gMax, 1e-3*synInfo.tau1, 1e-3*synInfo.e);
+				IBaseSynapse* presyn = new OnsetPreSynapse(id, locCoord, synInfo.onset, 6.0*synInfo.tau1);
+				IBaseSynapse* postsyn = new AlphaPostSynapse(id, locCoord, synInfo.gMax, synInfo.tau1, synInfo.e);
 
 				// both pre- and post-synapse go to the post-synaptic edge
 				m_aaSynapse[preAndPostEdge].push_back(presyn);
@@ -1748,8 +1748,8 @@ bool NeuronalTopologyImporter::generate_grid()
 				const number& tau2 = synInfo.tau2;
 				const number tp = (tau1*tau2)/(tau2-tau1) * std::log(tau2/tau1);
 				const number duration = tp + 3*tau2;
-				IBaseSynapse* presyn = new ThresholdPreSynapse(id, locCoordPre, 1e-3*duration, 1e-3*synInfo.threshold);
-				IBaseSynapse* postsyn = new Exp2PostSynapse(id, locCoordPost, 1e-6*synInfo.gMax, 1e-3*tau1, 1e-3*tau2, 1e-3*synInfo.e);
+				IBaseSynapse* presyn = new ThresholdPreSynapse(id, locCoordPre, duration, synInfo.threshold);
+				IBaseSynapse* postsyn = new Exp2PostSynapse(id, locCoordPost, synInfo.gMax, tau1, tau2, synInfo.e);
 
 				// both pre- and post-synapse go to the post-synaptic edge
 				m_aaSynapse[pre].push_back(presyn);
