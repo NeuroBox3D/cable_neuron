@@ -126,12 +126,16 @@ void Na_K_Pump<TDomain>::current(Vertex* vrt, const std::vector<number>& vrt_val
 	number na = vrt_values[CableEquation<TDomain>::_na_];
 	number k = vrt_values[CableEquation<TDomain>::_k_];
 
-	number napump = 1.0 /(1.0 + K_Na/na * (1.0 + k/K_K));
+	number napump = 1.0 / (1.0 + K_Na/na * (1.0 + k/K_K));
 	napump = napump*napump*napump*max_flux;
 
 	// 3na vs 2k
+	//outCurrentValues.push_back(napump * this->m_pCE->F / 3.0); // C/(m^2*s)
 	outCurrentValues.push_back(napump); 				// mol/(m^2*s)
 	outCurrentValues.push_back((-2.0/3.0) * napump);	// mol/(m^2*s)
+
+	//UG_LOGN("napump: " << napump);
+	//UG_LOGN("kpump: " << (-2.0/3.0) * napump);
 }
 
 

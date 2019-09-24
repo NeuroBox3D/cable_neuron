@@ -394,9 +394,9 @@ void ChannelHH<TDomain>::current(Vertex* vrt, const std::vector<number>& vrt_val
 	std::cout << "NGate: " << NGate << std::endl;
 	std::cout << "MGate: " << MGate << std::endl;
 	std::cout << "HGate: " << HGate << std::endl;
-	std::cout << "potassium_part_of_flux: " << potassium_part_of_flux << std::endl;
-	std::cout << "sodium_part_of_flux: " << sodium_part_of_flux << std::endl;
-	std::cout << "flux: " << potassium_part_of_flux + sodium_part_of_flux << std::endl;
+	std::cout << "si " << si << ": potassium_part_of_flux: " << potassium_part_of_flux << std::endl;
+	std::cout << "si " << si << ": sodium_part_of_flux: " << sodium_part_of_flux << std::endl;
+	std::cout << "si " << si << ": flux: " << potassium_part_of_flux + sodium_part_of_flux << std::endl;
 	*/
 
 	number flux_value = (potassium_part_of_flux + sodium_part_of_flux);
@@ -789,8 +789,7 @@ void ChannelHHNernst<TDomain>::current(Vertex* vrt, const std::vector<number>& v
 	outCurrentValues.push_back(potassium_part_of_flux / F);
 	outCurrentValues.push_back(sodium_part_of_flux / F);
 
-	//std::cout << "pot: " << potassium_part_of_flux << " sod : " << sodium_part_of_flux << " leak: " << leakage_part_of_flux << std::endl;
-	//std::cout << "leakeage term: " << leakage_part_of_flux << std::endl;
+	//std::cout << "si " << si << ":   pot: " << potassium_part_of_flux << "   sod: " << sodium_part_of_flux << std::endl;
 	//std::cout << "outCurrentValues: " << outCurrentValues[0] << ", " << outCurrentValues[1] << ", " << outCurrentValues[2] << ", " << std::endl;
 	//std::cout << "end ionic current" << std::endl;
 }

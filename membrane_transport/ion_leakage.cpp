@@ -207,7 +207,7 @@ void IonLeakage<TDomain>::current(Vertex* vrt, const std::vector<number>& vrt_va
 	if (m_bOhmic)
 	{
 		const number leak = m_cond * (vm - m_revPot);
-		outCurrentValues.push_back(leak);
+		//outCurrentValues.push_back(leak);
 		outCurrentValues.push_back(leak / (m_valency*m_pCE->F));
 		return;
 	}
@@ -228,7 +228,7 @@ void IonLeakage<TDomain>::current(Vertex* vrt, const std::vector<number>& vrt_va
 	if (fabs(vm) < 1e-8) leak = -m_perm * ((conc_out - conc_in) - z*F/(2*R*T) * (conc_out + conc_in)*vm);
 		else leak = m_perm * z*F/(R*T) * vm * (conc_out - conc_in*exp(z*F/(R*T)*vm)) / (1.0 - exp(z*F/(R*T)*vm));
 
-	outCurrentValues.push_back(leak * z*F);
+	//outCurrentValues.push_back(leak * z*F);
 	outCurrentValues.push_back(leak);
 }
 
@@ -236,6 +236,10 @@ void IonLeakage<TDomain>::current(Vertex* vrt, const std::vector<number>& vrt_va
 template<typename TDomain>
 number IonLeakage<TDomain>::lin_dep_on_pot(Vertex* vrt, const std::vector<number>& vrt_values)
 {
+	return 0.0;
+
+#if 0
+	// only if V_m is a write function
 	// ohmic currents
 	if (m_bOhmic)
 		return m_cond;
@@ -265,6 +269,7 @@ number IonLeakage<TDomain>::lin_dep_on_pot(Vertex* vrt, const std::vector<number
 	}
 
 	return leakDeriv * z*F;
+#endif
 }
 
 
@@ -273,7 +278,7 @@ void IonLeakage<TDomain>::
 specify_write_function_indices()
 {
 	// prepare vector containing CableEquation fct indices which this channel writes to
-	this->m_vWFctInd.push_back(CableEquation<TDomain>::_v_);
+	//this->m_vWFctInd.push_back(CableEquation<TDomain>::_v_);
 	this->m_vWFctInd.push_back(m_lfInd);
 }
 

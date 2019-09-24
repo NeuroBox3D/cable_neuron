@@ -118,8 +118,10 @@ void PMCA_cable<TDomain>::current(Vertex* vrt, const std::vector<number>& vrt_va
 	number ca = vrt_values[CableEquation<TDomain>::_ca_];
 
 	number ionic_current = ca*ca / (m_kd*m_kd + ca*ca) * m_maxFlux;
-	outCurrentValues.push_back(ionic_current * 2*this->m_pCE->F);
+	//outCurrentValues.push_back(ionic_current * 2*this->m_pCE->F);
 	outCurrentValues.push_back(ionic_current); // mol/(m^2*ms)
+
+	//UG_LOGN("PMCA: " << ionic_current);
 }
 
 
@@ -128,7 +130,7 @@ template<typename TDomain>
 number PMCA_cable<TDomain>::
 lin_dep_on_pot(Vertex* vrt, const std::vector<number>& vrt_values)
 {
-	return 0;
+	return 0.0;
 }
 
 
@@ -137,7 +139,7 @@ void PMCA_cable<TDomain>::
 specify_write_function_indices()
 {
 	// prepare vector containing CableEquation fct indices which this channel writes to
-	this->m_vWFctInd.push_back(CableEquation<TDomain>::_v_);
+	//this->m_vWFctInd.push_back(CableEquation<TDomain>::_v_);
 	this->m_vWFctInd.push_back(CableEquation<TDomain>::_ca_);
 }
 
