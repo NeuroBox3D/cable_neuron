@@ -60,6 +60,7 @@
 
 // solver includes
 #include "util/cable_ass_tuner.h"
+#include "util/diam_attachment_handler.h"
 #include "util/order.h"
 #include "util/neuronal_topology_importer.h"
 
@@ -952,6 +953,11 @@ struct Functionality
 					"success", "file base name # format (hoc, ngx, swc, txt)")
 				.set_construct_as_smart_pointer(true);
 		}
+
+		reg.add_function("AddDiamAttachmentHandlerToGrid", &AddDiamAttachmentHandlerToGrid, grp.c_str(),
+			"", "grid", "When added, the DiamAttachmentHandler will propagate global diameter attachments "
+			"through newly created grid levels.");
+
 	}
 
 }; // end Functionality

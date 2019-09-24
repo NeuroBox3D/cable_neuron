@@ -78,6 +78,10 @@ class DiamAttachmentHandler
 		virtual void copy_from_other_elem_type(GridObject* parent, Vertex* child);
 };
 
+
+void AddDiamAttachmentHandlerToGrid(SmartPtr<MultiGrid> grid);
+
+
 } // end namespace cable_neuron
 } // end namespace ug
 

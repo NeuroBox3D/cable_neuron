@@ -40,6 +40,9 @@
 
 #include "diam_attachment_handler.h"
 
+#include "lib_grid/common_attachments.h"  // for ANumber
+#include "lib_grid/global_attachments.h"  // for GlobalAttachments
+
 namespace ug {
 namespace cable_neuron {
 
@@ -59,6 +62,20 @@ void DiamAttachmentHandler::copy_from_other_elem_type(GridObject* parent, Vertex
 
 	m_aa[child] = diam / num_vrt;
 }
+
+
+
+void AddDiamAttachmentHandlerToGrid(SmartPtr<MultiGrid> grid)
+{
+	ANumber aDiameter = GlobalAttachments::attachment<ANumber>("diameter");
+	UG_COND_THROW(!grid->has_attachment<Vertex>(aDiameter),
+		"Grid does not have a 'diameter' attachment.");
+
+	SmartPtr<DiamAttachmentHandler> spDah(new DiamAttachmentHandler());
+	spDah->set_attachment(aDiameter);
+	spDah->set_grid(grid);
+}
+
 
 } // end namespace cable_neuron
 } // end namespace ug
