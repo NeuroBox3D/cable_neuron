@@ -657,6 +657,74 @@ struct Functionality
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "SynapseHandler", tag);
 		}
+
+		// ////////////////////////////////////////////
+		// //////// SynapseDistributor ////////////////
+		// ////////////////////////////////////////////
+
+		{
+			const string name = "SynapseDistributor";
+			const string dimName = name + suffix;
+			string constr_params("infile#outfile");
+
+			typedef SynapseDistributor TSD;
+
+			reg.add_class_<TSD>(dimName, grp)
+				.add_constructor<void (*)(string)>("infile")
+				.add_constructor<void (*)(SmartPtr<TDomain>)>("dom")
+
+				.add_method("clear", static_cast<void (TSD::*)()>(&TSD::clear), "", "",
+					"Removes all synapses from grid.")
+				.add_method("clear", static_cast<void (TSD::*)(int)>(&TSD::clear), "", "subsetIndex",
+					"Removes all Synapses from subset.")
+
+				.add_method("place_synapse_at_coords", &TSD::place_synapse_at_coords, "",
+					"coordinates (as three-component vector)#pre-synapse#post-synapse",
+					"Places one pair of pre- and post-synapse on the edge nearest to the given coordinates.")
+
+				.add_method("place_synapses_uniform",
+					static_cast<void (TSD::*)(size_t, const string&)>(&TSD::place_synapses_uniform),
+					"", "number of synapses#synapse type", "Distributes post-synapses uniformly on grid.")
+				.add_method("place_synapses_uniform",
+					static_cast<void (TSD::*)(int, size_t, const string&)>(&TSD::place_synapses_uniform),
+					"", "subset index#number of synapses#synapse type", "Distributes post-synapses uniformly on subset.")
+				.add_method("place_synapses_uniform",
+					static_cast<void (TSD::*)(const char*, size_t, const string&)>(&TSD::place_synapses_uniform),
+					"", "subset name#number of synapses#synapse type", "Distributes post-synapses uniformly on subset.")
+				.add_method("place_synapses_uniform_density",
+					static_cast<void (TSD::*)(int, number, const string&)>(&TSD::place_synapses_uniform),
+					"", "subset index#density (m^-1)#synapse type", "Uniformly distributes post-synapses on subset with given density.")
+				.add_method("place_synapses_uniform",
+					static_cast<void (TSD::*)(const char*, number, const string&)>(&TSD::place_synapses_uniform),
+					"", "subset name#density (m^-1)#synapse type", "Uniformly distributes post-synapses on subset with given density.")
+				.add_method("place_synapses_uniform_density",
+					static_cast<void (TSD::*)(number, number, number, number, number, const string&)>(&TSD::place_synapses_uniform),
+					"", "subset name#density (m^-1)#synapse type", "Uniformly distributes post-synapses in ball region.")
+				.add_method("place_synapses_uniform",
+					static_cast<void (TSD::*)(size_t, number, number, number, number, const string&)>(&TSD::place_synapses_uniform),
+					"", "number of synapses#x#y#z#radius#type of synapse")
+				.add_method("place_synapses", &TSD::place_synapses,
+					"", "", "Distributes post-synapses according to given distribution on the subsets.")
+				.add_method("degenerate_uniform", static_cast<void (TSD::*)(number)>(&TSD::degenerate_uniform),
+					"", "percentage", "Removes a percentage of synapses from the grid.")
+				.add_method("degenerate_uniform", static_cast<void (TSD::*)(number, int)>(&TSD::degenerate_uniform),
+					"", "percentage#subset index", "Removes a percentage of synapses from the given subset.")
+				.add_method("degenerate_uniform", static_cast<void (TSD::*)(number, const char*)>(&TSD::degenerate_uniform),
+					"", "percentage#subset name", "Removes a percentage of synapses from the given subset.",grp)
+
+				.add_method("num_synapses", static_cast<size_t (TSD::*)() const>(&TSD::num_synapses),
+					"", "", "Returns global number of synapses.")
+				.add_method("num_synapses", static_cast<size_t (TSD::*)(int) const>(&TSD::num_synapses),
+					"", "subset index", "Returns number of synapses in specified subset.")
+				.add_method("num_synapses", static_cast<size_t (TSD::*)(const char*) const>(&TSD::num_synapses),
+					"", "subset name", "Returns number of synapses in specified subset.")
+
+				.add_method("print_status", &TSD::print_status, "", "", "Prints synapse status of grid.")
+				.add_method("export_grid", &TSD::export_grid, "", "file name", "Saves grid with synapses to file.")
+
+				.set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(dimName, name, tag);
+		}
 	}
 
 	/**
@@ -824,74 +892,6 @@ struct Functionality
                 .set_construct_as_smart_pointer(true);
         }
 
-
-		{
-			// ////////////////////////////////////////////
-			// //////// SynapseDistributor ////////////////
-			// ////////////////////////////////////////////
-
-			// TODO: might better be registered (and implemented) in a domain-dependent manner
-			string name = "SynapseDistributor";
-			string constr_params("infile#outfile");
-
-			typedef SynapseDistributor TSD;
-
-			reg.add_class_<TSD>(name, grp)
-				.add_constructor<void (*)(string)>("infile")
-				.add_constructor<void (*)(SmartPtr<ug::Domain3d>)>("dom")
-
-				.add_method("clear", static_cast<void (TSD::*)()>(&TSD::clear), "", "",
-				    "Removes all synapses from grid.")
-				.add_method("clear", static_cast<void (TSD::*)(int)>(&TSD::clear), "", "subsetIndex",
-				    "Removes all Synapses from subset.")
-
-				.add_method("place_synapse_at_coords", &TSD::place_synapse_at_coords, "",
-				    "coordinates (as three-component vector)#pre-synapse#post-synapse",
-				    "Places one pair of pre- and post-synapse on the edge nearest to the given coordinates.")
-
-				.add_method("place_synapses_uniform",
-                    static_cast<void (TSD::*)(size_t, const string&)>(&TSD::place_synapses_uniform),
-                    "", "number of synapses#synapse type", "Distributes post-synapses uniformly on grid.")
-                .add_method("place_synapses_uniform",
-                    static_cast<void (TSD::*)(int, size_t, const string&)>(&TSD::place_synapses_uniform),
-                    "", "subset index#number of synapses#synapse type", "Distributes post-synapses uniformly on subset.")
-                .add_method("place_synapses_uniform",
-                    static_cast<void (TSD::*)(const char*, size_t, const string&)>(&TSD::place_synapses_uniform),
-                    "", "subset name#number of synapses#synapse type", "Distributes post-synapses uniformly on subset.")
-                .add_method("place_synapses_uniform_density",
-                    static_cast<void (TSD::*)(int, number, const string&)>(&TSD::place_synapses_uniform),
-                    "", "subset index#density (m^-1)#synapse type", "Uniformly distributes post-synapses on subset with given density.")
-                .add_method("place_synapses_uniform",
-                    static_cast<void (TSD::*)(const char*, number, const string&)>(&TSD::place_synapses_uniform),
-                    "", "subset name#density (m^-1)#synapse type", "Uniformly distributes post-synapses on subset with given density.")
-				.add_method("place_synapses_uniform_density",
-                    static_cast<void (TSD::*)(number, number, number, number, number, const string&)>(&TSD::place_synapses_uniform),
-                    "", "subset name#density (m^-1)#synapse type", "Uniformly distributes post-synapses in ball region.")
-                .add_method("place_synapses_uniform",
-                    static_cast<void (TSD::*)(size_t, number, number, number, number, const string&)>(&TSD::place_synapses_uniform),
-                    "", "number of synapses#x#y#z#radius#type of synapse")
-				.add_method("place_synapses", &TSD::place_synapses,
-				    "", "", "Distributes post-synapses according to given distribution on the subsets.")
-				.add_method("degenerate_uniform", static_cast<void (TSD::*)(number)>(&TSD::degenerate_uniform),
-				    "", "percentage", "Removes a percentage of synapses from the grid.")
-				.add_method("degenerate_uniform", static_cast<void (TSD::*)(number, int)>(&TSD::degenerate_uniform),
-				    "", "percentage#subset index", "Removes a percentage of synapses from the given subset.")
-				.add_method("degenerate_uniform", static_cast<void (TSD::*)(number, const char*)>(&TSD::degenerate_uniform),
-				    "", "percentage#subset name", "Removes a percentage of synapses from the given subset.",grp)
-
-				.add_method("num_synapses", static_cast<size_t (TSD::*)() const>(&TSD::num_synapses),
-				    "", "", "Returns global number of synapses.")
-				.add_method("num_synapses", static_cast<size_t (TSD::*)(int) const>(&TSD::num_synapses),
-				    "", "subset index", "Returns number of synapses in specified subset.")
-				.add_method("num_synapses", static_cast<size_t (TSD::*)(const char*) const>(&TSD::num_synapses),
-				    "", "subset name", "Returns number of synapses in specified subset.")
-
-				.add_method("print_status", &TSD::print_status, "", "", "Prints synapse status of grid.")
-				.add_method("export_grid", &TSD::export_grid, "", "file name", "Saves grid with synapses to file.")
-
-				.set_construct_as_smart_pointer(true);
-		}
-
 		// ugx -> swc conversion
 		reg.add_function("save_neuron_to_swc", &save_neuron_to_swc, grp.c_str(),
 		                 "", "ugx file name # neuron index # swc file name # scale",
@@ -1011,7 +1011,7 @@ InitUGPlugin_cable_neuron(Registry* reg, string grp)
     // Register synapse types.
     // This has to be done only AFTER the rest has been registered.
     // Synapse iterators and begin() and end() methods of SynapseHandler
-    // are automatically registered as well.
+    // are automatically registered as well (but only for 3d synapse handler).
 	try
 	{
 	    {

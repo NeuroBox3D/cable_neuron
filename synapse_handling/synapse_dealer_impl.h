@@ -111,9 +111,11 @@ bridge::ExportedClass<TSyn>& SynapseDealer::register_synapse_type
     typedef SynapseHandler<Domain3d> TSH;
     bridge::ExportedClass<TSH>* shClass3;
     shClass3 = dynamic_cast<bridge::ExportedClass<TSH>*>(reg->get_class("SynapseHandler3d"));
-    UG_COND_THROW(!shClass3, "No class registered as SynapseHandler3d could be found in registry.");
-    shClass3->add_method("begin_" + name, &TSH::template begin_wrapper<TSyn>);
-    shClass3->add_method("end_" + name, &TSH::template end_wrapper<TSyn>);
+    if (shClass3)  // This may be null, e.g., if we do not compile for 3d
+    {
+    	shClass3->add_method("begin_" + name, &TSH::template begin_wrapper<TSyn>);
+    	shClass3->add_method("end_" + name, &TSH::template end_wrapper<TSyn>);
+    }
 
     // register with this class' synapse "registry"
     register_synapse_type<TSyn>();
