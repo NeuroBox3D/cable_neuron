@@ -102,7 +102,7 @@ number Exp2PostSynapse::current(const number& t, const number &vm) const
 	if (t >= m_onset)	// this excludes onset == NaN
 	{
 		// in case tau1 = tau2, the current degenerates to alpha current
-		if (fabs(1.0 - m_tau1/m_tau2) < 1e-8)
+		if (fabs(m_tau2 - m_tau1) <= 1e-8*m_tau2)
 			return m_gMax * (vm - m_rev) * (t-m_onset)/m_tau2 * std::exp(-(t-m_onset-m_tau2)/m_tau2);
 
 		number tp = (m_tau1*m_tau2)/(m_tau2 - m_tau1) * std::log(m_tau2/m_tau1);	// time of maximal current

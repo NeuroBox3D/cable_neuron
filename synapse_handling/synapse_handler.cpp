@@ -75,11 +75,11 @@ SynapseHandler<TDomain>::SynapseHandler()
   m_mPostSynapseIdToEdge(std::map<synapse_id,Edge*>()),
   m_spSAS(SPNULL),
   m_primary_alpha_onset_mean(std::numeric_limits<number>::max()), m_primary_alpha_onset_dev(0.0),
-  m_primary_alpha_tau_mean(0.0), m_primary_alpha_tau_dev(0.0),
+  m_primary_alpha_tau_mean(1e-3), m_primary_alpha_tau_dev(0.0),
   m_primary_alpha_peak_cond_mean(6e-4), m_primary_alpha_peak_cond_dev(0.0),
   m_primary_alpha_constSeed(true),
   m_prim_biexp_onset_mean(std::numeric_limits<number>::max()), m_prim_biexp_onset_dev(0.0),
-  m_prim_biexp_tau1_mean(0.0), m_prim_biexp_tau1_dev(0.0), m_prim_biexp_tau2_mean(0.0), m_prim_biexp_tau2_dev(0.0),
+  m_prim_biexp_tau1_mean(1e-3), m_prim_biexp_tau1_dev(0.0), m_prim_biexp_tau2_mean(2e-3), m_prim_biexp_tau2_dev(0.0),
   m_prim_biexp_peak_cond_mean(0.0), m_prim_biexp_peak_cond_dev(0.0),
   m_prim_biexp_constSeed(true)
 {
@@ -611,7 +611,7 @@ set_activation_timing_with_grid()
                 t_onset = t_onset < 0 ? 0 : t_onset;
 
                 number tau = var_tau();
-                tau = tau < 0 ? 0 : tau;
+                tau = tau < 0 ? 1e-6 : tau;
 
                 number cond = var_cond();
                 cond = cond < 0 ? 0 : cond;
@@ -645,12 +645,13 @@ set_activation_timing_with_grid()
                 number tau2 = var_tau2();
                 tau2 = tau2 < 0 ? 0 : tau2;
 
+                if (fabs(tau2 - tau1) <= 1e-8 * tau2)
+                	tau2 = (1.000001 * tau1);
+
                 number peakCond = var_peakCond();
                 peakCond = peakCond < 0 ? 0 : peakCond;
 
                 number duration = tau1 * tau2 / (tau2 - tau1) * log(tau2 / tau1);
-				if (fabs(1.0 - tau1/tau2) < 1e-8)
-					duration = tau2;
 
 				duration += 5*tau2;
 
@@ -720,140 +721,123 @@ set_activation_timing_with_grid()
             UG_COND_THROW(postIt == m_mPostSynapses.end(), "Post-synapse for OnsetPreSynapse not on the same proc.")
             IPostSynapse* post = postIt->second;
 
-            // depending on type, set activation
+            // treat only alpha post-synapses
             SynapseType type = post->type();
-            switch (type)
-            {
-                case ALPHA_POST_SYNAPSE:
-                {
-                    // cast to alpha post-synapse
-                    AlphaPostSynapse* alphaPost = dynamic_cast<AlphaPostSynapse*>(post);
-                    UG_COND_THROW(!alphaPost, "Synapse claiming to be alpha post synapse, but is not.");
+            if (type != ALPHA_POST_SYNAPSE)
+            	continue;
 
-                    number t_onset = alpha_var_onset();
-                    t_onset = t_onset < 0 ? 0 : t_onset;
+			AlphaPostSynapse* alphaPost = dynamic_cast<AlphaPostSynapse*>(post);
+			UG_COND_THROW(!alphaPost, "Synapse claiming to be alpha post synapse, but is not.");
 
-                    number tau = alpha_var_tau();
-                    tau = tau < 0 ? 0 : tau;
+			number t_onset = alpha_var_onset();
+			t_onset = t_onset < 0 ? 0 : t_onset;
 
-                    number cond = alpha_var_cond();
-                    cond = cond < 0 ? 0 : cond;
+			number tau = alpha_var_tau();
+			tau = tau < 0 ? 1e-6 : tau;
 
-                    // This will parameterize the alpha_synapse in such a way that
-                    // it is active until the current decays to 5% of its maximal strength.
-                    onsetSyn->set_onset(t_onset);
-                    onsetSyn->set_duration(6.0*tau);
-                    alphaPost->set_tau(tau);
-                    alphaPost->set_gMax(cond);
+			number cond = alpha_var_cond();
+			cond = cond < 0 ? 0 : cond;
 
-                    break;
-                }
-
-                // exp2 balls are treated in a separate loop below
-
-                default:
-                    break;
-            }
+			// This will parameterize the alpha_synapse in such a way that
+			// it is active until the current decays to 5% of its maximal strength.
+			onsetSyn->set_onset(t_onset);
+			onsetSyn->set_duration(6.0*tau);
+			alphaPost->set_tau(tau);
+			alphaPost->set_gMax(cond);
         }
-    }
+	}
 
-    // finally, evaluate biexp synapse activation balls
-    // possibly overriding the previously set activation pattern
-    typedef std::vector<std::pair<std::vector<number>, std::vector<number> > >::const_iterator ball_it_type;
-    ball_it = m_vTimingBiExpBalls.begin();
-    ball_it_end = m_vTimingBiExpBalls.end();
-    for (; ball_it != ball_it_end; ++ball_it)
-    {
-        const std::vector<number>& biexp_timings = ball_it->first;
-        const std::vector<number>& ball = ball_it->second;
+	// finally, evaluate biexp synapse activation balls
+	// possibly overriding the previously set activation pattern
+	typedef std::vector<std::pair<std::vector<number>, std::vector<number> > >::const_iterator ball_it_type;
+	ball_it = m_vTimingBiExpBalls.begin();
+	ball_it_end = m_vTimingBiExpBalls.end();
+	for (; ball_it != ball_it_end; ++ball_it)
+	{
+		const std::vector<number>& biexp_timings = ball_it->first;
+		const std::vector<number>& ball = ball_it->second;
 
-        // timings
-        number onset = biexp_timings[0];
-        number tau1_mean = biexp_timings[1];
-        number tau2_mean = biexp_timings[2];
-        number peak_cond = biexp_timings[3];
-        number onset_dev = biexp_timings[4];
-        number tau1_dev = biexp_timings[5];
-        number tau2_dev = biexp_timings[6];
-        number peak_cond_dev = biexp_timings[7];
+		// timings
+		number onset = biexp_timings[0];
+		number tau1_mean = biexp_timings[1];
+		number tau2_mean = biexp_timings[2];
+		number peak_cond = biexp_timings[3];
+		number onset_dev = biexp_timings[4];
+		number tau1_dev = biexp_timings[5];
+		number tau2_dev = biexp_timings[6];
+		number peak_cond_dev = biexp_timings[7];
 
-        // ball region
-        vector3 center(ball[0], ball[1], ball[2]);
-        number radius = ball[3];
+		// ball region
+		vector3 center(ball[0], ball[1], ball[2]);
+		number radius = ball[3];
 
-        // sample from distribution for this ball
-        boost::normal_distribution<number> start_dist(onset, onset_dev);
-        boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > var_start(rng_biexp, start_dist);
-        boost::normal_distribution<number> tau1_dist(tau1_mean, tau1_dev);
-        boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > var_tau1(rng_biexp, tau1_dist);
-        boost::normal_distribution<number> tau2_dist(tau2_mean, tau2_dev);
-        boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > var_tau2(rng_biexp, tau2_dist);
-        boost::normal_distribution<number> cond_dist(peak_cond, peak_cond_dev);
-        boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > var_peakCond(rng_biexp, cond_dist);
+		// sample from distribution for this ball
+		boost::normal_distribution<number> start_dist(onset, onset_dev);
+		boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > var_start(rng_biexp, start_dist);
+		boost::normal_distribution<number> tau1_dist(tau1_mean, tau1_dev);
+		boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > var_tau1(rng_biexp, tau1_dist);
+		boost::normal_distribution<number> tau2_dist(tau2_mean, tau2_dev);
+		boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > var_tau2(rng_biexp, tau2_dist);
+		boost::normal_distribution<number> cond_dist(peak_cond, peak_cond_dev);
+		boost::variate_generator<boost::mt19937, boost::normal_distribution<number> > var_peakCond(rng_biexp, cond_dist);
 
-        SynapseIter<OnsetPreSynapse> it = begin<OnsetPreSynapse>();
-        for (; it != it_end; ++it)
-        {
-            OnsetPreSynapse* onsetSyn = *it;
+		SynapseIter<OnsetPreSynapse> it = begin<OnsetPreSynapse>();
+		for (; it != it_end; ++it)
+		{
+			OnsetPreSynapse* onsetSyn = *it;
 
-            // check whether synapse is located within ball
-            Edge* e = m_mPreSynapseIdToEdge[onsetSyn->id()];
-            vector3 a = m_aaPosition[e->vertex(0)];
-            vector3 b = m_aaPosition[e->vertex(1)];
-            /// FIXME: unsafe comparison
-            if (VecDistanceSq(a, center) >= radius*radius || VecDistanceSq(b, center) >= radius*radius)
-                continue;
+			// check whether synapse is located within ball
+			Edge* e = m_mPreSynapseIdToEdge[onsetSyn->id()];
+			vector3 a = m_aaPosition[e->vertex(0)];
+			vector3 b = m_aaPosition[e->vertex(1)];
+			/// FIXME: unsafe comparison
+			if (VecDistanceSq(a, center) >= radius*radius || VecDistanceSq(b, center) >= radius*radius)
+				continue;
 
-            // here, this is the case; now, get corresponding post-synapse
-            std::map<synapse_id, IPostSynapse*>::iterator postIt = m_mPostSynapses.find(onsetSyn->id());
+			// here, this is the case; now, get corresponding post-synapse
+			std::map<synapse_id, IPostSynapse*>::iterator postIt = m_mPostSynapses.find(onsetSyn->id());
 
-            // Technically, it is possible that this post synapse is not located on the same proc.
-            // This should not happen, as OnsetPreSynapses belong to primary post-synapses and those are located
-            // on the same edge, but you never know what an evil user might do ...
-            UG_COND_THROW(postIt == m_mPostSynapses.end(), "Post-synapse for OnsetPreSynapse not on the same proc.")
-            IPostSynapse* post = postIt->second;
+			// Technically, it is possible that this post synapse is not located on the same proc.
+			// This should not happen, as OnsetPreSynapses belong to primary post-synapses and those are located
+			// on the same edge, but you never know what an evil user might do ...
+			UG_COND_THROW(postIt == m_mPostSynapses.end(), "Post-synapse for OnsetPreSynapse not on the same proc.")
+			IPostSynapse* post = postIt->second;
 
-            // depending on type, set activation
-            SynapseType type = post->type();
-            switch (type)
-            {
-            	case EXP2_POST_SYNAPSE:
-                {
-                    // cast to exp2 post-synapse
-                	Exp2PostSynapse* exp2Post = dynamic_cast<Exp2PostSynapse*>(post);
-                    UG_COND_THROW(!exp2Post, "Synapse claiming to be exp2 post synapse, but is not.");
+			// only treat exp2 synapses
+			SynapseType type = post->type();
+			if (type != EXP2_POST_SYNAPSE)
+				continue;
 
-                    number t_onset = var_start();
-                    t_onset = t_onset < 0 ? 0 : t_onset;
+			Exp2PostSynapse* exp2Post = dynamic_cast<Exp2PostSynapse*>(post);
+			UG_COND_THROW(!exp2Post, "Synapse claiming to be exp2 post synapse, but is not.");
 
-                    number tau1 = var_tau1();
-                    tau1 = tau1 < 0 ? 0 : tau1;
+			number t_onset = var_start();
+			t_onset = t_onset < 0 ? 0 : t_onset;
 
-                    number tau2 = var_tau2();
-                    tau2 = tau2 < 0 ? 0 : tau2;
+			number tau1 = var_tau1();
+			tau1 = tau1 < 0 ? 1e-6 : tau1;
 
-                    number peakCond = var_peakCond();
-                    peakCond = peakCond < 0 ? 0 : peakCond;
+			number tau2 = var_tau2();
+			tau2 = tau2 < 0 ? 2e-6 : tau2;
 
-                    number duration = tau1 * tau2 / (tau2 - tau1) * log(tau2 / tau1);
-                    if (fabs(1.0 - tau1/tau2) < 1e-8)
-                    	duration = tau2;
+			if (fabs(tau2 - tau1) <= 1e-8 * tau2)
+				tau2 = (1.000001 * tau1);
 
-                    duration += 5*tau2;
+			number peakCond = var_peakCond();
+			peakCond = peakCond < 0 ? 0 : peakCond;
 
-                    onsetSyn->set_onset(t_onset);
-                    onsetSyn->set_duration(duration);
-                    exp2Post->set_tau1(tau1);
-                    exp2Post->set_tau2(tau2);
-                    exp2Post->set_gMax(peakCond);
 
-                    break;
-                }
-                default:
-                    break;
-            	}
-    	}
-    }
+			number duration = tau1 * tau2 / (tau2 - tau1) * log(tau2 / tau1);
+
+			duration += 5*tau2;
+
+			onsetSyn->set_onset(t_onset);
+			onsetSyn->set_duration(duration);
+			exp2Post->set_tau1(tau1);
+			exp2Post->set_tau2(tau2);
+			exp2Post->set_gMax(peakCond);
+		}
+	}
 }
 
 
