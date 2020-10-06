@@ -1239,9 +1239,7 @@ void CableEquation<TDomain>::update_surface_verts()
 // ////////////////////////////////////
 #ifdef UG_DIM_3
 	template class CableEquation<Domain3d>;
-	#ifdef UG_CPU_1
-		template number CableEquation<Domain3d>::estimate_cfl_cond(ConstSmartPtr<CPUAlgebra::vector_type> u);
-	#endif
+	template number CableEquation<Domain3d>::estimate_cfl_cond(ConstSmartPtr<CPUAlgebra::vector_type> u);
 #endif
 
 
